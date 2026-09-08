@@ -79,6 +79,59 @@ func (ConsistencyFreshnessHint) EnumDescriptor() ([]byte, []int) {
 	return file_hcmnext_intents_v1_intent_service_proto_rawDescGZIP(), []int{0}
 }
 
+// ExecutionReceiptStatus distinguishes execution from read-only START recovery.
+type ExecutionReceiptStatus int32
+
+const (
+	ExecutionReceiptStatus_EXECUTION_RECEIPT_STATUS_UNSPECIFIED ExecutionReceiptStatus = 0
+	ExecutionReceiptStatus_EXECUTION_RECEIPT_STATUS_PARKED      ExecutionReceiptStatus = 1
+	ExecutionReceiptStatus_EXECUTION_RECEIPT_STATUS_COMPLETE    ExecutionReceiptStatus = 2
+	ExecutionReceiptStatus_EXECUTION_RECEIPT_STATUS_RESOLVED    ExecutionReceiptStatus = 3
+)
+
+// Enum value maps for ExecutionReceiptStatus.
+var (
+	ExecutionReceiptStatus_name = map[int32]string{
+		0: "EXECUTION_RECEIPT_STATUS_UNSPECIFIED",
+		1: "EXECUTION_RECEIPT_STATUS_PARKED",
+		2: "EXECUTION_RECEIPT_STATUS_COMPLETE",
+		3: "EXECUTION_RECEIPT_STATUS_RESOLVED",
+	}
+	ExecutionReceiptStatus_value = map[string]int32{
+		"EXECUTION_RECEIPT_STATUS_UNSPECIFIED": 0,
+		"EXECUTION_RECEIPT_STATUS_PARKED":      1,
+		"EXECUTION_RECEIPT_STATUS_COMPLETE":    2,
+		"EXECUTION_RECEIPT_STATUS_RESOLVED":    3,
+	}
+)
+
+func (x ExecutionReceiptStatus) Enum() *ExecutionReceiptStatus {
+	p := new(ExecutionReceiptStatus)
+	*p = x
+	return p
+}
+
+func (x ExecutionReceiptStatus) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ExecutionReceiptStatus) Descriptor() protoreflect.EnumDescriptor {
+	return file_hcmnext_intents_v1_intent_service_proto_enumTypes[1].Descriptor()
+}
+
+func (ExecutionReceiptStatus) Type() protoreflect.EnumType {
+	return &file_hcmnext_intents_v1_intent_service_proto_enumTypes[1]
+}
+
+func (x ExecutionReceiptStatus) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ExecutionReceiptStatus.Descriptor instead.
+func (ExecutionReceiptStatus) EnumDescriptor() ([]byte, []int) {
+	return file_hcmnext_intents_v1_intent_service_proto_rawDescGZIP(), []int{1}
+}
+
 // PlannedWrite is one typed domain write a SimulateIntent call determined it
 // would perform, without performing it.
 type PlannedWrite struct {
@@ -1166,11 +1219,105 @@ func (x *ParkedWorkItem) GetNodeId() string {
 	return ""
 }
 
-// ExecutionReceipt is the immutable, non-simulated result of one ExecuteIntent
-// call: the started or resumed workflow instance, the nodes the caller-driven
-// driver actually visited before returning, any continuation still parked on
-// durable human work, the instance's own optimistic version, and a digest
-// binding all of it together for later verification.
+// ResolvedStartState proves a START committed and reports current durable
+// state. It neither reconstructs the original receipt nor authorizes replay.
+type ResolvedStartState struct {
+	state protoimpl.MessageState `protogen:"open.v1"`
+	// Canonical runtime status ID. Kept separate from lifecycle dimensions;
+	// importing the workflow package here would create a package import cycle.
+	RuntimeStatus      string   `protobuf:"bytes,1,opt,name=runtime_status,json=runtimeStatus,proto3" json:"runtime_status,omitempty"`
+	CurrentNodeIds     []string `protobuf:"bytes,2,rep,name=current_node_ids,json=currentNodeIds,proto3" json:"current_node_ids,omitempty"`
+	WorkflowId         string   `protobuf:"bytes,3,opt,name=workflow_id,json=workflowId,proto3" json:"workflow_id,omitempty"`
+	WorkflowVersion    uint32   `protobuf:"varint,4,opt,name=workflow_version,json=workflowVersion,proto3" json:"workflow_version,omitempty"`
+	CompiledPlanDigest string   `protobuf:"bytes,5,opt,name=compiled_plan_digest,json=compiledPlanDigest,proto3" json:"compiled_plan_digest,omitempty"`
+	SemanticVersion    string   `protobuf:"bytes,6,opt,name=semantic_version,json=semanticVersion,proto3" json:"semantic_version,omitempty"`
+	// Lifecycle dimensions remain distinct from the runtime status.
+	Lifecycle     *LifecycleDimensions `protobuf:"bytes,7,opt,name=lifecycle,proto3" json:"lifecycle,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ResolvedStartState) Reset() {
+	*x = ResolvedStartState{}
+	mi := &file_hcmnext_intents_v1_intent_service_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ResolvedStartState) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ResolvedStartState) ProtoMessage() {}
+
+func (x *ResolvedStartState) ProtoReflect() protoreflect.Message {
+	mi := &file_hcmnext_intents_v1_intent_service_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ResolvedStartState.ProtoReflect.Descriptor instead.
+func (*ResolvedStartState) Descriptor() ([]byte, []int) {
+	return file_hcmnext_intents_v1_intent_service_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *ResolvedStartState) GetRuntimeStatus() string {
+	if x != nil {
+		return x.RuntimeStatus
+	}
+	return ""
+}
+
+func (x *ResolvedStartState) GetCurrentNodeIds() []string {
+	if x != nil {
+		return x.CurrentNodeIds
+	}
+	return nil
+}
+
+func (x *ResolvedStartState) GetWorkflowId() string {
+	if x != nil {
+		return x.WorkflowId
+	}
+	return ""
+}
+
+func (x *ResolvedStartState) GetWorkflowVersion() uint32 {
+	if x != nil {
+		return x.WorkflowVersion
+	}
+	return 0
+}
+
+func (x *ResolvedStartState) GetCompiledPlanDigest() string {
+	if x != nil {
+		return x.CompiledPlanDigest
+	}
+	return ""
+}
+
+func (x *ResolvedStartState) GetSemanticVersion() string {
+	if x != nil {
+		return x.SemanticVersion
+	}
+	return ""
+}
+
+func (x *ResolvedStartState) GetLifecycle() *LifecycleDimensions {
+	if x != nil {
+		return x.Lifecycle
+	}
+	return nil
+}
+
+// ExecutionReceipt reports execution or read-only recovery of a committed
+// START. RESOLVED does not claim that this call ran nodes or completed work.
 type ExecutionReceipt struct {
 	state        protoimpl.MessageState `protogen:"open.v1"`
 	InstanceId   string                 `protobuf:"bytes,1,opt,name=instance_id,json=instanceId,proto3" json:"instance_id,omitempty"`
@@ -1189,14 +1336,17 @@ type ExecutionReceipt struct {
 	// work_items names the durable WorkItem(s) a WORK_ITEM_REQUIRED
 	// continuation raised. Empty when the instance completed or is parked on a
 	// continuation kind that raises no work item.
-	WorkItems     []*ParkedWorkItem `protobuf:"bytes,7,rep,name=work_items,json=workItems,proto3" json:"work_items,omitempty"`
+	WorkItems []*ParkedWorkItem      `protobuf:"bytes,7,rep,name=work_items,json=workItems,proto3" json:"work_items,omitempty"`
+	Status    ExecutionReceiptStatus `protobuf:"varint,8,opt,name=status,proto3,enum=hcmnext.intents.v1.ExecutionReceiptStatus" json:"status,omitempty"`
+	// Present only for RESOLVED; visited nodes and newly created work are empty.
+	ResolvedStart *ResolvedStartState `protobuf:"bytes,9,opt,name=resolved_start,json=resolvedStart,proto3" json:"resolved_start,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *ExecutionReceipt) Reset() {
 	*x = ExecutionReceipt{}
-	mi := &file_hcmnext_intents_v1_intent_service_proto_msgTypes[17]
+	mi := &file_hcmnext_intents_v1_intent_service_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1208,7 +1358,7 @@ func (x *ExecutionReceipt) String() string {
 func (*ExecutionReceipt) ProtoMessage() {}
 
 func (x *ExecutionReceipt) ProtoReflect() protoreflect.Message {
-	mi := &file_hcmnext_intents_v1_intent_service_proto_msgTypes[17]
+	mi := &file_hcmnext_intents_v1_intent_service_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1221,7 +1371,7 @@ func (x *ExecutionReceipt) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExecutionReceipt.ProtoReflect.Descriptor instead.
 func (*ExecutionReceipt) Descriptor() ([]byte, []int) {
-	return file_hcmnext_intents_v1_intent_service_proto_rawDescGZIP(), []int{17}
+	return file_hcmnext_intents_v1_intent_service_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *ExecutionReceipt) GetInstanceId() string {
@@ -1274,6 +1424,20 @@ func (x *ExecutionReceipt) GetWorkItems() []*ParkedWorkItem {
 	return nil
 }
 
+func (x *ExecutionReceipt) GetStatus() ExecutionReceiptStatus {
+	if x != nil {
+		return x.Status
+	}
+	return ExecutionReceiptStatus_EXECUTION_RECEIPT_STATUS_UNSPECIFIED
+}
+
+func (x *ExecutionReceipt) GetResolvedStart() *ResolvedStartState {
+	if x != nil {
+		return x.ResolvedStart
+	}
+	return nil
+}
+
 type ExecuteIntentRequest struct {
 	state                   protoimpl.MessageState `protogen:"open.v1"`
 	Scope                   *v1.ScopeContext       `protobuf:"bytes,1,opt,name=scope,proto3" json:"scope,omitempty"`
@@ -1287,7 +1451,7 @@ type ExecuteIntentRequest struct {
 
 func (x *ExecuteIntentRequest) Reset() {
 	*x = ExecuteIntentRequest{}
-	mi := &file_hcmnext_intents_v1_intent_service_proto_msgTypes[18]
+	mi := &file_hcmnext_intents_v1_intent_service_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1299,7 +1463,7 @@ func (x *ExecuteIntentRequest) String() string {
 func (*ExecuteIntentRequest) ProtoMessage() {}
 
 func (x *ExecuteIntentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_hcmnext_intents_v1_intent_service_proto_msgTypes[18]
+	mi := &file_hcmnext_intents_v1_intent_service_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1312,7 +1476,7 @@ func (x *ExecuteIntentRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExecuteIntentRequest.ProtoReflect.Descriptor instead.
 func (*ExecuteIntentRequest) Descriptor() ([]byte, []int) {
-	return file_hcmnext_intents_v1_intent_service_proto_rawDescGZIP(), []int{18}
+	return file_hcmnext_intents_v1_intent_service_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *ExecuteIntentRequest) GetScope() *v1.ScopeContext {
@@ -1359,7 +1523,7 @@ type ExecuteIntentResponse struct {
 
 func (x *ExecuteIntentResponse) Reset() {
 	*x = ExecuteIntentResponse{}
-	mi := &file_hcmnext_intents_v1_intent_service_proto_msgTypes[19]
+	mi := &file_hcmnext_intents_v1_intent_service_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1371,7 +1535,7 @@ func (x *ExecuteIntentResponse) String() string {
 func (*ExecuteIntentResponse) ProtoMessage() {}
 
 func (x *ExecuteIntentResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_hcmnext_intents_v1_intent_service_proto_msgTypes[19]
+	mi := &file_hcmnext_intents_v1_intent_service_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1384,7 +1548,7 @@ func (x *ExecuteIntentResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExecuteIntentResponse.ProtoReflect.Descriptor instead.
 func (*ExecuteIntentResponse) Descriptor() ([]byte, []int) {
-	return file_hcmnext_intents_v1_intent_service_proto_rawDescGZIP(), []int{19}
+	return file_hcmnext_intents_v1_intent_service_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *ExecuteIntentResponse) GetExecution() *ExecutionReceipt {
@@ -1407,7 +1571,7 @@ type SubmitIntentRequest struct {
 
 func (x *SubmitIntentRequest) Reset() {
 	*x = SubmitIntentRequest{}
-	mi := &file_hcmnext_intents_v1_intent_service_proto_msgTypes[20]
+	mi := &file_hcmnext_intents_v1_intent_service_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1419,7 +1583,7 @@ func (x *SubmitIntentRequest) String() string {
 func (*SubmitIntentRequest) ProtoMessage() {}
 
 func (x *SubmitIntentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_hcmnext_intents_v1_intent_service_proto_msgTypes[20]
+	mi := &file_hcmnext_intents_v1_intent_service_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1432,7 +1596,7 @@ func (x *SubmitIntentRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SubmitIntentRequest.ProtoReflect.Descriptor instead.
 func (*SubmitIntentRequest) Descriptor() ([]byte, []int) {
-	return file_hcmnext_intents_v1_intent_service_proto_rawDescGZIP(), []int{20}
+	return file_hcmnext_intents_v1_intent_service_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *SubmitIntentRequest) GetIdempotencyKey() string {
@@ -1479,7 +1643,7 @@ type SubmitIntentResponse struct {
 
 func (x *SubmitIntentResponse) Reset() {
 	*x = SubmitIntentResponse{}
-	mi := &file_hcmnext_intents_v1_intent_service_proto_msgTypes[21]
+	mi := &file_hcmnext_intents_v1_intent_service_proto_msgTypes[22]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1491,7 +1655,7 @@ func (x *SubmitIntentResponse) String() string {
 func (*SubmitIntentResponse) ProtoMessage() {}
 
 func (x *SubmitIntentResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_hcmnext_intents_v1_intent_service_proto_msgTypes[21]
+	mi := &file_hcmnext_intents_v1_intent_service_proto_msgTypes[22]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1504,7 +1668,7 @@ func (x *SubmitIntentResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SubmitIntentResponse.ProtoReflect.Descriptor instead.
 func (*SubmitIntentResponse) Descriptor() ([]byte, []int) {
-	return file_hcmnext_intents_v1_intent_service_proto_rawDescGZIP(), []int{21}
+	return file_hcmnext_intents_v1_intent_service_proto_rawDescGZIP(), []int{22}
 }
 
 func (x *SubmitIntentResponse) GetIntent() *IntentInstance {
@@ -1527,7 +1691,7 @@ type CancelIntentRequest struct {
 
 func (x *CancelIntentRequest) Reset() {
 	*x = CancelIntentRequest{}
-	mi := &file_hcmnext_intents_v1_intent_service_proto_msgTypes[22]
+	mi := &file_hcmnext_intents_v1_intent_service_proto_msgTypes[23]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1539,7 +1703,7 @@ func (x *CancelIntentRequest) String() string {
 func (*CancelIntentRequest) ProtoMessage() {}
 
 func (x *CancelIntentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_hcmnext_intents_v1_intent_service_proto_msgTypes[22]
+	mi := &file_hcmnext_intents_v1_intent_service_proto_msgTypes[23]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1552,7 +1716,7 @@ func (x *CancelIntentRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CancelIntentRequest.ProtoReflect.Descriptor instead.
 func (*CancelIntentRequest) Descriptor() ([]byte, []int) {
-	return file_hcmnext_intents_v1_intent_service_proto_rawDescGZIP(), []int{22}
+	return file_hcmnext_intents_v1_intent_service_proto_rawDescGZIP(), []int{23}
 }
 
 func (x *CancelIntentRequest) GetIdempotencyKey() string {
@@ -1599,7 +1763,7 @@ type CancelIntentResponse struct {
 
 func (x *CancelIntentResponse) Reset() {
 	*x = CancelIntentResponse{}
-	mi := &file_hcmnext_intents_v1_intent_service_proto_msgTypes[23]
+	mi := &file_hcmnext_intents_v1_intent_service_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1611,7 +1775,7 @@ func (x *CancelIntentResponse) String() string {
 func (*CancelIntentResponse) ProtoMessage() {}
 
 func (x *CancelIntentResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_hcmnext_intents_v1_intent_service_proto_msgTypes[23]
+	mi := &file_hcmnext_intents_v1_intent_service_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1624,7 +1788,7 @@ func (x *CancelIntentResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CancelIntentResponse.ProtoReflect.Descriptor instead.
 func (*CancelIntentResponse) Descriptor() ([]byte, []int) {
-	return file_hcmnext_intents_v1_intent_service_proto_rawDescGZIP(), []int{23}
+	return file_hcmnext_intents_v1_intent_service_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *CancelIntentResponse) GetIntent() *IntentInstance {
@@ -1649,7 +1813,7 @@ type SupersedeIntentRequest struct {
 
 func (x *SupersedeIntentRequest) Reset() {
 	*x = SupersedeIntentRequest{}
-	mi := &file_hcmnext_intents_v1_intent_service_proto_msgTypes[24]
+	mi := &file_hcmnext_intents_v1_intent_service_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1661,7 +1825,7 @@ func (x *SupersedeIntentRequest) String() string {
 func (*SupersedeIntentRequest) ProtoMessage() {}
 
 func (x *SupersedeIntentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_hcmnext_intents_v1_intent_service_proto_msgTypes[24]
+	mi := &file_hcmnext_intents_v1_intent_service_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1674,7 +1838,7 @@ func (x *SupersedeIntentRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SupersedeIntentRequest.ProtoReflect.Descriptor instead.
 func (*SupersedeIntentRequest) Descriptor() ([]byte, []int) {
-	return file_hcmnext_intents_v1_intent_service_proto_rawDescGZIP(), []int{24}
+	return file_hcmnext_intents_v1_intent_service_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *SupersedeIntentRequest) GetIdempotencyKey() string {
@@ -1735,7 +1899,7 @@ type SupersedeIntentResponse struct {
 
 func (x *SupersedeIntentResponse) Reset() {
 	*x = SupersedeIntentResponse{}
-	mi := &file_hcmnext_intents_v1_intent_service_proto_msgTypes[25]
+	mi := &file_hcmnext_intents_v1_intent_service_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1747,7 +1911,7 @@ func (x *SupersedeIntentResponse) String() string {
 func (*SupersedeIntentResponse) ProtoMessage() {}
 
 func (x *SupersedeIntentResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_hcmnext_intents_v1_intent_service_proto_msgTypes[25]
+	mi := &file_hcmnext_intents_v1_intent_service_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1760,7 +1924,7 @@ func (x *SupersedeIntentResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use SupersedeIntentResponse.ProtoReflect.Descriptor instead.
 func (*SupersedeIntentResponse) Descriptor() ([]byte, []int) {
-	return file_hcmnext_intents_v1_intent_service_proto_rawDescGZIP(), []int{25}
+	return file_hcmnext_intents_v1_intent_service_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *SupersedeIntentResponse) GetSupersedingIntent() *IntentInstance {
@@ -1781,7 +1945,7 @@ type ExplainIntentRequest struct {
 
 func (x *ExplainIntentRequest) Reset() {
 	*x = ExplainIntentRequest{}
-	mi := &file_hcmnext_intents_v1_intent_service_proto_msgTypes[26]
+	mi := &file_hcmnext_intents_v1_intent_service_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1793,7 +1957,7 @@ func (x *ExplainIntentRequest) String() string {
 func (*ExplainIntentRequest) ProtoMessage() {}
 
 func (x *ExplainIntentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_hcmnext_intents_v1_intent_service_proto_msgTypes[26]
+	mi := &file_hcmnext_intents_v1_intent_service_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1806,7 +1970,7 @@ func (x *ExplainIntentRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExplainIntentRequest.ProtoReflect.Descriptor instead.
 func (*ExplainIntentRequest) Descriptor() ([]byte, []int) {
-	return file_hcmnext_intents_v1_intent_service_proto_rawDescGZIP(), []int{26}
+	return file_hcmnext_intents_v1_intent_service_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *ExplainIntentRequest) GetScope() *v1.ScopeContext {
@@ -1841,7 +2005,7 @@ type ExplainIntentResponse struct {
 
 func (x *ExplainIntentResponse) Reset() {
 	*x = ExplainIntentResponse{}
-	mi := &file_hcmnext_intents_v1_intent_service_proto_msgTypes[27]
+	mi := &file_hcmnext_intents_v1_intent_service_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1853,7 +2017,7 @@ func (x *ExplainIntentResponse) String() string {
 func (*ExplainIntentResponse) ProtoMessage() {}
 
 func (x *ExplainIntentResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_hcmnext_intents_v1_intent_service_proto_msgTypes[27]
+	mi := &file_hcmnext_intents_v1_intent_service_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1866,7 +2030,7 @@ func (x *ExplainIntentResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ExplainIntentResponse.ProtoReflect.Descriptor instead.
 func (*ExplainIntentResponse) Descriptor() ([]byte, []int) {
-	return file_hcmnext_intents_v1_intent_service_proto_rawDescGZIP(), []int{27}
+	return file_hcmnext_intents_v1_intent_service_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *ExplainIntentResponse) GetIntentId() string {
@@ -1905,7 +2069,7 @@ type TimelineEvent struct {
 
 func (x *TimelineEvent) Reset() {
 	*x = TimelineEvent{}
-	mi := &file_hcmnext_intents_v1_intent_service_proto_msgTypes[28]
+	mi := &file_hcmnext_intents_v1_intent_service_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1917,7 +2081,7 @@ func (x *TimelineEvent) String() string {
 func (*TimelineEvent) ProtoMessage() {}
 
 func (x *TimelineEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_hcmnext_intents_v1_intent_service_proto_msgTypes[28]
+	mi := &file_hcmnext_intents_v1_intent_service_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1930,7 +2094,7 @@ func (x *TimelineEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TimelineEvent.ProtoReflect.Descriptor instead.
 func (*TimelineEvent) Descriptor() ([]byte, []int) {
-	return file_hcmnext_intents_v1_intent_service_proto_rawDescGZIP(), []int{28}
+	return file_hcmnext_intents_v1_intent_service_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *TimelineEvent) GetEventId() string {
@@ -1979,7 +2143,7 @@ type ListIntentTimelineRequest struct {
 
 func (x *ListIntentTimelineRequest) Reset() {
 	*x = ListIntentTimelineRequest{}
-	mi := &file_hcmnext_intents_v1_intent_service_proto_msgTypes[29]
+	mi := &file_hcmnext_intents_v1_intent_service_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1991,7 +2155,7 @@ func (x *ListIntentTimelineRequest) String() string {
 func (*ListIntentTimelineRequest) ProtoMessage() {}
 
 func (x *ListIntentTimelineRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_hcmnext_intents_v1_intent_service_proto_msgTypes[29]
+	mi := &file_hcmnext_intents_v1_intent_service_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2004,7 +2168,7 @@ func (x *ListIntentTimelineRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListIntentTimelineRequest.ProtoReflect.Descriptor instead.
 func (*ListIntentTimelineRequest) Descriptor() ([]byte, []int) {
-	return file_hcmnext_intents_v1_intent_service_proto_rawDescGZIP(), []int{29}
+	return file_hcmnext_intents_v1_intent_service_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *ListIntentTimelineRequest) GetScope() *v1.ScopeContext {
@@ -2038,7 +2202,7 @@ type ListIntentTimelineResponse struct {
 
 func (x *ListIntentTimelineResponse) Reset() {
 	*x = ListIntentTimelineResponse{}
-	mi := &file_hcmnext_intents_v1_intent_service_proto_msgTypes[30]
+	mi := &file_hcmnext_intents_v1_intent_service_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2050,7 +2214,7 @@ func (x *ListIntentTimelineResponse) String() string {
 func (*ListIntentTimelineResponse) ProtoMessage() {}
 
 func (x *ListIntentTimelineResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_hcmnext_intents_v1_intent_service_proto_msgTypes[30]
+	mi := &file_hcmnext_intents_v1_intent_service_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2063,7 +2227,7 @@ func (x *ListIntentTimelineResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListIntentTimelineResponse.ProtoReflect.Descriptor instead.
 func (*ListIntentTimelineResponse) Descriptor() ([]byte, []int) {
-	return file_hcmnext_intents_v1_intent_service_proto_rawDescGZIP(), []int{30}
+	return file_hcmnext_intents_v1_intent_service_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *ListIntentTimelineResponse) GetEvents() []*TimelineEvent {
@@ -2168,7 +2332,16 @@ const file_hcmnext_intents_v1_intent_service_proto_rawDesc = "" +
 	"\fwork_item_id\x18\x01 \x01(\tR\n" +
 	"workItemId\x12\x12\n" +
 	"\x04kind\x18\x02 \x01(\tR\x04kind\x12\x17\n" +
-	"\anode_id\x18\x03 \x01(\tR\x06nodeId\"\x86\x03\n" +
+	"\anode_id\x18\x03 \x01(\tR\x06nodeId\"\xd5\x02\n" +
+	"\x12ResolvedStartState\x12%\n" +
+	"\x0eruntime_status\x18\x01 \x01(\tR\rruntimeStatus\x12(\n" +
+	"\x10current_node_ids\x18\x02 \x03(\tR\x0ecurrentNodeIds\x12\x1f\n" +
+	"\vworkflow_id\x18\x03 \x01(\tR\n" +
+	"workflowId\x12)\n" +
+	"\x10workflow_version\x18\x04 \x01(\rR\x0fworkflowVersion\x120\n" +
+	"\x14compiled_plan_digest\x18\x05 \x01(\tR\x12compiledPlanDigest\x12)\n" +
+	"\x10semantic_version\x18\x06 \x01(\tR\x0fsemanticVersion\x12E\n" +
+	"\tlifecycle\x18\a \x01(\v2'.hcmnext.intents.v1.LifecycleDimensionsR\tlifecycle\"\x99\x04\n" +
 	"\x10ExecutionReceipt\x12\x1f\n" +
 	"\vinstance_id\x18\x01 \x01(\tR\n" +
 	"instanceId\x12#\n" +
@@ -2178,7 +2351,9 @@ const file_hcmnext_intents_v1_intent_service_proto_rawDesc = "" +
 	"\x0ereceipt_digest\x18\x05 \x01(\tR\rreceiptDigest\x12`\n" +
 	"\x18parked_continuation_refs\x18\x06 \x03(\v2&.hcmnext.intents.v1.ParkedContinuationR\x16parkedContinuationRefs\x12A\n" +
 	"\n" +
-	"work_items\x18\a \x03(\v2\".hcmnext.intents.v1.ParkedWorkItemR\tworkItems\"\x91\x02\n" +
+	"work_items\x18\a \x03(\v2\".hcmnext.intents.v1.ParkedWorkItemR\tworkItems\x12B\n" +
+	"\x06status\x18\b \x01(\x0e2*.hcmnext.intents.v1.ExecutionReceiptStatusR\x06status\x12M\n" +
+	"\x0eresolved_start\x18\t \x01(\v2&.hcmnext.intents.v1.ResolvedStartStateR\rresolvedStart\"\x91\x02\n" +
 	"\x14ExecuteIntentRequest\x125\n" +
 	"\x05scope\x18\x01 \x01(\v2\x1f.hcmnext.common.v1.ScopeContextR\x05scope\x12\x1b\n" +
 	"\tintent_id\x18\x02 \x01(\tR\bintentId\x12:\n" +
@@ -2243,7 +2418,12 @@ const file_hcmnext_intents_v1_intent_service_proto_rawDesc = "" +
 	"&CONSISTENCY_FRESHNESS_HINT_UNSPECIFIED\x10\x00\x12%\n" +
 	"!CONSISTENCY_FRESHNESS_HINT_STRONG\x10\x01\x12,\n" +
 	"(CONSISTENCY_FRESHNESS_HINT_BOUNDED_STALE\x10\x02\x12'\n" +
-	"#CONSISTENCY_FRESHNESS_HINT_EVENTUAL\x10\x032\x88\b\n" +
+	"#CONSISTENCY_FRESHNESS_HINT_EVENTUAL\x10\x03*\xb5\x01\n" +
+	"\x16ExecutionReceiptStatus\x12(\n" +
+	"$EXECUTION_RECEIPT_STATUS_UNSPECIFIED\x10\x00\x12#\n" +
+	"\x1fEXECUTION_RECEIPT_STATUS_PARKED\x10\x01\x12%\n" +
+	"!EXECUTION_RECEIPT_STATUS_COMPLETE\x10\x02\x12%\n" +
+	"!EXECUTION_RECEIPT_STATUS_RESOLVED\x10\x032\x88\b\n" +
 	"\rIntentService\x12a\n" +
 	"\fCreateIntent\x12'.hcmnext.intents.v1.CreateIntentRequest\x1a(.hcmnext.intents.v1.CreateIntentResponse\x12X\n" +
 	"\tGetIntent\x12$.hcmnext.intents.v1.GetIntentRequest\x1a%.hcmnext.intents.v1.GetIntentResponse\x12^\n" +
@@ -2268,127 +2448,133 @@ func file_hcmnext_intents_v1_intent_service_proto_rawDescGZIP() []byte {
 	return file_hcmnext_intents_v1_intent_service_proto_rawDescData
 }
 
-var file_hcmnext_intents_v1_intent_service_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_hcmnext_intents_v1_intent_service_proto_msgTypes = make([]protoimpl.MessageInfo, 31)
+var file_hcmnext_intents_v1_intent_service_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
+var file_hcmnext_intents_v1_intent_service_proto_msgTypes = make([]protoimpl.MessageInfo, 32)
 var file_hcmnext_intents_v1_intent_service_proto_goTypes = []any{
 	(ConsistencyFreshnessHint)(0),      // 0: hcmnext.intents.v1.ConsistencyFreshnessHint
-	(*PlannedWrite)(nil),               // 1: hcmnext.intents.v1.PlannedWrite
-	(*PlannedEffect)(nil),              // 2: hcmnext.intents.v1.PlannedEffect
-	(*Finding)(nil),                    // 3: hcmnext.intents.v1.Finding
-	(*UncertaintyNote)(nil),            // 4: hcmnext.intents.v1.UncertaintyNote
-	(*ZeroEffectReceipt)(nil),          // 5: hcmnext.intents.v1.ZeroEffectReceipt
-	(*SimulationArtifact)(nil),         // 6: hcmnext.intents.v1.SimulationArtifact
-	(*CreateIntentRequest)(nil),        // 7: hcmnext.intents.v1.CreateIntentRequest
-	(*CreateIntentResponse)(nil),       // 8: hcmnext.intents.v1.CreateIntentResponse
-	(*GetIntentRequest)(nil),           // 9: hcmnext.intents.v1.GetIntentRequest
-	(*GetIntentResponse)(nil),          // 10: hcmnext.intents.v1.GetIntentResponse
-	(*ListIntentsRequest)(nil),         // 11: hcmnext.intents.v1.ListIntentsRequest
-	(*ListIntentsResponse)(nil),        // 12: hcmnext.intents.v1.ListIntentsResponse
-	(*SimulateIntentRequest)(nil),      // 13: hcmnext.intents.v1.SimulateIntentRequest
-	(*SimulateIntentResponse)(nil),     // 14: hcmnext.intents.v1.SimulateIntentResponse
-	(*ProposalApproval)(nil),           // 15: hcmnext.intents.v1.ProposalApproval
-	(*ParkedContinuation)(nil),         // 16: hcmnext.intents.v1.ParkedContinuation
-	(*ParkedWorkItem)(nil),             // 17: hcmnext.intents.v1.ParkedWorkItem
-	(*ExecutionReceipt)(nil),           // 18: hcmnext.intents.v1.ExecutionReceipt
-	(*ExecuteIntentRequest)(nil),       // 19: hcmnext.intents.v1.ExecuteIntentRequest
-	(*ExecuteIntentResponse)(nil),      // 20: hcmnext.intents.v1.ExecuteIntentResponse
-	(*SubmitIntentRequest)(nil),        // 21: hcmnext.intents.v1.SubmitIntentRequest
-	(*SubmitIntentResponse)(nil),       // 22: hcmnext.intents.v1.SubmitIntentResponse
-	(*CancelIntentRequest)(nil),        // 23: hcmnext.intents.v1.CancelIntentRequest
-	(*CancelIntentResponse)(nil),       // 24: hcmnext.intents.v1.CancelIntentResponse
-	(*SupersedeIntentRequest)(nil),     // 25: hcmnext.intents.v1.SupersedeIntentRequest
-	(*SupersedeIntentResponse)(nil),    // 26: hcmnext.intents.v1.SupersedeIntentResponse
-	(*ExplainIntentRequest)(nil),       // 27: hcmnext.intents.v1.ExplainIntentRequest
-	(*ExplainIntentResponse)(nil),      // 28: hcmnext.intents.v1.ExplainIntentResponse
-	(*TimelineEvent)(nil),              // 29: hcmnext.intents.v1.TimelineEvent
-	(*ListIntentTimelineRequest)(nil),  // 30: hcmnext.intents.v1.ListIntentTimelineRequest
-	(*ListIntentTimelineResponse)(nil), // 31: hcmnext.intents.v1.ListIntentTimelineResponse
-	(*v1.EvidenceRef)(nil),             // 32: hcmnext.common.v1.EvidenceRef
-	(*CanonicalDigestReference)(nil),   // 33: hcmnext.intents.v1.CanonicalDigestReference
-	(*v1.ScopeContext)(nil),            // 34: hcmnext.common.v1.ScopeContext
-	(*DefinitionReference)(nil),        // 35: hcmnext.intents.v1.DefinitionReference
-	(*PrincipalReference)(nil),         // 36: hcmnext.intents.v1.PrincipalReference
-	(*SubjectReference)(nil),           // 37: hcmnext.intents.v1.SubjectReference
-	(*TypedPayload)(nil),               // 38: hcmnext.intents.v1.TypedPayload
-	(ExecutionMode)(0),                 // 39: hcmnext.intents.v1.ExecutionMode
-	(*IntentInstance)(nil),             // 40: hcmnext.intents.v1.IntentInstance
-	(*v1.PageRequest)(nil),             // 41: hcmnext.common.v1.PageRequest
-	(*v1.PageResponse)(nil),            // 42: hcmnext.common.v1.PageResponse
-	(*timestamppb.Timestamp)(nil),      // 43: google.protobuf.Timestamp
+	(ExecutionReceiptStatus)(0),        // 1: hcmnext.intents.v1.ExecutionReceiptStatus
+	(*PlannedWrite)(nil),               // 2: hcmnext.intents.v1.PlannedWrite
+	(*PlannedEffect)(nil),              // 3: hcmnext.intents.v1.PlannedEffect
+	(*Finding)(nil),                    // 4: hcmnext.intents.v1.Finding
+	(*UncertaintyNote)(nil),            // 5: hcmnext.intents.v1.UncertaintyNote
+	(*ZeroEffectReceipt)(nil),          // 6: hcmnext.intents.v1.ZeroEffectReceipt
+	(*SimulationArtifact)(nil),         // 7: hcmnext.intents.v1.SimulationArtifact
+	(*CreateIntentRequest)(nil),        // 8: hcmnext.intents.v1.CreateIntentRequest
+	(*CreateIntentResponse)(nil),       // 9: hcmnext.intents.v1.CreateIntentResponse
+	(*GetIntentRequest)(nil),           // 10: hcmnext.intents.v1.GetIntentRequest
+	(*GetIntentResponse)(nil),          // 11: hcmnext.intents.v1.GetIntentResponse
+	(*ListIntentsRequest)(nil),         // 12: hcmnext.intents.v1.ListIntentsRequest
+	(*ListIntentsResponse)(nil),        // 13: hcmnext.intents.v1.ListIntentsResponse
+	(*SimulateIntentRequest)(nil),      // 14: hcmnext.intents.v1.SimulateIntentRequest
+	(*SimulateIntentResponse)(nil),     // 15: hcmnext.intents.v1.SimulateIntentResponse
+	(*ProposalApproval)(nil),           // 16: hcmnext.intents.v1.ProposalApproval
+	(*ParkedContinuation)(nil),         // 17: hcmnext.intents.v1.ParkedContinuation
+	(*ParkedWorkItem)(nil),             // 18: hcmnext.intents.v1.ParkedWorkItem
+	(*ResolvedStartState)(nil),         // 19: hcmnext.intents.v1.ResolvedStartState
+	(*ExecutionReceipt)(nil),           // 20: hcmnext.intents.v1.ExecutionReceipt
+	(*ExecuteIntentRequest)(nil),       // 21: hcmnext.intents.v1.ExecuteIntentRequest
+	(*ExecuteIntentResponse)(nil),      // 22: hcmnext.intents.v1.ExecuteIntentResponse
+	(*SubmitIntentRequest)(nil),        // 23: hcmnext.intents.v1.SubmitIntentRequest
+	(*SubmitIntentResponse)(nil),       // 24: hcmnext.intents.v1.SubmitIntentResponse
+	(*CancelIntentRequest)(nil),        // 25: hcmnext.intents.v1.CancelIntentRequest
+	(*CancelIntentResponse)(nil),       // 26: hcmnext.intents.v1.CancelIntentResponse
+	(*SupersedeIntentRequest)(nil),     // 27: hcmnext.intents.v1.SupersedeIntentRequest
+	(*SupersedeIntentResponse)(nil),    // 28: hcmnext.intents.v1.SupersedeIntentResponse
+	(*ExplainIntentRequest)(nil),       // 29: hcmnext.intents.v1.ExplainIntentRequest
+	(*ExplainIntentResponse)(nil),      // 30: hcmnext.intents.v1.ExplainIntentResponse
+	(*TimelineEvent)(nil),              // 31: hcmnext.intents.v1.TimelineEvent
+	(*ListIntentTimelineRequest)(nil),  // 32: hcmnext.intents.v1.ListIntentTimelineRequest
+	(*ListIntentTimelineResponse)(nil), // 33: hcmnext.intents.v1.ListIntentTimelineResponse
+	(*v1.EvidenceRef)(nil),             // 34: hcmnext.common.v1.EvidenceRef
+	(*CanonicalDigestReference)(nil),   // 35: hcmnext.intents.v1.CanonicalDigestReference
+	(*v1.ScopeContext)(nil),            // 36: hcmnext.common.v1.ScopeContext
+	(*DefinitionReference)(nil),        // 37: hcmnext.intents.v1.DefinitionReference
+	(*PrincipalReference)(nil),         // 38: hcmnext.intents.v1.PrincipalReference
+	(*SubjectReference)(nil),           // 39: hcmnext.intents.v1.SubjectReference
+	(*TypedPayload)(nil),               // 40: hcmnext.intents.v1.TypedPayload
+	(ExecutionMode)(0),                 // 41: hcmnext.intents.v1.ExecutionMode
+	(*IntentInstance)(nil),             // 42: hcmnext.intents.v1.IntentInstance
+	(*v1.PageRequest)(nil),             // 43: hcmnext.common.v1.PageRequest
+	(*v1.PageResponse)(nil),            // 44: hcmnext.common.v1.PageResponse
+	(*LifecycleDimensions)(nil),        // 45: hcmnext.intents.v1.LifecycleDimensions
+	(*timestamppb.Timestamp)(nil),      // 46: google.protobuf.Timestamp
 }
 var file_hcmnext_intents_v1_intent_service_proto_depIdxs = []int32{
-	32, // 0: hcmnext.intents.v1.PlannedWrite.evidence_ref:type_name -> hcmnext.common.v1.EvidenceRef
-	33, // 1: hcmnext.intents.v1.SimulationArtifact.material_proposal_digest:type_name -> hcmnext.intents.v1.CanonicalDigestReference
-	1,  // 2: hcmnext.intents.v1.SimulationArtifact.planned_writes:type_name -> hcmnext.intents.v1.PlannedWrite
-	2,  // 3: hcmnext.intents.v1.SimulationArtifact.planned_effects:type_name -> hcmnext.intents.v1.PlannedEffect
-	3,  // 4: hcmnext.intents.v1.SimulationArtifact.findings:type_name -> hcmnext.intents.v1.Finding
-	4,  // 5: hcmnext.intents.v1.SimulationArtifact.uncertainty:type_name -> hcmnext.intents.v1.UncertaintyNote
-	5,  // 6: hcmnext.intents.v1.SimulationArtifact.zero_effect_receipt:type_name -> hcmnext.intents.v1.ZeroEffectReceipt
-	34, // 7: hcmnext.intents.v1.CreateIntentRequest.scope:type_name -> hcmnext.common.v1.ScopeContext
-	35, // 8: hcmnext.intents.v1.CreateIntentRequest.definition:type_name -> hcmnext.intents.v1.DefinitionReference
-	36, // 9: hcmnext.intents.v1.CreateIntentRequest.initiator:type_name -> hcmnext.intents.v1.PrincipalReference
-	37, // 10: hcmnext.intents.v1.CreateIntentRequest.subjects:type_name -> hcmnext.intents.v1.SubjectReference
-	38, // 11: hcmnext.intents.v1.CreateIntentRequest.request:type_name -> hcmnext.intents.v1.TypedPayload
-	39, // 12: hcmnext.intents.v1.CreateIntentRequest.execution_mode:type_name -> hcmnext.intents.v1.ExecutionMode
-	40, // 13: hcmnext.intents.v1.CreateIntentResponse.intent:type_name -> hcmnext.intents.v1.IntentInstance
-	34, // 14: hcmnext.intents.v1.GetIntentRequest.scope:type_name -> hcmnext.common.v1.ScopeContext
+	34, // 0: hcmnext.intents.v1.PlannedWrite.evidence_ref:type_name -> hcmnext.common.v1.EvidenceRef
+	35, // 1: hcmnext.intents.v1.SimulationArtifact.material_proposal_digest:type_name -> hcmnext.intents.v1.CanonicalDigestReference
+	2,  // 2: hcmnext.intents.v1.SimulationArtifact.planned_writes:type_name -> hcmnext.intents.v1.PlannedWrite
+	3,  // 3: hcmnext.intents.v1.SimulationArtifact.planned_effects:type_name -> hcmnext.intents.v1.PlannedEffect
+	4,  // 4: hcmnext.intents.v1.SimulationArtifact.findings:type_name -> hcmnext.intents.v1.Finding
+	5,  // 5: hcmnext.intents.v1.SimulationArtifact.uncertainty:type_name -> hcmnext.intents.v1.UncertaintyNote
+	6,  // 6: hcmnext.intents.v1.SimulationArtifact.zero_effect_receipt:type_name -> hcmnext.intents.v1.ZeroEffectReceipt
+	36, // 7: hcmnext.intents.v1.CreateIntentRequest.scope:type_name -> hcmnext.common.v1.ScopeContext
+	37, // 8: hcmnext.intents.v1.CreateIntentRequest.definition:type_name -> hcmnext.intents.v1.DefinitionReference
+	38, // 9: hcmnext.intents.v1.CreateIntentRequest.initiator:type_name -> hcmnext.intents.v1.PrincipalReference
+	39, // 10: hcmnext.intents.v1.CreateIntentRequest.subjects:type_name -> hcmnext.intents.v1.SubjectReference
+	40, // 11: hcmnext.intents.v1.CreateIntentRequest.request:type_name -> hcmnext.intents.v1.TypedPayload
+	41, // 12: hcmnext.intents.v1.CreateIntentRequest.execution_mode:type_name -> hcmnext.intents.v1.ExecutionMode
+	42, // 13: hcmnext.intents.v1.CreateIntentResponse.intent:type_name -> hcmnext.intents.v1.IntentInstance
+	36, // 14: hcmnext.intents.v1.GetIntentRequest.scope:type_name -> hcmnext.common.v1.ScopeContext
 	0,  // 15: hcmnext.intents.v1.GetIntentRequest.freshness:type_name -> hcmnext.intents.v1.ConsistencyFreshnessHint
-	40, // 16: hcmnext.intents.v1.GetIntentResponse.intent:type_name -> hcmnext.intents.v1.IntentInstance
-	34, // 17: hcmnext.intents.v1.ListIntentsRequest.scope:type_name -> hcmnext.common.v1.ScopeContext
-	41, // 18: hcmnext.intents.v1.ListIntentsRequest.page:type_name -> hcmnext.common.v1.PageRequest
+	42, // 16: hcmnext.intents.v1.GetIntentResponse.intent:type_name -> hcmnext.intents.v1.IntentInstance
+	36, // 17: hcmnext.intents.v1.ListIntentsRequest.scope:type_name -> hcmnext.common.v1.ScopeContext
+	43, // 18: hcmnext.intents.v1.ListIntentsRequest.page:type_name -> hcmnext.common.v1.PageRequest
 	0,  // 19: hcmnext.intents.v1.ListIntentsRequest.freshness:type_name -> hcmnext.intents.v1.ConsistencyFreshnessHint
-	40, // 20: hcmnext.intents.v1.ListIntentsResponse.intents:type_name -> hcmnext.intents.v1.IntentInstance
-	42, // 21: hcmnext.intents.v1.ListIntentsResponse.page:type_name -> hcmnext.common.v1.PageResponse
-	34, // 22: hcmnext.intents.v1.SimulateIntentRequest.scope:type_name -> hcmnext.common.v1.ScopeContext
-	38, // 23: hcmnext.intents.v1.SimulateIntentRequest.proposal:type_name -> hcmnext.intents.v1.TypedPayload
-	6,  // 24: hcmnext.intents.v1.SimulateIntentResponse.simulation:type_name -> hcmnext.intents.v1.SimulationArtifact
-	33, // 25: hcmnext.intents.v1.ProposalApproval.material_proposal_digest:type_name -> hcmnext.intents.v1.CanonicalDigestReference
-	16, // 26: hcmnext.intents.v1.ExecutionReceipt.parked_continuation_refs:type_name -> hcmnext.intents.v1.ParkedContinuation
-	17, // 27: hcmnext.intents.v1.ExecutionReceipt.work_items:type_name -> hcmnext.intents.v1.ParkedWorkItem
-	34, // 28: hcmnext.intents.v1.ExecuteIntentRequest.scope:type_name -> hcmnext.common.v1.ScopeContext
-	15, // 29: hcmnext.intents.v1.ExecuteIntentRequest.approval:type_name -> hcmnext.intents.v1.ProposalApproval
-	18, // 30: hcmnext.intents.v1.ExecuteIntentResponse.execution:type_name -> hcmnext.intents.v1.ExecutionReceipt
-	34, // 31: hcmnext.intents.v1.SubmitIntentRequest.scope:type_name -> hcmnext.common.v1.ScopeContext
-	40, // 32: hcmnext.intents.v1.SubmitIntentResponse.intent:type_name -> hcmnext.intents.v1.IntentInstance
-	34, // 33: hcmnext.intents.v1.CancelIntentRequest.scope:type_name -> hcmnext.common.v1.ScopeContext
-	40, // 34: hcmnext.intents.v1.CancelIntentResponse.intent:type_name -> hcmnext.intents.v1.IntentInstance
-	34, // 35: hcmnext.intents.v1.SupersedeIntentRequest.scope:type_name -> hcmnext.common.v1.ScopeContext
-	35, // 36: hcmnext.intents.v1.SupersedeIntentRequest.definition:type_name -> hcmnext.intents.v1.DefinitionReference
-	38, // 37: hcmnext.intents.v1.SupersedeIntentRequest.request:type_name -> hcmnext.intents.v1.TypedPayload
-	40, // 38: hcmnext.intents.v1.SupersedeIntentResponse.superseding_intent:type_name -> hcmnext.intents.v1.IntentInstance
-	34, // 39: hcmnext.intents.v1.ExplainIntentRequest.scope:type_name -> hcmnext.common.v1.ScopeContext
-	32, // 40: hcmnext.intents.v1.ExplainIntentResponse.evidence_refs:type_name -> hcmnext.common.v1.EvidenceRef
-	43, // 41: hcmnext.intents.v1.TimelineEvent.occurred_at:type_name -> google.protobuf.Timestamp
-	32, // 42: hcmnext.intents.v1.TimelineEvent.evidence_ref:type_name -> hcmnext.common.v1.EvidenceRef
-	34, // 43: hcmnext.intents.v1.ListIntentTimelineRequest.scope:type_name -> hcmnext.common.v1.ScopeContext
-	41, // 44: hcmnext.intents.v1.ListIntentTimelineRequest.page:type_name -> hcmnext.common.v1.PageRequest
-	29, // 45: hcmnext.intents.v1.ListIntentTimelineResponse.events:type_name -> hcmnext.intents.v1.TimelineEvent
-	42, // 46: hcmnext.intents.v1.ListIntentTimelineResponse.page:type_name -> hcmnext.common.v1.PageResponse
-	7,  // 47: hcmnext.intents.v1.IntentService.CreateIntent:input_type -> hcmnext.intents.v1.CreateIntentRequest
-	9,  // 48: hcmnext.intents.v1.IntentService.GetIntent:input_type -> hcmnext.intents.v1.GetIntentRequest
-	11, // 49: hcmnext.intents.v1.IntentService.ListIntents:input_type -> hcmnext.intents.v1.ListIntentsRequest
-	13, // 50: hcmnext.intents.v1.IntentService.SimulateIntent:input_type -> hcmnext.intents.v1.SimulateIntentRequest
-	19, // 51: hcmnext.intents.v1.IntentService.ExecuteIntent:input_type -> hcmnext.intents.v1.ExecuteIntentRequest
-	21, // 52: hcmnext.intents.v1.IntentService.SubmitIntent:input_type -> hcmnext.intents.v1.SubmitIntentRequest
-	23, // 53: hcmnext.intents.v1.IntentService.CancelIntent:input_type -> hcmnext.intents.v1.CancelIntentRequest
-	25, // 54: hcmnext.intents.v1.IntentService.SupersedeIntent:input_type -> hcmnext.intents.v1.SupersedeIntentRequest
-	27, // 55: hcmnext.intents.v1.IntentService.ExplainIntent:input_type -> hcmnext.intents.v1.ExplainIntentRequest
-	30, // 56: hcmnext.intents.v1.IntentService.ListIntentTimeline:input_type -> hcmnext.intents.v1.ListIntentTimelineRequest
-	8,  // 57: hcmnext.intents.v1.IntentService.CreateIntent:output_type -> hcmnext.intents.v1.CreateIntentResponse
-	10, // 58: hcmnext.intents.v1.IntentService.GetIntent:output_type -> hcmnext.intents.v1.GetIntentResponse
-	12, // 59: hcmnext.intents.v1.IntentService.ListIntents:output_type -> hcmnext.intents.v1.ListIntentsResponse
-	14, // 60: hcmnext.intents.v1.IntentService.SimulateIntent:output_type -> hcmnext.intents.v1.SimulateIntentResponse
-	20, // 61: hcmnext.intents.v1.IntentService.ExecuteIntent:output_type -> hcmnext.intents.v1.ExecuteIntentResponse
-	22, // 62: hcmnext.intents.v1.IntentService.SubmitIntent:output_type -> hcmnext.intents.v1.SubmitIntentResponse
-	24, // 63: hcmnext.intents.v1.IntentService.CancelIntent:output_type -> hcmnext.intents.v1.CancelIntentResponse
-	26, // 64: hcmnext.intents.v1.IntentService.SupersedeIntent:output_type -> hcmnext.intents.v1.SupersedeIntentResponse
-	28, // 65: hcmnext.intents.v1.IntentService.ExplainIntent:output_type -> hcmnext.intents.v1.ExplainIntentResponse
-	31, // 66: hcmnext.intents.v1.IntentService.ListIntentTimeline:output_type -> hcmnext.intents.v1.ListIntentTimelineResponse
-	57, // [57:67] is the sub-list for method output_type
-	47, // [47:57] is the sub-list for method input_type
-	47, // [47:47] is the sub-list for extension type_name
-	47, // [47:47] is the sub-list for extension extendee
-	0,  // [0:47] is the sub-list for field type_name
+	42, // 20: hcmnext.intents.v1.ListIntentsResponse.intents:type_name -> hcmnext.intents.v1.IntentInstance
+	44, // 21: hcmnext.intents.v1.ListIntentsResponse.page:type_name -> hcmnext.common.v1.PageResponse
+	36, // 22: hcmnext.intents.v1.SimulateIntentRequest.scope:type_name -> hcmnext.common.v1.ScopeContext
+	40, // 23: hcmnext.intents.v1.SimulateIntentRequest.proposal:type_name -> hcmnext.intents.v1.TypedPayload
+	7,  // 24: hcmnext.intents.v1.SimulateIntentResponse.simulation:type_name -> hcmnext.intents.v1.SimulationArtifact
+	35, // 25: hcmnext.intents.v1.ProposalApproval.material_proposal_digest:type_name -> hcmnext.intents.v1.CanonicalDigestReference
+	45, // 26: hcmnext.intents.v1.ResolvedStartState.lifecycle:type_name -> hcmnext.intents.v1.LifecycleDimensions
+	17, // 27: hcmnext.intents.v1.ExecutionReceipt.parked_continuation_refs:type_name -> hcmnext.intents.v1.ParkedContinuation
+	18, // 28: hcmnext.intents.v1.ExecutionReceipt.work_items:type_name -> hcmnext.intents.v1.ParkedWorkItem
+	1,  // 29: hcmnext.intents.v1.ExecutionReceipt.status:type_name -> hcmnext.intents.v1.ExecutionReceiptStatus
+	19, // 30: hcmnext.intents.v1.ExecutionReceipt.resolved_start:type_name -> hcmnext.intents.v1.ResolvedStartState
+	36, // 31: hcmnext.intents.v1.ExecuteIntentRequest.scope:type_name -> hcmnext.common.v1.ScopeContext
+	16, // 32: hcmnext.intents.v1.ExecuteIntentRequest.approval:type_name -> hcmnext.intents.v1.ProposalApproval
+	20, // 33: hcmnext.intents.v1.ExecuteIntentResponse.execution:type_name -> hcmnext.intents.v1.ExecutionReceipt
+	36, // 34: hcmnext.intents.v1.SubmitIntentRequest.scope:type_name -> hcmnext.common.v1.ScopeContext
+	42, // 35: hcmnext.intents.v1.SubmitIntentResponse.intent:type_name -> hcmnext.intents.v1.IntentInstance
+	36, // 36: hcmnext.intents.v1.CancelIntentRequest.scope:type_name -> hcmnext.common.v1.ScopeContext
+	42, // 37: hcmnext.intents.v1.CancelIntentResponse.intent:type_name -> hcmnext.intents.v1.IntentInstance
+	36, // 38: hcmnext.intents.v1.SupersedeIntentRequest.scope:type_name -> hcmnext.common.v1.ScopeContext
+	37, // 39: hcmnext.intents.v1.SupersedeIntentRequest.definition:type_name -> hcmnext.intents.v1.DefinitionReference
+	40, // 40: hcmnext.intents.v1.SupersedeIntentRequest.request:type_name -> hcmnext.intents.v1.TypedPayload
+	42, // 41: hcmnext.intents.v1.SupersedeIntentResponse.superseding_intent:type_name -> hcmnext.intents.v1.IntentInstance
+	36, // 42: hcmnext.intents.v1.ExplainIntentRequest.scope:type_name -> hcmnext.common.v1.ScopeContext
+	34, // 43: hcmnext.intents.v1.ExplainIntentResponse.evidence_refs:type_name -> hcmnext.common.v1.EvidenceRef
+	46, // 44: hcmnext.intents.v1.TimelineEvent.occurred_at:type_name -> google.protobuf.Timestamp
+	34, // 45: hcmnext.intents.v1.TimelineEvent.evidence_ref:type_name -> hcmnext.common.v1.EvidenceRef
+	36, // 46: hcmnext.intents.v1.ListIntentTimelineRequest.scope:type_name -> hcmnext.common.v1.ScopeContext
+	43, // 47: hcmnext.intents.v1.ListIntentTimelineRequest.page:type_name -> hcmnext.common.v1.PageRequest
+	31, // 48: hcmnext.intents.v1.ListIntentTimelineResponse.events:type_name -> hcmnext.intents.v1.TimelineEvent
+	44, // 49: hcmnext.intents.v1.ListIntentTimelineResponse.page:type_name -> hcmnext.common.v1.PageResponse
+	8,  // 50: hcmnext.intents.v1.IntentService.CreateIntent:input_type -> hcmnext.intents.v1.CreateIntentRequest
+	10, // 51: hcmnext.intents.v1.IntentService.GetIntent:input_type -> hcmnext.intents.v1.GetIntentRequest
+	12, // 52: hcmnext.intents.v1.IntentService.ListIntents:input_type -> hcmnext.intents.v1.ListIntentsRequest
+	14, // 53: hcmnext.intents.v1.IntentService.SimulateIntent:input_type -> hcmnext.intents.v1.SimulateIntentRequest
+	21, // 54: hcmnext.intents.v1.IntentService.ExecuteIntent:input_type -> hcmnext.intents.v1.ExecuteIntentRequest
+	23, // 55: hcmnext.intents.v1.IntentService.SubmitIntent:input_type -> hcmnext.intents.v1.SubmitIntentRequest
+	25, // 56: hcmnext.intents.v1.IntentService.CancelIntent:input_type -> hcmnext.intents.v1.CancelIntentRequest
+	27, // 57: hcmnext.intents.v1.IntentService.SupersedeIntent:input_type -> hcmnext.intents.v1.SupersedeIntentRequest
+	29, // 58: hcmnext.intents.v1.IntentService.ExplainIntent:input_type -> hcmnext.intents.v1.ExplainIntentRequest
+	32, // 59: hcmnext.intents.v1.IntentService.ListIntentTimeline:input_type -> hcmnext.intents.v1.ListIntentTimelineRequest
+	9,  // 60: hcmnext.intents.v1.IntentService.CreateIntent:output_type -> hcmnext.intents.v1.CreateIntentResponse
+	11, // 61: hcmnext.intents.v1.IntentService.GetIntent:output_type -> hcmnext.intents.v1.GetIntentResponse
+	13, // 62: hcmnext.intents.v1.IntentService.ListIntents:output_type -> hcmnext.intents.v1.ListIntentsResponse
+	15, // 63: hcmnext.intents.v1.IntentService.SimulateIntent:output_type -> hcmnext.intents.v1.SimulateIntentResponse
+	22, // 64: hcmnext.intents.v1.IntentService.ExecuteIntent:output_type -> hcmnext.intents.v1.ExecuteIntentResponse
+	24, // 65: hcmnext.intents.v1.IntentService.SubmitIntent:output_type -> hcmnext.intents.v1.SubmitIntentResponse
+	26, // 66: hcmnext.intents.v1.IntentService.CancelIntent:output_type -> hcmnext.intents.v1.CancelIntentResponse
+	28, // 67: hcmnext.intents.v1.IntentService.SupersedeIntent:output_type -> hcmnext.intents.v1.SupersedeIntentResponse
+	30, // 68: hcmnext.intents.v1.IntentService.ExplainIntent:output_type -> hcmnext.intents.v1.ExplainIntentResponse
+	33, // 69: hcmnext.intents.v1.IntentService.ListIntentTimeline:output_type -> hcmnext.intents.v1.ListIntentTimelineResponse
+	60, // [60:70] is the sub-list for method output_type
+	50, // [50:60] is the sub-list for method input_type
+	50, // [50:50] is the sub-list for extension type_name
+	50, // [50:50] is the sub-list for extension extendee
+	0,  // [0:50] is the sub-list for field type_name
 }
 
 func init() { file_hcmnext_intents_v1_intent_service_proto_init() }
@@ -2403,8 +2589,8 @@ func file_hcmnext_intents_v1_intent_service_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_hcmnext_intents_v1_intent_service_proto_rawDesc), len(file_hcmnext_intents_v1_intent_service_proto_rawDesc)),
-			NumEnums:      1,
-			NumMessages:   31,
+			NumEnums:      2,
+			NumMessages:   32,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

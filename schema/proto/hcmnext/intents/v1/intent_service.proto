@@ -160,11 +160,31 @@ message ParkedWorkItem {
   string node_id = 3;
 }
 
-// ExecutionReceipt is the immutable, non-simulated result of one ExecuteIntent
-// call: the started or resumed workflow instance, the nodes the caller-driven
-// driver actually visited before returning, any continuation still parked on
-// durable human work, the instance's own optimistic version, and a digest
-// binding all of it together for later verification.
+// ExecutionReceiptStatus distinguishes execution from read-only START recovery.
+enum ExecutionReceiptStatus {
+  EXECUTION_RECEIPT_STATUS_UNSPECIFIED = 0;
+  EXECUTION_RECEIPT_STATUS_PARKED = 1;
+  EXECUTION_RECEIPT_STATUS_COMPLETE = 2;
+  EXECUTION_RECEIPT_STATUS_RESOLVED = 3;
+}
+
+// ResolvedStartState proves a START committed and reports current durable
+// state. It neither reconstructs the original receipt nor authorizes replay.
+message ResolvedStartState {
+  // Canonical runtime status ID. Kept separate from lifecycle dimensions;
+  // importing the workflow package here would create a package import cycle.
+  string runtime_status = 1;
+  repeated string current_node_ids = 2;
+  string workflow_id = 3;
+  uint32 workflow_version = 4;
+  string compiled_plan_digest = 5;
+  string semantic_version = 6;
+  // Lifecycle dimensions remain distinct from the runtime status.
+  LifecycleDimensions lifecycle = 7;
+}
+
+// ExecutionReceipt reports execution or read-only recovery of a committed
+// START. RESOLVED does not claim that this call ran nodes or completed work.
 message ExecutionReceipt {
   string instance_id = 1;
   repeated string visited_nodes = 2;
@@ -181,6 +201,9 @@ message ExecutionReceipt {
   // continuation raised. Empty when the instance completed or is parked on a
   // continuation kind that raises no work item.
   repeated ParkedWorkItem work_items = 7;
+  ExecutionReceiptStatus status = 8;
+  // Present only for RESOLVED; visited nodes and newly created work are empty.
+  ResolvedStartState resolved_start = 9;
 }
 
 message ExecuteIntentRequest {
