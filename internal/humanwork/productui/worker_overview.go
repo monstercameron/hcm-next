@@ -19,14 +19,14 @@ type WorkerSection struct {
 // workerOverviewFacts is the overview fact set, matching the
 // page adapter's details list field for field.
 var workerOverviewFacts = []sectionFact{
-	{"person.worker_number", "worker_number", func(person Person) string { return person.WorkerNumber }},
-	{"person.job_code", "job_code", func(person Person) string { return person.JobCode }},
-	{"person.job_level", "job_level", func(person Person) string { return person.Grade }},
-	{"person.hire_date", "hire_date", func(person Person) string { return person.HireDate }},
-	{"person.employment_type", "employment_type", func(Person) string { return "" }},
-	{"person.time_type", "time_type", func(Person) string { return "" }},
-	{"person.record_source", "record_source", func(person Person) string { return person.Source }},
-	{"person.record_created", "record_created", func(person Person) string { return person.CreatedAt }},
+	{"person.worker_number", "worker_number", func(_ LocaleContext, person Person) string { return person.WorkerNumber }},
+	{"person.job_code", "job_code", func(_ LocaleContext, person Person) string { return person.JobCode }},
+	{"person.job_level", "job_level", func(_ LocaleContext, person Person) string { return person.Grade }},
+	{"person.hire_date", "hire_date", func(_ LocaleContext, person Person) string { return person.HireDate }},
+	{"person.employment_type", "employment_type", func(LocaleContext, Person) string { return "" }},
+	{"person.time_type", "time_type", func(LocaleContext, Person) string { return "" }},
+	{"person.record_source", "record_source", func(_ LocaleContext, person Person) string { return person.Source }},
+	{"person.record_created", "record_created", func(_ LocaleContext, person Person) string { return person.CreatedAt }},
 }
 
 // ResolveWorkerOverview resolves the worker overview section

@@ -1,11 +1,12 @@
 package productui
 
 // sectionFact is one worker section fact field: label key,
-// field key, and record accessor, in page order.
+// field key, and locale-aware record accessor, in page
+// order. Accessors needing no locale ignore it.
 type sectionFact struct {
 	labelKey string
 	name     string
-	value    func(Person) string
+	value    func(LocaleContext, Person) string
 }
 
 // resolveWorkerSection resolves one worker object page
@@ -23,7 +24,7 @@ func resolveWorkerSection(locale LocaleContext, person Person, verdicts map[stri
 	}
 	facts := make([]WorkerFact, 0, len(fields))
 	for _, field := range fields {
-		raw := field.value(person)
+		raw := field.value(locale, person)
 		if silent {
 			facts = append(facts, WorkerFact{Name: field.name, Label: locale.Text(field.labelKey), Value: valueOrUnavailableFor(locale, raw)})
 			continue

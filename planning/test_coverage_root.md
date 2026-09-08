@@ -983,6 +983,7 @@ generated=42 hand-written=2046
 | internal/humanwork/productui                             | worker_employment.go                  | yes           |
 | internal/humanwork/productui                             | worker_identity.go                    | yes           |
 | internal/humanwork/productui                             | worker_overview.go                    | yes           |
+| internal/humanwork/productui                             | worker_pay.go                         | yes           |
 | internal/humanwork/productui                             | worker_section.go                     | yes           |
 | internal/humanwork/productui                             | worker_time_leave.go                  | yes           |
 | internal/humanwork/profilephoto                          | filestore.go                          | yes           |
