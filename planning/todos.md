@@ -16990,7 +16990,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md).
 
-- [ ] `WEB-167` **[PHASE_4][SOL_HIGH] Implement benefit enrollment.**
+- [x] `WEB-167` **[PHASE_4][SOL_HIGH] Implement benefit enrollment.**
   - **Depends:** `WEB-166`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.REWARDS,BI.PAYROLL,BI.EXPERIENCE; DIRECT=none; WHY=implement benefit enrollment without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_167`.

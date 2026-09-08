@@ -52,6 +52,7 @@ const (
 	PageCompCalibration        PageID = "comp-calibration"
 	PageBenefitsOverview       PageID = "benefits-overview"
 	PageBenefitsCompare        PageID = "benefits-compare"
+	PageBenefitsEnroll         PageID = "benefits-enroll"
 	PageOrganization           PageID = "organization"
 	PageInsights               PageID = "insights"
 	PageAdmin                  PageID = "admin"
