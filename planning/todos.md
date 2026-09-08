@@ -985,6 +985,7 @@ accessibility / delegation / representation / human escalation
   - **Evidence (2026-09-03):** `TestTodo_TOOL_019`, `_Golden`, `_Security` in `tools/policy/depadmission` (SPDX detection from the module cache, allow/deny lists and reviewed overrides in `definitions/architecture/dependency-admission.yaml`, unknown license = FAIL; current go.mod: 30 modules all ALLOW); CI job `dependency-admission` in .github/workflows/tests.yml; PASS; branch plan-revision-2026-09-02; `go test -count=1 ./tools/policy/depadmission/...` on windows/arm64 (Go 1.26.3).
 
 - [ ] `TOOL-020` **[GATE_C][SOL_LOW] Prove rolling schema/binary upgrade and rollback.**
+  - **Partial evidence (2026-09-08):** Luna and Sol refined the pure `internal/platform/schemaupgrade` rollback protocol to a closed `BEFORE_CONTRACT` boundary, reject unknown or crossed boundaries without changing state/history, and pin complete transition events in its golden test. Independent `go test -count=1 -cover ./internal/platform/schemaupgrade/` PASS (75.0%). This does not prove historical executable interoperability, a durable migration journal, workflow/outbox/ledger recovery or duplicate-effect prevention across a rolling upgrade; the TODO remains open.
   - **Depends:** `TOOL-006`, `DATA-001`, `DATA-002`, `DATA-007`, `WF-RUN-001`, `WF-RUN-002`, `TX-004`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestTodo_TOOL_020`.
@@ -1213,7 +1214,7 @@ accessibility / delegation / representation / human escalation
   - **Refs:** [Execution plan](execution-plan.md), [Phase 1 scope](plan.md#phase-1-changeops-overlay).
 
 - [ ] `ARCH-GO-019` **[GATE_C][SOL_HIGH] Require evidence before module, process or service decomposition.**
-  - **Implementation evidence (2026-09-08; commit gates pending):** `TestDecompositionDecisionRejectsTopologyDrivenSplit` and the named matrix cover topology-only refusal, fixed golden bytes, concurrent checks, boundary inventory and mutation. Additional regressions reject baseline additions, YAML alias/resource hiding, invented ownership and missing/tampered evidence. Reviewed decision v2 requires repository-contained SHA-256-pinned sources and integer-minor-unit costs. Independent `go test -count=1 -cover ./tools/quality/decomposition/` PASS at 76.6%; `npm run check:decomposition` PASS with exactly ten grandfathered boundaries and no reviewed additions. The command is wired into `test:all` and CI; no new process or service is approved by this evidence.
+  - **Implementation evidence (2026-09-08; commit gates pending):** `TestDecompositionDecisionRejectsTopologyDrivenSplit` and the named matrix cover topology-only refusal, fixed golden bytes, concurrent checks, boundary inventory and mutation. Additional regressions reject baseline additions, YAML alias/resource hiding, invented ownership and missing/tampered evidence. All decision entry points require v2 and integer-minor-unit costs; `TestCheckFileRejectsMissingVersionAndFloatMoney` rejects legacy bypasses. The CLI verifies repository-contained SHA-256-pinned sources. Independent `go test -count=1 -cover ./tools/quality/decomposition/` PASS at 77.8%; `go test -count=1 -run 'Decomposition|Inventory' ./tools/quality/` PASS; `npm run check:decomposition` PASS with exactly ten grandfathered boundaries and no reviewed additions. The command is wired into `test:all` and CI; no new process or service is approved by this evidence.
   - **Depends:** `ARCH-GO-003`, `PERF-ENV-001`, `OPS-007`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestDecompositionDecisionRejectsTopologyDrivenSplit`.
@@ -3172,6 +3173,7 @@ or an explicit rejection and replacement decision.
   - **Evidence (2026-09-03):** `TestTodo_CONFLICT_002`, `_Race` in `internal/transaction/conflict` (`ClassifyConflict` symmetric under pair order, declared supersession/dependency before merge rules, else HARD_CONFLICT; `ClassifyAll`); ARCH-GO-011 direction holds (0 violations); PASS; branch plan-revision-2026-09-02; `go test -count=1 ./internal/transaction/conflict/...` on windows/arm64 (Go 1.26.3).
 
 - [ ] `CONFLICT-003` **[GATE_B][SOL_HIGH] Persist write intents and commit-time conflict fences.**
+  - **Partial evidence (2026-09-08):** full proposal codec and durable revision-loader regressions, including real PostgreSQL tenant isolation, pass with `go test -count=1 -cover ./internal/data/intentcontrol/` (74.2% before the empty-canonical-value regression). Sol refined complete snapshot persistence, trusted tenant mapping, material equivalence and timer reconstruction. Independent `go test -count=1 -run '^TestTodo_PROMO_EXEC_SERVE_ExecutePlanJourneyOverPGTest$' ./internal/application/` PASS (11.425s) drives execution, approvals and timer resume with advancing time and verifies immutable stored payload/timestamp. This preserves typed writes and material bindings after reload; production conflict registration, terminal fencing and actual promotion mutation composition remain open.
   - **Depends:** `CONFLICT-002`, `TX-003`, `TX-004`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_CONFLICT_003`.
@@ -3559,6 +3561,7 @@ or an explicit rejection and replacement decision.
   - **Refs:** [CHECKPOINT step](workflows/_engine/step-types.md#15-checkpoint).
 
 - [ ] `WF-STEP-016` **[GATE_B][SOL_HIGH] Implement `COMPENSATE` step conformance.**
+  - **Partial evidence (2026-09-08):** Luna implementation and Sol refinement in `internal/workflow/steps/compensate`; independent `go test -count=1 -cover ./internal/workflow/steps/compensate/` PASS (76.5%). Tests bind completed replay to the exact request/key, authorization and effect evidence, reject internally re-digested substitutions and invalid states, exercise concurrent exclusion and failure recovery, and ensure raw provider errors are not persisted. The durable operation adapter and production composition remain unimplemented; package-local test ownership is not proof of crash-safe production execution.
   - **Depends:** `INTG-016`, `TX-008`, `TX-009`, `TX-010`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_WF_STEP_016`.
@@ -5266,7 +5269,8 @@ closed.
   - **REFACTOR:** reserved capacity is explicit and cannot exceed physical/provider limits.
   - **Refs:** [Admission and criticality](data/models/operations-production.md), [production architecture](plan.md).
 
-- [x] `ADMISSION-002` **[GATE_B][SOL_HIGH] Propagate backpressure and enforce retry budgets.**
+- [ ] `ADMISSION-002` **[GATE_B][SOL_HIGH] Propagate backpressure and enforce retry budgets.**
+  - **Reopened integration audit (2026-09-08):** The original evidence proves the pure admission contract, not production propagation across workflow, connector and message workers. Durable retry storage is now under refinement, and the coordinator retry-only callback passes independent `go test -count=1 ./internal/transaction/coordinator/ -run '^TestRetryClosure_'`. Production budget provisioning, request-scoped consumption with replay-safe attempt identities, and upstream scheduling/repair integration remain unproven; no automatic allowance or repair outcome is fabricated.
   - **Evidence (2026-09-05):** `TestTodo_ADMISSION_002` in `internal/operations/admission` (upstream scheduling slows at declared watermark; logical operation consumes bounded retry tokens and exhaustion returns RETRY_BUDGET_EXHAUSTED once with repair/escalation route; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/operations/admission/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `ADMISSION-001`, `OPS-001`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.OPERATIONS; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
@@ -5425,6 +5429,7 @@ closed.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=expose governed intent creation, inspection or consumption without persistence or provider bypass`.
   - **TEST:** `TestTodo_UX_002`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_UX_002`; `GOLDEN=TestTodo_UX_002_Golden`; `INTEGRATION=TestTodo_UX_002_Integration`; `BROWSER=TestTodo_UX_002_Browser`.
+  - **Evidence (2026-09-08):** `TestTodo_UX_002`, `TestTodo_UX_002_Golden`, `TestTodo_UX_002_Integration`, `TestTodo_UX_002_Browser` in `internal/humanwork/workspace` and `test/workspace`; `go test -count=1 -run 'TestTodo_UX_002' ./internal/humanwork/workspace/ ./test/workspace/` PASS.
   - **RED:** read/analyze/draft fixture requires TypeScript/Node, bypasses grpcbridge or renders an unavailable action.
   - **GREEN:** Go-only workspace renders worker snapshot, simulation, proposal, warnings and allowed actions from the server contract; browser fixture contains no unsupported runtime.
   - **REFACTOR:** use GWC primitives without coupling domain rules to component code.
@@ -5662,6 +5667,7 @@ closed.
   - **Refs:** [Agent security](data/models/assurance-intelligence-platform.md), [evidence model](data/models/kernel-governance-and-evidence.md).
 
 - [ ] `AGENT-003` **[DESIGN][SOL_HIGH] Validate agent output before deterministic consumption.**
+  - **Partial evidence (2026-09-08):** Luna implementation and Sol/root refinement in `internal/agentsecurity`; independent `go test -count=1 -cover ./internal/agentsecurity/` PASS (91.5%). Validator-owned fields/references/claims must match declarations and authoritative-owner decisions before draft output; narrative is separate and non-executable. Typed detachment preserves exact Money/ResourceKey material and binds it to a distinct canonical draft receipt, with private-material forgery and aliasing regressions. Non-draft receipt compatibility is retained. Concrete schema/capability/AuthZ owner registration and a production draft-ingestion caller remain absent, so this is not a live integrated boundary.
   - **Depends:** `AGENT-001`, `MODEL-017`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=expose governed intent creation, inspection or consumption without persistence or provider bypass`.
   - **TEST:** `TestTodo_AGENT_003`.
@@ -9647,6 +9653,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=expose governed intent creation, inspection or consumption without persistence or provider bypass`.
   - **TEST:** `TestTodo_ADMIN_007`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_ADMIN_007`; `GOLDEN=TestTodo_ADMIN_007_Golden`; `MUTATION=TestTodo_ADMIN_007_Mutation`; `SECURITY=TestTodo_ADMIN_007_Security`.
+  - **Evidence (2026-09-08):** `TestTodo_ADMIN_007`, `TestTodo_ADMIN_007_Golden`, `TestTodo_ADMIN_007_Mutation`, `TestTodo_ADMIN_007_Security` in `internal/operations/admincenter/evidenceexport`; `go test -count=1 ./internal/operations/admincenter/evidenceexport/` PASS.
   - **RED:** No ad hoc dump or unauthorized field.
   - **GREEN:** Manifest binds query/time/scope/purpose/redaction/source/config/policy proofs, expiry and independent tamper detection.
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
@@ -10167,6 +10174,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **Refs:** [Control plane](#30-control-plane-publication-distribution-and-activation), [configuration models](data/models/dataops-configuration.md).
 
 - [ ] `CYCLE-008` **[PHASE_3][SOL_HIGH] Correct or restate a prior cycle append-only.**
+  - **Partial evidence (2026-09-08):** Luna implementation and Sol refinement in `internal/engines/cycle/restatement.go` and its tests; independent `go test -count=1 -cover ./internal/engines/cycle/` PASS (84.2%). Immutable record validation binds prior close/result/tenant/revision, affected-population/result manifests, approval evidence and compensation outcome evidence; planned-only compensation cannot report reconciled, and reload verification rejects changed records. This is not trusted evidence loading, durable append/sequence enforcement, transactional uniqueness or ledger replay; those integrations remain open.
   - **Depends:** `CYCLE-004`, `LEDGER-005`, `TX-010`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.REWARDS,BI.PAYROLL,BI.TALENT; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_CYCLE_008`.
@@ -10253,6 +10261,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **Refs:** [Business cycles](#38-eligibility-business-cycle-and-balance-engines), [rewards models](data/models/rewards-payroll-workforce.md).
 
 - [ ] `BAL-006` **[PHASE_3][SOL_HIGH] Append retroactive corrections and recalculate dependents.**
+  - **Partial evidence (2026-09-08):** Luna implementation, Sol refinement and root verification: `go test -count=1 -cover ./internal/domains/balance/` PASS (81.4%); `go test -count=1 -cover ./internal/data/balancestore/` PASS (70.2%). Migration 00279 preserves correction lineage, exact decimal scale/rounding and nanosecond instants; actual PostgreSQL tests cover fresh-connection replay/conflicts, legacy upgrade, rollback, two-connection exclusion and direct-SQL constraints. Root review removed fixed four-domain ordering, caller-ID replacement and precision narrowing. The adapter verifies the immutable scoped parent digest; SQL cannot independently recompute historical canonical digests. External dependent recalculation remains explicitly reconciliation-required, so this TODO is not complete.
   - **Depends:** `BAL-003`, `LEDGER-005`, `TX-010`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.REWARDS; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_BAL_006`.
@@ -12415,6 +12424,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **Refs:** [Privacy lifecycle](specs/records-management-and-disposition.md), [talent models](data/models/talent-experience-cases.md).
 
 - [ ] `CRM-003` **[PHASE_4][SOL_HIGH] Define recruiting campaigns and governed audiences.**
+  - **Partial evidence (2026-09-08):** Campaign revision and owner-verification contracts pin pool/population, purpose, content, channels, schedule, explicit frequency window/count, exact Money cost and suppression. Root independently ran `go test -count=1 -cover ./internal/domains/crm/` PASS (latest combined package 77.2%) and `go test -count=1 ./internal/data/crmstore/ -run '^TestTodo_CRM_003_Integration$'` PASS with embedded PostgreSQL pool persistence plus population restriction/freeze. Review fixed canonicalization-error propagation, explicit caller context and detached verifier inputs with malicious-verifier regression coverage. This is not population fact-store resolution or delivery integration; the TODO remains open pending owner integration and full gates.
   - **Depends:** `CRM-001`, `POP-005`, `CYCLE-001`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.RECRUITING; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_CRM_003`.
@@ -12435,6 +12445,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **Refs:** [Messaging](specs/messaging-and-notification-plane.md), [privacy models](data/models/assurance-intelligence-platform.md).
 
 - [ ] `CRM-005` **[PHASE_4][SOL_HIGH] Convert prospect to candidate/application with lineage.**
+  - **Partial evidence (2026-09-08):** `PrepareProspectConversion` explicitly returns a zero-write proposal, not an applied conversion. The identity adapter calls MODEL-022 `ResolveIdentity` through an injected link owner and requires a tenant-scoped Person reference, preserving classified refusals without protected error details. Independent `go test -count=1 -cover ./internal/domains/crm/` PASS (77.2%) and `go vet ./internal/domains/crm/` PASS. Final identity provenance refinement remains under review. There is no composed durable identity-link owner, conversion-purpose consent authority, recruiting candidate/application writer or governed conversion execution integration; no zero-authoritative-effect integration claim is made from the pure preflight tests.
   - **Depends:** `CRM-002`, `MODEL-022`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.RECRUITING; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_CRM_005`.
@@ -13096,6 +13107,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **Refs:** [Evidence package](specs/provenance-graph-and-lineage.md), [case model](data/models/talent-experience-cases.md).
 
 - [ ] `WORKER-LIFE-001` **[PHASE_3][SOL_HIGH] Define immutable WorkerLifecyclePlan and requirement semantics.**
+  - **Implementation verified; commit gates pending (2026-09-08):** Luna implementation and Sol/root refinement in `internal/domains/workerlifecycle`; independent `go test -count=1 -cover ./internal/domains/workerlifecycle/` PASS (79.2%), vet PASS. The named primary/property/golden/security/conformance/mutation tests bind ordered requirements, evidence policies, tenant-scoped worker/employment/proposal and approval references, calendars and child dependencies; constructors reject changed sealed plans and canonical errors propagate. This is the pure plan contract, not onboarding/offboarding execution, evidence evaluation or task emission. The existing `domains` architecture ownership applies; no fictitious registry row was added.
   - **Depends:** `MODEL-016`, `INTENT-015`, `READINESS-001`, `CYCLE-003`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.LIFECYCLE; DIRECT=none; WHY=own employee onboarding/offboarding plans separately from tenant onboarding`.
   - **TEST:** `TestWorkerLifecyclePlanRejectsUnownedCircularAndUnverifiableRequirements`.
@@ -13218,7 +13230,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](specs/competitive-positioning-and-authority-expansion.md#authority-absorption-gate).
 
 - [x] `MOBILITY-002` **[CONFORMANCE][SOL_HIGH] Prove extension, country change, return, vendor reconciliation and retro correction.**
-  - **Evidence (2026-09-08):** `TestMobilityConformanceReplansJurisdictionPayrollTaxAndPrivacyOnMaterialChange` and `TestTodo_MOBILITY_002_Property`, `_Golden`, `_Race`, `_Fault`, `_Security`, `_Conformance`, `_Mutation` prove immutable successor changes, exact host/obligation targeting, non-authoritative vendor observations, independent host-effect closure and append-only retro history. Generated properties, fixed golden digests, concurrent assertions and multi-host parent-preservation regressions were refined by Sol/Astra after Luna implementation. Root `go test -count=1 -cover ./internal/domains/mobility/` PASS (71.6%); `go vet ./internal/domains/mobility/` PASS. Domain conformance only; no live vendor or jurisdiction approval is inferred.
+  - **Evidence (2026-09-08):** `TestMobilityConformanceReplansJurisdictionPayrollTaxAndPrivacyOnMaterialChange` and `TestTodo_MOBILITY_002_{Property,Golden,Race,Fault,Security,Conformance,Mutation}` prove immutable successor changes, exact host/obligation targeting, non-authoritative vendor observations, independent host-effect closure and append-only retro history. Generated properties, fixed golden digests, concurrent assertions and multi-host parent-preservation regressions were refined by Sol/Astra after Luna implementation. Root `go test -count=1 -cover ./internal/domains/mobility/` PASS (71.6%); `go vet ./internal/domains/mobility/` PASS. Domain conformance only; no live vendor or jurisdiction approval is inferred.
   - **Depends:** `MOBILITY-001`, `CONF-001`, `GOVERN-002`, `LEDGER-003`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.MOBILITY,BI.REGULATORY,BI.PAYROLL,BI.PRIVACY; DIRECT=none; WHY=establish explicit domain ownership while retaining evidence-gated authority expansion`.
   - **TEST:** `TestMobilityConformanceReplansJurisdictionPayrollTaxAndPrivacyOnMaterialChange`.
@@ -13239,7 +13251,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** reuse shared engines for mechanics while this domain retains authoritative meaning, lifecycle, correction and evidence policy.
   - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](specs/competitive-positioning-and-authority-expansion.md#authority-absorption-gate).
 
-- [x] `SAFETY-002` **[CONFORMANCE][SOL_HIGH] Prove filing, workers-comp payment, restriction clearance and correction reconciliation.**
+- [ ] `SAFETY-002` **[CONFORMANCE][SOL_HIGH] Prove filing, workers-comp payment, restriction clearance and correction reconciliation.**
+  - **Integration repair verified; commit gates pending (2026-09-08):** The missing durable Store interface is implemented for filing, workers-comp payments, restriction clearance, reconciliation and correction under migration 00278. Independent `go test -count=1 -cover ./internal/data/safetystore/` PASS (75.4%); Sol vet/format checks PASS. Tests cover exact nanosecond fresh-connection replay, valid and forged successors across all five families, direct-SQL immutability, rollback, RLS and a real two-connection reversal race. Storage manifests are registered. This entry remains open until the mandatory commit gates pass; no live filing or ledger payment execution is claimed.
   - **Evidence (2026-09-07):** `TestSafetyConformancePreservesFilingPaymentRestrictionAndCorrectionHistory`, `TestTodo_SAFETY_002_*`, and `TestResubmitFilingRequiresFreshObservedRejection`; `go test -count=1 -cover ./internal/domains/safety/` PASS on windows/arm64 (58.5%, existing exact exception expires 2026-12-31); scoped vet PASS. Luna implementation, Sol refinement and integration review verify append-only fixture lineage, exact payment reversal, observed-rejection-only resubmission, and fresh-observation closure. No medical/legal determination, live filing, or ledger payment execution is claimed; detector-backed races remain CI-only.
   - **Depends:** `SAFETY-001`, `CONF-001`, `GOVERN-002`, `LEDGER-003`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.WORKFORCE,BI.CASES,BI.REGULATORY; DIRECT=none; WHY=establish explicit domain ownership while retaining evidence-gated authority expansion`.
@@ -13327,7 +13340,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](specs/competitive-positioning-and-authority-expansion.md#authority-absorption-gate).
 
 - [x] `MERIT-002` **[CONFORMANCE][SOL_HIGH] Prove concurrent budgeting, correction, finalization and compensation-child intents.**
-  - **Evidence (2026-09-08):** `TestMeritConformanceConservesBudgetAndEmitsEachCompensationChangeOnce` and `TestTodo_MERIT_002_Property`, `_Golden`, `_Race`, `_Fault`, `_Security`, `_Conformance`, `_Mutation` cover exact conservation, explicit approved/rejected outcomes and immutable corrections. `TestMeritDecisionEvidenceRoundTrip` proves tenant-bound finalized-source verification, caller-transaction rollback, concurrent once-only child persistence, restart retrieval and synchronized post-insert conflicting-payload refusal. Root `go test -count=1 -cover ./internal/domains/merit/` PASS (70.1%); `go test -count=1 -cover ./internal/data/meritstore/` PASS (76.2%); final `go test -count=1 -run '^TestMeritDecisionEvidenceRoundTrip$' ./internal/data/meritstore/` PASS; `go vet ./internal/domains/merit/ ./internal/data/meritstore/` PASS. Migrations 00268/00270 retain exact timestamps and durable emission records; no compensation execution authority is inferred.
+  - **Evidence (2026-09-08):** `TestMeritConformanceConservesBudgetAndEmitsEachCompensationChangeOnce` and `TestTodo_MERIT_002_{Property,Golden,Race,Fault,Security,Conformance,Mutation}` cover exact conservation, explicit approved/rejected outcomes and immutable corrections. `TestMeritDecisionEvidenceRoundTrip` proves tenant-bound finalized-source verification, caller-transaction rollback, concurrent once-only child persistence, restart retrieval and synchronized post-insert conflicting-payload refusal. Root `go test -count=1 -cover ./internal/domains/merit/` PASS (70.1%); `go test -count=1 -cover ./internal/data/meritstore/` PASS (76.2%); final `go test -count=1 -run '^TestMeritDecisionEvidenceRoundTrip$' ./internal/data/meritstore/` PASS; `go vet ./internal/domains/merit/ ./internal/data/meritstore/` PASS. Migrations 00268/00270 retain exact timestamps and durable emission records; no compensation execution authority is inferred.
   - **Depends:** `MERIT-001`, `CONF-001`, `GOVERN-002`, `LEDGER-003`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.REWARDS,BI.ANALYTICS; DIRECT=none; WHY=establish explicit domain ownership while retaining evidence-gated authority expansion`.
   - **TEST:** `TestMeritConformanceConservesBudgetAndEmitsEachCompensationChangeOnce`.
@@ -13438,7 +13451,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
 ### Shared and high-priority engine continuation
 
 - [x] `FX-002` **[PHASE_2][SOL_HIGH] Convert Money exactly with direct, inverse and triangulated quotes.**
-  - **Evidence (2026-09-08):** `TestFXConversionReturnsExactAmountRoundingAndTrace`, `TestTodo_FX_002_Property`, `_Golden`, `_Race`, `_Fault`, `_Security`, `_Conformance`, `_Mutation`, and `TestDecimalDivisionNearMaxPrecisionHalfBoundary` verify direct/inverse/approved triangulation, exact policy rounding and refusal paths. Independent rational-oracle cases cover signed maximum-precision near-ties as well as 2,304 bounded combinations; kernel division rounds once from the exact quotient/remainder. Root `go test -count=1 -cover ./internal/kernel/values/ ./internal/domains/fx/` PASS (71.2% and 71.7%); `go vet ./internal/kernel/values/ ./internal/domains/fx/` PASS. Luna implementation and Sol/Astra refinement; no live rate-provider or financial-write authority claimed.
+  - **Evidence (2026-09-08):** `TestFXConversionReturnsExactAmountRoundingAndTrace`, `TestTodo_FX_002_{Property,Golden,Race,Fault,Security,Conformance,Mutation}`, and `TestDecimalDivisionNearMaxPrecisionHalfBoundary` verify direct/inverse/approved triangulation, exact policy rounding and refusal paths. Independent rational-oracle cases cover signed maximum-precision near-ties as well as 2,304 bounded combinations; kernel division rounds once from the exact quotient/remainder. Root `go test -count=1 -cover ./internal/kernel/values/ ./internal/domains/fx/` PASS (71.2% and 71.7%); `go vet ./internal/kernel/values/ ./internal/domains/fx/` PASS. Luna implementation and Sol/Astra refinement; no live rate-provider or financial-write authority claimed.
   - **Depends:** `FX-001`, `GOVERN-002`, `LEDGER-003`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.REWARDS,BI.PAYROLL,BI.ANALYTICS; DIRECT=none; WHY=provide an explicit semantic engine owner for this accepted BusinessIntent partition`.
   - **TEST:** `TestFXConversionReturnsExactAmountRoundingAndTrace`.
@@ -13547,7 +13560,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
 
 - [x] `SERVICE-003` **[CONFORMANCE][SOL_HIGH] Correct service history and trigger affected eligibility safely.**
-  - **Evidence (2026-09-08):** `TestServiceCorrectionAppendsHistoryAndReevaluatesOnlyDependentEligibility` and independent `TestTodo_SERVICE_003_Property`, `_Golden`, `_Race`, `_Fault`, `_Security`, `_Conformance`, `_Mutation`, and removed-scope/rule-change regressions; `go test -count=1 -cover ./internal/domains/service/` PASS (78.4%); `go vet ./internal/domains/service/` PASS. Exact successor/current/result pins retain prior explanation; old and new interval/dimension scope and rule-only changes emit bounded dependent drafts, excluding unrelated workers. Protected outcomes require governed correction. Sol/root refinement replaced matrix aliases with exact golden, permutation, shared-input concurrency and five eligibility-domain assertions. This semantic compiler emits non-executable drafts; no live dispatcher or governance authority is claimed.
+  - **Evidence (2026-09-08):** `TestServiceCorrectionAppendsHistoryAndReevaluatesOnlyDependentEligibility` and independent `TestTodo_SERVICE_003_{Property,Golden,Race,Fault,Security,Conformance,Mutation}`, and removed-scope/rule-change regressions; `go test -count=1 -cover ./internal/domains/service/` PASS (78.4%); `go vet ./internal/domains/service/` PASS. Exact successor/current/result pins retain prior explanation; old and new interval/dimension scope and rule-only changes emit bounded dependent drafts, excluding unrelated workers. Protected outcomes require governed correction. Sol/root refinement replaced matrix aliases with exact golden, permutation, shared-input concurrency and five eligibility-domain assertions. This semantic compiler emits non-executable drafts; no live dispatcher or governance authority is claimed.
   - **Depends:** `SERVICE-002`, `GOVERN-002`, `LEDGER-003`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.PEOPLE,BI.REWARDS,BI.WORKFORCE; DIRECT=none; WHY=provide an explicit semantic engine owner for this accepted BusinessIntent partition`.
   - **TEST:** `TestServiceCorrectionAppendsHistoryAndReevaluatesOnlyDependentEligibility`.
@@ -13634,7 +13647,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
 
 - [x] `TAXPROFILE-002` **[PHASE_4][SOL_HIGH] Validate, effective-date and correct worker tax elections.**
-  - **Evidence (2026-09-08):** `TestTaxElectionChangeRequiresEvidenceEffectiveDateAndAppendOnlyCorrection` and independent `TestTodo_TAXPROFILE_002` property/golden/race/fault/security/conformance/mutation matrix; `go test -count=1 -cover ./internal/domains/taxprofile/` PASS (71.3%); `go vet ./internal/domains/taxprofile/` PASS. Sol's full `go test -count=1 -cover ./internal/data/taxprofilestore/` PASS (73.8%); root independently ran `go test -count=1 -run '^TestTodo_TAXPROFILE_002_PostgresSubMicrosecondEffectiveBounds$' ./internal/data/taxprofilestore/` PASS. Migration 00263 and real PostgreSQL tests cover tenant-scoped successor CAS, populated append-only upgrade, exact scale/nanosecond round trips and reversed interval refusal. Closed-payroll inputs produce correction drafts, never payroll rewrites; domain tests pin exact golden bytes and generated boundary/permutation invariants. No tax-rate or payroll-execution authority is inferred.
+  - **Evidence (2026-09-08):** `TestTaxElectionChangeRequiresEvidenceEffectiveDateAndAppendOnlyCorrection` and independent `TestTodo_TAXPROFILE_002_{Property,Golden,Race,Fault,Security,Conformance,Mutation}` matrix; `go test -count=1 -cover ./internal/domains/taxprofile/` PASS (71.3%); `go vet ./internal/domains/taxprofile/` PASS. Sol's full `go test -count=1 -cover ./internal/data/taxprofilestore/` PASS (73.8%); root independently ran `go test -count=1 -run '^TestTodo_TAXPROFILE_002_PostgresSubMicrosecondEffectiveBounds$' ./internal/data/taxprofilestore/` PASS. Migration 00263 and real PostgreSQL tests cover tenant-scoped successor CAS, populated append-only upgrade, exact scale/nanosecond round trips and reversed interval refusal. Closed-payroll inputs produce correction drafts, never payroll rewrites; domain tests pin exact golden bytes and generated boundary/permutation invariants. No tax-rate or payroll-execution authority is inferred.
   - **Depends:** `TAXPROFILE-001`, `GOVERN-002`, `LEDGER-003`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.PAYROLL,BI.REGULATORY,BI.PEOPLE; DIRECT=none; WHY=provide an explicit semantic engine owner for this accepted BusinessIntent partition`.
   - **TEST:** `TestTaxElectionChangeRequiresEvidenceEffectiveDateAndAppendOnlyCorrection`.
@@ -13999,6 +14012,8 @@ is an acceptable result.
   - **Refs:** [PostgreSQL explicit locking](https://www.postgresql.org/docs/16/explicit-locking.html), [edge/tooling audit](specs/adversarial-edge-and-tooling-audit-2026-08-14.md), [transaction coordinator](specs/transaction-plan-and-commit-coordinator.md).
 
 - [ ] `DB-EDGE-003` **[GATE_B][SOL_HIGH] Retry serializable transactions only as complete bounded closures.**
+  - **Integration progress (2026-09-08):** Reviewed START recovery uses an explicit read-only PostgreSQL transaction and returns current durable state without replaying START or manufacturing its original receipt. Independent `go test -count=1 ./internal/workflow/execute/ -run '^TestTodo_DB_EDGE_003_MismatchedCommittedStateIsNotReplayed$'` PASS; actual committed-response-loss and rollback-response-loss regressions also pass. Typed application/wire RESOLVED projection and zero terminal outcome binding pass `go test -count=1 ./internal/intent/app/ -run '^(TestResolvedExecutionResult|TestConsumeExecutionResultDoesNotBindResolvedStart|TestExecutionResultValidation|TestLegacyExecutionReceipt)'`. Durable retry storage is verified separately; request-bound consumption, full bootstrap ExecuteIntent recovery, production budget selection and complete advancement retry integration remain open. Earlier partial evidence below describes the preceding stage, not closure of these remaining requirements.
+  - **Partial evidence (2026-09-08):** `TestSerializableRetryRestartsWholeClosureAndNeverRetriesAmbiguousCommit` and `TestTodo_DB_EDGE_003_{Property,Race,Integration,Fault,Mutation}`; independent `go test -count=1 -cover ./internal/transaction/coordinator/` PASS (80.7%). Real two-connection PostgreSQL contention verifies explicit serializable isolation, fresh transaction-bound preparation and recomputed plan/receipt after changed reads. Review covers bounded admission/backoff, cancellation, unique-conflict preservation, forged ambiguity receipts, resolver-input mutation, retryable resolver failures and no replay after post-commit notification failure. The driver now has an opt-in START path using shared retry mechanics and a transaction-bound resolver, under regression review; promotion configuration forwarding is also under review. Application admission wiring, complete advancement integration and durable ambiguous-commit resolution remain open. A source search of data/application/platform/migrations found no existing admission retry-budget consumer or storage binding; no always-allow callback was substituted.
   - **Depends:** `DB-018`, `TX-005`, `ADMISSION-001`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=preserve exact intent revalidation and commit semantics under PostgreSQL serialization/deadlock failures without duplicating effects`.
   - **TEST:** `TestSerializableRetryRestartsWholeClosureAndNeverRetriesAmbiguousCommit`.
@@ -14257,7 +14272,8 @@ path regardless of transport.
   - **REFACTOR:** compose ledger/provenance/governance projections; endpoint does not reconstruct truth ad hoc.
   - **Refs:** [intent inspection endpoints](specs/http-grpc-endpoint-contract.md#businessintent-lifecycle), [provenance](specs/provenance-graph-and-lineage.md), [ledger](specs/transaction-ledger-reconciliation-and-repair.md).
 
-- [x] `EP-PROMO-001` **[GATE_A][SOL_HIGH] Implement the no-effect typed ProposeIntoManagement gRPC and HTTP endpoint.**
+- [ ] `EP-PROMO-001` **[GATE_A][SOL_HIGH] Implement the no-effect typed ProposeIntoManagement gRPC and HTTP endpoint.**
+  - **Reopened evidence audit (2026-09-08):** The transport tests below use a fake engine and prove adapter parity, validation and delegation, not durable server-truth resolution. Real `test/bootstrap/promotionpropose_test.go` PROMO-007 tests cover exact-one-intent replay, governed reads, matching digests and unchanged named domain tables. Facade-specific exact snapshot/simulation/proposal persistence and restart assertions remain missing; the historical evidence below is not proof of the complete GREEN contract.
   - **Evidence (2026-09-05):** `TestProposeIntoManagementEndpointAcceptsOnlyIntentAndResolvesServerTruth` in `internal/transport/journey` (typed request accepts worker, desired job/position/org/manager/compensation/effective date/reason/expected revision/client id; server resolves facts and creates exactly one PromoteWorker intent/change request plus immutable snapshot/simulation/proposal candidates with zero author; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/transport/journey/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `ENDPOINT-008`, `PROMO-007`, `PROMO-001`–`PROMO-004`, `INTENT-004`.
   - **INTENT CONTEXT:** `ROLE=DIRECT; SETS=BI.PEOPLE,BI.REWARDS; INTENTS=PromoteWorker; KERNEL=CHANGE_REQUEST; WHY=provide the first typed semantic endpoint that creates a governed management-promotion intent from desired outcome only`.
@@ -15583,7 +15599,7 @@ This program implements [the production frontend and governed page-composition p
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement deep-link and resume routing—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [Go constitution](specs/go-only-technology-constitution.md).
-  - **Evidence (2026-09-07):** `TestTodo_WEB_030`, `TestTodo_WEB_030_Golden`, `TestTodo_WEB_030_Browser`, `TestTodo_WEB_030_Conformance`, `TestTodo_WEB_030_Security`, `TestTodo_WEB_030_Integration`, and `TestTodo_WEB_030_Fault` prove production deep-link and resume behavior through the real Go/GWC v5 HistoryRouter and product client. Cold, pushState, popstate/back, and forward navigation retain only canonical page-scoped presentation state; unknown, wrong-page, mutation, credential, CSRF, idempotency, and authority-shaped parameters are removed before loader-key construction or service reads; duplicate, malformed, control-character, oversized, and invalid controlled values fail closed. Loaders consume their immutable `RouteContext` query, cancellation and generation guards suppress stale completions, same-session `LoadWithBaseline` preserves the shell while rereading destination-owned data, and tenant/principal/scope/role/permission mismatches forbid baseline reuse. Missing, stale, and unauthorized journey selectors render one static non-disclosing result; history state rejects blank/oversized identifiers and negative, fractional, non-finite, or overflowing indices; cold and history traversal cannot replay preference or workflow-use mutations. Product focus policy exclusively owns heading/collection focus and accessible route announcements. Resolved People and History pagination replaces the current URL with the effective authorized and clamped page without adding a history entry or replaying a write. The exact matrix passed natively and as an actual `GOOS=js GOARCH=wasm` binary under Node; focused product/journey suites, vet, `git diff --check`, the 17-page x 3-locale i18n/accessibility gate, and its quality-runner wiring test passed. Codex in-app browser QA covered a cold employee deep link, software navigation, back/forward restoration, removal of stale and credential-shaped query fields, truthful resolved pagination, stable shell, destination-shaped loading, and focus continuity. `BenchmarkProductDeepLinkResolve` measured 14.1 us/op, 12,960 B/op, 68 allocs/op; `BenchmarkProductRouteResume` measured 112 us/op, 56,847 B/op, 413 allocs/op; `BenchmarkResolvedCanonicalHref` measured 4.97-6.24 us/op, 6,072 B/op, 29 allocs/op; implemented by GPT-5.6 Luna and adversarially hardened by GPT-5.6 Sol.
+  - **Evidence (2026-09-07):** `TestTodo_WEB_030`, `TestTodo_WEB_030_Golden`, `TestTodo_WEB_030_Browser`, `TestTodo_WEB_030_Conformance`, `TestTodo_WEB_030_Security`, `TestTodo_WEB_030_Integration`, and `TestTodo_WEB_030_Fault` prove production deep-link and resume behavior through the real Go/GWC v5 HistoryRouter and product client. Cold, pushState, popstate/back, and forward navigation retain only canonical page-scoped presentation state; unknown, wrong-page, mutation, credential, CSRF, idempotency, and authority-shaped parameters are removed before loader-key construction or service reads; duplicate, malformed, control-character, oversized, and invalid controlled values fail closed. Loaders consume their immutable `RouteContext` query, cancellation and generation guards suppress stale completions, same-session `LoadWithBaseline` preserves the shell while rereading destination-owned data, and tenant/principal/scope/role/permission mismatches forbid baseline reuse. Missing, stale, and unauthorized journey selectors render one static non-disclosing result; history state rejects blank/oversized identifiers and negative, fractional, non-finite, or overflowing indices; cold and history traversal cannot replay preference or workflow-use mutations. Product focus policy exclusively owns heading/collection focus and accessible route announcements. Resolved People and History pagination replaces the current URL with the effective authorized and clamped page without adding a history entry or replaying a write. The exact matrix passed natively and as an actual `GOOS=js GOARCH=wasm` binary under Node; focused product/journey suites, vet, `git diff --check`, the 17-page x 3-locale i18n/accessibility gate, and its quality-runner wiring test passed. Codex in-app browser QA covered a cold employee deep link, software navigation, back/forward restoration, removal of stale and credential-shaped query fields, truthful resolved pagination, stable shell, destination-shaped loading, and focus continuity. `BenchmarkProductDeepLinkResolve` measured 14.1 us/op, 12,960 B/op, 68 allocs/op; `BenchmarkProductRouteResume` measured 112 us/op, 56,847 B/op, 413 allocs/op; `BenchmarkProductResolvedRouteCanonicalize` measured 20061 ns/op, 37785 B/op, 136 allocs/op (re-measured 2026-09-08); implemented by GPT-5.6 Luna and adversarially hardened by GPT-5.6 Sol.
 
 - [x] `WEB-031` **[GATE_C][SOL_HIGH] Enforce the browser-state storage boundary.**
   - **Depends:** `WEB-030`.
@@ -15594,7 +15610,7 @@ This program implements [the production frontend and governed page-composition p
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—enforce the browser-state storage boundary—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [Go constitution](specs/go-only-technology-constitution.md).
-  - **Evidence (2026-09-07):** `TestTodo_WEB_031`, `TestTodo_WEB_031_Golden`, `TestTodo_WEB_031_Browser`, `TestTodo_WEB_031_Conformance`, `TestTodo_WEB_031_Security`, `TestTodo_WEB_031_Integration`, and `TestTodo_WEB_031_Fault` prove a versioned and bounded browser-state contract: the only browser-persisted record is a random per-tab history high-water mark, `history.state` is closed to its ledger identifier and bounded index, and credentials, workflow authority, business records, configuration truth, and authorization-shaped fields cannot enter browser storage. A recursive AST gate pins `sessionStorage` acquisition/read/write to the reviewed adapter, forbids local storage, IndexedDB, and Cache API authority, and still scans generated/build-named Go. Browser History and storage getters and methods fail soft through reviewed `Reflect.get`/`Reflect.apply` seams, malformed or foreign current state disables navigation, and the real GWC v5 router retains closed-state push/pop compatibility. The exact matrix passed natively and as a compiled `js/wasm` binary under Node, including hostile getter/method faults; focused vet and `git diff --check` passed; the production 17-page x 3-locale i18n/accessibility gate passed. Codex in-app browser QA reloaded the production Go/WASM workspace, traversed People to My Work and back/forward, and verified stable localized destinations without blank or duplicate shells. `TestTodo_WEB_031_Latency` measured p95 0s against 2 ms and `BenchmarkHistoryLedgerIDValidation` measured 143.9 ns/op, 7 B/op, 0 allocs/op; implemented by GPT-5.6 Luna and independently adversarially hardened by GPT-5.6 Sol.
+  - **Evidence (2026-09-07):** `TestTodo_WEB_031`, `TestTodo_WEB_031_Golden`, `TestTodo_WEB_031_Browser`, `TestTodo_WEB_031_Conformance`, `TestTodo_WEB_031_Security`, `TestTodo_WEB_031_Integration`, and `TestTodo_WEB_031_Fault` prove a versioned and bounded browser-state contract: the only browser-persisted record is a random per-tab history high-water mark, `history.state` is closed to its ledger identifier and bounded index, and credentials, workflow authority, business records, configuration truth, and authorization-shaped fields cannot enter browser storage. A recursive AST gate pins `sessionStorage` acquisition/read/write to the reviewed adapter, forbids local storage, IndexedDB, and Cache API authority, and still scans generated/build-named Go. Browser History and storage getters and methods fail soft through reviewed `Reflect.get`/`Reflect.apply` seams, malformed or foreign current state disables navigation, and the real GWC v5 router retains closed-state push/pop compatibility. The exact matrix passed natively and as a compiled `js/wasm` binary under Node, including hostile getter/method faults; focused vet and `git diff --check` passed; the production 17-page x 3-locale i18n/accessibility gate passed. Codex in-app browser QA reloaded the production Go/WASM workspace, traversed People to My Work and back/forward, and verified stable localized destinations without blank or duplicate shells. `TestTodo_WEB_031_Latency` measured p95 0s against 2 ms and `BenchmarkBrowserStateStorageBoundary` measured 150.0 ns/op, 0 B/op, 0 allocs/op (re-measured 2026-09-08); implemented by GPT-5.6 Luna and independently adversarially hardened by GPT-5.6 Sol.
 
 - [x] `WEB-032` **[GATE_C][SOL_HIGH] Generate the frontend asset-integrity manifest.**
   - **Depends:** `WEB-031`.
@@ -15702,6 +15718,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE; DIRECT=none; WHY=implement authorization-safe global search without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_041`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_041`; `GOLDEN=TestTodo_WEB_041_Golden`; `BROWSER=TestTodo_WEB_041_Browser`; `CONFORMANCE=TestTodo_WEB_041_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_041`, `TestTodo_WEB_041_Golden`, `TestTodo_WEB_041_Browser`, `TestTodo_WEB_041_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement authorization-safe global search—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement authorization-safe global search—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -15712,6 +15729,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE; DIRECT=none; WHY=implement the attention notification center without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_042`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_042`; `GOLDEN=TestTodo_WEB_042_Golden`; `BROWSER=TestTodo_WEB_042_Browser`; `CONFORMANCE=TestTodo_WEB_042_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_042`, `TestTodo_WEB_042_Golden`, `TestTodo_WEB_042_Browser`, `TestTodo_WEB_042_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement the attention notification center—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement the attention notification center—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -15722,6 +15740,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE; DIRECT=none; WHY=implement account locale and accessibility controls without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_043`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_043`; `GOLDEN=TestTodo_WEB_043_Golden`; `BROWSER=TestTodo_WEB_043_Browser`; `CONFORMANCE=TestTodo_WEB_043_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_043`, `TestTodo_WEB_043_Golden`, `TestTodo_WEB_043_Browser`, `TestTodo_WEB_043_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement account locale and accessibility controls—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement account locale and accessibility controls—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -15866,6 +15885,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.SECURITY,BI.EXPERIENCE; DIRECT=none; WHY=implement the persistent acting-authority banner without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_056`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_056`; `GOLDEN=TestTodo_WEB_056_Golden`; `BROWSER=TestTodo_WEB_056_Browser`; `CONFORMANCE=TestTodo_WEB_056_Conformance`; `SECURITY=TestTodo_WEB_056_Security`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_056`, `TestTodo_WEB_056_Golden`, `TestTodo_WEB_056_Browser`, `TestTodo_WEB_056_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement the persistent acting-authority banner—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement the persistent acting-authority banner—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -15876,6 +15896,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.SECURITY,BI.EXPERIENCE; DIRECT=none; WHY=implement the break-glass activation experience without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_057`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_057`; `GOLDEN=TestTodo_WEB_057_Golden`; `BROWSER=TestTodo_WEB_057_Browser`; `CONFORMANCE=TestTodo_WEB_057_Conformance`; `SECURITY=TestTodo_WEB_057_Security`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_057`, `TestTodo_WEB_057_Golden`, `TestTodo_WEB_057_Browser`, `TestTodo_WEB_057_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement the break-glass activation experience—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement the break-glass activation experience—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -15886,6 +15907,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.SECURITY,BI.EXPERIENCE; DIRECT=none; WHY=implement safe view-as policy simulation without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_058`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_058`; `GOLDEN=TestTodo_WEB_058_Golden`; `BROWSER=TestTodo_WEB_058_Browser`; `CONFORMANCE=TestTodo_WEB_058_Conformance`; `SECURITY=TestTodo_WEB_058_Security`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_058`, `TestTodo_WEB_058_Golden`, `TestTodo_WEB_058_Browser`, `TestTodo_WEB_058_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement safe view-as policy simulation—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement safe view-as policy simulation—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -15896,6 +15918,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.SECURITY,BI.EXPERIENCE; DIRECT=none; WHY=implement logout and revocation convergence without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_059`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_059`; `GOLDEN=TestTodo_WEB_059_Golden`; `BROWSER=TestTodo_WEB_059_Browser`; `CONFORMANCE=TestTodo_WEB_059_Conformance`; `SECURITY=TestTodo_WEB_059_Security`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_059`, `TestTodo_WEB_059_Golden`, `TestTodo_WEB_059_Browser`, `TestTodo_WEB_059_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement logout and revocation convergence—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement logout and revocation convergence—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -15906,6 +15929,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.SECURITY,BI.EXPERIENCE; DIRECT=none; WHY=enforce authentication telemetry privacy without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_060`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_060`; `GOLDEN=TestTodo_WEB_060_Golden`; `BROWSER=TestTodo_WEB_060_Browser`; `CONFORMANCE=TestTodo_WEB_060_Conformance`; `SECURITY=TestTodo_WEB_060_Security`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_060`, `TestTodo_WEB_060_Golden`, `TestTodo_WEB_060_Browser`, `TestTodo_WEB_060_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—enforce authentication telemetry privacy—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—enforce authentication telemetry privacy—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -15918,6 +15942,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.SECURITY,BI.PRIVACY,BI.EXPERIENCE; DIRECT=none; WHY=implement the authorized presentation projection without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_061`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_061`; `GOLDEN=TestTodo_WEB_061_Golden`; `BROWSER=TestTodo_WEB_061_Browser`; `CONFORMANCE=TestTodo_WEB_061_Conformance`; `SECURITY=TestTodo_WEB_061_Security`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_061`, `TestTodo_WEB_061_Golden`, `TestTodo_WEB_061_Browser`, `TestTodo_WEB_061_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement the authorized presentation projection—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement the authorized presentation projection—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -15928,6 +15953,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.SECURITY,BI.PRIVACY,BI.EXPERIENCE; DIRECT=none; WHY=enforce resource discoverability decisions without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_062`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_062`; `GOLDEN=TestTodo_WEB_062_Golden`; `BROWSER=TestTodo_WEB_062_Browser`; `CONFORMANCE=TestTodo_WEB_062_Conformance`; `SECURITY=TestTodo_WEB_062_Security`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_062`, `TestTodo_WEB_062_Golden`, `TestTodo_WEB_062_Browser`, `TestTodo_WEB_062_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—enforce resource discoverability decisions—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—enforce resource discoverability decisions—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -15938,6 +15964,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.SECURITY,BI.PRIVACY,BI.EXPERIENCE; DIRECT=none; WHY=enforce record-level page authorization without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_063`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_063`; `GOLDEN=TestTodo_WEB_063_Golden`; `BROWSER=TestTodo_WEB_063_Browser`; `CONFORMANCE=TestTodo_WEB_063_Conformance`; `SECURITY=TestTodo_WEB_063_Security`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_063`, `TestTodo_WEB_063_Golden`, `TestTodo_WEB_063_Browser`, `TestTodo_WEB_063_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—enforce record-level page authorization—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—enforce record-level page authorization—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -15948,6 +15975,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.SECURITY,BI.PRIVACY,BI.EXPERIENCE; DIRECT=none; WHY=resolve current and proposed organization scope without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_064`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_064`; `GOLDEN=TestTodo_WEB_064_Golden`; `BROWSER=TestTodo_WEB_064_Browser`; `CONFORMANCE=TestTodo_WEB_064_Conformance`; `SECURITY=TestTodo_WEB_064_Security`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_064`, `TestTodo_WEB_064_Golden`, `TestTodo_WEB_064_Browser`, `TestTodo_WEB_064_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—resolve current and proposed organization scope—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—resolve current and proposed organization scope—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -15958,6 +15986,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.SECURITY,BI.PRIVACY,BI.EXPERIENCE; DIRECT=none; WHY=enforce data-domain presentation scope without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_065`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_065`; `GOLDEN=TestTodo_WEB_065_Golden`; `BROWSER=TestTodo_WEB_065_Browser`; `CONFORMANCE=TestTodo_WEB_065_Conformance`; `SECURITY=TestTodo_WEB_065_Security`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_065`, `TestTodo_WEB_065_Golden`, `TestTodo_WEB_065_Browser`, `TestTodo_WEB_065_Conformance`, `TestTodo_WEB_065_Security` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—enforce data-domain presentation scope—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—enforce data-domain presentation scope—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -15968,6 +15997,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.SECURITY,BI.PRIVACY,BI.EXPERIENCE; DIRECT=none; WHY=implement all field-disposition renderings without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_066`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_066`; `GOLDEN=TestTodo_WEB_066_Golden`; `BROWSER=TestTodo_WEB_066_Browser`; `CONFORMANCE=TestTodo_WEB_066_Conformance`; `SECURITY=TestTodo_WEB_066_Security`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_066`, `TestTodo_WEB_066_Golden`, `TestTodo_WEB_066_Browser`, `TestTodo_WEB_066_Conformance`, `TestTodo_WEB_066_Security` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement all field-disposition renderings—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement all field-disposition renderings—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -15978,6 +16008,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.SECURITY,BI.PRIVACY,BI.EXPERIENCE; DIRECT=none; WHY=enforce population-query presentation limits without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_067`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_067`; `GOLDEN=TestTodo_WEB_067_Golden`; `BROWSER=TestTodo_WEB_067_Browser`; `CONFORMANCE=TestTodo_WEB_067_Conformance`; `SECURITY=TestTodo_WEB_067_Security`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_067`, `TestTodo_WEB_067_Golden`, `TestTodo_WEB_067_Browser`, `TestTodo_WEB_067_Conformance`, `TestTodo_WEB_067_Security` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—enforce population-query presentation limits—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—enforce population-query presentation limits—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -15988,6 +16019,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.SECURITY,BI.PRIVACY,BI.EXPERIENCE; DIRECT=none; WHY=implement semantic action-availability states without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_068`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_068`; `GOLDEN=TestTodo_WEB_068_Golden`; `BROWSER=TestTodo_WEB_068_Browser`; `CONFORMANCE=TestTodo_WEB_068_Conformance`; `SECURITY=TestTodo_WEB_068_Security`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_068`, `TestTodo_WEB_068_Golden`, `TestTodo_WEB_068_Browser`, `TestTodo_WEB_068_Conformance`, `TestTodo_WEB_068_Security` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement semantic action-availability states—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement semantic action-availability states—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -15998,6 +16030,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.SECURITY,BI.PRIVACY,BI.EXPERIENCE; DIRECT=none; WHY=enforce export and artifact visibility without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_069`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_069`; `GOLDEN=TestTodo_WEB_069_Golden`; `BROWSER=TestTodo_WEB_069_Browser`; `CONFORMANCE=TestTodo_WEB_069_Conformance`; `SECURITY=TestTodo_WEB_069_Security`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_069`, `TestTodo_WEB_069_Golden`, `TestTodo_WEB_069_Browser`, `TestTodo_WEB_069_Conformance`, `TestTodo_WEB_069_Security` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—enforce export and artifact visibility—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—enforce export and artifact visibility—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16008,6 +16041,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.SECURITY,BI.PRIVACY,BI.EXPERIENCE; DIRECT=none; WHY=filter real-time events by current authority without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_070`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_070`; `GOLDEN=TestTodo_WEB_070_Golden`; `BROWSER=TestTodo_WEB_070_Browser`; `CONFORMANCE=TestTodo_WEB_070_Conformance`; `SECURITY=TestTodo_WEB_070_Security`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_070`, `TestTodo_WEB_070_Golden`, `TestTodo_WEB_070_Browser`, `TestTodo_WEB_070_Conformance`, `TestTodo_WEB_070_Security` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—filter real-time events by current authority—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—filter real-time events by current authority—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16018,6 +16052,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.SECURITY,BI.PRIVACY,BI.EXPERIENCE; DIRECT=none; WHY=invalidate presentation caches on authority drift without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_071`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_071`; `GOLDEN=TestTodo_WEB_071_Golden`; `BROWSER=TestTodo_WEB_071_Browser`; `CONFORMANCE=TestTodo_WEB_071_Conformance`; `SECURITY=TestTodo_WEB_071_Security`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_071`, `TestTodo_WEB_071_Golden`, `TestTodo_WEB_071_Browser`, `TestTodo_WEB_071_Conformance`, `TestTodo_WEB_071_Security` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—invalidate presentation caches on authority drift—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—invalidate presentation caches on authority drift—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16028,6 +16063,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.SECURITY,BI.PRIVACY,BI.EXPERIENCE; DIRECT=none; WHY=prove cross-surface authorization noninterference without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_072`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_072`; `GOLDEN=TestTodo_WEB_072_Golden`; `BROWSER=TestTodo_WEB_072_Browser`; `CONFORMANCE=TestTodo_WEB_072_Conformance`; `SECURITY=TestTodo_WEB_072_Security`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_072`, `TestTodo_WEB_072_Golden`, `TestTodo_WEB_072_Browser`, `TestTodo_WEB_072_Conformance`, `TestTodo_WEB_072_Security` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—prove cross-surface authorization noninterference—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—prove cross-surface authorization noninterference—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16040,6 +16076,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE,BI.TENANT; DIRECT=none; WHY=persist immutable pagedefinition revisions without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_073`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_073`; `GOLDEN=TestTodo_WEB_073_Golden`; `BROWSER=TestTodo_WEB_073_Browser`; `CONFORMANCE=TestTodo_WEB_073_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_073`, `TestTodo_WEB_073_Golden`, `TestTodo_WEB_073_Browser`, `TestTodo_WEB_073_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—persist immutable pagedefinition revisions—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—persist immutable pagedefinition revisions—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16050,6 +16087,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE,BI.TENANT; DIRECT=none; WHY=implement the page draft lifecycle without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_074`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_074`; `GOLDEN=TestTodo_WEB_074_Golden`; `BROWSER=TestTodo_WEB_074_Browser`; `CONFORMANCE=TestTodo_WEB_074_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_074`, `TestTodo_WEB_074_Golden`, `TestTodo_WEB_074_Browser`, `TestTodo_WEB_074_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement the page draft lifecycle—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement the page draft lifecycle—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16060,6 +16098,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE,BI.TENANT; DIRECT=none; WHY=validate floorplan compatibility without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_075`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_075`; `GOLDEN=TestTodo_WEB_075_Golden`; `BROWSER=TestTodo_WEB_075_Browser`; `CONFORMANCE=TestTodo_WEB_075_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_075`, `TestTodo_WEB_075_Golden`, `TestTodo_WEB_075_Browser`, `TestTodo_WEB_075_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—validate floorplan compatibility—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—validate floorplan compatibility—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16070,6 +16109,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE,BI.TENANT; DIRECT=none; WHY=validate semantic-region composition without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_076`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_076`; `GOLDEN=TestTodo_WEB_076_Golden`; `BROWSER=TestTodo_WEB_076_Browser`; `CONFORMANCE=TestTodo_WEB_076_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_076`, `TestTodo_WEB_076_Golden`, `TestTodo_WEB_076_Browser`, `TestTodo_WEB_076_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—validate semantic-region composition—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—validate semantic-region composition—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16080,6 +16120,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE,BI.TENANT; DIRECT=none; WHY=validate typed widget bindings without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_077`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_077`; `GOLDEN=TestTodo_WEB_077_Golden`; `BROWSER=TestTodo_WEB_077_Browser`; `CONFORMANCE=TestTodo_WEB_077_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_077`, `TestTodo_WEB_077_Golden`, `TestTodo_WEB_077_Browser`, `TestTodo_WEB_077_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—validate typed widget bindings—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—validate typed widget bindings—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16090,6 +16131,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE,BI.TENANT; DIRECT=none; WHY=validate semantic action bindings without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_078`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_078`; `GOLDEN=TestTodo_WEB_078_Golden`; `BROWSER=TestTodo_WEB_078_Browser`; `CONFORMANCE=TestTodo_WEB_078_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_078`, `TestTodo_WEB_078_Golden`, `TestTodo_WEB_078_Browser`, `TestTodo_WEB_078_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—validate semantic action bindings—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—validate semantic action bindings—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16100,6 +16142,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE,BI.TENANT; DIRECT=none; WHY=enforce page classification ceilings without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_079`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_079`; `GOLDEN=TestTodo_WEB_079_Golden`; `BROWSER=TestTodo_WEB_079_Browser`; `CONFORMANCE=TestTodo_WEB_079_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_079`, `TestTodo_WEB_079_Golden`, `TestTodo_WEB_079_Browser`, `TestTodo_WEB_079_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—enforce page classification ceilings—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—enforce page classification ceilings—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16110,6 +16153,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE,BI.TENANT; DIRECT=none; WHY=resolve page configuration precedence without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_080`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_080`; `GOLDEN=TestTodo_WEB_080_Golden`; `BROWSER=TestTodo_WEB_080_Browser`; `CONFORMANCE=TestTodo_WEB_080_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_080`, `TestTodo_WEB_080_Golden`, `TestTodo_WEB_080_Browser`, `TestTodo_WEB_080_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—resolve page configuration precedence—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—resolve page configuration precedence—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16120,6 +16164,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE,BI.TENANT; DIRECT=none; WHY=migrate page definitions across widget versions without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_081`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_081`; `GOLDEN=TestTodo_WEB_081_Golden`; `BROWSER=TestTodo_WEB_081_Browser`; `CONFORMANCE=TestTodo_WEB_081_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_081`, `TestTodo_WEB_081_Golden`, `TestTodo_WEB_081_Browser`, `TestTodo_WEB_081_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—migrate page definitions across widget versions—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—migrate page definitions across widget versions—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16130,6 +16175,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE,BI.TENANT; DIRECT=none; WHY=implement scoped page publication rollout without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_082`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_082`; `GOLDEN=TestTodo_WEB_082_Golden`; `BROWSER=TestTodo_WEB_082_Browser`; `CONFORMANCE=TestTodo_WEB_082_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_082`, `TestTodo_WEB_082_Golden`, `TestTodo_WEB_082_Browser`, `TestTodo_WEB_082_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement scoped page publication rollout—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement scoped page publication rollout—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16140,6 +16186,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE,BI.TENANT; DIRECT=none; WHY=implement page rollback and retirement without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_083`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_083`; `GOLDEN=TestTodo_WEB_083_Golden`; `BROWSER=TestTodo_WEB_083_Browser`; `CONFORMANCE=TestTodo_WEB_083_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_083`, `TestTodo_WEB_083_Golden`, `TestTodo_WEB_083_Browser`, `TestTodo_WEB_083_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement page rollback and retirement—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement page rollback and retirement—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16150,6 +16197,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE,BI.TENANT; DIRECT=none; WHY=report page dependency impact without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_084`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_084`; `GOLDEN=TestTodo_WEB_084_Golden`; `BROWSER=TestTodo_WEB_084_Browser`; `CONFORMANCE=TestTodo_WEB_084_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_084`, `TestTodo_WEB_084_Golden`, `TestTodo_WEB_084_Browser`, `TestTodo_WEB_084_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—report page dependency impact—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—report page dependency impact—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16162,6 +16210,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE,BI.TENANT; DIRECT=none; WHY=implement the page-definition inventory without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_085`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_085`; `GOLDEN=TestTodo_WEB_085_Golden`; `BROWSER=TestTodo_WEB_085_Browser`; `CONFORMANCE=TestTodo_WEB_085_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_085`, `TestTodo_WEB_085_Golden`, `TestTodo_WEB_085_Browser`, `TestTodo_WEB_085_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement the page-definition inventory—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement the page-definition inventory—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16172,6 +16221,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE,BI.TENANT; DIRECT=none; WHY=implement new-page purpose and audience setup without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_086`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_086`; `GOLDEN=TestTodo_WEB_086_Golden`; `BROWSER=TestTodo_WEB_086_Browser`; `CONFORMANCE=TestTodo_WEB_086_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_086`, `TestTodo_WEB_086_Golden`, `TestTodo_WEB_086_Browser`, `TestTodo_WEB_086_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement new-page purpose and audience setup—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement new-page purpose and audience setup—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16182,6 +16232,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE,BI.TENANT; DIRECT=none; WHY=implement the governed floorplan chooser without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_087`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_087`; `GOLDEN=TestTodo_WEB_087_Golden`; `BROWSER=TestTodo_WEB_087_Browser`; `CONFORMANCE=TestTodo_WEB_087_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_087`, `TestTodo_WEB_087_Golden`, `TestTodo_WEB_087_Browser`, `TestTodo_WEB_087_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement the governed floorplan chooser—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement the governed floorplan chooser—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16192,6 +16243,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE,BI.TENANT; DIRECT=none; WHY=implement the semantic outline editor without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_088`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_088`; `GOLDEN=TestTodo_WEB_088_Golden`; `BROWSER=TestTodo_WEB_088_Browser`; `CONFORMANCE=TestTodo_WEB_088_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_088`, `TestTodo_WEB_088_Golden`, `TestTodo_WEB_088_Browser`, `TestTodo_WEB_088_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement the semantic outline editor—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement the semantic outline editor—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16202,6 +16254,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE,BI.TENANT; DIRECT=none; WHY=implement keyboard page-region reordering without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_089`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_089`; `GOLDEN=TestTodo_WEB_089_Golden`; `BROWSER=TestTodo_WEB_089_Browser`; `CONFORMANCE=TestTodo_WEB_089_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_089`, `TestTodo_WEB_089_Golden`, `TestTodo_WEB_089_Browser`, `TestTodo_WEB_089_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement keyboard page-region reordering—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement keyboard page-region reordering—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16212,6 +16265,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE,BI.TENANT; DIRECT=none; WHY=implement the permitted widget catalog without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_090`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_090`; `GOLDEN=TestTodo_WEB_090_Golden`; `BROWSER=TestTodo_WEB_090_Browser`; `CONFORMANCE=TestTodo_WEB_090_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_090`, `TestTodo_WEB_090_Golden`, `TestTodo_WEB_090_Browser`, `TestTodo_WEB_090_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement the permitted widget catalog—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement the permitted widget catalog—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16222,6 +16276,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE,BI.TENANT; DIRECT=none; WHY=implement the authorized binding inspector without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_091`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_091`; `GOLDEN=TestTodo_WEB_091_Golden`; `BROWSER=TestTodo_WEB_091_Browser`; `CONFORMANCE=TestTodo_WEB_091_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_091`, `TestTodo_WEB_091_Golden`, `TestTodo_WEB_091_Browser`, `TestTodo_WEB_091_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement the authorized binding inspector—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement the authorized binding inspector—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16232,6 +16287,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE,BI.TENANT; DIRECT=none; WHY=implement the sanitized content editor without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_092`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_092`; `GOLDEN=TestTodo_WEB_092_Golden`; `BROWSER=TestTodo_WEB_092_Browser`; `CONFORMANCE=TestTodo_WEB_092_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_092`, `TestTodo_WEB_092_Golden`, `TestTodo_WEB_092_Browser`, `TestTodo_WEB_092_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement the sanitized content editor—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement the sanitized content editor—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16242,6 +16298,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE,BI.TENANT; DIRECT=none; WHY=implement multidimensional page preview without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_093`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_093`; `GOLDEN=TestTodo_WEB_093_Golden`; `BROWSER=TestTodo_WEB_093_Browser`; `CONFORMANCE=TestTodo_WEB_093_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_093`, `TestTodo_WEB_093_Golden`, `TestTodo_WEB_093_Browser`, `TestTodo_WEB_093_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement multidimensional page preview—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement multidimensional page preview—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16252,6 +16309,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE,BI.TENANT; DIRECT=none; WHY=implement the page-validation findings panel without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_094`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_094`; `GOLDEN=TestTodo_WEB_094_Golden`; `BROWSER=TestTodo_WEB_094_Browser`; `CONFORMANCE=TestTodo_WEB_094_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_094`, `TestTodo_WEB_094_Golden`, `TestTodo_WEB_094_Browser`, `TestTodo_WEB_094_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement the page-validation findings panel—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement the page-validation findings panel—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16262,6 +16320,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE,BI.TENANT; DIRECT=none; WHY=implement semantic page diff review without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_095`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_095`; `GOLDEN=TestTodo_WEB_095_Golden`; `BROWSER=TestTodo_WEB_095_Browser`; `CONFORMANCE=TestTodo_WEB_095_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_095`, `TestTodo_WEB_095_Golden`, `TestTodo_WEB_095_Browser`, `TestTodo_WEB_095_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement semantic page diff review—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement semantic page diff review—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16272,6 +16331,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE,BI.TENANT; DIRECT=none; WHY=implement governed page publication controls without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_096`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_096`; `GOLDEN=TestTodo_WEB_096_Golden`; `BROWSER=TestTodo_WEB_096_Browser`; `CONFORMANCE=TestTodo_WEB_096_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_096`, `TestTodo_WEB_096_Golden`, `TestTodo_WEB_096_Browser`, `TestTodo_WEB_096_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement governed page publication controls—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement governed page publication controls—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16284,6 +16344,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE,BI.WORK; DIRECT=none; WHY=implement the authorization-resolved home floorplan without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_097`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_097`; `GOLDEN=TestTodo_WEB_097_Golden`; `BROWSER=TestTodo_WEB_097_Browser`; `CONFORMANCE=TestTodo_WEB_097_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_097`, `TestTodo_WEB_097_Golden`, `TestTodo_WEB_097_Browser`, `TestTodo_WEB_097_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement the authorization-resolved home floorplan—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement the authorization-resolved home floorplan—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16294,6 +16355,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE,BI.WORK; DIRECT=none; WHY=implement the unified attention list without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_098`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_098`; `GOLDEN=TestTodo_WEB_098_Golden`; `BROWSER=TestTodo_WEB_098_Browser`; `CONFORMANCE=TestTodo_WEB_098_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_098`, `TestTodo_WEB_098_Golden`, `TestTodo_WEB_098_Browser`, `TestTodo_WEB_098_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement the unified attention list—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement the unified attention list—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16304,6 +16366,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE,BI.WORK; DIRECT=none; WHY=implement recent-work continuity without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_099`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_099`; `GOLDEN=TestTodo_WEB_099_Golden`; `BROWSER=TestTodo_WEB_099_Browser`; `CONFORMANCE=TestTodo_WEB_099_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_099`, `TestTodo_WEB_099_Golden`, `TestTodo_WEB_099_Browser`, `TestTodo_WEB_099_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement recent-work continuity—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement recent-work continuity—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16314,6 +16377,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE,BI.WORK; DIRECT=none; WHY=implement personal-essential summaries without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_100`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_100`; `GOLDEN=TestTodo_WEB_100_Golden`; `BROWSER=TestTodo_WEB_100_Browser`; `CONFORMANCE=TestTodo_WEB_100_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_100`, `TestTodo_WEB_100_Golden`, `TestTodo_WEB_100_Browser`, `TestTodo_WEB_100_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement personal-essential summaries—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement personal-essential summaries—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16324,6 +16388,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE,BI.WORK; DIRECT=none; WHY=implement configurable quick actions without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_101`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_101`; `GOLDEN=TestTodo_WEB_101_Golden`; `BROWSER=TestTodo_WEB_101_Browser`; `CONFORMANCE=TestTodo_WEB_101_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_101`, `TestTodo_WEB_101_Golden`, `TestTodo_WEB_101_Browser`, `TestTodo_WEB_101_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement configurable quick actions—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement configurable quick actions—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16334,6 +16399,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE,BI.WORK; DIRECT=none; WHY=implement governed announcement regions without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_102`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_102`; `GOLDEN=TestTodo_WEB_102_Golden`; `BROWSER=TestTodo_WEB_102_Browser`; `CONFORMANCE=TestTodo_WEB_102_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_102`, `TestTodo_WEB_102_Golden`, `TestTodo_WEB_102_Browser`, `TestTodo_WEB_102_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement governed announcement regions—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement governed announcement regions—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16344,6 +16410,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE,BI.WORK; DIRECT=none; WHY=implement the my work collection without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_103`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_103`; `GOLDEN=TestTodo_WEB_103_Golden`; `BROWSER=TestTodo_WEB_103_Browser`; `CONFORMANCE=TestTodo_WEB_103_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_103`, `TestTodo_WEB_103_Golden`, `TestTodo_WEB_103_Browser`, `TestTodo_WEB_103_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement the my work collection—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement the my work collection—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16354,6 +16421,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE,BI.WORK; DIRECT=none; WHY=implement task and approval filtering without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_104`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_104`; `GOLDEN=TestTodo_WEB_104_Golden`; `BROWSER=TestTodo_WEB_104_Browser`; `CONFORMANCE=TestTodo_WEB_104_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_104`, `TestTodo_WEB_104_Golden`, `TestTodo_WEB_104_Browser`, `TestTodo_WEB_104_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement task and approval filtering—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement task and approval filtering—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16364,6 +16432,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE,BI.WORK; DIRECT=none; WHY=implement the draft center view without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_105`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_105`; `GOLDEN=TestTodo_WEB_105_Golden`; `BROWSER=TestTodo_WEB_105_Browser`; `CONFORMANCE=TestTodo_WEB_105_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_105`, `TestTodo_WEB_105_Golden`, `TestTodo_WEB_105_Browser`, `TestTodo_WEB_105_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement the draft center view—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement the draft center view—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16374,6 +16443,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE,BI.WORK; DIRECT=none; WHY=implement tracked-request summaries without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_106`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_106`; `GOLDEN=TestTodo_WEB_106_Golden`; `BROWSER=TestTodo_WEB_106_Browser`; `CONFORMANCE=TestTodo_WEB_106_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_106`, `TestTodo_WEB_106_Golden`, `TestTodo_WEB_106_Browser`, `TestTodo_WEB_106_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement tracked-request summaries—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement tracked-request summaries—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16384,6 +16454,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE,BI.WORK; DIRECT=none; WHY=implement completed-work history without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_107`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_107`; `GOLDEN=TestTodo_WEB_107_Golden`; `BROWSER=TestTodo_WEB_107_Browser`; `CONFORMANCE=TestTodo_WEB_107_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_107`, `TestTodo_WEB_107_Golden`, `TestTodo_WEB_107_Browser`, `TestTodo_WEB_107_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement completed-work history—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement completed-work history—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16394,6 +16465,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE,BI.WORK; DIRECT=none; WHY=implement responsive my work list-detail behavior without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_108`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_108`; `GOLDEN=TestTodo_WEB_108_Golden`; `BROWSER=TestTodo_WEB_108_Browser`; `CONFORMANCE=TestTodo_WEB_108_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_108`, `TestTodo_WEB_108_Golden`, `TestTodo_WEB_108_Browser`, `TestTodo_WEB_108_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement responsive my work list-detail behavior—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement responsive my work list-detail behavior—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16406,6 +16478,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.PEOPLE,BI.EXPERIENCE; DIRECT=none; WHY=implement the authorized people directory without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_109`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_109`; `GOLDEN=TestTodo_WEB_109_Golden`; `BROWSER=TestTodo_WEB_109_Browser`; `CONFORMANCE=TestTodo_WEB_109_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_109`, `TestTodo_WEB_109_Golden`, `TestTodo_WEB_109_Browser`, `TestTodo_WEB_109_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement the authorized people directory—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement the authorized people directory—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16416,6 +16489,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.PEOPLE,BI.EXPERIENCE; DIRECT=none; WHY=implement the bounded people-query builder without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_110`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_110`; `GOLDEN=TestTodo_WEB_110_Golden`; `BROWSER=TestTodo_WEB_110_Browser`; `CONFORMANCE=TestTodo_WEB_110_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_110`, `TestTodo_WEB_110_Golden`, `TestTodo_WEB_110_Browser`, `TestTodo_WEB_110_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement the bounded people-query builder—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement the bounded people-query builder—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16426,6 +16500,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.PEOPLE,BI.EXPERIENCE; DIRECT=none; WHY=prevent people-search enumeration leakage without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_111`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_111`; `GOLDEN=TestTodo_WEB_111_Golden`; `BROWSER=TestTodo_WEB_111_Browser`; `CONFORMANCE=TestTodo_WEB_111_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_111`, `TestTodo_WEB_111_Golden`, `TestTodo_WEB_111_Browser`, `TestTodo_WEB_111_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—prevent people-search enumeration leakage—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—prevent people-search enumeration leakage—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16436,6 +16511,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.PEOPLE,BI.EXPERIENCE; DIRECT=none; WHY=implement the worker identity header without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_112`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_112`; `GOLDEN=TestTodo_WEB_112_Golden`; `BROWSER=TestTodo_WEB_112_Browser`; `CONFORMANCE=TestTodo_WEB_112_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_112`, `TestTodo_WEB_112_Golden`, `TestTodo_WEB_112_Browser`, `TestTodo_WEB_112_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement the worker identity header—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement the worker identity header—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16446,6 +16522,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.PEOPLE,BI.EXPERIENCE; DIRECT=none; WHY=implement the worker overview section without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_113`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_113`; `GOLDEN=TestTodo_WEB_113_Golden`; `BROWSER=TestTodo_WEB_113_Browser`; `CONFORMANCE=TestTodo_WEB_113_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_113`, `TestTodo_WEB_113_Golden`, `TestTodo_WEB_113_Browser`, `TestTodo_WEB_113_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement the worker overview section—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement the worker overview section—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16456,6 +16533,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.PEOPLE,BI.EXPERIENCE; DIRECT=none; WHY=implement the worker employment section without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_114`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_114`; `GOLDEN=TestTodo_WEB_114_Golden`; `BROWSER=TestTodo_WEB_114_Browser`; `CONFORMANCE=TestTodo_WEB_114_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_114`, `TestTodo_WEB_114_Golden`, `TestTodo_WEB_114_Browser`, `TestTodo_WEB_114_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement the worker employment section—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement the worker employment section—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16466,6 +16544,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.PEOPLE,BI.EXPERIENCE; DIRECT=none; WHY=implement the worker time and leave section without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_115`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_115`; `GOLDEN=TestTodo_WEB_115_Golden`; `BROWSER=TestTodo_WEB_115_Browser`; `CONFORMANCE=TestTodo_WEB_115_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_115`, `TestTodo_WEB_115_Golden`, `TestTodo_WEB_115_Browser`, `TestTodo_WEB_115_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement the worker time and leave section—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement the worker time and leave section—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16476,6 +16555,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.PEOPLE,BI.EXPERIENCE; DIRECT=none; WHY=implement the worker pay and benefits section without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_116`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_116`; `GOLDEN=TestTodo_WEB_116_Golden`; `BROWSER=TestTodo_WEB_116_Browser`; `CONFORMANCE=TestTodo_WEB_116_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_116`, `TestTodo_WEB_116_Golden`, `TestTodo_WEB_116_Browser`, `TestTodo_WEB_116_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement the worker pay and benefits section—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement the worker pay and benefits section—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16486,6 +16566,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.PEOPLE,BI.EXPERIENCE; DIRECT=none; WHY=implement the worker growth section without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_117`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_117`; `GOLDEN=TestTodo_WEB_117_Golden`; `BROWSER=TestTodo_WEB_117_Browser`; `CONFORMANCE=TestTodo_WEB_117_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_117`, `TestTodo_WEB_117_Golden`, `TestTodo_WEB_117_Browser`, `TestTodo_WEB_117_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement the worker growth section—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement the worker growth section—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16496,6 +16577,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.PEOPLE,BI.EXPERIENCE; DIRECT=none; WHY=implement worker documents and activity sections without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_118`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_118`; `GOLDEN=TestTodo_WEB_118_Golden`; `BROWSER=TestTodo_WEB_118_Browser`; `CONFORMANCE=TestTodo_WEB_118_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_118`, `TestTodo_WEB_118_Golden`, `TestTodo_WEB_118_Browser`, `TestTodo_WEB_118_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement worker documents and activity sections—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement worker documents and activity sections—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16506,6 +16588,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.PEOPLE,BI.EXPERIENCE; DIRECT=none; WHY=implement contextual worker action discovery without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_119`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_119`; `GOLDEN=TestTodo_WEB_119_Golden`; `BROWSER=TestTodo_WEB_119_Browser`; `CONFORMANCE=TestTodo_WEB_119_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_119`, `TestTodo_WEB_119_Golden`, `TestTodo_WEB_119_Browser`, `TestTodo_WEB_119_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement contextual worker action discovery—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement contextual worker action discovery—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16516,6 +16599,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.PEOPLE,BI.EXPERIENCE; DIRECT=none; WHY=implement the responsive worker object page without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_120`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_120`; `GOLDEN=TestTodo_WEB_120_Golden`; `BROWSER=TestTodo_WEB_120_Browser`; `CONFORMANCE=TestTodo_WEB_120_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_120`, `TestTodo_WEB_120_Golden`, `TestTodo_WEB_120_Browser`, `TestTodo_WEB_120_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement the responsive worker object page—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement the responsive worker object page—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16539,6 +16623,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.PEOPLE,BI.REWARDS,BI.WORK,BI.EXPERIENCE; DIRECT=none; WHY=implement durable draft autosave presentation without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_122`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_122`; `GOLDEN=TestTodo_WEB_122_Golden`; `BROWSER=TestTodo_WEB_122_Browser`; `CONFORMANCE=TestTodo_WEB_122_Conformance`; `INTEGRATION=TestTodo_WEB_122_Integration`; `FAULT=TestTodo_WEB_122_Fault`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_122`, `TestTodo_WEB_122_Golden`, `TestTodo_WEB_122_Browser`, `TestTodo_WEB_122_Conformance`, `TestTodo_WEB_122_Integration`, `TestTodo_WEB_122_Fault` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement durable draft autosave presentation—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement durable draft autosave presentation—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16549,6 +16634,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.PEOPLE,BI.REWARDS,BI.WORK,BI.EXPERIENCE; DIRECT=none; WHY=implement current-versus-proposed field presentation without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_123`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_123`; `GOLDEN=TestTodo_WEB_123_Golden`; `BROWSER=TestTodo_WEB_123_Browser`; `CONFORMANCE=TestTodo_WEB_123_Conformance`; `INTEGRATION=TestTodo_WEB_123_Integration`; `FAULT=TestTodo_WEB_123_Fault`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_123`, `TestTodo_WEB_123_Golden`, `TestTodo_WEB_123_Browser`, `TestTodo_WEB_123_Conformance`, `TestTodo_WEB_123_Integration`, `TestTodo_WEB_123_Fault` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement current-versus-proposed field presentation—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement current-versus-proposed field presentation—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16559,6 +16645,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.PEOPLE,BI.REWARDS,BI.WORK,BI.EXPERIENCE; DIRECT=none; WHY=implement guided proposal collection without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_124`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_124`; `GOLDEN=TestTodo_WEB_124_Golden`; `BROWSER=TestTodo_WEB_124_Browser`; `CONFORMANCE=TestTodo_WEB_124_Conformance`; `INTEGRATION=TestTodo_WEB_124_Integration`; `FAULT=TestTodo_WEB_124_Fault`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_124`, `TestTodo_WEB_124_Golden`, `TestTodo_WEB_124_Browser`, `TestTodo_WEB_124_Conformance`, `TestTodo_WEB_124_Integration`, `TestTodo_WEB_124_Fault` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement guided proposal collection—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement guided proposal collection—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16569,6 +16656,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.PEOPLE,BI.REWARDS,BI.WORK,BI.EXPERIENCE; DIRECT=none; WHY=implement the accessible validation summary without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_125`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_125`; `GOLDEN=TestTodo_WEB_125_Golden`; `BROWSER=TestTodo_WEB_125_Browser`; `CONFORMANCE=TestTodo_WEB_125_Conformance`; `INTEGRATION=TestTodo_WEB_125_Integration`; `FAULT=TestTodo_WEB_125_Fault`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_125`, `TestTodo_WEB_125_Golden`, `TestTodo_WEB_125_Browser`, `TestTodo_WEB_125_Conformance`, `TestTodo_WEB_125_Integration`, `TestTodo_WEB_125_Fault` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement the accessible validation summary—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement the accessible validation summary—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16579,6 +16667,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.PEOPLE,BI.REWARDS,BI.WORK,BI.EXPERIENCE; DIRECT=none; WHY=implement simulation comparison presentation without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_126`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_126`; `GOLDEN=TestTodo_WEB_126_Golden`; `BROWSER=TestTodo_WEB_126_Browser`; `CONFORMANCE=TestTodo_WEB_126_Conformance`; `INTEGRATION=TestTodo_WEB_126_Integration`; `FAULT=TestTodo_WEB_126_Fault`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_126`, `TestTodo_WEB_126_Golden`, `TestTodo_WEB_126_Browser`, `TestTodo_WEB_126_Conformance`, `TestTodo_WEB_126_Integration`, `TestTodo_WEB_126_Fault` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement simulation comparison presentation—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement simulation comparison presentation—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16589,6 +16678,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.PEOPLE,BI.REWARDS,BI.WORK,BI.EXPERIENCE; DIRECT=none; WHY=implement policy and obligation explanations without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_127`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_127`; `GOLDEN=TestTodo_WEB_127_Golden`; `BROWSER=TestTodo_WEB_127_Browser`; `CONFORMANCE=TestTodo_WEB_127_Conformance`; `INTEGRATION=TestTodo_WEB_127_Integration`; `FAULT=TestTodo_WEB_127_Fault`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_127`, `TestTodo_WEB_127_Golden`, `TestTodo_WEB_127_Browser`, `TestTodo_WEB_127_Conformance`, `TestTodo_WEB_127_Integration`, `TestTodo_WEB_127_Fault` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement policy and obligation explanations—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement policy and obligation explanations—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16599,6 +16689,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.PEOPLE,BI.REWARDS,BI.WORK,BI.EXPERIENCE; DIRECT=none; WHY=implement proposal confirmation review without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_128`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_128`; `GOLDEN=TestTodo_WEB_128_Golden`; `BROWSER=TestTodo_WEB_128_Browser`; `CONFORMANCE=TestTodo_WEB_128_Conformance`; `INTEGRATION=TestTodo_WEB_128_Integration`; `FAULT=TestTodo_WEB_128_Fault`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_128`, `TestTodo_WEB_128_Golden`, `TestTodo_WEB_128_Browser`, `TestTodo_WEB_128_Conformance`, `TestTodo_WEB_128_Integration`, `TestTodo_WEB_128_Fault` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement proposal confirmation review—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement proposal confirmation review—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16609,6 +16700,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.PEOPLE,BI.REWARDS,BI.WORK,BI.EXPERIENCE; DIRECT=none; WHY=implement approval progress presentation without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_129`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_129`; `GOLDEN=TestTodo_WEB_129_Golden`; `BROWSER=TestTodo_WEB_129_Browser`; `CONFORMANCE=TestTodo_WEB_129_Conformance`; `INTEGRATION=TestTodo_WEB_129_Integration`; `FAULT=TestTodo_WEB_129_Fault`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_129`, `TestTodo_WEB_129_Golden`, `TestTodo_WEB_129_Browser`, `TestTodo_WEB_129_Conformance`, `TestTodo_WEB_129_Integration`, `TestTodo_WEB_129_Fault` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement approval progress presentation—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement approval progress presentation—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16619,6 +16711,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.PEOPLE,BI.REWARDS,BI.WORK,BI.EXPERIENCE; DIRECT=none; WHY=implement execution-status dimensions without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_130`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_130`; `GOLDEN=TestTodo_WEB_130_Golden`; `BROWSER=TestTodo_WEB_130_Browser`; `CONFORMANCE=TestTodo_WEB_130_Conformance`; `INTEGRATION=TestTodo_WEB_130_Integration`; `FAULT=TestTodo_WEB_130_Fault`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_130`, `TestTodo_WEB_130_Golden`, `TestTodo_WEB_130_Browser`, `TestTodo_WEB_130_Conformance`, `TestTodo_WEB_130_Integration`, `TestTodo_WEB_130_Fault` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement execution-status dimensions—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement execution-status dimensions—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16629,6 +16722,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.PEOPLE,BI.REWARDS,BI.WORK,BI.EXPERIENCE; DIRECT=none; WHY=implement reconciliation and repair presentation without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_131`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_131`; `GOLDEN=TestTodo_WEB_131_Golden`; `BROWSER=TestTodo_WEB_131_Browser`; `CONFORMANCE=TestTodo_WEB_131_Conformance`; `INTEGRATION=TestTodo_WEB_131_Integration`; `FAULT=TestTodo_WEB_131_Fault`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_131`, `TestTodo_WEB_131_Golden`, `TestTodo_WEB_131_Browser`, `TestTodo_WEB_131_Conformance`, `TestTodo_WEB_131_Integration`, `TestTodo_WEB_131_Fault` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement reconciliation and repair presentation—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement reconciliation and repair presentation—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16639,6 +16733,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.PEOPLE,BI.REWARDS,BI.WORK,BI.EXPERIENCE; DIRECT=none; WHY=implement interruption and recovery continuity without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_132`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_132`; `GOLDEN=TestTodo_WEB_132_Golden`; `BROWSER=TestTodo_WEB_132_Browser`; `CONFORMANCE=TestTodo_WEB_132_Conformance`; `INTEGRATION=TestTodo_WEB_132_Integration`; `FAULT=TestTodo_WEB_132_Fault`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_132`, `TestTodo_WEB_132_Golden`, `TestTodo_WEB_132_Browser`, `TestTodo_WEB_132_Conformance`, `TestTodo_WEB_132_Integration`, `TestTodo_WEB_132_Fault` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement interruption and recovery continuity—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement interruption and recovery continuity—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16651,6 +16746,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.RECRUITING,BI.LIFECYCLE,BI.EXPERIENCE; DIRECT=none; WHY=implement the headcount-request page without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_133`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_133`; `GOLDEN=TestTodo_WEB_133_Golden`; `BROWSER=TestTodo_WEB_133_Browser`; `CONFORMANCE=TestTodo_WEB_133_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_133`, `TestTodo_WEB_133_Golden`, `TestTodo_WEB_133_Browser`, `TestTodo_WEB_133_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement the headcount-request page—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement the headcount-request page—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16661,6 +16757,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.RECRUITING,BI.LIFECYCLE,BI.EXPERIENCE; DIRECT=none; WHY=implement the position-request page without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_134`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_134`; `GOLDEN=TestTodo_WEB_134_Golden`; `BROWSER=TestTodo_WEB_134_Browser`; `CONFORMANCE=TestTodo_WEB_134_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_134`, `TestTodo_WEB_134_Golden`, `TestTodo_WEB_134_Browser`, `TestTodo_WEB_134_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement the position-request page—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement the position-request page—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16671,6 +16768,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.RECRUITING,BI.LIFECYCLE,BI.EXPERIENCE; DIRECT=none; WHY=implement the requisition workspace without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_135`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_135`; `GOLDEN=TestTodo_WEB_135_Golden`; `BROWSER=TestTodo_WEB_135_Browser`; `CONFORMANCE=TestTodo_WEB_135_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_135`, `TestTodo_WEB_135_Golden`, `TestTodo_WEB_135_Browser`, `TestTodo_WEB_135_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement the requisition workspace—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement the requisition workspace—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16681,6 +16779,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.RECRUITING,BI.LIFECYCLE,BI.EXPERIENCE; DIRECT=none; WHY=implement the candidate pipeline without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_136`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_136`; `GOLDEN=TestTodo_WEB_136_Golden`; `BROWSER=TestTodo_WEB_136_Browser`; `CONFORMANCE=TestTodo_WEB_136_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_136`, `TestTodo_WEB_136_Golden`, `TestTodo_WEB_136_Browser`, `TestTodo_WEB_136_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement the candidate pipeline—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement the candidate pipeline—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16691,6 +16790,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.RECRUITING,BI.LIFECYCLE,BI.EXPERIENCE; DIRECT=none; WHY=implement the candidate object page without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_137`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_137`; `GOLDEN=TestTodo_WEB_137_Golden`; `BROWSER=TestTodo_WEB_137_Browser`; `CONFORMANCE=TestTodo_WEB_137_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_137`, `TestTodo_WEB_137_Golden`, `TestTodo_WEB_137_Browser`, `TestTodo_WEB_137_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement the candidate object page—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement the candidate object page—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16701,6 +16801,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.RECRUITING,BI.LIFECYCLE,BI.EXPERIENCE; DIRECT=none; WHY=implement interview scheduling without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_138`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_138`; `GOLDEN=TestTodo_WEB_138_Golden`; `BROWSER=TestTodo_WEB_138_Browser`; `CONFORMANCE=TestTodo_WEB_138_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_138`, `TestTodo_WEB_138_Golden`, `TestTodo_WEB_138_Browser`, `TestTodo_WEB_138_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement interview scheduling—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement interview scheduling—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16711,6 +16812,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.RECRUITING,BI.LIFECYCLE,BI.EXPERIENCE; DIRECT=none; WHY=implement structured candidate evaluation without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_139`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_139`; `GOLDEN=TestTodo_WEB_139_Golden`; `BROWSER=TestTodo_WEB_139_Browser`; `CONFORMANCE=TestTodo_WEB_139_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_139`, `TestTodo_WEB_139_Golden`, `TestTodo_WEB_139_Browser`, `TestTodo_WEB_139_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement structured candidate evaluation—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement structured candidate evaluation—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16721,6 +16823,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.RECRUITING,BI.LIFECYCLE,BI.EXPERIENCE; DIRECT=none; WHY=implement offer review and acceptance without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_140`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_140`; `GOLDEN=TestTodo_WEB_140_Golden`; `BROWSER=TestTodo_WEB_140_Browser`; `CONFORMANCE=TestTodo_WEB_140_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_140`, `TestTodo_WEB_140_Golden`, `TestTodo_WEB_140_Browser`, `TestTodo_WEB_140_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement offer review and acceptance—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement offer review and acceptance—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16731,6 +16834,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.RECRUITING,BI.LIFECYCLE,BI.EXPERIENCE; DIRECT=none; WHY=implement the external candidate portal without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_141`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_141`; `GOLDEN=TestTodo_WEB_141_Golden`; `BROWSER=TestTodo_WEB_141_Browser`; `CONFORMANCE=TestTodo_WEB_141_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_141`, `TestTodo_WEB_141_Golden`, `TestTodo_WEB_141_Browser`, `TestTodo_WEB_141_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement the external candidate portal—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement the external candidate portal—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16741,6 +16845,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.RECRUITING,BI.LIFECYCLE,BI.EXPERIENCE; DIRECT=none; WHY=implement the onboarding-plan page without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_142`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_142`; `GOLDEN=TestTodo_WEB_142_Golden`; `BROWSER=TestTodo_WEB_142_Browser`; `CONFORMANCE=TestTodo_WEB_142_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_142`, `TestTodo_WEB_142_Golden`, `TestTodo_WEB_142_Browser`, `TestTodo_WEB_142_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement the onboarding-plan page—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement the onboarding-plan page—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16751,6 +16856,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.RECRUITING,BI.LIFECYCLE,BI.EXPERIENCE; DIRECT=none; WHY=implement onboarding task completion without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_143`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_143`; `GOLDEN=TestTodo_WEB_143_Golden`; `BROWSER=TestTodo_WEB_143_Browser`; `CONFORMANCE=TestTodo_WEB_143_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_143`, `TestTodo_WEB_143_Golden`, `TestTodo_WEB_143_Browser`, `TestTodo_WEB_143_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement onboarding task completion—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement onboarding task completion—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16761,6 +16867,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.RECRUITING,BI.LIFECYCLE,BI.EXPERIENCE; DIRECT=none; WHY=implement worker-activation readiness without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_144`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_144`; `GOLDEN=TestTodo_WEB_144_Golden`; `BROWSER=TestTodo_WEB_144_Browser`; `CONFORMANCE=TestTodo_WEB_144_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_144`, `TestTodo_WEB_144_Golden`, `TestTodo_WEB_144_Browser`, `TestTodo_WEB_144_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement worker-activation readiness—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement worker-activation readiness—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16773,6 +16880,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.WORKFORCE,BI.REGULATORY,BI.EXPERIENCE; DIRECT=none; WHY=implement the employee time hub without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_145`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_145`; `GOLDEN=TestTodo_WEB_145_Golden`; `BROWSER=TestTodo_WEB_145_Browser`; `CONFORMANCE=TestTodo_WEB_145_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_145`, `TestTodo_WEB_145_Golden`, `TestTodo_WEB_145_Browser`, `TestTodo_WEB_145_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement the employee time hub—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement the employee time hub—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16783,6 +16891,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.WORKFORCE,BI.REGULATORY,BI.EXPERIENCE; DIRECT=none; WHY=implement accessible time entry without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_146`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_146`; `GOLDEN=TestTodo_WEB_146_Golden`; `BROWSER=TestTodo_WEB_146_Browser`; `CONFORMANCE=TestTodo_WEB_146_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_146`, `TestTodo_WEB_146_Golden`, `TestTodo_WEB_146_Browser`, `TestTodo_WEB_146_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement accessible time entry—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement accessible time entry—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16793,6 +16902,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.WORKFORCE,BI.REGULATORY,BI.EXPERIENCE; DIRECT=none; WHY=implement time correction without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_147`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_147`; `GOLDEN=TestTodo_WEB_147_Golden`; `BROWSER=TestTodo_WEB_147_Browser`; `CONFORMANCE=TestTodo_WEB_147_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_147`, `TestTodo_WEB_147_Golden`, `TestTodo_WEB_147_Browser`, `TestTodo_WEB_147_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement time correction—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement time correction—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16803,6 +16913,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.WORKFORCE,BI.REGULATORY,BI.EXPERIENCE; DIRECT=none; WHY=implement manager time approval without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_148`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_148`; `GOLDEN=TestTodo_WEB_148_Golden`; `BROWSER=TestTodo_WEB_148_Browser`; `CONFORMANCE=TestTodo_WEB_148_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_148`, `TestTodo_WEB_148_Golden`, `TestTodo_WEB_148_Browser`, `TestTodo_WEB_148_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement manager time approval—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement manager time approval—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16813,6 +16924,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.WORKFORCE,BI.REGULATORY,BI.EXPERIENCE; DIRECT=none; WHY=implement the time-exception workbench without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_149`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_149`; `GOLDEN=TestTodo_WEB_149_Golden`; `BROWSER=TestTodo_WEB_149_Browser`; `CONFORMANCE=TestTodo_WEB_149_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_149`, `TestTodo_WEB_149_Golden`, `TestTodo_WEB_149_Browser`, `TestTodo_WEB_149_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement the time-exception workbench—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement the time-exception workbench—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16823,6 +16935,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.WORKFORCE,BI.REGULATORY,BI.EXPERIENCE; DIRECT=none; WHY=implement time-off balance and calendar without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_150`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_150`; `GOLDEN=TestTodo_WEB_150_Golden`; `BROWSER=TestTodo_WEB_150_Browser`; `CONFORMANCE=TestTodo_WEB_150_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_150`, `TestTodo_WEB_150_Golden`, `TestTodo_WEB_150_Browser`, `TestTodo_WEB_150_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement time-off balance and calendar—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement time-off balance and calendar—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16833,6 +16946,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.WORKFORCE,BI.REGULATORY,BI.EXPERIENCE; DIRECT=none; WHY=implement the time-off request journey without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_151`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_151`; `GOLDEN=TestTodo_WEB_151_Golden`; `BROWSER=TestTodo_WEB_151_Browser`; `CONFORMANCE=TestTodo_WEB_151_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_151`, `TestTodo_WEB_151_Golden`, `TestTodo_WEB_151_Browser`, `TestTodo_WEB_151_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement the time-off request journey—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement the time-off request journey—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16843,6 +16957,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.WORKFORCE,BI.REGULATORY,BI.EXPERIENCE; DIRECT=none; WHY=implement team-coverage review without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_152`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_152`; `GOLDEN=TestTodo_WEB_152_Golden`; `BROWSER=TestTodo_WEB_152_Browser`; `CONFORMANCE=TestTodo_WEB_152_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_152`, `TestTodo_WEB_152_Golden`, `TestTodo_WEB_152_Browser`, `TestTodo_WEB_152_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement team-coverage review—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement team-coverage review—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16853,6 +16968,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.WORKFORCE,BI.REGULATORY,BI.EXPERIENCE; DIRECT=none; WHY=implement protected-leave intake without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_153`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_153`; `GOLDEN=TestTodo_WEB_153_Golden`; `BROWSER=TestTodo_WEB_153_Browser`; `CONFORMANCE=TestTodo_WEB_153_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_153`, `TestTodo_WEB_153_Golden`, `TestTodo_WEB_153_Browser`, `TestTodo_WEB_153_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement protected-leave intake—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement protected-leave intake—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16863,6 +16979,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.WORKFORCE,BI.REGULATORY,BI.EXPERIENCE; DIRECT=none; WHY=implement restricted leave-evidence tasks without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_154`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_154`; `GOLDEN=TestTodo_WEB_154_Golden`; `BROWSER=TestTodo_WEB_154_Browser`; `CONFORMANCE=TestTodo_WEB_154_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_154`, `TestTodo_WEB_154_Golden`, `TestTodo_WEB_154_Browser`, `TestTodo_WEB_154_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement restricted leave-evidence tasks—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement restricted leave-evidence tasks—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16873,6 +16990,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.WORKFORCE,BI.REGULATORY,BI.EXPERIENCE; DIRECT=none; WHY=implement the leave-status timeline without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_155`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_155`; `GOLDEN=TestTodo_WEB_155_Golden`; `BROWSER=TestTodo_WEB_155_Browser`; `CONFORMANCE=TestTodo_WEB_155_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_155`, `TestTodo_WEB_155_Golden`, `TestTodo_WEB_155_Browser`, `TestTodo_WEB_155_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement the leave-status timeline—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement the leave-status timeline—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16883,6 +17001,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.WORKFORCE,BI.REGULATORY,BI.EXPERIENCE; DIRECT=none; WHY=implement return-to-work planning without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_156`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_156`; `GOLDEN=TestTodo_WEB_156_Golden`; `BROWSER=TestTodo_WEB_156_Browser`; `CONFORMANCE=TestTodo_WEB_156_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_156`, `TestTodo_WEB_156_Golden`, `TestTodo_WEB_156_Browser`, `TestTodo_WEB_156_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement return-to-work planning—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement return-to-work planning—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16895,6 +17014,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.REWARDS,BI.PAYROLL,BI.EXPERIENCE; DIRECT=none; WHY=implement the employee pay summary without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_157`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_157`; `GOLDEN=TestTodo_WEB_157_Golden`; `BROWSER=TestTodo_WEB_157_Browser`; `CONFORMANCE=TestTodo_WEB_157_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_157`, `TestTodo_WEB_157_Golden`, `TestTodo_WEB_157_Browser`, `TestTodo_WEB_157_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement the employee pay summary—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement the employee pay summary—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16905,6 +17025,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.REWARDS,BI.PAYROLL,BI.EXPERIENCE; DIRECT=none; WHY=implement accessible pay statements without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_158`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_158`; `GOLDEN=TestTodo_WEB_158_Golden`; `BROWSER=TestTodo_WEB_158_Browser`; `CONFORMANCE=TestTodo_WEB_158_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_158`, `TestTodo_WEB_158_Golden`, `TestTodo_WEB_158_Browser`, `TestTodo_WEB_158_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement accessible pay statements—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement accessible pay statements—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16915,6 +17036,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.REWARDS,BI.PAYROLL,BI.EXPERIENCE; DIRECT=none; WHY=implement pay-discrepancy intake without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_159`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_159`; `GOLDEN=TestTodo_WEB_159_Golden`; `BROWSER=TestTodo_WEB_159_Browser`; `CONFORMANCE=TestTodo_WEB_159_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_159`, `TestTodo_WEB_159_Golden`, `TestTodo_WEB_159_Browser`, `TestTodo_WEB_159_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement pay-discrepancy intake—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement pay-discrepancy intake—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16925,6 +17047,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.REWARDS,BI.PAYROLL,BI.EXPERIENCE; DIRECT=none; WHY=implement manager compensation proposals without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_160`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_160`; `GOLDEN=TestTodo_WEB_160_Golden`; `BROWSER=TestTodo_WEB_160_Browser`; `CONFORMANCE=TestTodo_WEB_160_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_160`, `TestTodo_WEB_160_Golden`, `TestTodo_WEB_160_Browser`, `TestTodo_WEB_160_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement manager compensation proposals—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement manager compensation proposals—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16935,6 +17058,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.REWARDS,BI.PAYROLL,BI.EXPERIENCE; DIRECT=none; WHY=implement salary-range and budget comparison without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_161`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_161`; `GOLDEN=TestTodo_WEB_161_Golden`; `BROWSER=TestTodo_WEB_161_Browser`; `CONFORMANCE=TestTodo_WEB_161_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_161`, `TestTodo_WEB_161_Golden`, `TestTodo_WEB_161_Browser`, `TestTodo_WEB_161_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement salary-range and budget comparison—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement salary-range and budget comparison—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16945,6 +17069,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.REWARDS,BI.PAYROLL,BI.EXPERIENCE; DIRECT=none; WHY=implement compensation-cycle populations without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_162`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_162`; `GOLDEN=TestTodo_WEB_162_Golden`; `BROWSER=TestTodo_WEB_162_Browser`; `CONFORMANCE=TestTodo_WEB_162_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_162`, `TestTodo_WEB_162_Golden`, `TestTodo_WEB_162_Browser`, `TestTodo_WEB_162_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement compensation-cycle populations—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement compensation-cycle populations—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16955,6 +17080,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.REWARDS,BI.PAYROLL,BI.EXPERIENCE; DIRECT=none; WHY=implement the compensation worksheet without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_163`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_163`; `GOLDEN=TestTodo_WEB_163_Golden`; `BROWSER=TestTodo_WEB_163_Browser`; `CONFORMANCE=TestTodo_WEB_163_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_163`, `TestTodo_WEB_163_Golden`, `TestTodo_WEB_163_Browser`, `TestTodo_WEB_163_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement the compensation worksheet—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement the compensation worksheet—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16965,6 +17091,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.REWARDS,BI.PAYROLL,BI.EXPERIENCE; DIRECT=none; WHY=implement compensation calibration without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_164`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_164`; `GOLDEN=TestTodo_WEB_164_Golden`; `BROWSER=TestTodo_WEB_164_Browser`; `CONFORMANCE=TestTodo_WEB_164_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_164`, `TestTodo_WEB_164_Golden`, `TestTodo_WEB_164_Browser`, `TestTodo_WEB_164_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement compensation calibration—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement compensation calibration—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16975,6 +17102,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.REWARDS,BI.PAYROLL,BI.EXPERIENCE; DIRECT=none; WHY=implement the benefit-program overview without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_165`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_165`; `GOLDEN=TestTodo_WEB_165_Golden`; `BROWSER=TestTodo_WEB_165_Browser`; `CONFORMANCE=TestTodo_WEB_165_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_165`, `TestTodo_WEB_165_Golden`, `TestTodo_WEB_165_Browser`, `TestTodo_WEB_165_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement the benefit-program overview—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement the benefit-program overview—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16985,6 +17113,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.REWARDS,BI.PAYROLL,BI.EXPERIENCE; DIRECT=none; WHY=implement benefit-plan comparison without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_166`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_166`; `GOLDEN=TestTodo_WEB_166_Golden`; `BROWSER=TestTodo_WEB_166_Browser`; `CONFORMANCE=TestTodo_WEB_166_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_166`, `TestTodo_WEB_166_Golden`, `TestTodo_WEB_166_Browser`, `TestTodo_WEB_166_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement benefit-plan comparison—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement benefit-plan comparison—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -16995,6 +17124,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.REWARDS,BI.PAYROLL,BI.EXPERIENCE; DIRECT=none; WHY=implement benefit enrollment without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_167`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_167`; `GOLDEN=TestTodo_WEB_167_Golden`; `BROWSER=TestTodo_WEB_167_Browser`; `CONFORMANCE=TestTodo_WEB_167_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_167`, `TestTodo_WEB_167_Golden`, `TestTodo_WEB_167_Browser`, `TestTodo_WEB_167_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement benefit enrollment—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement benefit enrollment—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17005,6 +17135,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.REWARDS,BI.PAYROLL,BI.EXPERIENCE; DIRECT=none; WHY=implement payroll and benefit reconciliation status without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_168`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_168`; `GOLDEN=TestTodo_WEB_168_Golden`; `BROWSER=TestTodo_WEB_168_Browser`; `CONFORMANCE=TestTodo_WEB_168_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_168`, `TestTodo_WEB_168_Golden`, `TestTodo_WEB_168_Browser`, `TestTodo_WEB_168_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement payroll and benefit reconciliation status—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement payroll and benefit reconciliation status—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17017,6 +17148,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.TALENT,BI.EXPERIENCE; DIRECT=none; WHY=implement the employee growth home without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_169`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_169`; `GOLDEN=TestTodo_WEB_169_Golden`; `BROWSER=TestTodo_WEB_169_Browser`; `CONFORMANCE=TestTodo_WEB_169_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_169`, `TestTodo_WEB_169_Golden`, `TestTodo_WEB_169_Browser`, `TestTodo_WEB_169_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement the employee growth home—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement the employee growth home—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17027,6 +17159,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.TALENT,BI.EXPERIENCE; DIRECT=none; WHY=implement goal planning without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_170`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_170`; `GOLDEN=TestTodo_WEB_170_Golden`; `BROWSER=TestTodo_WEB_170_Browser`; `CONFORMANCE=TestTodo_WEB_170_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_170`, `TestTodo_WEB_170_Golden`, `TestTodo_WEB_170_Browser`, `TestTodo_WEB_170_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement goal planning—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement goal planning—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17037,6 +17170,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.TALENT,BI.EXPERIENCE; DIRECT=none; WHY=implement governed feedback without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_171`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_171`; `GOLDEN=TestTodo_WEB_171_Golden`; `BROWSER=TestTodo_WEB_171_Browser`; `CONFORMANCE=TestTodo_WEB_171_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_171`, `TestTodo_WEB_171_Golden`, `TestTodo_WEB_171_Browser`, `TestTodo_WEB_171_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement governed feedback—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement governed feedback—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17047,6 +17181,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.TALENT,BI.EXPERIENCE; DIRECT=none; WHY=implement manager check-ins without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_172`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_172`; `GOLDEN=TestTodo_WEB_172_Golden`; `BROWSER=TestTodo_WEB_172_Browser`; `CONFORMANCE=TestTodo_WEB_172_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_172`, `TestTodo_WEB_172_Golden`, `TestTodo_WEB_172_Browser`, `TestTodo_WEB_172_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement manager check-ins—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement manager check-ins—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17057,6 +17192,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.TALENT,BI.EXPERIENCE; DIRECT=none; WHY=implement the performance-review workspace without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_173`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_173`; `GOLDEN=TestTodo_WEB_173_Golden`; `BROWSER=TestTodo_WEB_173_Browser`; `CONFORMANCE=TestTodo_WEB_173_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_173`, `TestTodo_WEB_173_Golden`, `TestTodo_WEB_173_Browser`, `TestTodo_WEB_173_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement the performance-review workspace—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement the performance-review workspace—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17067,6 +17203,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.TALENT,BI.EXPERIENCE; DIRECT=none; WHY=enforce review-participant visibility without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_174`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_174`; `GOLDEN=TestTodo_WEB_174_Golden`; `BROWSER=TestTodo_WEB_174_Browser`; `CONFORMANCE=TestTodo_WEB_174_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_174`, `TestTodo_WEB_174_Golden`, `TestTodo_WEB_174_Browser`, `TestTodo_WEB_174_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—enforce review-participant visibility—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—enforce review-participant visibility—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17077,6 +17214,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.TALENT,BI.EXPERIENCE; DIRECT=none; WHY=implement the governed skills profile without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_175`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_175`; `GOLDEN=TestTodo_WEB_175_Golden`; `BROWSER=TestTodo_WEB_175_Browser`; `CONFORMANCE=TestTodo_WEB_175_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_175`, `TestTodo_WEB_175_Golden`, `TestTodo_WEB_175_Browser`, `TestTodo_WEB_175_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement the governed skills profile—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement the governed skills profile—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17087,6 +17225,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.TALENT,BI.EXPERIENCE; DIRECT=none; WHY=implement assigned learning without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_176`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_176`; `GOLDEN=TestTodo_WEB_176_Golden`; `BROWSER=TestTodo_WEB_176_Browser`; `CONFORMANCE=TestTodo_WEB_176_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_176`, `TestTodo_WEB_176_Golden`, `TestTodo_WEB_176_Browser`, `TestTodo_WEB_176_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement assigned learning—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement assigned learning—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17097,6 +17236,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.TALENT,BI.EXPERIENCE; DIRECT=none; WHY=implement career-opportunity discovery without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_177`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_177`; `GOLDEN=TestTodo_WEB_177_Golden`; `BROWSER=TestTodo_WEB_177_Browser`; `CONFORMANCE=TestTodo_WEB_177_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_177`, `TestTodo_WEB_177_Golden`, `TestTodo_WEB_177_Browser`, `TestTodo_WEB_177_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement career-opportunity discovery—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement career-opportunity discovery—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17107,6 +17247,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.TALENT,BI.EXPERIENCE; DIRECT=none; WHY=implement the manager talent workbench without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_178`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_178`; `GOLDEN=TestTodo_WEB_178_Golden`; `BROWSER=TestTodo_WEB_178_Browser`; `CONFORMANCE=TestTodo_WEB_178_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_178`, `TestTodo_WEB_178_Golden`, `TestTodo_WEB_178_Browser`, `TestTodo_WEB_178_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement the manager talent workbench—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement the manager talent workbench—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17117,6 +17258,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.TALENT,BI.EXPERIENCE; DIRECT=none; WHY=implement talent calibration without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_179`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_179`; `GOLDEN=TestTodo_WEB_179_Golden`; `BROWSER=TestTodo_WEB_179_Browser`; `CONFORMANCE=TestTodo_WEB_179_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_179`, `TestTodo_WEB_179_Golden`, `TestTodo_WEB_179_Browser`, `TestTodo_WEB_179_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement talent calibration—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement talent calibration—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17127,6 +17269,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.TALENT,BI.EXPERIENCE; DIRECT=none; WHY=implement succession planning without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_180`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_180`; `GOLDEN=TestTodo_WEB_180_Golden`; `BROWSER=TestTodo_WEB_180_Browser`; `CONFORMANCE=TestTodo_WEB_180_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_180`, `TestTodo_WEB_180_Golden`, `TestTodo_WEB_180_Browser`, `TestTodo_WEB_180_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement succession planning—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement succession planning—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17139,6 +17282,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.WORKFORCE,BI.PEOPLE,BI.EXPERIENCE; DIRECT=none; WHY=implement the organization explorer without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_181`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_181`; `GOLDEN=TestTodo_WEB_181_Golden`; `BROWSER=TestTodo_WEB_181_Browser`; `CONFORMANCE=TestTodo_WEB_181_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_181`, `TestTodo_WEB_181_Golden`, `TestTodo_WEB_181_Browser`, `TestTodo_WEB_181_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement the organization explorer—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement the organization explorer—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17149,6 +17293,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.WORKFORCE,BI.PEOPLE,BI.EXPERIENCE; DIRECT=none; WHY=implement the accessible organization outline without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_182`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_182`; `GOLDEN=TestTodo_WEB_182_Golden`; `BROWSER=TestTodo_WEB_182_Browser`; `CONFORMANCE=TestTodo_WEB_182_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_182`, `TestTodo_WEB_182_Golden`, `TestTodo_WEB_182_Browser`, `TestTodo_WEB_182_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement the accessible organization outline—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement the accessible organization outline—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17159,6 +17304,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.WORKFORCE,BI.PEOPLE,BI.EXPERIENCE; DIRECT=none; WHY=implement effective-date organization navigation without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_183`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_183`; `GOLDEN=TestTodo_WEB_183_Golden`; `BROWSER=TestTodo_WEB_183_Browser`; `CONFORMANCE=TestTodo_WEB_183_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_183`, `TestTodo_WEB_183_Golden`, `TestTodo_WEB_183_Browser`, `TestTodo_WEB_183_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement effective-date organization navigation—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement effective-date organization navigation—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17169,6 +17315,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.WORKFORCE,BI.PEOPLE,BI.EXPERIENCE; DIRECT=none; WHY=implement the position object page without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_184`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_184`; `GOLDEN=TestTodo_WEB_184_Golden`; `BROWSER=TestTodo_WEB_184_Browser`; `CONFORMANCE=TestTodo_WEB_184_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_184`, `TestTodo_WEB_184_Golden`, `TestTodo_WEB_184_Browser`, `TestTodo_WEB_184_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement the position object page—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement the position object page—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17179,6 +17326,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.WORKFORCE,BI.PEOPLE,BI.EXPERIENCE; DIRECT=none; WHY=implement position occupancy presentation without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_185`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_185`; `GOLDEN=TestTodo_WEB_185_Golden`; `BROWSER=TestTodo_WEB_185_Browser`; `CONFORMANCE=TestTodo_WEB_185_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_185`, `TestTodo_WEB_185_Golden`, `TestTodo_WEB_185_Browser`, `TestTodo_WEB_185_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement position occupancy presentation—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement position occupancy presentation—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17189,6 +17337,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.WORKFORCE,BI.PEOPLE,BI.EXPERIENCE; DIRECT=none; WHY=implement the headcount-plan workspace without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_186`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_186`; `GOLDEN=TestTodo_WEB_186_Golden`; `BROWSER=TestTodo_WEB_186_Browser`; `CONFORMANCE=TestTodo_WEB_186_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_186`, `TestTodo_WEB_186_Golden`, `TestTodo_WEB_186_Browser`, `TestTodo_WEB_186_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement the headcount-plan workspace—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement the headcount-plan workspace—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17199,6 +17348,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.WORKFORCE,BI.PEOPLE,BI.EXPERIENCE; DIRECT=none; WHY=implement workforce scenario authoring without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_187`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_187`; `GOLDEN=TestTodo_WEB_187_Golden`; `BROWSER=TestTodo_WEB_187_Browser`; `CONFORMANCE=TestTodo_WEB_187_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_187`, `TestTodo_WEB_187_Golden`, `TestTodo_WEB_187_Browser`, `TestTodo_WEB_187_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement workforce scenario authoring—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement workforce scenario authoring—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17209,6 +17359,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.WORKFORCE,BI.PEOPLE,BI.EXPERIENCE; DIRECT=none; WHY=implement governed population building without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_188`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_188`; `GOLDEN=TestTodo_WEB_188_Golden`; `BROWSER=TestTodo_WEB_188_Browser`; `CONFORMANCE=TestTodo_WEB_188_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_188`, `TestTodo_WEB_188_Golden`, `TestTodo_WEB_188_Browser`, `TestTodo_WEB_188_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement governed population building—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement governed population building—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17219,6 +17370,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.WORKFORCE,BI.PEOPLE,BI.EXPERIENCE; DIRECT=none; WHY=implement cost and capacity simulation without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_189`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_189`; `GOLDEN=TestTodo_WEB_189_Golden`; `BROWSER=TestTodo_WEB_189_Browser`; `CONFORMANCE=TestTodo_WEB_189_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_189`, `TestTodo_WEB_189_Golden`, `TestTodo_WEB_189_Browser`, `TestTodo_WEB_189_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement cost and capacity simulation—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement cost and capacity simulation—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17229,6 +17381,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.WORKFORCE,BI.PEOPLE,BI.EXPERIENCE; DIRECT=none; WHY=implement reorganization proposals without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_190`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_190`; `GOLDEN=TestTodo_WEB_190_Golden`; `BROWSER=TestTodo_WEB_190_Browser`; `CONFORMANCE=TestTodo_WEB_190_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_190`, `TestTodo_WEB_190_Golden`, `TestTodo_WEB_190_Browser`, `TestTodo_WEB_190_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement reorganization proposals—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement reorganization proposals—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17239,6 +17392,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.WORKFORCE,BI.PEOPLE,BI.EXPERIENCE; DIRECT=none; WHY=distinguish planned state from committed truth without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_191`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_191`; `GOLDEN=TestTodo_WEB_191_Golden`; `BROWSER=TestTodo_WEB_191_Browser`; `CONFORMANCE=TestTodo_WEB_191_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_191`, `TestTodo_WEB_191_Golden`, `TestTodo_WEB_191_Browser`, `TestTodo_WEB_191_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—distinguish planned state from committed truth—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—distinguish planned state from committed truth—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17249,6 +17403,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.WORKFORCE,BI.PEOPLE,BI.EXPERIENCE; DIRECT=none; WHY=implement responsive organization exploration without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_192`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_192`; `GOLDEN=TestTodo_WEB_192_Golden`; `BROWSER=TestTodo_WEB_192_Browser`; `CONFORMANCE=TestTodo_WEB_192_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_192`, `TestTodo_WEB_192_Golden`, `TestTodo_WEB_192_Browser`, `TestTodo_WEB_192_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement responsive organization exploration—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement responsive organization exploration—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17261,6 +17416,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.CASES,BI.PRIVACY,BI.EXPERIENCE; DIRECT=none; WHY=implement the employee help hub without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_193`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_193`; `GOLDEN=TestTodo_WEB_193_Golden`; `BROWSER=TestTodo_WEB_193_Browser`; `CONFORMANCE=TestTodo_WEB_193_Conformance`; `SECURITY=TestTodo_WEB_193_Security`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_193`, `TestTodo_WEB_193_Golden`, `TestTodo_WEB_193_Browser`, `TestTodo_WEB_193_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement the employee help hub—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement the employee help hub—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17271,6 +17427,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.CASES,BI.PRIVACY,BI.EXPERIENCE; DIRECT=none; WHY=implement authorized knowledge search without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_194`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_194`; `GOLDEN=TestTodo_WEB_194_Golden`; `BROWSER=TestTodo_WEB_194_Browser`; `CONFORMANCE=TestTodo_WEB_194_Conformance`; `SECURITY=TestTodo_WEB_194_Security`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_194`, `TestTodo_WEB_194_Golden`, `TestTodo_WEB_194_Browser`, `TestTodo_WEB_194_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement authorized knowledge search—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement authorized knowledge search—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17281,6 +17438,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.CASES,BI.PRIVACY,BI.EXPERIENCE; DIRECT=none; WHY=implement hr service-request intake without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_195`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_195`; `GOLDEN=TestTodo_WEB_195_Golden`; `BROWSER=TestTodo_WEB_195_Browser`; `CONFORMANCE=TestTodo_WEB_195_Conformance`; `SECURITY=TestTodo_WEB_195_Security`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_195`, `TestTodo_WEB_195_Golden`, `TestTodo_WEB_195_Browser`, `TestTodo_WEB_195_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement hr service-request intake—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement hr service-request intake—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17291,6 +17449,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.CASES,BI.PRIVACY,BI.EXPERIENCE; DIRECT=none; WHY=implement confidential case intake without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_196`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_196`; `GOLDEN=TestTodo_WEB_196_Golden`; `BROWSER=TestTodo_WEB_196_Browser`; `CONFORMANCE=TestTodo_WEB_196_Conformance`; `SECURITY=TestTodo_WEB_196_Security`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_196`, `TestTodo_WEB_196_Golden`, `TestTodo_WEB_196_Browser`, `TestTodo_WEB_196_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement confidential case intake—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement confidential case intake—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17301,6 +17460,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.CASES,BI.PRIVACY,BI.EXPERIENCE; DIRECT=none; WHY=implement safe participant case status without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_197`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_197`; `GOLDEN=TestTodo_WEB_197_Golden`; `BROWSER=TestTodo_WEB_197_Browser`; `CONFORMANCE=TestTodo_WEB_197_Conformance`; `SECURITY=TestTodo_WEB_197_Security`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_197`, `TestTodo_WEB_197_Golden`, `TestTodo_WEB_197_Browser`, `TestTodo_WEB_197_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement safe participant case status—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement safe participant case status—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17311,6 +17471,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.CASES,BI.PRIVACY,BI.EXPERIENCE; DIRECT=none; WHY=implement restricted case messaging without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_198`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_198`; `GOLDEN=TestTodo_WEB_198_Golden`; `BROWSER=TestTodo_WEB_198_Browser`; `CONFORMANCE=TestTodo_WEB_198_Conformance`; `SECURITY=TestTodo_WEB_198_Security`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_198`, `TestTodo_WEB_198_Golden`, `TestTodo_WEB_198_Browser`, `TestTodo_WEB_198_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement restricted case messaging—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement restricted case messaging—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17321,6 +17482,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.CASES,BI.PRIVACY,BI.EXPERIENCE; DIRECT=none; WHY=implement the specialist case center without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_199`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_199`; `GOLDEN=TestTodo_WEB_199_Golden`; `BROWSER=TestTodo_WEB_199_Browser`; `CONFORMANCE=TestTodo_WEB_199_Conformance`; `SECURITY=TestTodo_WEB_199_Security`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_199`, `TestTodo_WEB_199_Golden`, `TestTodo_WEB_199_Browser`, `TestTodo_WEB_199_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement the specialist case center—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement the specialist case center—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17331,6 +17493,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.CASES,BI.PRIVACY,BI.EXPERIENCE; DIRECT=none; WHY=implement case assignment and recusal without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_200`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_200`; `GOLDEN=TestTodo_WEB_200_Golden`; `BROWSER=TestTodo_WEB_200_Browser`; `CONFORMANCE=TestTodo_WEB_200_Conformance`; `SECURITY=TestTodo_WEB_200_Security`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_200`, `TestTodo_WEB_200_Golden`, `TestTodo_WEB_200_Browser`, `TestTodo_WEB_200_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement case assignment and recusal—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement case assignment and recusal—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17341,6 +17504,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.CASES,BI.PRIVACY,BI.EXPERIENCE; DIRECT=none; WHY=implement restricted case evidence review without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_201`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_201`; `GOLDEN=TestTodo_WEB_201_Golden`; `BROWSER=TestTodo_WEB_201_Browser`; `CONFORMANCE=TestTodo_WEB_201_Conformance`; `SECURITY=TestTodo_WEB_201_Security`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_201`, `TestTodo_WEB_201_Golden`, `TestTodo_WEB_201_Browser`, `TestTodo_WEB_201_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement restricted case evidence review—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement restricted case evidence review—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17351,6 +17515,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.CASES,BI.PRIVACY,BI.EXPERIENCE; DIRECT=none; WHY=implement case finding and disposition without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_202`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_202`; `GOLDEN=TestTodo_WEB_202_Golden`; `BROWSER=TestTodo_WEB_202_Browser`; `CONFORMANCE=TestTodo_WEB_202_Conformance`; `SECURITY=TestTodo_WEB_202_Security`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_202`, `TestTodo_WEB_202_Golden`, `TestTodo_WEB_202_Browser`, `TestTodo_WEB_202_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement case finding and disposition—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement case finding and disposition—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17361,6 +17526,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.CASES,BI.PRIVACY,BI.EXPERIENCE; DIRECT=none; WHY=implement case appeal without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_203`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_203`; `GOLDEN=TestTodo_WEB_203_Golden`; `BROWSER=TestTodo_WEB_203_Browser`; `CONFORMANCE=TestTodo_WEB_203_Conformance`; `SECURITY=TestTodo_WEB_203_Security`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_203`, `TestTodo_WEB_203_Golden`, `TestTodo_WEB_203_Browser`, `TestTodo_WEB_203_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement case appeal—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement case appeal—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17371,6 +17537,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.CASES,BI.PRIVACY,BI.EXPERIENCE; DIRECT=none; WHY=prove case-view redaction and audit without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_204`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_204`; `GOLDEN=TestTodo_WEB_204_Golden`; `BROWSER=TestTodo_WEB_204_Browser`; `CONFORMANCE=TestTodo_WEB_204_Conformance`; `SECURITY=TestTodo_WEB_204_Security`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_204`, `TestTodo_WEB_204_Golden`, `TestTodo_WEB_204_Browser`, `TestTodo_WEB_204_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—prove case-view redaction and audit—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—prove case-view redaction and audit—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17383,6 +17550,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.LIFECYCLE,BI.ACCESS,BI.PAYROLL,BI.EXPERIENCE; DIRECT=none; WHY=implement exit initiation without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_205`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_205`; `GOLDEN=TestTodo_WEB_205_Golden`; `BROWSER=TestTodo_WEB_205_Browser`; `CONFORMANCE=TestTodo_WEB_205_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_205`, `TestTodo_WEB_205_Golden`, `TestTodo_WEB_205_Browser`, `TestTodo_WEB_205_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement exit initiation—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement exit initiation—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17393,6 +17561,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.LIFECYCLE,BI.ACCESS,BI.PAYROLL,BI.EXPERIENCE; DIRECT=none; WHY=implement exit reason and effective-date collection without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_206`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_206`; `GOLDEN=TestTodo_WEB_206_Golden`; `BROWSER=TestTodo_WEB_206_Browser`; `CONFORMANCE=TestTodo_WEB_206_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_206`, `TestTodo_WEB_206_Golden`, `TestTodo_WEB_206_Browser`, `TestTodo_WEB_206_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement exit reason and effective-date collection—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement exit reason and effective-date collection—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17403,6 +17572,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.LIFECYCLE,BI.ACCESS,BI.PAYROLL,BI.EXPERIENCE; DIRECT=none; WHY=implement offboarding impact simulation without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_207`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_207`; `GOLDEN=TestTodo_WEB_207_Golden`; `BROWSER=TestTodo_WEB_207_Browser`; `CONFORMANCE=TestTodo_WEB_207_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_207`, `TestTodo_WEB_207_Golden`, `TestTodo_WEB_207_Browser`, `TestTodo_WEB_207_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement offboarding impact simulation—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement offboarding impact simulation—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17413,6 +17583,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.LIFECYCLE,BI.ACCESS,BI.PAYROLL,BI.EXPERIENCE; DIRECT=none; WHY=implement exit review and approval without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_208`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_208`; `GOLDEN=TestTodo_WEB_208_Golden`; `BROWSER=TestTodo_WEB_208_Browser`; `CONFORMANCE=TestTodo_WEB_208_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_208`, `TestTodo_WEB_208_Golden`, `TestTodo_WEB_208_Browser`, `TestTodo_WEB_208_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement exit review and approval—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement exit review and approval—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17423,6 +17594,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.LIFECYCLE,BI.ACCESS,BI.PAYROLL,BI.EXPERIENCE; DIRECT=none; WHY=implement the offboarding plan without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_209`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_209`; `GOLDEN=TestTodo_WEB_209_Golden`; `BROWSER=TestTodo_WEB_209_Browser`; `CONFORMANCE=TestTodo_WEB_209_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_209`, `TestTodo_WEB_209_Golden`, `TestTodo_WEB_209_Browser`, `TestTodo_WEB_209_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement the offboarding plan—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement the offboarding plan—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17433,6 +17605,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.LIFECYCLE,BI.ACCESS,BI.PAYROLL,BI.EXPERIENCE; DIRECT=none; WHY=implement manager and work reassignment review without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_210`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_210`; `GOLDEN=TestTodo_WEB_210_Golden`; `BROWSER=TestTodo_WEB_210_Browser`; `CONFORMANCE=TestTodo_WEB_210_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_210`, `TestTodo_WEB_210_Golden`, `TestTodo_WEB_210_Browser`, `TestTodo_WEB_210_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement manager and work reassignment review—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement manager and work reassignment review—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17443,6 +17616,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.LIFECYCLE,BI.ACCESS,BI.PAYROLL,BI.EXPERIENCE; DIRECT=none; WHY=implement final-pay and benefit status without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_211`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_211`; `GOLDEN=TestTodo_WEB_211_Golden`; `BROWSER=TestTodo_WEB_211_Browser`; `CONFORMANCE=TestTodo_WEB_211_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_211`, `TestTodo_WEB_211_Golden`, `TestTodo_WEB_211_Browser`, `TestTodo_WEB_211_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement final-pay and benefit status—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement final-pay and benefit status—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17453,6 +17627,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.LIFECYCLE,BI.ACCESS,BI.PAYROLL,BI.EXPERIENCE; DIRECT=none; WHY=implement access and equipment reconciliation without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_212`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_212`; `GOLDEN=TestTodo_WEB_212_Golden`; `BROWSER=TestTodo_WEB_212_Browser`; `CONFORMANCE=TestTodo_WEB_212_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_212`, `TestTodo_WEB_212_Golden`, `TestTodo_WEB_212_Browser`, `TestTodo_WEB_212_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement access and equipment reconciliation—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement access and equipment reconciliation—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17463,6 +17638,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.LIFECYCLE,BI.ACCESS,BI.PAYROLL,BI.EXPERIENCE; DIRECT=none; WHY=implement final-document delivery without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_213`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_213`; `GOLDEN=TestTodo_WEB_213_Golden`; `BROWSER=TestTodo_WEB_213_Browser`; `CONFORMANCE=TestTodo_WEB_213_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_213`, `TestTodo_WEB_213_Golden`, `TestTodo_WEB_213_Browser`, `TestTodo_WEB_213_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement final-document delivery—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement final-document delivery—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17473,6 +17649,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.LIFECYCLE,BI.ACCESS,BI.PAYROLL,BI.EXPERIENCE; DIRECT=none; WHY=implement offboarding external-effect status without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_214`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_214`; `GOLDEN=TestTodo_WEB_214_Golden`; `BROWSER=TestTodo_WEB_214_Browser`; `CONFORMANCE=TestTodo_WEB_214_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_214`, `TestTodo_WEB_214_Golden`, `TestTodo_WEB_214_Browser`, `TestTodo_WEB_214_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement offboarding external-effect status—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement offboarding external-effect status—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17483,6 +17660,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.LIFECYCLE,BI.ACCESS,BI.PAYROLL,BI.EXPERIENCE; DIRECT=none; WHY=implement retained-obligation presentation without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_215`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_215`; `GOLDEN=TestTodo_WEB_215_Golden`; `BROWSER=TestTodo_WEB_215_Browser`; `CONFORMANCE=TestTodo_WEB_215_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_215`, `TestTodo_WEB_215_Golden`, `TestTodo_WEB_215_Browser`, `TestTodo_WEB_215_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement retained-obligation presentation—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement retained-obligation presentation—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17493,6 +17671,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.LIFECYCLE,BI.ACCESS,BI.PAYROLL,BI.EXPERIENCE; DIRECT=none; WHY=implement exit completion and correction without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_216`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_216`; `GOLDEN=TestTodo_WEB_216_Golden`; `BROWSER=TestTodo_WEB_216_Browser`; `CONFORMANCE=TestTodo_WEB_216_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_216`, `TestTodo_WEB_216_Golden`, `TestTodo_WEB_216_Browser`, `TestTodo_WEB_216_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement exit completion and correction—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement exit completion and correction—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17505,6 +17684,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ANALYTICS,BI.INTELLIGENCE,BI.EXPERIENCE; DIRECT=none; WHY=implement the report catalog without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_217`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_217`; `GOLDEN=TestTodo_WEB_217_Golden`; `BROWSER=TestTodo_WEB_217_Browser`; `CONFORMANCE=TestTodo_WEB_217_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_217`, `TestTodo_WEB_217_Golden`, `TestTodo_WEB_217_Browser`, `TestTodo_WEB_217_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement the report catalog—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement the report catalog—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17515,6 +17695,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ANALYTICS,BI.INTELLIGENCE,BI.EXPERIENCE; DIRECT=none; WHY=distinguish certified and customer reports without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_218`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_218`; `GOLDEN=TestTodo_WEB_218_Golden`; `BROWSER=TestTodo_WEB_218_Browser`; `CONFORMANCE=TestTodo_WEB_218_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_218`, `TestTodo_WEB_218_Golden`, `TestTodo_WEB_218_Browser`, `TestTodo_WEB_218_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—distinguish certified and customer reports—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—distinguish certified and customer reports—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17525,6 +17706,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ANALYTICS,BI.INTELLIGENCE,BI.EXPERIENCE; DIRECT=none; WHY=implement the analysis floorplan without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_219`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_219`; `GOLDEN=TestTodo_WEB_219_Golden`; `BROWSER=TestTodo_WEB_219_Browser`; `CONFORMANCE=TestTodo_WEB_219_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_219`, `TestTodo_WEB_219_Golden`, `TestTodo_WEB_219_Browser`, `TestTodo_WEB_219_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement the analysis floorplan—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement the analysis floorplan—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17535,6 +17717,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ANALYTICS,BI.INTELLIGENCE,BI.EXPERIENCE; DIRECT=none; WHY=enforce authorized analysis filters without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_220`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_220`; `GOLDEN=TestTodo_WEB_220_Golden`; `BROWSER=TestTodo_WEB_220_Browser`; `CONFORMANCE=TestTodo_WEB_220_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_220`, `TestTodo_WEB_220_Golden`, `TestTodo_WEB_220_Browser`, `TestTodo_WEB_220_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—enforce authorized analysis filters—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—enforce authorized analysis filters—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17545,6 +17728,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ANALYTICS,BI.INTELLIGENCE,BI.EXPERIENCE; DIRECT=none; WHY=implement result lineage presentation without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_221`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_221`; `GOLDEN=TestTodo_WEB_221_Golden`; `BROWSER=TestTodo_WEB_221_Browser`; `CONFORMANCE=TestTodo_WEB_221_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_221`, `TestTodo_WEB_221_Golden`, `TestTodo_WEB_221_Browser`, `TestTodo_WEB_221_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement result lineage presentation—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement result lineage presentation—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17555,6 +17739,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ANALYTICS,BI.INTELLIGENCE,BI.EXPERIENCE; DIRECT=none; WHY=implement data-freshness presentation without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_222`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_222`; `GOLDEN=TestTodo_WEB_222_Golden`; `BROWSER=TestTodo_WEB_222_Browser`; `CONFORMANCE=TestTodo_WEB_222_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_222`, `TestTodo_WEB_222_Golden`, `TestTodo_WEB_222_Browser`, `TestTodo_WEB_222_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement data-freshness presentation—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement data-freshness presentation—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17565,6 +17750,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ANALYTICS,BI.INTELLIGENCE,BI.EXPERIENCE; DIRECT=none; WHY=implement aggregate suppression states without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_223`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_223`; `GOLDEN=TestTodo_WEB_223_Golden`; `BROWSER=TestTodo_WEB_223_Browser`; `CONFORMANCE=TestTodo_WEB_223_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_223`, `TestTodo_WEB_223_Golden`, `TestTodo_WEB_223_Browser`, `TestTodo_WEB_223_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement aggregate suppression states—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement aggregate suppression states—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17575,6 +17761,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ANALYTICS,BI.INTELLIGENCE,BI.EXPERIENCE; DIRECT=none; WHY=implement governed report export without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_224`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_224`; `GOLDEN=TestTodo_WEB_224_Golden`; `BROWSER=TestTodo_WEB_224_Browser`; `CONFORMANCE=TestTodo_WEB_224_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_224`, `TestTodo_WEB_224_Golden`, `TestTodo_WEB_224_Browser`, `TestTodo_WEB_224_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement governed report export—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement governed report export—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17585,6 +17772,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ANALYTICS,BI.INTELLIGENCE,BI.EXPERIENCE; DIRECT=none; WHY=implement authorized report sharing without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_225`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_225`; `GOLDEN=TestTodo_WEB_225_Golden`; `BROWSER=TestTodo_WEB_225_Browser`; `CONFORMANCE=TestTodo_WEB_225_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_225`, `TestTodo_WEB_225_Golden`, `TestTodo_WEB_225_Browser`, `TestTodo_WEB_225_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement authorized report sharing—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement authorized report sharing—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17595,6 +17783,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ANALYTICS,BI.INTELLIGENCE,BI.EXPERIENCE; DIRECT=none; WHY=implement safe natural-language analysis without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_226`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_226`; `GOLDEN=TestTodo_WEB_226_Golden`; `BROWSER=TestTodo_WEB_226_Browser`; `CONFORMANCE=TestTodo_WEB_226_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_226`, `TestTodo_WEB_226_Golden`, `TestTodo_WEB_226_Browser`, `TestTodo_WEB_226_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement safe natural-language analysis—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement safe natural-language analysis—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17605,6 +17794,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ANALYTICS,BI.INTELLIGENCE,BI.EXPERIENCE; DIRECT=none; WHY=implement analysis-to-proposal handoff without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_227`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_227`; `GOLDEN=TestTodo_WEB_227_Golden`; `BROWSER=TestTodo_WEB_227_Browser`; `CONFORMANCE=TestTodo_WEB_227_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_227`, `TestTodo_WEB_227_Golden`, `TestTodo_WEB_227_Browser`, `TestTodo_WEB_227_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement analysis-to-proposal handoff—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement analysis-to-proposal handoff—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17615,6 +17805,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ANALYTICS,BI.INTELLIGENCE,BI.EXPERIENCE; DIRECT=none; WHY=implement accessible data visualization without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_228`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_228`; `GOLDEN=TestTodo_WEB_228_Golden`; `BROWSER=TestTodo_WEB_228_Browser`; `CONFORMANCE=TestTodo_WEB_228_Conformance`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_228`, `TestTodo_WEB_228_Golden`, `TestTodo_WEB_228_Browser`, `TestTodo_WEB_228_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement accessible data visualization—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement accessible data visualization—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17627,6 +17818,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.OPERATIONS,BI.SECURITY,BI.EXPERIENCE; DIRECT=none; WHY=implement the authorization-resolved admin home without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_229`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_229`; `GOLDEN=TestTodo_WEB_229_Golden`; `BROWSER=TestTodo_WEB_229_Browser`; `CONFORMANCE=TestTodo_WEB_229_Conformance`; `SECURITY=TestTodo_WEB_229_Security`; `INTEGRATION=TestTodo_WEB_229_Integration`; `FAULT=TestTodo_WEB_229_Fault`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_229`, `TestTodo_WEB_229_Golden`, `TestTodo_WEB_229_Browser`, `TestTodo_WEB_229_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement the authorization-resolved admin home—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement the authorization-resolved admin home—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17637,6 +17829,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.OPERATIONS,BI.SECURITY,BI.EXPERIENCE; DIRECT=none; WHY=implement the policy studio without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_230`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_230`; `GOLDEN=TestTodo_WEB_230_Golden`; `BROWSER=TestTodo_WEB_230_Browser`; `CONFORMANCE=TestTodo_WEB_230_Conformance`; `SECURITY=TestTodo_WEB_230_Security`; `INTEGRATION=TestTodo_WEB_230_Integration`; `FAULT=TestTodo_WEB_230_Fault`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_230`, `TestTodo_WEB_230_Golden`, `TestTodo_WEB_230_Browser`, `TestTodo_WEB_230_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement the policy studio—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement the policy studio—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17647,6 +17840,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.OPERATIONS,BI.SECURITY,BI.EXPERIENCE; DIRECT=none; WHY=implement authorization-policy simulation without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_231`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_231`; `GOLDEN=TestTodo_WEB_231_Golden`; `BROWSER=TestTodo_WEB_231_Browser`; `CONFORMANCE=TestTodo_WEB_231_Conformance`; `SECURITY=TestTodo_WEB_231_Security`; `INTEGRATION=TestTodo_WEB_231_Integration`; `FAULT=TestTodo_WEB_231_Fault`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_231`, `TestTodo_WEB_231_Golden`, `TestTodo_WEB_231_Browser`, `TestTodo_WEB_231_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement authorization-policy simulation—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement authorization-policy simulation—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17657,6 +17851,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.OPERATIONS,BI.SECURITY,BI.EXPERIENCE; DIRECT=none; WHY=implement the configuration center without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_232`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_232`; `GOLDEN=TestTodo_WEB_232_Golden`; `BROWSER=TestTodo_WEB_232_Browser`; `CONFORMANCE=TestTodo_WEB_232_Conformance`; `SECURITY=TestTodo_WEB_232_Security`; `INTEGRATION=TestTodo_WEB_232_Integration`; `FAULT=TestTodo_WEB_232_Fault`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_232`, `TestTodo_WEB_232_Golden`, `TestTodo_WEB_232_Browser`, `TestTodo_WEB_232_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement the configuration center—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement the configuration center—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17667,6 +17862,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.OPERATIONS,BI.SECURITY,BI.EXPERIENCE; DIRECT=none; WHY=implement integration operations without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_233`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_233`; `GOLDEN=TestTodo_WEB_233_Golden`; `BROWSER=TestTodo_WEB_233_Browser`; `CONFORMANCE=TestTodo_WEB_233_Conformance`; `SECURITY=TestTodo_WEB_233_Security`; `INTEGRATION=TestTodo_WEB_233_Integration`; `FAULT=TestTodo_WEB_233_Fault`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_233`, `TestTodo_WEB_233_Golden`, `TestTodo_WEB_233_Browser`, `TestTodo_WEB_233_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement integration operations—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement integration operations—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17677,6 +17873,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.OPERATIONS,BI.SECURITY,BI.EXPERIENCE; DIRECT=none; WHY=implement the reconciliation and repair workbench without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_234`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_234`; `GOLDEN=TestTodo_WEB_234_Golden`; `BROWSER=TestTodo_WEB_234_Browser`; `CONFORMANCE=TestTodo_WEB_234_Conformance`; `SECURITY=TestTodo_WEB_234_Security`; `INTEGRATION=TestTodo_WEB_234_Integration`; `FAULT=TestTodo_WEB_234_Fault`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_234`, `TestTodo_WEB_234_Golden`, `TestTodo_WEB_234_Browser`, `TestTodo_WEB_234_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—implement the reconciliation and repair workbench—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—implement the reconciliation and repair workbench—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17687,6 +17884,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.OPERATIONS,BI.SECURITY,BI.EXPERIENCE; DIRECT=none; WHY=instrument privacy-safe frontend telemetry without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_235`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_235`; `GOLDEN=TestTodo_WEB_235_Golden`; `BROWSER=TestTodo_WEB_235_Browser`; `CONFORMANCE=TestTodo_WEB_235_Conformance`; `SECURITY=TestTodo_WEB_235_Security`; `INTEGRATION=TestTodo_WEB_235_Integration`; `FAULT=TestTodo_WEB_235_Fault`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_235`, `TestTodo_WEB_235_Golden`, `TestTodo_WEB_235_Browser`, `TestTodo_WEB_235_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—instrument privacy-safe frontend telemetry—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—instrument privacy-safe frontend telemetry—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17697,6 +17895,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.OPERATIONS,BI.SECURITY,BI.EXPERIENCE; DIRECT=none; WHY=enforce frontend performance budgets without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_236`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_236`; `GOLDEN=TestTodo_WEB_236_Golden`; `BROWSER=TestTodo_WEB_236_Browser`; `CONFORMANCE=TestTodo_WEB_236_Conformance`; `SECURITY=TestTodo_WEB_236_Security`; `INTEGRATION=TestTodo_WEB_236_Integration`; `FAULT=TestTodo_WEB_236_Fault`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_236`, `TestTodo_WEB_236_Golden`, `TestTodo_WEB_236_Browser`, `TestTodo_WEB_236_Conformance` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—enforce frontend performance budgets—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—enforce frontend performance budgets—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17707,6 +17906,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.OPERATIONS,BI.SECURITY,BI.EXPERIENCE; DIRECT=none; WHY=qualify the production browser matrix without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_237`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_237`; `GOLDEN=TestTodo_WEB_237_Golden`; `BROWSER=TestTodo_WEB_237_Browser`; `CONFORMANCE=TestTodo_WEB_237_Conformance`; `SECURITY=TestTodo_WEB_237_Security`; `INTEGRATION=TestTodo_WEB_237_Integration`; `FAULT=TestTodo_WEB_237_Fault`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_237`, `TestTodo_WEB_237_Golden`, `TestTodo_WEB_237_Browser`, `TestTodo_WEB_237_Conformance`, `TestTodo_WEB_237_Security`, `TestTodo_WEB_237_Integration`, `TestTodo_WEB_237_Fault` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—qualify the production browser matrix—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—qualify the production browser matrix—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17717,6 +17917,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.OPERATIONS,BI.SECURITY,BI.EXPERIENCE; DIRECT=none; WHY=qualify assistive-technology compatibility without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_238`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_238`; `GOLDEN=TestTodo_WEB_238_Golden`; `BROWSER=TestTodo_WEB_238_Browser`; `CONFORMANCE=TestTodo_WEB_238_Conformance`; `SECURITY=TestTodo_WEB_238_Security`; `INTEGRATION=TestTodo_WEB_238_Integration`; `FAULT=TestTodo_WEB_238_Fault`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_238`, `TestTodo_WEB_238_Golden`, `TestTodo_WEB_238_Browser`, `TestTodo_WEB_238_Conformance`, `TestTodo_WEB_238_Security`, `TestTodo_WEB_238_Integration`, `TestTodo_WEB_238_Fault` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—qualify assistive-technology compatibility—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—qualify assistive-technology compatibility—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17727,6 +17928,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.OPERATIONS,BI.SECURITY,BI.EXPERIENCE; DIRECT=none; WHY=prove frontend disaster recovery without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_239`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_239`; `GOLDEN=TestTodo_WEB_239_Golden`; `BROWSER=TestTodo_WEB_239_Browser`; `CONFORMANCE=TestTodo_WEB_239_Conformance`; `SECURITY=TestTodo_WEB_239_Security`; `INTEGRATION=TestTodo_WEB_239_Integration`; `FAULT=TestTodo_WEB_239_Fault`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_239`, `TestTodo_WEB_239_Golden`, `TestTodo_WEB_239_Browser`, `TestTodo_WEB_239_Conformance`, `TestTodo_WEB_239_Security`, `TestTodo_WEB_239_Integration`, `TestTodo_WEB_239_Fault` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—prove frontend disaster recovery—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—prove frontend disaster recovery—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
@@ -17737,6 +17939,7 @@ This program implements [the production frontend and governed page-composition p
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.OPERATIONS,BI.SECURITY,BI.EXPERIENCE; DIRECT=none; WHY=gate the production frontend release without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_240`.
   - **TEST MATRIX:** `PRIMARY=TestTodo_WEB_240`; `GOLDEN=TestTodo_WEB_240_Golden`; `BROWSER=TestTodo_WEB_240_Browser`; `CONFORMANCE=TestTodo_WEB_240_Conformance`; `SECURITY=TestTodo_WEB_240_Security`; `INTEGRATION=TestTodo_WEB_240_Integration`; `FAULT=TestTodo_WEB_240_Fault`.
+  - **Evidence (2026-09-08):** `TestTodo_WEB_240`, `TestTodo_WEB_240_Golden`, `TestTodo_WEB_240_Browser`, `TestTodo_WEB_240_Conformance`, `TestTodo_WEB_240_Security`, `TestTodo_WEB_240_Integration`, `TestTodo_WEB_240_Fault` in `internal/humanwork/productui`; `go test -count=1 ./internal/humanwork/productui/` PASS.
   - **RED:** the named test returns an accepted result when the declared behavior—gate the production frontend release—is missing, stale, unauthorized, inaccessible, nondeterministic, or inconsistent with a controlling contract.
   - **GREEN:** the named test returns an exact deterministic result proving the declared behavior—gate the production frontend release—from versioned inputs with authorization-filtered outputs, accessible states, and retained evidence.
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
