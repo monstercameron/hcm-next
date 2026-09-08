@@ -12,13 +12,17 @@ import (
 var deliveryAt = time.Date(2026, 9, 3, 12, 0, 0, 0, time.UTC)
 
 type fakeStore struct {
-	claims       int
-	observations []delivery.Observation
-	duplicate    bool
+	claims        int
+	observations  []delivery.Observation
+	duplicate     bool
+	cancelOnClaim context.CancelFunc
 }
 
 func (s *fakeStore) Claim(_ context.Context, _ delivery.Envelope, attempt int) (delivery.Claim, error) {
 	s.claims++
+	if s.cancelOnClaim != nil {
+		s.cancelOnClaim()
+	}
 	return delivery.Claim{AttemptID: "attempt-" + string(rune('0'+attempt)), Attempt: attempt, AlreadyObserved: s.duplicate}, nil
 }
 func (s *fakeStore) Observe(_ context.Context, _ delivery.Envelope, _ delivery.Claim, observation delivery.Observation) error {
@@ -29,6 +33,20 @@ func (s *fakeStore) Observe(_ context.Context, _ delivery.Envelope, _ delivery.C
 type fakeTransport struct {
 	calls int
 	err   error
+}
+
+type fakeRetryAdmission struct {
+	calls      int
+	err        error
+	attempts   []int
+	identities []delivery.RetryIdentity
+}
+
+func (a *fakeRetryAdmission) AdmitRetry(_ context.Context, identity delivery.RetryIdentity) error {
+	a.calls++
+	a.attempts = append(a.attempts, identity.NextAttempt)
+	a.identities = append(a.identities, identity)
+	return a.err
 }
 
 func (t *fakeTransport) Deliver(context.Context, delivery.Envelope) (delivery.ProviderResult, error) {
@@ -90,5 +108,71 @@ func TestTodo_SVC_010_Security(t *testing.T) {
 	// The type itself has no rendered payload, destination address or provider credential.
 	if _, err := (delivery.Runner{Store: &fakeStore{}, Transport: &fakeTransport{}, Clock: func() time.Time { return deliveryAt }}).Deliver(context.Background(), delivery.Envelope{TenantID: "tenant-1", IntentID: "intent-1", RecipientRef: "recipient-1", EndpointRef: "endpoint-1", Purpose: "APPROVAL_REQUIRED", Classification: "INTERNAL", Channel: delivery.ChannelEmail, IdempotencyKey: "k", CorrelationID: "c", ContentDigest: "d", ExpiresAt: deliveryAt.Add(time.Hour)}); err == nil {
 		t.Fatal("envelope without content/template accepted")
+	}
+}
+
+func TestDeliveryRetryAdmissionDeniedStopsProviderCall(t *testing.T) {
+	store := &fakeStore{}
+	transport := &fakeTransport{err: &delivery.ProviderError{Err: errors.New("temporary"), Retryable: true}}
+	gate := &fakeRetryAdmission{err: errors.New("budget exhausted")}
+	obs, err := (delivery.Runner{Store: store, Transport: transport, RetryAdmission: gate, Clock: func() time.Time { return deliveryAt }, MaxAttempts: 3}).Deliver(context.Background(), validEnvelope())
+	if !errors.Is(err, delivery.ErrRetryAdmission) || transport.calls != 1 || gate.calls != 1 || store.claims != 1 || len(store.observations) != 1 || obs.State != delivery.StateFailed {
+		t.Fatalf("obs=%+v err=%v calls=%d gate=%d", obs, err, transport.calls, gate.calls)
+	}
+}
+
+func TestDeliveryRetryAdmissionSkipsAmbiguousAndFinal(t *testing.T) {
+	store := &fakeStore{}
+	transport := &fakeTransport{err: &delivery.ProviderError{Err: errors.New("unknown"), Ambiguous: true}}
+	gate := &fakeRetryAdmission{}
+	if _, err := (delivery.Runner{Store: store, Transport: transport, RetryAdmission: gate, Clock: func() time.Time { return deliveryAt }, MaxAttempts: 3}).Deliver(context.Background(), validEnvelope()); err == nil || gate.calls != 0 || transport.calls != 1 {
+		t.Fatalf("ambiguous err=%v gate=%d calls=%d", err, gate.calls, transport.calls)
+	}
+	transport.err = &delivery.ProviderError{Err: errors.New("temporary"), Retryable: true}
+	transport.calls = 0
+	gate.calls = 0
+	if _, err := (delivery.Runner{Store: &fakeStore{}, Transport: transport, RetryAdmission: gate, Clock: func() time.Time { return deliveryAt }, MaxAttempts: 1}).Deliver(context.Background(), validEnvelope()); err == nil || gate.calls != 0 || transport.calls != 1 {
+		t.Fatalf("final err=%v gate=%d calls=%d", err, gate.calls, transport.calls)
+	}
+}
+
+func TestDeliveryRetryAdmissionCancellation(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	transport := &fakeTransport{err: &delivery.ProviderError{Err: errors.New("temporary"), Retryable: true}}
+	gate := &fakeRetryAdmission{}
+	_, err := (delivery.Runner{Store: &fakeStore{}, Transport: transport, RetryAdmission: gate, Clock: func() time.Time { return deliveryAt }, MaxAttempts: 2}).Deliver(ctx, validEnvelope())
+	if !errors.Is(err, context.Canceled) || transport.calls != 0 || gate.calls != 0 {
+		t.Fatalf("err=%v transport=%d gate=%d", err, transport.calls, gate.calls)
+	}
+}
+
+func TestDeliveryCancellationAfterClaimNeverCallsProvider(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	store := &fakeStore{cancelOnClaim: cancel}
+	transport := &fakeTransport{}
+	_, err := (delivery.Runner{Store: store, Transport: transport, Clock: func() time.Time { return deliveryAt }}).Deliver(ctx, validEnvelope())
+	if !errors.Is(err, context.Canceled) || store.claims != 1 || transport.calls != 0 || len(store.observations) != 0 {
+		t.Fatalf("err=%v claims=%d transport=%d observations=%d", err, store.claims, transport.calls, len(store.observations))
+	}
+}
+
+func TestDeliveryRetryAdmissionPreservesCauseAndExactIdentityAcrossCalls(t *testing.T) {
+	cause := errors.New("budget exhausted")
+	gate := &fakeRetryAdmission{err: cause}
+	runner := delivery.Runner{Store: &fakeStore{}, Transport: &fakeTransport{err: &delivery.ProviderError{Err: errors.New("temporary"), Retryable: true}}, RetryAdmission: gate, Clock: func() time.Time { return deliveryAt }, MaxAttempts: 2}
+	for range 2 {
+		_, err := runner.Deliver(context.Background(), validEnvelope())
+		if !errors.Is(err, delivery.ErrRetryAdmission) || !errors.Is(err, cause) {
+			t.Fatalf("admission error lost cause: %v", err)
+		}
+	}
+	if gate.calls != 2 || len(gate.identities) != 2 {
+		t.Fatalf("gate calls/identities=%d/%d", gate.calls, len(gate.identities))
+	}
+	for _, identity := range gate.identities {
+		if identity.TenantID != "tenant-1" || identity.IntentID != "intent-1" || identity.IdempotencyKey != "intent-1:endpoint-1" || identity.FailedAttemptID != "attempt-1" || identity.FailedAttempt != 1 || identity.NextAttempt != 2 {
+			t.Fatalf("retry identity=%+v", identity)
+		}
 	}
 }

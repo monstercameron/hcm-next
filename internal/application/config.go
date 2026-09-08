@@ -14,6 +14,8 @@ package application
 // package-level default.
 
 import (
+	"crypto/ed25519"
+	"encoding/base64"
 	"fmt"
 	"net/url"
 	"strings"
@@ -36,6 +38,10 @@ const EnvDevHMACKey = "HCMNEXT_DEV_HMAC_KEY"
 // EnvHealthAddr is the loopback host:port the serve role's health and
 // readiness endpoint listens on when -health-addr is not passed.
 const EnvHealthAddr = "HCMNEXT_HEALTH_ADDR"
+
+// EnvLegalEvidenceIssuerKeys carries the deployment's explicit legal
+// evidence issuer allowlist.
+const EnvLegalEvidenceIssuerKeys = "HCMNEXT_LEGAL_EVIDENCE_ISSUER_KEYS"
 
 // Configuration field names. They are constants because ServeConfigFields
 // declares them and ServeConfigFromValues reads them back: a typo between the
@@ -62,15 +68,20 @@ const (
 	// -execution-authority behaves byte-for-byte like the P1A cell of today
 	// (internal/intent/app.ExecutionAuthority is nil, and ExecuteIntent
 	// refuses exactly as every other governed write in this release does).
-	FieldExecutionAuthority       = "execution-authority"
-	FieldExecutionAuthorityDigest = "execution-authority-digest"
-	FieldExecutionAuthorityRole   = "execution-authority-role"
-	FieldExecutionApprover        = "execution-authority-approver"
-	FieldTimerTzdbVersion         = "timer-tzdb-version"
-	FieldTimerCalendarVersion     = "timer-calendar-version"
-	FieldScheduler                = "scheduler"
-	FieldHealthAddr               = "health-addr"
-	FieldWorkflowPlan             = "workflow-plan"
+	FieldExecutionAuthority               = "execution-authority"
+	FieldExecutionAuthorityDigest         = "execution-authority-digest"
+	FieldExecutionAuthorityRole           = "execution-authority-role"
+	FieldExecutionApprover                = "execution-authority-approver"
+	FieldTimerTzdbVersion                 = "timer-tzdb-version"
+	FieldTimerCalendarVersion             = "timer-calendar-version"
+	FieldScheduler                        = "scheduler"
+	FieldHealthAddr                       = "health-addr"
+	FieldWorkflowPlan                     = "workflow-plan"
+	FieldLegalEvidenceIssuerKeys          = "legal-evidence-issuer-keys"
+	FieldExecutionRetry                   = "execution-retry"
+	FieldExecutionRetryVersion            = "execution-retry-version"
+	FieldExecutionRetryMaxAttempts        = "execution-retry-max-attempts"
+	FieldExecutionRetryResolutionAttempts = "execution-retry-resolution-attempts"
 )
 
 // Serve profiles are named sets of defaults, not alternate implementations.
@@ -172,10 +183,15 @@ type ServeConfig struct {
 	// execution driver's durable timers resolve wake instants against
 	// (WF-RUN-004). Both set composes the timer ports; both empty composes
 	// none; one of the two set is refused by Validate.
-	TimerTzdbVersion     string
-	TimerCalendarVersion string
-	Scheduler            bool
-	WorkflowPlan         string
+	TimerTzdbVersion                 string
+	TimerCalendarVersion             string
+	Scheduler                        bool
+	WorkflowPlan                     string
+	LegalEvidenceIssuerKeys          string
+	ExecutionRetry                   bool
+	ExecutionRetryVersion            string
+	ExecutionRetryMaxAttempts        int
+	ExecutionRetryResolutionAttempts int
 	// HealthAddr is the loopback host:port the bootstrap health and
 	// readiness endpoint listens on (STARTING, READY, DRAINING as
 	// {"state":...}); empty serves none. It is a separate listener from the
@@ -212,6 +228,11 @@ func ServeConfigFields() []bootstrap.Field {
 		{Name: FieldScheduler, Usage: "run the in-process workflow timer/ready-work dispatcher", Default: "false", Kind: bootstrap.KindBool},
 		{Name: FieldHealthAddr, Env: EnvHealthAddr, Usage: "loopback host:port (127.0.0.1, localhost or ::1) to serve the health/readiness endpoint on; empty disables it"},
 		{Name: FieldWorkflowPlan, Usage: "promotion workflow plan: prototype or execute", Default: WorkflowPlanPrototype},
+		{Name: FieldLegalEvidenceIssuerKeys, Env: EnvLegalEvidenceIssuerKeys, Usage: "comma-separated standard-base64 public keys trusted for governed legal evidence"},
+		{Name: FieldExecutionRetry, Usage: "enable persisted admission for execution START retries", Default: "false", Kind: bootstrap.KindBool},
+		{Name: FieldExecutionRetryVersion, Usage: "persisted execution retry budget version; required when retries are enabled"},
+		{Name: FieldExecutionRetryMaxAttempts, Usage: "maximum execution START attempts including the initial attempt; required when retries are enabled", Default: "1", Kind: bootstrap.KindInt},
+		{Name: FieldExecutionRetryResolutionAttempts, Usage: "maximum bounded attempts to resolve uncertain retry consumption", Default: "2", Kind: bootstrap.KindInt},
 	}
 }
 
@@ -296,6 +317,8 @@ func ServeConfigFromValues(values *bootstrap.Values) (ServeConfig, error) {
 		TimerCalendarVersion:     values.String(FieldTimerCalendarVersion),
 		HealthAddr:               values.String(FieldHealthAddr),
 		WorkflowPlan:             values.String(FieldWorkflowPlan),
+		LegalEvidenceIssuerKeys:  values.String(FieldLegalEvidenceIssuerKeys),
+		ExecutionRetryVersion:    values.String(FieldExecutionRetryVersion),
 	}
 	var err error
 	if cfg.MaxDeadline, err = values.Duration(FieldMaxDeadline); err != nil {
@@ -316,6 +339,15 @@ func ServeConfigFromValues(values *bootstrap.Values) (ServeConfig, error) {
 	if cfg.Scheduler, err = values.Bool(FieldScheduler); err != nil {
 		return ServeConfig{}, err
 	}
+	if cfg.ExecutionRetry, err = values.Bool(FieldExecutionRetry); err != nil {
+		return ServeConfig{}, err
+	}
+	if cfg.ExecutionRetryMaxAttempts, err = values.Int(FieldExecutionRetryMaxAttempts); err != nil {
+		return ServeConfig{}, err
+	}
+	if cfg.ExecutionRetryResolutionAttempts, err = values.Int(FieldExecutionRetryResolutionAttempts); err != nil {
+		return ServeConfig{}, err
+	}
 	return cfg, nil
 }
 
@@ -323,6 +355,14 @@ func ServeConfigFromValues(values *bootstrap.Values) (ServeConfig, error) {
 // semantic half of the contract: everything here is a statement about the
 // deployment, not about whether a string parsed.
 func (c ServeConfig) Validate() error {
+	if _, err := parseLegalEvidenceIssuerKeys(c.LegalEvidenceIssuerKeys); err != nil {
+		return err
+	}
+	if c.ExecutionRetry {
+		if strings.TrimSpace(c.ExecutionRetryVersion) == "" || c.ExecutionRetryMaxAttempts < 2 || c.ExecutionRetryResolutionAttempts < 1 {
+			return fmt.Errorf("-%s requires a version, max attempts >= 2 and resolution attempts >= 1", FieldExecutionRetry)
+		}
+	}
 	switch c.Profile {
 	case "", ServeProfileStandard:
 	case ServeProfileLocalDev:
@@ -377,6 +417,26 @@ func (c ServeConfig) Validate() error {
 			FieldTimerTzdbVersion, FieldTimerCalendarVersion)
 	}
 	return nil
+}
+
+func parseLegalEvidenceIssuerKeys(raw string) ([][]byte, error) {
+	if strings.TrimSpace(raw) == "" {
+		return nil, nil
+	}
+	parts := strings.Split(raw, ",")
+	keys := make([][]byte, 0, len(parts))
+	for i, part := range parts {
+		part = strings.TrimSpace(part)
+		if part == "" {
+			return nil, fmt.Errorf("-%s contains an empty key at position %d", FieldLegalEvidenceIssuerKeys, i+1)
+		}
+		key, err := base64.StdEncoding.Strict().DecodeString(part)
+		if err != nil || len(key) != ed25519.PublicKeySize {
+			return nil, fmt.Errorf("-%s key %d must be a %d-byte Ed25519 public key encoded as standard-base64", FieldLegalEvidenceIssuerKeys, i+1, ed25519.PublicKeySize)
+		}
+		keys = append(keys, key)
+	}
+	return keys, nil
 }
 
 func validateLocalDevBoundary(c ServeConfig) error {

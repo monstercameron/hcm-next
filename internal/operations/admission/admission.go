@@ -4,12 +4,11 @@
 package admission
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
 	"errors"
 	"fmt"
-	"strconv"
 	"strings"
+
+	"github.com/monstercameron/hcm-next/internal/engines/canonicalbytes"
 )
 
 const contractVersion = 1
@@ -88,6 +87,7 @@ type Evidence struct {
 	QuotaKnown        bool
 	PlacementCurrent  bool
 	NoisyTenant       bool
+	Draining          bool
 	AvailableCapacity int
 }
 
@@ -150,8 +150,7 @@ func Decide(req Request, state Snapshot, policy Policy) Decision {
 		QuotaLimit: state.Quota.Limit, QuotaConsumed: state.Quota.Consumed, QuotaPending: state.Quota.Pending,
 		Capacity: state.Capacity, Requested: req.EstimatedCost, ReservedP0: state.ReservedP0,
 		RetryRemaining: state.RetryRemaining, PlacementEpoch: req.PlacementEpoch, ObservedEpoch: state.PlacementEpoch,
-		QuotaKnown: state.Quota.Known, PlacementCurrent: req.PlacementEpoch == state.PlacementEpoch, NoisyTenant: state.NoisyTenant,
-		AvailableCapacity: state.Capacity - state.ReservedP0}
+		QuotaKnown: state.Quota.Known, PlacementCurrent: req.PlacementEpoch == state.PlacementEpoch, NoisyTenant: state.NoisyTenant, Draining: state.Draining}
 	d := Decision{TenantID: req.TenantID, CellID: req.CellID, Criticality: req.Criticality, QuotaVersion: state.Quota.Version, RetryBudget: req.RetryBudgetID, Evidence: e}
 	finish := func(out Outcome, reason string, retry, reservation int) Decision {
 		d.Outcome, d.Reason, d.RetryAfter, d.Reservation = out, reason, retry, reservation
@@ -176,6 +175,8 @@ func Decide(req Request, state Snapshot, policy Policy) Decision {
 	if state.Capacity < 0 || state.ReservedP0 < 0 || state.ReservedP0 > state.Capacity || state.Quota.Limit < 0 || state.Quota.Consumed < 0 || state.Quota.Pending < 0 || (state.Quota.Pending > 0 && state.Quota.Consumed > int(^uint(0)>>1)-state.Quota.Pending) {
 		return finish(Reject, "INVALID_CAPACITY_RESERVATION", 0, 0)
 	}
+	e.AvailableCapacity = state.Capacity - state.ReservedP0
+	d.Evidence = e
 	if state.RetryRemaining <= 0 && req.RetryAttempt > 0 {
 		return finish(Reject, "RETRY_BUDGET_EXHAUSTED", 0, 0)
 	}
@@ -207,16 +208,42 @@ func Decide(req Request, state Snapshot, policy Policy) Decision {
 	return finish(Admit, "WITHIN_TENANT_QUOTA_AND_CAPACITY", 0, 0)
 }
 
-func validCriticality(c Criticality) bool { return c >= P0 && c <= P4 }
+func validCriticality(c Criticality) bool {
+	switch c {
+	case P0, P1, P2, P3, P4:
+		return true
+	default:
+		return false
+	}
+}
+
+func validOutcome(out Outcome) bool {
+	return out == Admit || out == Queue || out == Defer || out == Degrade || out == Reject
+}
 
 func id(req Request, s Snapshot, d Decision) string {
-	v := strings.Join([]string{req.TenantID, req.CellID, string(req.Criticality), strconv.Itoa(req.EstimatedCost), strconv.Itoa(req.RetryAttempt), req.RetryBudgetID, strconv.FormatUint(req.PlacementEpoch, 10), s.Quota.Version, strconv.Itoa(s.Quota.Limit), strconv.Itoa(s.Quota.Consumed), strconv.Itoa(s.Quota.Pending), strconv.Itoa(s.Capacity), strconv.Itoa(s.ReservedP0), strconv.Itoa(s.RetryRemaining), strconv.FormatBool(s.NoisyTenant), string(d.Outcome), d.Reason}, "|")
-	h := sha256.Sum256([]byte(v))
-	return "adm_" + hex.EncodeToString(h[:])
+	digest, err := canonicalbytes.New("hcmnext.operations.admission.DecisionID", contractVersion).
+		String("tenant", req.TenantID).String("cell", req.CellID).
+		String("observed_tenant", s.TenantID).String("observed_cell", s.CellID).
+		String("criticality", string(req.Criticality)).
+		Int("estimated_cost", int64(req.EstimatedCost)).Int("retry_attempt", int64(req.RetryAttempt)).
+		String("retry_budget", req.RetryBudgetID).Int("placement_epoch", int64(req.PlacementEpoch)).
+		Int("observed_placement_epoch", int64(s.PlacementEpoch)).
+		String("quota_version", s.Quota.Version).Int("quota_limit", int64(s.Quota.Limit)).
+		Int("quota_consumed", int64(s.Quota.Consumed)).Int("quota_pending", int64(s.Quota.Pending)).
+		Int("capacity", int64(s.Capacity)).Int("reserved_p0", int64(s.ReservedP0)).
+		Int("retry_remaining", int64(s.RetryRemaining)).Bool("noisy_tenant", s.NoisyTenant).
+		Bool("draining", s.Draining).Bool("quota_known", s.Quota.Known).
+		String("outcome", string(d.Outcome)).String("reason", d.Reason).
+		Int("retry_after", int64(d.RetryAfter)).Int("reservation", int64(d.Reservation)).Digest()
+	if err != nil {
+		return ""
+	}
+	return "adm_" + strings.TrimPrefix(digest, "sha256:")
 }
 
 func (d Decision) Validate() error {
-	if d.DecisionID == "" || d.TenantID == "" || d.CellID == "" || !validCriticality(d.Criticality) || d.Outcome == "" || d.Reason == "" {
+	if d.DecisionID == "" || d.TenantID == "" || d.CellID == "" || !validCriticality(d.Criticality) || !validOutcome(d.Outcome) || d.Reason == "" {
 		return fmt.Errorf("%w: incomplete decision", ErrInvalidInput)
 	}
 	if d.RetryAfter < 0 || d.Reservation < 0 {

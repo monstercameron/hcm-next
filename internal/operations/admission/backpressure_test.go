@@ -12,11 +12,14 @@ func TestTodo_ADMISSION_002(t *testing.T) {
 		t.Fatalf("backpressure decision = %+v", decision)
 	}
 
-	budget := RetryBudget{ID: "budget-1", TenantID: "tenant-a", Dependency: "connector", Allowed: 1, Retryable: []FailureClass{FailureUnavailable}, Version: "v1"}
-	attempt := RetryAttempt{LogicalOperationID: "op-1", TenantID: "tenant-a", Dependency: "connector", Failure: FailureUnavailable, Attempt: 1}
+	budget := RetryBudget{ID: "budget-1", TenantID: "tenant-a", Dependency: "connector", LogicalOperationID: "op-1", OperationKind: "sync", Allowed: 1, Retryable: []FailureClass{FailureUnavailable}, Version: "v1"}
+	attempt := RetryAttempt{LogicalOperationID: "op-1", OperationKind: "sync", TenantID: "tenant-a", Dependency: "connector", Failure: FailureUnavailable, Attempt: 1}
 	receipt, err := ConsumeRetry(budget, attempt)
 	if err != nil || receipt.Disposition != RetryAllowed || receipt.Remaining != 0 || receipt.Consumed != 1 {
 		t.Fatalf("retry receipt = %+v, err=%v", receipt, err)
+	}
+	if receipt.LogicalOperationID != attempt.LogicalOperationID || receipt.OperationKind != attempt.OperationKind || receipt.BudgetVersion != budget.Version || receipt.Attempt != attempt.Attempt {
+		t.Fatalf("retry receipt lost exact operation binding: %+v", receipt)
 	}
 	budget.Consumed = 1
 	receipt, err = ConsumeRetry(budget, attempt)
@@ -67,7 +70,7 @@ func TestBackpressureDecisionStatesAndBounds(t *testing.T) {
 		want   BackpressureAction
 		reason string
 	}{
-		{"empty state healthy", "", 0, 0, BackpressureContinue, "DOWNSTREAM_HEALTHY"},
+		{"empty state invalid", "", 0, 0, BackpressureStop, "UNKNOWN_DOWNSTREAM_STATE"},
 		{"healthy", BackpressureHealthy, 0, 0, BackpressureContinue, "DOWNSTREAM_HEALTHY"},
 		{"slow", BackpressureSlow, 0, 0, BackpressureSlowUpstream, "DOWNSTREAM_SLOW"},
 		{"throttled fallback", BackpressureThrottled, 0, 0, BackpressureQueue, "DOWNSTREAM_THROTTLED"},
@@ -91,15 +94,23 @@ func TestBackpressureDecisionStatesAndBounds(t *testing.T) {
 }
 
 func TestConsumeRetryRejectsInvalidAndHandlesNonRetryableFailures(t *testing.T) {
-	valid := RetryBudget{ID: "budget", TenantID: "tenant", Dependency: "connector", Allowed: 2, Retryable: []FailureClass{FailureUnavailable}, Version: "v1"}
-	attempt := RetryAttempt{LogicalOperationID: "op", TenantID: "tenant", Dependency: "connector", Failure: FailureUnavailable, Attempt: 1}
+	valid := RetryBudget{ID: "budget", TenantID: "tenant", Dependency: "connector", LogicalOperationID: "op", OperationKind: "sync", Allowed: 2, Retryable: []FailureClass{FailureUnavailable}, Version: "v1"}
+	attempt := RetryAttempt{LogicalOperationID: "op", OperationKind: "sync", TenantID: "tenant", Dependency: "connector", Failure: FailureUnavailable, Attempt: 1}
 	for _, tc := range []struct {
 		name   string
 		mutate func(*RetryBudget, *RetryAttempt)
 	}{
 		{"missing budget id", func(b *RetryBudget, _ *RetryAttempt) { b.ID = "" }},
+		{"missing budget version", func(b *RetryBudget, _ *RetryAttempt) { b.Version = "" }},
 		{"tenant mismatch", func(_ *RetryBudget, a *RetryAttempt) { a.TenantID = "other" }},
 		{"dependency mismatch", func(_ *RetryBudget, a *RetryAttempt) { a.Dependency = "other" }},
+		{"logical operation mismatch", func(_ *RetryBudget, a *RetryAttempt) { a.LogicalOperationID = "other" }},
+		{"operation kind mismatch", func(_ *RetryBudget, a *RetryAttempt) { a.OperationKind = "other" }},
+		{"unknown failure", func(_ *RetryBudget, a *RetryAttempt) { a.Failure = FailureClass("OTHER") }},
+		{"unknown retry policy class", func(b *RetryBudget, _ *RetryAttempt) { b.Retryable = []FailureClass{"OTHER"} }},
+		{"duplicate retry policy class", func(b *RetryBudget, _ *RetryAttempt) {
+			b.Retryable = []FailureClass{FailureUnavailable, FailureUnavailable}
+		}},
 		{"zero attempt", func(_ *RetryBudget, a *RetryAttempt) { a.Attempt = 0 }},
 		{"negative consumed", func(b *RetryBudget, _ *RetryAttempt) { b.Consumed = -1 }},
 		{"counter exceeds budget", func(b *RetryBudget, _ *RetryAttempt) { b.Consumed = 3 }},
@@ -117,5 +128,30 @@ func TestConsumeRetryRejectsInvalidAndHandlesNonRetryableFailures(t *testing.T) 
 	receipt, err := ConsumeRetry(valid, notRetryable)
 	if err != nil || receipt.Disposition != RetryNotAllowed || receipt.Remaining != 2 || receipt.Consumed != 0 {
 		t.Fatalf("non-retryable receipt=%+v err=%v", receipt, err)
+	}
+}
+
+func TestTodo_ADMISSION_002_Security(t *testing.T) {
+	b := RetryBudget{ID: "b", TenantID: "t", Dependency: "d", LogicalOperationID: "logical", OperationKind: "op", Allowed: 1, Retryable: []FailureClass{FailureUnavailable}, Version: "v1"}
+	a := RetryAttempt{LogicalOperationID: "logical", OperationKind: "other", TenantID: "t", Dependency: "d", Failure: FailureUnavailable, Attempt: 1}
+	if _, err := ConsumeRetry(b, a); !errors.Is(err, ErrInvalidRetryInput) {
+		t.Fatalf("operation mismatch err=%v", err)
+	}
+	maxInt := int(^uint(0) >> 1)
+	b.OperationKind, a.OperationKind, b.Allowed, b.Refunded = "op", "op", maxInt, 1
+	if _, err := ConsumeRetry(b, a); !errors.Is(err, ErrInvalidRetryInput) {
+		t.Fatalf("counter overflow err=%v", err)
+	}
+	b.Allowed, b.Consumed, b.Refunded = maxInt, maxInt, 0
+	if receipt, err := ConsumeRetry(b, a); err != nil || receipt.Disposition != RetryBudgetExhausted || receipt.Remaining != 0 {
+		t.Fatalf("safe max-int exhausted budget=%+v err=%v", receipt, err)
+	}
+}
+
+func TestTodo_ADMISSION_002_Mutation(t *testing.T) {
+	r, s := base()
+	r.Criticality = Criticality("P00")
+	if got := Decide(r, s, Policy{}); got.Outcome != Reject {
+		t.Fatalf("invalid criticality admitted: %+v", got)
 	}
 }

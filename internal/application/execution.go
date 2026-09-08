@@ -6,7 +6,9 @@ package application
 // decides what that gate is made of.
 
 import (
+	"context"
 	"fmt"
+	"time"
 
 	"github.com/monstercameron/hcm-next/internal/data/pgxadapter"
 	"github.com/monstercameron/hcm-next/internal/intent/app"
@@ -14,6 +16,8 @@ import (
 	kernelvalues "github.com/monstercameron/hcm-next/internal/kernel/values"
 	ledgerport "github.com/monstercameron/hcm-next/internal/ledger"
 	platformexecution "github.com/monstercameron/hcm-next/internal/platform/execution"
+	transactioncommit "github.com/monstercameron/hcm-next/internal/transaction/commit"
+	"github.com/monstercameron/hcm-next/internal/workflow/execute"
 	"github.com/monstercameron/hcm-next/internal/workflow/execute/effects"
 )
 
@@ -40,8 +44,17 @@ func ComposeExecutionAuthority(cellConfig *app.CellConfig, pool *pgxadapter.Pool
 		ProjectionName: "workflow.promotion_outcome",
 		SourceRef:      "cmd/hcmnext:execution-authority",
 	}
+	var startRetryFor func(context.Context, execute.StartRetryIdentity) (*transactioncommit.RetryOptions, error)
+	if cfg.ExecutionRetry {
+		now := func() time.Time { return time.Now().UTC() }
+		if cellConfig.Now != nil {
+			now = cellConfig.Now
+		}
+		startRetryFor = composeExecutionRetryFor(pool, cfg, now)
+	}
 	execution, err := platformexecution.NewPromotionExecution(platformexecution.PromotionExecutionConfig{
 		DB:                  pool,
+		StartRetryFor:       startRetryFor,
 		Terminal:            terminal,
 		Plan:                platformexecution.PromotionPlan(cfg.WorkflowPlan),
 		ApproverPrincipalID: cfg.ExecutionApprover,

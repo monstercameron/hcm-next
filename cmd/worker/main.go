@@ -55,7 +55,7 @@ func main() {
 // accepts. It is a function rather than a package variable so callers never
 // share (and risk mutating) one backing array.
 func workerConfigFields() []bootstrap.Field {
-	return []bootstrap.Field{
+	fields := []bootstrap.Field{
 		{
 			Name:   "database-url",
 			Env:    EnvDatabaseURL,
@@ -94,6 +94,7 @@ func workerConfigFields() []bootstrap.Field {
 		{Name: "messaging-max-attempts", Env: "HCMNEXT_WORKER_MESSAGING_MAX_ATTEMPTS", Usage: "maximum provider attempts for one messaging delivery", Default: "3", Kind: bootstrap.KindInt},
 		{Name: "roles", Env: EnvWorkerRoles, Usage: "comma-separated capability-activity, reconciliation and repair roles", Default: string(WorkerRoleCapabilityActivity), Kind: bootstrap.KindString},
 	}
+	return append(fields, workerTelemetryFields()...)
 }
 
 // spec builds the full worker Spec for args. It pre-resolves health-addr
@@ -150,13 +151,22 @@ func validateConfig(v *bootstrap.Values) error {
 	if _, err := ParseWorkerRoles(v.String("roles")); err != nil {
 		return err
 	}
+	switch v.String("otel-exporter") {
+	case "none", "stdout":
+	case "otlphttp":
+		if v.String("otel-endpoint") == "" {
+			return fmt.Errorf("otel-endpoint is required when otel-exporter=otlphttp")
+		}
+	default:
+		return fmt.Errorf("otel-exporter must be one of none, stdout, or otlphttp")
+	}
 	return nil
 }
 
 // build resolves the sweep loop's dependencies from deps and returns it as
 // this role's single Workload. It is the one place worker's Spec touches
 // outbox-specific types.
-func build(_ context.Context, deps bootstrap.Deps) (bootstrap.Runtime, error) {
+func build(ctx context.Context, deps bootstrap.Deps) (bootstrap.Runtime, error) {
 	pool, ok := deps.DB.(workerPool)
 	if !ok {
 		return bootstrap.Runtime{}, fmt.Errorf("worker: database pool %T does not support outbox operations (Begin/Query)", deps.DB)
@@ -186,6 +196,10 @@ func build(_ context.Context, deps bootstrap.Deps) (bootstrap.Runtime, error) {
 	consumer := outbox.NewConsumer(pool, outbox.WithLease(lease), outbox.WithBatchSize(batchSize))
 	tenants := pgxTenantLister{pool: pool}
 	logger := deps.Logger
+	telemetryProvider, err := newWorkerTelemetryProvider(ctx, deps.Identity, deps.Values)
+	if err != nil {
+		return bootstrap.Runtime{}, err
+	}
 
 	logger.Info("worker.outbox_consumer_configured",
 		"poll_interval", pollInterval.String(),
@@ -208,18 +222,28 @@ func build(_ context.Context, deps bootstrap.Deps) (bootstrap.Runtime, error) {
 	wl := bootstrap.Workload{
 		Name: workloadName,
 		Run: func(ctx context.Context) error {
-			return runOutboxLoop(ctx, logger, tenants, consumer, pollInterval)
+			return runOutboxLoopWithTelemetry(ctx, logger, tenants, consumer, pollInterval, legacyMessageHandler(logger), telemetryProvider, deps.Clock)
 		},
 	}
 	workloads := []bootstrap.Workload{wl}
 	if messagingRole {
 		messaging := messagingRoleFor(deps, pool, maxAttempts)
 		workloads[0].Run = func(ctx context.Context) error {
-			return runOutboxLoopWithHandler(ctx, logger, tenants, consumer, pollInterval, messaging.dispatch)
+			return runOutboxLoopWithTelemetry(ctx, logger, tenants, consumer, pollInterval, messaging.dispatch, telemetryProvider, deps.Clock)
 		}
 	}
 	workloads = append(workloads, workerRoleWorkloads(deps.Logger, roles)...)
-	return bootstrap.Runtime{Workloads: workloads}, nil
+	runtime := bootstrap.Runtime{Workloads: workloads}
+	if telemetryProvider != nil {
+		runtime.Shutdown = append(runtime.Shutdown, bootstrap.ShutdownStep{Name: "shutdown-telemetry", Run: func(stepCtx context.Context) error {
+			report := telemetryProvider.Shutdown(stepCtx)
+			if report.Err() != nil || report.DeadlineExceeded {
+				logger.Error("worker.telemetry_shutdown_degraded", "error", report.Err(), "deadline_exceeded", report.DeadlineExceeded)
+			}
+			return nil
+		}})
+	}
+	return runtime, nil
 }
 
 // workerPool is the database capability this role needs beyond bootstrap's own

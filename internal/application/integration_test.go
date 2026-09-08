@@ -1,7 +1,10 @@
 package application
 
 import (
+	"bytes"
 	"context"
+	"crypto/ed25519"
+	"encoding/base64"
 	"errors"
 	"github.com/monstercameron/hcm-next/internal/transport/envelope"
 	"github.com/monstercameron/hcm-next/internal/workflow/runtime"
@@ -57,18 +60,19 @@ func TestTodo_ARCH_GO_020_Integration(t *testing.T) {
 	t.Cleanup(pool.Close)
 
 	cfg := ServeConfig{
-		GRPCListen:   "127.0.0.1:0",
-		HTTPListen:   "127.0.0.1:0",
-		DatabaseURL:  db.URL,
-		DevHMACKey:   integrationSigningKey,
-		Issuer:       DefaultIssuer,
-		Audience:     DefaultAudience,
-		Tenant:       string(fixtures.Tenant),
-		CellID:       "cell-application-integration",
-		MaxDeadline:  30 * time.Second,
-		Migrate:      false, // pgtest already brought the schema to head
-		Workspace:    true,
-		OTelExporter: OTelExporterNone,
+		GRPCListen:              "127.0.0.1:0",
+		HTTPListen:              "127.0.0.1:0",
+		DatabaseURL:             db.URL,
+		DevHMACKey:              integrationSigningKey,
+		Issuer:                  DefaultIssuer,
+		Audience:                DefaultAudience,
+		Tenant:                  string(fixtures.Tenant),
+		CellID:                  "cell-application-integration",
+		MaxDeadline:             30 * time.Second,
+		Migrate:                 false, // pgtest already brought the schema to head
+		Workspace:               true,
+		OTelExporter:            OTelExporterNone,
+		LegalEvidenceIssuerKeys: base64.StdEncoding.EncodeToString(ed25519.NewKeyFromSeed(make([]byte, ed25519.SeedSize)).Public().(ed25519.PublicKey)),
 	}
 	if err := cfg.Validate(); err != nil {
 		t.Fatalf("the integration configuration is not one a listener may start on: %v", err)
@@ -96,6 +100,10 @@ func TestTodo_ARCH_GO_020_Integration(t *testing.T) {
 	store, ok := composed.Graph().Component(ComponentIntentStore)
 	if !ok || store.Impl != "*pgstore.Store" {
 		t.Fatalf("the composed store is %+v, want the PostgreSQL adapter", store)
+	}
+	legalVerifier, ok := composed.Graph().Component(ComponentLegalEvidenceVerifier)
+	if !ok || legalVerifier.Impl != "*application.legalEvidenceAdapter" {
+		t.Fatalf("the composed legal verifier is %+v, want the real application adapter", legalVerifier)
 	}
 
 	// 1. The configured tenant reached the database through the composed
@@ -176,6 +184,7 @@ func TestTodo_PROMO_EXEC_SERVE_ExecutePlanJourneyOverPGTest(t *testing.T) {
 	const approver = "principal:promotion-approver"
 	const at = "2026-09-03T12:00:00Z"
 	clockAt, _ := time.Parse(time.RFC3339, at)
+	now := clockAt
 	cfg := ServeConfig{
 		GRPCListen: "127.0.0.1:0", HTTPListen: "127.0.0.1:0", DatabaseURL: db.URL,
 		DevHMACKey: integrationSigningKey, Issuer: DefaultIssuer, Audience: DefaultAudience,
@@ -190,7 +199,7 @@ func TestTodo_PROMO_EXEC_SERVE_ExecutePlanJourneyOverPGTest(t *testing.T) {
 		t.Fatalf("execute-plan configuration: %v", err)
 	}
 	composed, err := ComposeServe(context.Background(), ServeInput{
-		Config: cfg, Pool: pool, Identity: "application-execute-plan", Options: Options{Now: func() time.Time { return clockAt }},
+		Config: cfg, Pool: pool, Identity: "application-execute-plan", Options: Options{Now: func() time.Time { return now }},
 	})
 	if err != nil {
 		t.Fatalf("ComposeServe(execute plan): %v", err)
@@ -201,7 +210,7 @@ func TestTodo_PROMO_EXEC_SERVE_ExecutePlanJourneyOverPGTest(t *testing.T) {
 		_ = composed.Stop(ctx)
 	})
 	verifier, err := trust.NewHMACVerifier(trust.HMACVerifierConfig{
-		Key: []byte(integrationSigningKey), Issuer: cfg.Issuer, Audience: cfg.Audience, Now: func() time.Time { return clockAt },
+		Key: []byte(integrationSigningKey), Issuer: cfg.Issuer, Audience: cfg.Audience, Now: func() time.Time { return now },
 	})
 	if err != nil {
 		t.Fatalf("build verifier: %v", err)
@@ -235,6 +244,13 @@ func TestTodo_PROMO_EXEC_SERVE_ExecutePlanJourneyOverPGTest(t *testing.T) {
 	if financeWaiting.Summary.Stage != workspace.JourneyStage("FINANCE_APPROVAL") {
 		t.Fatalf("after execute stage = %s, want FINANCE_APPROVAL", financeWaiting.Summary.Stage)
 	}
+	tenantID := pgstore.TenantID(tenant)
+	var originalPayload []byte
+	var originalProducedAt time.Time
+	if err := pool.QueryRow(ctx, `SELECT payload,produced_at FROM proposal_revision WHERE tenant_id=$1 AND intent_id=$2 AND revision=1`, tenantID, proposed.IntentID).Scan(&originalPayload, &originalProducedAt); err != nil {
+		t.Fatalf("load original proposal snapshot: %v", err)
+	}
+	now = now.Add(10 * time.Minute)
 	finance, err := journey.Decide(ctx, proposed.IntentID, workspace.Decision{Approve: true, Reason: "finance approved"})
 	if err != nil {
 		t.Fatalf("Journey.Decide(finance): %v", err)
@@ -242,6 +258,7 @@ func TestTodo_PROMO_EXEC_SERVE_ExecutePlanJourneyOverPGTest(t *testing.T) {
 	if finance.Summary.Stage != workspace.JourneyStage("MANAGER_APPROVAL") {
 		t.Fatalf("after finance stage = %s, want MANAGER_APPROVAL", finance.Summary.Stage)
 	}
+	now = now.Add(10 * time.Minute)
 	waiting, err := journey.Decide(ctx, proposed.IntentID, workspace.Decision{Approve: true, Reason: "manager approved"})
 	if err != nil {
 		t.Fatalf("Journey.Decide(manager): %v", err)
@@ -253,7 +270,15 @@ func TestTodo_PROMO_EXEC_SERVE_ExecutePlanJourneyOverPGTest(t *testing.T) {
 		t.Fatal("waiting journey has no workflow instance")
 	}
 	instanceID := waiting.Instance.InstanceID
-	tenantID := pgstore.TenantID(tenant)
+	var replayedPayload []byte
+	var replayedProducedAt time.Time
+	if err := pool.QueryRow(ctx, `SELECT payload,produced_at FROM proposal_revision WHERE tenant_id=$1 AND intent_id=$2 AND revision=1`, tenantID, proposed.IntentID).Scan(&replayedPayload, &replayedProducedAt); err != nil {
+		t.Fatalf("reload immutable proposal snapshot: %v", err)
+	}
+	if !bytes.Equal(replayedPayload, originalPayload) || !replayedProducedAt.Equal(originalProducedAt) {
+		t.Fatalf("resimulation rewrote proposal snapshot: produced_at %s -> %s", originalProducedAt, replayedProducedAt)
+	}
+	now = now.Add(10 * time.Minute)
 	runner, err := scheduler.New(scheduler.Config{
 		DB: pool, Claims: []lease.AcquireRequest{{TenantID: tenantID, Resource: lease.Resource{Kind: lease.ResourceQueue, ID: scheduler.DefaultQueueKey}, Holder: lease.Identity{WorkloadRef: "workload:application-test", InstanceRef: "application-execute-plan"}}},
 		Leases: lease.Manager{}, Timers: timer.Scheduler{Attempts: runtime.Store{}}, Misfire: schedule.MisfireConfig{Policy: schedule.MisfireCatchUpOnce, Grace: time.Hour, MaxCatchUp: 1},
@@ -263,7 +288,7 @@ func TestTodo_PROMO_EXEC_SERVE_ExecutePlanJourneyOverPGTest(t *testing.T) {
 				return scheduler.DispositionRetry, resumeErr
 			}
 			return scheduler.DispositionCompleted, nil
-		}), Clock: func() time.Time { return clockAt },
+		}), Clock: func() time.Time { return now },
 	})
 	if err != nil {
 		t.Fatalf("scheduler.New: %v", err)

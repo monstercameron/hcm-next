@@ -2,6 +2,8 @@ package application
 
 import (
 	"context"
+	"crypto/ed25519"
+	"encoding/base64"
 	"errors"
 	"net"
 	"net/http"
@@ -192,6 +194,24 @@ func TestComposeServeRefusesAFactoryThatSuppliesNothing(t *testing.T) {
 	})
 	if err == nil || !strings.Contains(err.Error(), "verifier factory") {
 		t.Errorf("nil verifier = %v, want a refusal naming the verifier factory", err)
+	}
+}
+
+func TestTodo_LEGAL_014_CompositionPreservesDisabledStateAndRequiresStorage(t *testing.T) {
+	composed, _, _ := composeStub(t, stubServeConfig())
+	component, ok := composed.Graph().Component(ComponentLegalEvidenceVerifier)
+	if !ok || component.Impl != "<nil>" {
+		t.Fatalf("legal verifier without trusted keys = %+v, want an explicit nil component", component)
+	}
+
+	cfg := stubServeConfig()
+	cfg.LegalEvidenceIssuerKeys = base64.StdEncoding.EncodeToString(make([]byte, ed25519.PublicKeySize))
+	_, err := ComposeServe(context.Background(), ServeInput{
+		Config:  cfg,
+		Options: Options{}.Apply(WithStore(&stubStore{}), WithVerifier(stubVerifier{})),
+	})
+	if err == nil || !strings.Contains(err.Error(), "database pool") {
+		t.Fatalf("legal verifier without storage = %v, want database-pool refusal", err)
 	}
 }
 

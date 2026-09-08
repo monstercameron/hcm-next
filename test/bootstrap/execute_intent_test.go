@@ -19,12 +19,14 @@ import (
 	intentsv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/intents/v1"
 	registryv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/registry/v1"
 	"github.com/monstercameron/hcm-next/internal/data/dbport"
+	"github.com/monstercameron/hcm-next/internal/data/pgxadapter"
 	"github.com/monstercameron/hcm-next/internal/data/tenancy"
 	"github.com/monstercameron/hcm-next/internal/humanwork/workitem"
 	"github.com/monstercameron/hcm-next/internal/intent/app"
 	"github.com/monstercameron/hcm-next/internal/intent/app/pgstore"
 	kernelvalues "github.com/monstercameron/hcm-next/internal/kernel/values"
 	platformexecution "github.com/monstercameron/hcm-next/internal/platform/execution"
+	transactioncommit "github.com/monstercameron/hcm-next/internal/transaction/commit"
 	"github.com/monstercameron/hcm-next/internal/transaction/idempotency"
 	"github.com/monstercameron/hcm-next/internal/transport"
 	transportcell "github.com/monstercameron/hcm-next/internal/transport/cell"
@@ -75,11 +77,26 @@ func (w *recordingTerminalWriter) Calls() []execute.TerminalWriteRequest {
 // assembled by mutating another test's already-published cell would prove
 // nothing about a real composition root doing the same thing once.
 func newExecutionCell(t *testing.T, terminal execute.TerminalWriter) *cell {
+	return newExecutionCellWithDB(t, terminal, nil)
+}
+
+// newExecutionCellWithDB is the same production composition with an optional
+// database boundary used by DBEDGE003 to model a commit acknowledgement loss.
+func newExecutionCellWithDB(t *testing.T, terminal execute.TerminalWriter, executionDB func(*pgxadapter.Pool) execute.Beginner) *cell {
 	t.Helper()
 	c := newCell(t)
 
+	db := execute.Beginner(c.pool)
+	if executionDB != nil {
+		db = executionDB(c.pool)
+	}
+	var startRetry *transactioncommit.RetryOptions
+	if executionDB != nil {
+		startRetry = &transactioncommit.RetryOptions{MaxAttempts: 3, Admit: func(context.Context) error { return nil }}
+	}
 	execution, err := platformexecution.NewPromotionExecution(platformexecution.PromotionExecutionConfig{
-		DB:                  c.pool,
+		DB:                  db,
+		StartRetry:          startRetry,
 		Terminal:            terminal,
 		Clock:               func() time.Time { return baseTime },
 		ApproverPrincipalID: "principal:promotion-approver",

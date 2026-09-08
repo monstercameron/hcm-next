@@ -207,8 +207,8 @@ func TestTodo_WF_RUN_027_Bootstrap_Fault(t *testing.T) {
 
 // TestTodo_WF_RUN_027_Bootstrap_Security proves the second half of the same
 // rule: a revision whose intent the relationship graph has superseded is
-// refused even though the caller asserts it is current, and even though a
-// perfectly good APPROVED decision is on file for it.
+// refused even though the caller asserts it is current. Approval resolution
+// cannot override that durable relationship fact.
 func TestTodo_WF_RUN_027_Bootstrap_Security(t *testing.T) {
 	h := newJourneyHarness(t)
 	ctx := h.operatorCtx(t)
@@ -227,31 +227,11 @@ func TestTodo_WF_RUN_027_Bootstrap_Security(t *testing.T) {
 	material := wfrun027MaterialDigest(t, h, ctx, first.IntentID)
 	tenantID := pgstore.TenantID(testTenant)
 
-	// Record the admission the journey would have recorded, then supersede the
-	// intent it belongs to. The decision stays exactly as it was: supersession
-	// is a separate fact, and the runtime has to weigh both.
+	// Supersede the first intent through the durable relationship authority.
+	// Do not manufacture a proposal_revision payload here: ExecuteIntent owns
+	// encoding and verifying that full proposal, and placeholder JSON is not a
+	// valid substitute for its signed material.
 	wfrun027Tx(t, h.cell, tenantID, func(tx dbport.Tx) error {
-		if _, err := (intentcontrol.RevisionStore{}).Materialize(context.Background(), tx,
-			intentcontrol.Revision{
-				TenantID: tenantID, IntentID: uuid.MustParse(first.IntentID), Revision: 1,
-				ProposalDigest: material, MaterialDigest: material,
-				SchemaRef: "hcmnext.intents.v1.Proposal", Payload: []byte(`{"proposal":true}`),
-				ProducedBy: "wfrun027-test", ProducedAt: baseTime,
-			}); err != nil {
-			return err
-		}
-		if err := (intentcontrol.DecisionStore{}).Record(context.Background(), tx, intentcontrol.Decision{
-			TenantID: tenantID, DecisionID: uuid.New(),
-			IntentID: uuid.MustParse(first.IntentID), Revision: 1,
-			RequirementID: "release.p1b_execution_authority_gate",
-			Kind:          intentcontrol.DecisionAuthZ, Outcome: intentcontrol.OutcomeApproved,
-			ProposalDigest: material, ControlDigest: material,
-			MaterialityClass: intentcontrol.Material,
-			DecidedBy:        testSubject, AuthorityRef: "authority:test",
-			Reason: "recorded before the supersession", DecidedAt: baseTime,
-		}); err != nil {
-			return err
-		}
 		return (intentcontrol.RelationshipStore{}).Link(context.Background(), tx, intentcontrol.Relationship{
 			TenantID: tenantID, RelationshipID: uuid.New(),
 			Type:                intentcontrol.RelationSupersedes,

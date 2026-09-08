@@ -50,11 +50,54 @@ func TestTodo_ADMISSION_001(t *testing.T) {
 func TestTodo_ADMISSION_001_Golden(t *testing.T) {
 	r, s := base()
 	got := Decide(r, s, Policy{QueueRetryAfter: 9, DeferRetryAfter: 19, DegradeRetryAfter: 4})
-	if got.DecisionID != "adm_63e5a7eda109555728fa6e71751e6a607cd7585c9bc16ca1825b8500eda751c3" {
+	if got.DecisionID != "adm_13bdf0e5aa0e9cbce9158f4b5865b4cdd573168a97e21a33a881c2f784616c31" {
 		t.Fatalf("decision id = %q", got.DecisionID)
 	}
 	if got.Evidence.TenantID != "tenant-a" || got.Evidence.CellID != "cell-1" || got.Evidence.Criticality != P2 {
 		t.Fatalf("missing evidence: %+v", got.Evidence)
+	}
+}
+
+func TestAdmissionDecisionIDBindsHiddenControlState(t *testing.T) {
+	r, s := base()
+	s.Draining = true
+	known := Decide(r, s, Policy{})
+	s.Quota.Known = false
+	unknown := Decide(r, s, Policy{})
+	if known.Outcome != Defer || unknown.Outcome != Defer || known.Reason != unknown.Reason || known.DecisionID == unknown.DecisionID {
+		t.Fatalf("decision identity did not bind quota-known state: known=%+v unknown=%+v", known, unknown)
+	}
+}
+
+func TestAdmissionDecisionIDUsesUnambiguousScopeFraming(t *testing.T) {
+	leftRequest, leftSnapshot := base()
+	leftRequest.TenantID, leftRequest.CellID = "a|b", "c"
+	leftSnapshot.TenantID, leftSnapshot.CellID = leftRequest.TenantID, leftRequest.CellID
+	rightRequest, rightSnapshot := base()
+	rightRequest.TenantID, rightRequest.CellID = "a", "b|c"
+	rightSnapshot.TenantID, rightSnapshot.CellID = rightRequest.TenantID, rightRequest.CellID
+	left, right := Decide(leftRequest, leftSnapshot, Policy{}), Decide(rightRequest, rightSnapshot, Policy{})
+	if left.Outcome != Admit || right.Outcome != Admit || left.DecisionID == right.DecisionID {
+		t.Fatalf("distinct tenant/cell boundaries collided: left=%+v right=%+v", left, right)
+	}
+}
+
+func TestAdmissionDecisionIDBindsObservedEpochAndPolicyResult(t *testing.T) {
+	r, firstSnapshot := base()
+	r.PlacementEpoch = 9
+	firstSnapshot.PlacementEpoch = 7
+	secondSnapshot := firstSnapshot
+	secondSnapshot.PlacementEpoch = 8
+	first, second := Decide(r, firstSnapshot, Policy{}), Decide(r, secondSnapshot, Policy{})
+	if first.Reason != "STALE_PLACEMENT" || second.Reason != first.Reason || first.DecisionID == second.DecisionID {
+		t.Fatalf("observed epochs were not bound: first=%+v second=%+v", first, second)
+	}
+
+	r, queueSnapshot := base()
+	queueSnapshot.Quota.Consumed = 95
+	short, long := Decide(r, queueSnapshot, Policy{QueueRetryAfter: 3}), Decide(r, queueSnapshot, Policy{QueueRetryAfter: 30})
+	if short.Outcome != Queue || long.Outcome != Queue || short.Reason != long.Reason || short.RetryAfter == long.RetryAfter || short.DecisionID == long.DecisionID {
+		t.Fatalf("policy-derived result was not bound: short=%+v long=%+v", short, long)
 	}
 }
 
@@ -113,6 +156,8 @@ func TestAdmissionContractAndDecisionValidation(t *testing.T) {
 		{"missing cell", func(d *Decision) { d.CellID = "" }},
 		{"invalid criticality", func(d *Decision) { d.Criticality = "P9" }},
 		{"missing outcome", func(d *Decision) { d.Outcome = "" }},
+		{"unknown outcome", func(d *Decision) { d.Outcome = Outcome("ADMITTED") }},
+		{"shed protocol synonym is not a decision outcome", func(d *Decision) { d.Outcome = Shed }},
 		{"missing reason", func(d *Decision) { d.Reason = "" }},
 		{"negative retry", func(d *Decision) { d.RetryAfter = -1 }},
 		{"negative reservation", func(d *Decision) { d.Reservation = -1 }},

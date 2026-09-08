@@ -825,7 +825,7 @@ func TestJourneyRefusesWithoutAVerifiedPrincipal(t *testing.T) {
 // TestJourneyIsNilWithoutAnExecutionDatabase proves the composition rule: the
 // journey surface exists only on a cell that can actually run one.
 func TestJourneyIsNilWithoutAnExecutionDatabase(t *testing.T) {
-	c := newExecutionCell(t, &recordingTerminalWriter{})
+	c := newCell(t)
 	if c.app.Journey != nil {
 		t.Fatal("a cell composed with no ExecutionDB must carry no Journey engine")
 	}

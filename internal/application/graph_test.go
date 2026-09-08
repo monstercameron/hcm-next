@@ -121,7 +121,7 @@ func TestGraphValidateRejectsAnIncoherentComposition(t *testing.T) {
 const serveGoldenCanonical = `role=serve
 capability-gateway|governance|*capability.Gateway|capability-registry
 capability-registry|registry|*capability.Registry|cell
-cell|registry|*app.Cell|credential-verifier,evidence-sink,intent-store,pay-band-catalog,proposal-executor,telemetry-provider
+cell|registry|*app.Cell|credential-verifier,evidence-sink,intent-store,legal-evidence-verifier,pay-band-catalog,proposal-executor,telemetry-provider
 config|config|application.ServeConfig|
 credential-verifier|adapter|application.stubVerifier|config
 database-pool|adapter|<nil>|
@@ -136,6 +136,7 @@ intent-definitions|registry|*intent.Registry|cell
 intent-service|engine|*app.IntentService|cell
 intent-store|adapter|*application.stubStore|config,database-pool
 journey-engine|workflow|<nil>|cell
+legal-evidence-verifier|adapter|<nil>|config,database-pool
 observation-store|adapter|*observe.MemoryStore|
 pay-band-catalog|port|<nil>|
 presentation-preferences|adapter|*preferencestore.Store|database-pool

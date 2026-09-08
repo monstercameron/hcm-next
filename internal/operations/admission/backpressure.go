@@ -68,7 +68,7 @@ func DecideBackpressure(signal BackpressureSignal, targets []string) Backpressur
 		return d
 	}
 	switch signal.State {
-	case "", BackpressureHealthy:
+	case BackpressureHealthy:
 		d.Reason = "DOWNSTREAM_HEALTHY"
 	case BackpressureSlow:
 		d.Action, d.Reason = BackpressureSlowUpstream, "DOWNSTREAM_SLOW"
@@ -99,20 +99,22 @@ const (
 // Consumed and Refunded are supplied by the owning durable counter; this
 // package only makes the next decision and receipt.
 type RetryBudget struct {
-	ID         string
-	TenantID   string
-	Service    string
-	Dependency string
-	Operation  string
-	Allowed    int
-	Consumed   int
-	Refunded   int
-	Retryable  []FailureClass
-	Version    string
+	ID                 string
+	TenantID           string
+	Service            string
+	Dependency         string
+	LogicalOperationID string
+	OperationKind      string
+	Allowed            int
+	Consumed           int
+	Refunded           int
+	Retryable          []FailureClass
+	Version            string
 }
 
 type RetryAttempt struct {
 	LogicalOperationID string
+	OperationKind      string
 	TenantID           string
 	Dependency         string
 	Failure            FailureClass
@@ -129,14 +131,18 @@ const (
 )
 
 type RetryReceipt struct {
-	Disposition RetryDisposition
-	Reason      string
-	Remaining   int
-	Consumed    int
-	RepairRoute string
-	BudgetID    string
-	TenantID    string
-	Dependency  string
+	Disposition        RetryDisposition
+	Reason             string
+	Remaining          int
+	Consumed           int
+	RepairRoute        string
+	BudgetID           string
+	TenantID           string
+	Dependency         string
+	LogicalOperationID string
+	OperationKind      string
+	BudgetVersion      string
+	Attempt            int
 }
 
 var ErrInvalidRetryInput = errors.New("admission: invalid retry input")
@@ -145,8 +151,9 @@ var ErrInvalidRetryInput = errors.New("admission: invalid retry input")
 // The durable owner records the returned Consumed increment exactly once for
 // the logical operation.
 func ConsumeRetry(budget RetryBudget, attempt RetryAttempt) (RetryReceipt, error) {
-	receipt := RetryReceipt{BudgetID: budget.ID, TenantID: budget.TenantID, Dependency: budget.Dependency}
-	if strings.TrimSpace(budget.ID) == "" || strings.TrimSpace(budget.TenantID) == "" || strings.TrimSpace(budget.Dependency) == "" || budget.Allowed < 0 || budget.Consumed < 0 || budget.Refunded < 0 || budget.Consumed > budget.Allowed+budget.Refunded || strings.TrimSpace(attempt.LogicalOperationID) == "" || attempt.TenantID != budget.TenantID || attempt.Dependency != budget.Dependency || attempt.Attempt <= 0 {
+	receipt := RetryReceipt{BudgetID: budget.ID, TenantID: budget.TenantID, Dependency: budget.Dependency, LogicalOperationID: budget.LogicalOperationID, OperationKind: budget.OperationKind, BudgetVersion: budget.Version, Attempt: attempt.Attempt}
+	maxInt := int(^uint(0) >> 1)
+	if strings.TrimSpace(budget.ID) == "" || strings.TrimSpace(budget.TenantID) == "" || strings.TrimSpace(budget.Dependency) == "" || strings.TrimSpace(budget.LogicalOperationID) == "" || strings.TrimSpace(budget.OperationKind) == "" || strings.TrimSpace(budget.Version) == "" || budget.Allowed < 0 || budget.Consumed < 0 || budget.Refunded < 0 || budget.Allowed > maxInt-budget.Refunded || budget.Consumed > budget.Allowed+budget.Refunded || attempt.LogicalOperationID != budget.LogicalOperationID || strings.TrimSpace(attempt.OperationKind) == "" || attempt.TenantID != budget.TenantID || attempt.Dependency != budget.Dependency || attempt.OperationKind != budget.OperationKind || attempt.Attempt <= 0 || !validFailure(attempt.Failure) || !validFailureSet(budget.Retryable) {
 		return RetryReceipt{}, fmt.Errorf("%w: invalid budget or attempt", ErrInvalidRetryInput)
 	}
 	if !containsFailure(budget.Retryable, attempt.Failure) {
@@ -161,6 +168,24 @@ func ConsumeRetry(budget RetryBudget, attempt RetryAttempt) (RetryReceipt, error
 	receipt.Disposition, receipt.Reason, receipt.Consumed = RetryAllowed, "RETRY_TOKEN_GRANTED", 1
 	receipt.Remaining--
 	return receipt, nil
+}
+
+func validFailure(f FailureClass) bool {
+	return f == FailureUnavailable || f == FailureThrottled || f == FailureTimeout || f == FailureTransient
+}
+
+func validFailureSet(failures []FailureClass) bool {
+	seen := make(map[FailureClass]struct{}, len(failures))
+	for _, failure := range failures {
+		if !validFailure(failure) {
+			return false
+		}
+		if _, ok := seen[failure]; ok {
+			return false
+		}
+		seen[failure] = struct{}{}
+	}
+	return true
 }
 
 func remaining(b RetryBudget) int { return b.Allowed - b.Consumed + b.Refunded }

@@ -25,7 +25,11 @@ import (
 	"os"
 	"time"
 
+	commonv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/common/v1"
+	intentsv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/intents/v1"
 	"github.com/monstercameron/hcm-next/internal/data/demoworkforce"
+	"github.com/monstercameron/hcm-next/internal/data/legalevidencestore"
+	"github.com/monstercameron/hcm-next/internal/data/operationstore"
 	"github.com/monstercameron/hcm-next/internal/data/pgxadapter"
 	"github.com/monstercameron/hcm-next/internal/data/preferencestore"
 	"github.com/monstercameron/hcm-next/internal/data/roleaccessstore"
@@ -33,11 +37,14 @@ import (
 	"github.com/monstercameron/hcm-next/internal/humanwork/workspace"
 	"github.com/monstercameron/hcm-next/internal/intent/app"
 	"github.com/monstercameron/hcm-next/internal/intent/app/pgstore"
+	"github.com/monstercameron/hcm-next/internal/intent/protomap"
 	kernelvalues "github.com/monstercameron/hcm-next/internal/kernel/values"
 	"github.com/monstercameron/hcm-next/internal/platform/bootstrap"
 	"github.com/monstercameron/hcm-next/internal/platform/logging"
 	"github.com/monstercameron/hcm-next/internal/transport"
 	transportcell "github.com/monstercameron/hcm-next/internal/transport/cell"
+	transportoperations "github.com/monstercameron/hcm-next/internal/transport/operations"
+	"github.com/monstercameron/hcm-next/internal/transport/streaming"
 	"github.com/monstercameron/hcm-next/internal/trust"
 )
 
@@ -50,6 +57,7 @@ const (
 	ComponentSchemaMigrator        = "schema-migrator"
 	ComponentIntentStore           = "intent-store"
 	ComponentCredentialVerifier    = "credential-verifier"
+	ComponentLegalEvidenceVerifier = "legal-evidence-verifier"
 	ComponentTelemetryProvider     = "telemetry-provider"
 	ComponentEvidenceSink          = "evidence-sink"
 	ComponentDomainInputs          = "domain-inputs"
@@ -87,6 +95,63 @@ const (
 	shutdownNameTelemetry          = "shutdown-telemetry"
 	httpEdgeReadHeaderTimeoutValue = 10 * time.Second
 )
+
+// operationStoreAdapter keeps the transport contract at the composition
+// boundary. The data package owns its record and sentinels; application is
+// the only layer that translates them into the transport projection.
+type operationStoreAdapter struct{ store *operationstore.Store }
+
+var _ transportoperations.Store = operationStoreAdapter{}
+
+func (a operationStoreAdapter) Get(ctx context.Context, tenant, operationID string) (transportoperations.Record, error) {
+	record, err := a.store.Get(ctx, tenant, operationID)
+	if err != nil {
+		return transportoperations.Record{}, mapOperationStoreError(err)
+	}
+	return transportOperationRecord(record)
+}
+
+func (a operationStoreAdapter) Cancel(ctx context.Context, tenant, operationID, idempotencyKey, reason string) (transportoperations.Record, error) {
+	record, err := a.store.Cancel(ctx, tenant, operationID, idempotencyKey, reason)
+	if err != nil {
+		return transportoperations.Record{}, mapOperationStoreError(err)
+	}
+	return transportOperationRecord(record)
+}
+
+func transportOperationRecord(record operationstore.Record) (transportoperations.Record, error) {
+	out := transportoperations.Record{
+		OperationID: record.OperationID, TenantID: record.TenantID, Owner: record.Owner,
+		RequestType: record.RequestType, State: streaming.OperationState(record.State), MetadataRef: record.MetadataRef, CreatedAt: record.CreatedAt,
+		UpdatedAt: record.UpdatedAt,
+	}
+	if len(record.ResultBytes) > 0 {
+		out.Result = &intentsv1.TypedPayload{}
+		if err := protomap.Unmarshal(record.ResultBytes, out.Result); err != nil {
+			return transportoperations.Record{}, fmt.Errorf("decode operation result: %w", err)
+		}
+	}
+	if len(record.ErrorBytes) > 0 {
+		out.Error = &commonv1.ErrorDetail{}
+		if err := protomap.Unmarshal(record.ErrorBytes, out.Error); err != nil {
+			return transportoperations.Record{}, fmt.Errorf("decode operation error: %w", err)
+		}
+	}
+	return out, nil
+}
+
+func mapOperationStoreError(err error) error {
+	switch {
+	case errors.Is(err, operationstore.ErrNotFound):
+		return transportoperations.ErrNotFound
+	case errors.Is(err, operationstore.ErrNotCancellable):
+		return transportoperations.ErrNotCancellable
+	case errors.Is(err, operationstore.ErrFenced):
+		return fmt.Errorf("operation state transition fenced: %w", err)
+	default:
+		return err
+	}
+}
 
 // ServeInput is everything ComposeServe needs that is not a decision it makes
 // itself: the validated configuration, the database pool bootstrap opened,
@@ -158,6 +223,19 @@ func ComposeServe(ctx context.Context, in ServeInput) (*App, error) {
 		return nil, err
 	}
 	graph.add(ComponentCredentialVerifier, KindAdapter, verifier, ComponentConfig)
+	keys, keyErr := parseLegalEvidenceIssuerKeys(cfg.LegalEvidenceIssuerKeys)
+	if keyErr != nil {
+		return nil, keyErr
+	}
+	var legalEvidence app.LegalEvidenceVerifier
+	if len(keys) > 0 {
+		if in.Pool == nil {
+			return nil, fmt.Errorf("application: -%s requires the database pool", FieldLegalEvidenceIssuerKeys)
+		}
+		backend := legalevidencestore.NewVerifier(legalevidencestore.New(in.Pool), newLegalEvidenceTenantAuthority(in.Pool, cfg.Tenant), keys...)
+		legalEvidence = newLegalEvidenceAdapter(backend)
+	}
+	graph.add(ComponentLegalEvidenceVerifier, KindAdapter, legalEvidence, ComponentDatabasePool, ComponentConfig)
 
 	newTelemetry := options.NewTelemetry
 	if newTelemetry == nil {
@@ -197,6 +275,7 @@ func ComposeServe(ctx context.Context, in ServeInput) (*App, error) {
 	cellConfig := app.CellConfig{
 		Store:           store,
 		Verifier:        verifier,
+		LegalEvidence:   legalEvidence,
 		Audience:        cfg.Audience,
 		MaxDeadline:     cfg.MaxDeadline,
 		Logger:          transport.LoggerFunc(RequestLogger(logger)),
@@ -241,7 +320,7 @@ func ComposeServe(ctx context.Context, in ServeInput) (*App, error) {
 	}
 	graph.add(ComponentCell, KindRegistry, cell,
 		ComponentIntentStore, ComponentCredentialVerifier, ComponentTelemetryProvider,
-		ComponentEvidenceSink, ComponentPayBandCatalog, ComponentProposalExecutor)
+		ComponentEvidenceSink, ComponentLegalEvidenceVerifier, ComponentPayBandCatalog, ComponentProposalExecutor)
 	// The governed read ports, the connectivity plane and the trusted clock
 	// are recorded as the cell resolved them, not as this root proposed them:
 	// a seam left nil is a decision to take the cell's own default corpus,
@@ -283,14 +362,18 @@ func ComposeServe(ctx context.Context, in ServeInput) (*App, error) {
 	workflowInstanceReader := app.NewWorkflowInstanceReader(in.Pool,
 		tenantKeyMapper[kernelvalues.TenantId](pgstore.TenantID))
 	graph.add(ComponentWorkflowInstanceRead, KindPort, workflowInstanceReader, ComponentDatabasePool)
+	operationStore := operationStoreAdapter{store: operationstore.New(in.Pool,
+		func(tenant string) string { return pgstore.TenantID(tenant).String() })}
 
-	grpcServer, err := transportcell.NewGRPCServerWithWorkflowInspector(cell, workflowInstanceReader)
+	grpcServer, err := transportcell.NewGRPCServerWithWorkflowInspectorAndOperations(
+		cell, workflowInstanceReader, operationStore, []byte(cfg.DevHMACKey))
 	if err != nil {
 		return nil, err
 	}
 	graph.add(ComponentGRPCSurface, KindTransport, grpcServer, ComponentCell, ComponentWorkflowInstanceRead)
 
-	edgeHandler, err := transportcell.NewEdgeHandlerWithTunnel(cell, grpcServer)
+	edgeHandler, err := transportcell.NewEdgeHandlerWithTunnelAndDependencies(
+		cell, grpcServer, workflowInstanceReader, operationStore, []byte(cfg.DevHMACKey))
 	if err != nil {
 		return nil, err
 	}

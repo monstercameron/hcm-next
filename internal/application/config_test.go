@@ -40,7 +40,9 @@ func TestServeConfigFieldsDeclareEveryConfigurationTheRoleReads(t *testing.T) {
 		FieldMigrate, FieldWorkspace, FieldDevBrowserLogin, FieldOTelExporter,
 		FieldOTelEndpoint, FieldExecutionAuthority, FieldExecutionAuthorityDigest,
 		FieldExecutionAuthorityRole, FieldExecutionApprover,
-		FieldWorkflowPlan,
+		FieldWorkflowPlan, FieldLegalEvidenceIssuerKeys,
+		FieldExecutionRetry, FieldExecutionRetryVersion, FieldExecutionRetryMaxAttempts,
+		FieldExecutionRetryResolutionAttempts,
 	} {
 		if _, ok := declared[name]; !ok {
 			t.Errorf("field %q is read by the composition but not declared", name)
@@ -79,6 +81,9 @@ func TestServeConfigFromValuesResolvesEveryFieldOnce(t *testing.T) {
 		"-execution-authority-role=promo_op", "-execution-authority-approver=principal:approver",
 		"-timer-tzdb-version=2026b", "-timer-calendar-version=2026.2", "-health-addr=127.0.0.1:9",
 		"-workflow-plan=execute",
+		"-execution-retry=true", "-execution-retry-version=retry-v1",
+		"-execution-retry-max-attempts=3", "-execution-retry-resolution-attempts=4",
+		"-legal-evidence-issuer-keys=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
 	)
 	cfg, err := ServeConfigFromValues(values)
 	if err != nil {
@@ -94,14 +99,41 @@ func TestServeConfigFromValuesResolvesEveryFieldOnce(t *testing.T) {
 		OTelExporter: OTelExporterOTLPHTTP, OTelEndpoint: "http://collector:4318",
 		ExecutionAuthority: true, ExecutionAuthorityDigest: "sha256:abc",
 		ExecutionAuthorityRole: "promo_op", ExecutionApprover: "principal:approver",
-		WorkflowPlan:     WorkflowPlanExecute,
-		TimerTzdbVersion: "2026b", TimerCalendarVersion: "2026.2", HealthAddr: "127.0.0.1:9",
+		WorkflowPlan:   WorkflowPlanExecute,
+		ExecutionRetry: true, ExecutionRetryVersion: "retry-v1",
+		ExecutionRetryMaxAttempts: 3, ExecutionRetryResolutionAttempts: 4,
+		LegalEvidenceIssuerKeys: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+		TimerTzdbVersion:        "2026b", TimerCalendarVersion: "2026.2", HealthAddr: "127.0.0.1:9",
 	}
 	if cfg != want {
 		t.Errorf("ServeConfigFromValues =\n %+v\nwant\n %+v", cfg, want)
 	}
 	if err := cfg.Validate(); err != nil {
 		t.Errorf("Validate on a complete configuration: %v", err)
+	}
+}
+
+func TestExecutionRetryConfigurationFailsClosed(t *testing.T) {
+	base := stubServeConfig()
+	base.ExecutionRetry = true
+	base.ExecutionRetryVersion = "retry-v1"
+	base.ExecutionRetryMaxAttempts = 2
+	base.ExecutionRetryResolutionAttempts = 1
+	for name, mutate := range map[string]func(*ServeConfig){
+		"missing version":       func(c *ServeConfig) { c.ExecutionRetryVersion = "" },
+		"one total attempt":     func(c *ServeConfig) { c.ExecutionRetryMaxAttempts = 1 },
+		"no resolution attempt": func(c *ServeConfig) { c.ExecutionRetryResolutionAttempts = 0 },
+	} {
+		t.Run(name, func(t *testing.T) {
+			cfg := base
+			mutate(&cfg)
+			if err := cfg.Validate(); err == nil {
+				t.Fatal("invalid retry configuration accepted")
+			}
+		})
+	}
+	if err := base.Validate(); err != nil {
+		t.Fatalf("valid retry configuration rejected: %v", err)
 	}
 }
 

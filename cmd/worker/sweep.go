@@ -9,6 +9,7 @@ import (
 
 	"github.com/monstercameron/hcm-next/internal/data/outbox"
 	"github.com/monstercameron/hcm-next/internal/platform/bootstrap"
+	hcmotel "github.com/monstercameron/hcm-next/internal/platform/telemetry/otel"
 )
 
 // tenantLister lists the tenants a sweep should check for due outbox work.
@@ -36,7 +37,20 @@ func runOutboxLoop(ctx context.Context, logger bootstrap.Logger, tenants tenantL
 
 type messageHandler func(context.Context, outbox.Record) error
 
-func runOutboxLoopWithHandler(ctx context.Context, logger bootstrap.Logger, tenants tenantLister, disp dispatcher, pollInterval time.Duration, handler messageHandler) error {
+type workerMessageKind string
+
+const workerMessageKindOutbox workerMessageKind = "outbox_message"
+
+// durableSpanProvider is the process provider supplied by the composition
+// root. Keeping this as the narrow provider seam lets tests use the real
+// provider while the worker remains independent of any exporter.
+type durableSpanProvider interface {
+	StartDurableAsyncSpan(context.Context, string, string, hcmotel.DurableAsyncContinuation, map[string]string, time.Time) (context.Context, hcmotel.ExecutionSpan, error)
+}
+
+// runOutboxLoopWithTelemetry is the worker loop with optional finite
+// continuation spans. A nil provider preserves the legacy no-telemetry path.
+func runOutboxLoopWithTelemetry(ctx context.Context, logger bootstrap.Logger, tenants tenantLister, disp dispatcher, pollInterval time.Duration, handler messageHandler, provider durableSpanProvider, now func() time.Time) error {
 	for {
 		select {
 		case <-ctx.Done():
@@ -44,20 +58,23 @@ func runOutboxLoopWithHandler(ctx context.Context, logger bootstrap.Logger, tena
 		default:
 		}
 
-		didWork, err := sweepWithHandler(ctx, logger, tenants, disp, handler)
+		didWork, err := sweepWithTelemetry(ctx, logger, tenants, disp, handler, provider, now)
 		if err != nil {
 			logger.Error("worker.sweep_failed", "error", err.Error())
 		}
 		if didWork {
 			continue
 		}
-
 		select {
 		case <-ctx.Done():
 			return nil
 		case <-time.After(pollInterval):
 		}
 	}
+}
+
+func runOutboxLoopWithHandler(ctx context.Context, logger bootstrap.Logger, tenants tenantLister, disp dispatcher, pollInterval time.Duration, handler messageHandler) error {
+	return runOutboxLoopWithTelemetry(ctx, logger, tenants, disp, pollInterval, handler, nil, nil)
 }
 
 // sweep dispatches one batch of due messages for every active tenant, and
@@ -67,6 +84,13 @@ func sweep(ctx context.Context, logger bootstrap.Logger, tenants tenantLister, d
 }
 
 func sweepWithHandler(ctx context.Context, logger bootstrap.Logger, tenants tenantLister, disp dispatcher, handler messageHandler) (bool, error) {
+	return sweepWithTelemetry(ctx, logger, tenants, disp, handler, nil, nil)
+}
+
+// sweepWithTelemetry dispatches each claimed record through one finite
+// continuation span. The span is ended immediately around the actual handler
+// call, before the lease acknowledgement/failure operation.
+func sweepWithTelemetry(ctx context.Context, logger bootstrap.Logger, tenants tenantLister, disp dispatcher, handler messageHandler, provider durableSpanProvider, now func() time.Time) (bool, error) {
 	if handler == nil {
 		handler = legacyMessageHandler(logger)
 	}
@@ -84,7 +108,16 @@ func sweepWithHandler(ctx context.Context, logger bootstrap.Logger, tenants tena
 		}
 		for _, msg := range batch {
 			didWork = true
-			if err := handler(ctx, msg); err != nil {
+			handlerCtx, span, traced := startDispatchSpan(ctx, provider, msg, now)
+			err := handler(handlerCtx, msg)
+			if traced {
+				if err != nil {
+					span.End("failure", true)
+				} else {
+					span.End("success", false)
+				}
+			}
+			if err != nil {
 				logger.Error("worker.dispatch_failed", "outbox_id", msg.OutboxID.String(), "error", err.Error())
 				if failErr := failClaim(ctx, disp, msg, err); failErr != nil {
 					logger.Error("worker.fail_failed", "outbox_id", msg.OutboxID.String(), "error", failErr.Error())
@@ -97,6 +130,32 @@ func sweepWithHandler(ctx context.Context, logger bootstrap.Logger, tenants tena
 		}
 	}
 	return didWork, nil
+}
+
+func startDispatchSpan(ctx context.Context, provider durableSpanProvider, msg outbox.Record, now func() time.Time) (context.Context, hcmotel.ExecutionSpan, bool) {
+	if provider == nil || msg.Causal == nil {
+		return ctx, hcmotel.ExecutionSpan{}, false
+	}
+	c := hcmotel.DurableAsyncContinuation{
+		CorrelationID: msg.Causal.CorrelationID, CausationID: msg.Causal.CausationID,
+		LogicalOperationID: msg.Causal.LogicalOperationID, AttemptID: msg.Causal.AttemptID,
+	}
+	if link := msg.Causal.TraceLink; link != nil {
+		c.TraceLink = &hcmotel.TraceLinkMetadata{TraceID: link.TraceID, SpanID: link.SpanID, TraceFlags: link.TraceFlags, TraceState: link.TraceState, ExpiresAt: link.ExpiresAt}
+	}
+	clock := time.Now
+	if now != nil {
+		clock = now
+	}
+	spanCtx, span, err := provider.StartDurableAsyncSpan(ctx, "worker", "hcmnext.queue.deliver", c, map[string]string{
+		"message_kind": string(workerMessageKindOutbox),
+	}, clock())
+	if err != nil {
+		// Telemetry metadata is optional operational context. Invalid or stale
+		// metadata must never alter the business dispatch path.
+		return ctx, hcmotel.ExecutionSpan{}, false
+	}
+	return spanCtx, span, true
 }
 
 func legacyMessageHandler(logger bootstrap.Logger) messageHandler {

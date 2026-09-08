@@ -33,6 +33,7 @@ var (
 	ErrInvalidEnvelope = errors.New("delivery: invalid semantic envelope")
 	ErrNoStore         = errors.New("delivery: attempt store is required")
 	ErrNoTransport     = errors.New("delivery: transport is required")
+	ErrRetryAdmission  = errors.New("delivery: retry admission denied")
 )
 
 // Envelope contains only semantic references and a content digest. It has no
@@ -125,11 +126,25 @@ type AttemptStore interface {
 	Observe(context.Context, Envelope, Claim, Observation) error
 }
 
+// RetryIdentity binds admission to the failed delivery claim and logical
+// envelope operation without exposing message content or mutable scheduling.
+type RetryIdentity struct {
+	TenantID, IntentID, IdempotencyKey, FailedAttemptID string
+	FailedAttempt, NextAttempt                          int
+}
+
+// RetryAdmission is an optional request-scoped gate evaluated only before a
+// known, non-ambiguous retry. The implementation owns durable budget state.
+type RetryAdmission interface {
+	AdmitRetry(context.Context, RetryIdentity) error
+}
+
 type Runner struct {
-	Store       AttemptStore
-	Transport   Transport
-	Clock       func() time.Time
-	MaxAttempts int
+	Store          AttemptStore
+	Transport      Transport
+	Clock          func() time.Time
+	MaxAttempts    int
+	RetryAdmission RetryAdmission
 }
 
 func (r Runner) Deliver(ctx context.Context, envelope Envelope) (Observation, error) {
@@ -151,6 +166,9 @@ func (r Runner) Deliver(ctx context.Context, envelope Envelope) (Observation, er
 		max = 3
 	}
 	for attempt := 1; attempt <= max; attempt++ {
+		if err := ctx.Err(); err != nil {
+			return Observation{}, err
+		}
 		claim, err := r.Store.Claim(ctx, envelope, attempt)
 		if err != nil {
 			return Observation{}, fmt.Errorf("delivery: claim attempt %d: %w", attempt, err)
@@ -158,6 +176,9 @@ func (r Runner) Deliver(ctx context.Context, envelope Envelope) (Observation, er
 		if claim.AlreadyObserved {
 			obs := Observation{AttemptID: claim.AttemptID, Attempt: claim.Attempt, State: StateAlreadyObserved, RecordedAt: now}
 			return obs, nil
+		}
+		if err := ctx.Err(); err != nil {
+			return Observation{}, err
 		}
 		result, sendErr := r.Transport.Deliver(ctx, envelope)
 		obs := Observation{AttemptID: claim.AttemptID, Attempt: claim.Attempt, RecordedAt: now, ProviderRef: result.ProviderRef, ObservationRef: result.ObservationRef, ProviderCode: result.Code}
@@ -182,6 +203,15 @@ func (r Runner) Deliver(ctx context.Context, envelope Envelope) (Observation, er
 		}
 		if !isRetryable(sendErr) || attempt == max {
 			return obs, sendErr
+		}
+		if err := ctx.Err(); err != nil {
+			return obs, err
+		}
+		if r.RetryAdmission != nil {
+			identity := RetryIdentity{TenantID: envelope.TenantID, IntentID: envelope.IntentID, IdempotencyKey: envelope.IdempotencyKey, FailedAttemptID: claim.AttemptID, FailedAttempt: claim.Attempt, NextAttempt: attempt + 1}
+			if err := r.RetryAdmission.AdmitRetry(ctx, identity); err != nil {
+				return obs, fmt.Errorf("%w before attempt %d: %w", ErrRetryAdmission, attempt+1, err)
+			}
 		}
 	}
 	return Observation{}, errors.New("delivery: exhausted attempts")
