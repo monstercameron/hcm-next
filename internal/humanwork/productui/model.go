@@ -111,6 +111,7 @@ const (
 	PageAggregateSuppression   PageID = "aggregate-suppression"
 	PageReportExport           PageID = "report-export"
 	PageReportSharing          PageID = "report-sharing"
+	PageNLAnalysis             PageID = "nl-analysis"
 	PageOrganization           PageID = "organization"
 	PageInsights               PageID = "insights"
 	PageAdmin                  PageID = "admin"
