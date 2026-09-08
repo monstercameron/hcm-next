@@ -875,6 +875,7 @@ generated=42 hand-written=2046
 | internal/humanwork/productui                             | brand_logo.go                         | yes           |
 | internal/humanwork/productui                             | break_glass.go                        | yes           |
 | internal/humanwork/productui                             | breadcrumb.go                         | yes           |
+| internal/humanwork/productui                             | completed_history.go                  | yes           |
 | internal/humanwork/productui                             | components.go                         | yes           |
 | internal/humanwork/productui                             | composition_components.go             | yes           |
 | internal/humanwork/productui                             | composition_diff.go                   | yes           |
