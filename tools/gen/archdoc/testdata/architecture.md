@@ -4,7 +4,7 @@ Generated from the checked-in architecture manifests and the current Go package 
 
 - Module: `github.com/monstercameron/hcm-next`
 - Source graph: 7abb182f5a0378f5cce3656c2f4ff403af6e821f54e2ffbad8ae6b1c4bd5c4a3
-- Package count: 743
+- Package count: 744
 - Within-module edge count: 1711
 - Source manifests: `definitions/architecture/repository-layout.yaml`, `definitions/architecture/package-dependency-policy.yaml`, `definitions/architecture/dependency-roles.yaml`
 
@@ -523,6 +523,7 @@ Semantic package roots. Every second-level directory name must be a declared roo
 - `github.com/monstercameron/hcm-next/internal/platform/telemetry`
 - `github.com/monstercameron/hcm-next/internal/platform/telemetry/backends`
 - `github.com/monstercameron/hcm-next/internal/platform/telemetry/boundary`
+- `github.com/monstercameron/hcm-next/internal/platform/telemetry/correlation`
 - `github.com/monstercameron/hcm-next/internal/platform/telemetry/diagnostic`
 - `github.com/monstercameron/hcm-next/internal/platform/telemetry/lifecycle`
 - `github.com/monstercameron/hcm-next/internal/platform/telemetry/otel`
@@ -891,4 +892,4 @@ Generated Protobuf/Go artifacts. Content is owned by the generator (TOOL-002/TOO
 
 ## Document digest
 
-`3db52df2c90a92b8e10c24d43156a24b91065fb69c1446cef0c35e42fe687609`
+`4b9b6de3a1f684ab6999f4a393f62be685029c6d3e7798d476150743662b64ad`

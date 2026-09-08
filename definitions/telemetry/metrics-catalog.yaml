@@ -41,3 +41,9 @@ metrics:
     version: 1
     labels: [cell_id, edge]
     description: 1 when a replication/consistency edge is in parity, 0 otherwise.
+  - name: effect.dispatch.duration
+    type: histogram
+    unit: ms
+    version: 1
+    labels: [cell_id, outcome]
+    description: Effect-dispatch handler latency; exemplars link sampled observations back to their trace.

@@ -69,6 +69,11 @@ var P1ACellMetrics = []MetricDefinition{
 		Labels:      []string{"cell_id", "edge"},
 		Description: "1 when a replication/consistency edge is in parity, 0 otherwise.",
 	},
+	{
+		Name: "effect.dispatch.duration", Type: MetricHistogram, Unit: "ms", Version: 1,
+		Labels:      []string{"cell_id", "outcome"},
+		Description: "Effect-dispatch handler latency; exemplars link sampled observations back to their trace.",
+	},
 }
 
 // MetricCatalog returns a defensive, fully independent copy of the P1A

@@ -146,6 +146,7 @@ func TestTodo_OBS_002(t *testing.T) {
 		h.Provider.Metrics().RecordLedgerAppend(ctx, "cell-p1a", "SUCCESS")
 		h.Provider.Metrics().RecordOutboxLag(ctx, "cell-p1a", 12.5)
 		h.Provider.Metrics().RecordEdgeParity(ctx, "cell-p1a", "edge-1", true)
+		h.Provider.Metrics().RecordEffectDispatchLatency(ctx, "cell-p1a", "SUCCESS", 0.25)
 
 		rm := collectMetrics(t, h.MetricReader)
 		got := metricNames(rm)
@@ -265,7 +266,7 @@ func TestTodo_OBS_002_Race(t *testing.T) {
 
 // TestTodo_OBS_002_Integration exercises the full adapter end to end: a
 // real Resource and Evaluator, a span carrying allow-listed and prohibited
-// attributes plus propagated context, all five catalog metrics recorded,
+// attributes plus propagated context, all six catalog metrics recorded,
 // and telemetry.Check reporting HEALTHY against exactly what this package
 // emitted.
 func TestTodo_OBS_002_Integration(t *testing.T) {
@@ -289,6 +290,7 @@ func TestTodo_OBS_002_Integration(t *testing.T) {
 	m.RecordLedgerAppend(ctx, "cell-p1a", "SUCCESS")
 	m.RecordOutboxLag(ctx, "cell-p1a", 5)
 	m.RecordEdgeParity(ctx, "cell-p1a", "edge-1", true)
+	m.RecordEffectDispatchLatency(ctx, "cell-p1a", "SUCCESS", 0.25)
 
 	// ForceFlush (not Shutdown) before reading back: tracetest.
 	// InMemoryExporter's own Shutdown clears its buffer (its documented

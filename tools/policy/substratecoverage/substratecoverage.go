@@ -111,6 +111,7 @@ var ImplicitAllowlist = []ImplicitEntry{
 	{Package: "internal/platform/telemetry/backends", Owner: "observability platform", Reason: "telemetry mechanics remain below the telemetry owner (Gate A wave 2026-09-06)"},
 	{Package: "internal/platform/telemetry/diagnostic", Owner: "observability platform", Reason: "telemetry mechanics remain below the telemetry owner (Gate A wave 2026-09-06)"},
 	{Package: "internal/platform/telemetry/lifecycle", Owner: "observability platform", Reason: "telemetry mechanics remain below the telemetry owner (Gate A wave 2026-09-06)"},
+	{Package: "internal/platform/telemetry/correlation", Owner: "observability platform", Reason: "signal-correlation helpers and join scoping (OBS-016) remain below the telemetry owner"},
 }
 
 // Options allows focused tests and future reviewed table revisions without

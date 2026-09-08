@@ -4,9 +4,12 @@ import (
 	"context"
 	"fmt"
 	"sync"
+	"time"
 
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/metric"
+	"go.opentelemetry.io/otel/sdk/metric/metricdata"
+	"go.opentelemetry.io/otel/trace"
 
 	"github.com/monstercameron/hcm-next/internal/platform/telemetry"
 )
@@ -16,14 +19,15 @@ import (
 // same literal the catalog itself publishes, rather than a second
 // hand-typed copy that could drift from it.
 const (
-	metricIntentCreated   = "intent.created"
-	metricIntentSimulated = "intent.simulated"
-	metricLedgerAppend    = "ledger.append"
-	metricOutboxLag       = "outbox.lag"
-	metricEdgeParity      = "edge.parity"
+	metricIntentCreated         = "intent.created"
+	metricIntentSimulated       = "intent.simulated"
+	metricLedgerAppend          = "ledger.append"
+	metricOutboxLag             = "outbox.lag"
+	metricEdgeParity            = "edge.parity"
+	metricEffectDispatchLatency = "effect.dispatch.duration"
 )
 
-// Metrics registers exactly the P1A cell's five catalog instruments
+// Metrics registers exactly the P1A cell's six catalog instruments
 // (telemetry.MetricCatalog) against a metric.Meter and exposes one typed,
 // narrow recording method per instrument. It is the only way this package
 // lets a caller record a metric: there is no generic "record an arbitrary
@@ -39,6 +43,7 @@ type Metrics struct {
 	ledgerAppend    metric.Int64Counter
 	outboxLag       metric.Float64Gauge
 	edgeParity      metric.Float64Gauge
+	dispatchLatency metric.Float64Histogram
 
 	mu      sync.Mutex
 	emitted map[string]struct{}
@@ -82,6 +87,15 @@ func newMetrics(meter metric.Meter, eval *telemetry.Evaluator) (*Metrics, error)
 				return nil, fmt.Errorf("otel: creating gauge %q: %w", def.Name, err)
 			}
 			m.outboxLag = g
+		case metricEffectDispatchLatency:
+			h, err := meter.Float64Histogram(def.Name,
+				metric.WithUnit(def.Unit),
+				metric.WithDescription(def.Description),
+				metric.WithExplicitBucketBoundaries(0.5, 1, 5, 10, 30, 60, 300, 900, 3600))
+			if err != nil {
+				return nil, fmt.Errorf("otel: creating histogram %q: %w", def.Name, err)
+			}
+			m.dispatchLatency = h
 		case metricEdgeParity:
 			g, err := meter.Float64Gauge(def.Name, metric.WithUnit(def.Unit), metric.WithDescription(def.Description))
 			if err != nil {
@@ -92,7 +106,7 @@ func newMetrics(meter metric.Meter, eval *telemetry.Evaluator) (*Metrics, error)
 			return nil, fmt.Errorf("otel: metric catalog declares %q, which this adapter does not know how to register (update internal/platform/telemetry/otel/metrics.go)", def.Name)
 		}
 	}
-	for _, want := range []string{metricIntentCreated, metricIntentSimulated, metricLedgerAppend, metricOutboxLag, metricEdgeParity} {
+	for _, want := range []string{metricIntentCreated, metricIntentSimulated, metricLedgerAppend, metricOutboxLag, metricEdgeParity, metricEffectDispatchLatency} {
 		if !seen[want] {
 			return nil, fmt.Errorf("otel: metric catalog no longer declares %q, which this adapter expects to register", want)
 		}
@@ -159,6 +173,54 @@ func (m *Metrics) RecordOutboxLag(ctx context.Context, cellID string, ms float64
 	attrs := m.filterLabels(kv{"cell_id", cellID})
 	m.outboxLag.Record(ctx, ms, metric.WithAttributes(attrs...))
 	m.markEmitted(metricOutboxLag)
+}
+
+// RecordEffectDispatchLatency records one effect dispatch duration in
+// milliseconds (telemetry.P1ACellMetrics's own unit for
+// effect.dispatch.duration). Record inside the dispatch span's context:
+// the SDK attaches that span's trace and span IDs as the observation's
+// exemplar exactly when the context carries a sampled span, which is what
+// lets a slow dispatch be joined back to its trace (OBS-016).
+func (m *Metrics) RecordEffectDispatchLatency(ctx context.Context, cellID, outcome string, ms float64) {
+	attrs := m.filterLabels(
+		kv{"cell_id", cellID},
+		kv{"outcome", outcome},
+	)
+	m.dispatchLatency.Record(ctx, ms, metric.WithAttributes(attrs...))
+	m.markEmitted(metricEffectDispatchLatency)
+}
+
+// Exemplar is one sampled effect.dispatch.duration observation carrying
+// the trace context it was recorded with: the value and time of the
+// observation plus the trace and span IDs that name the dispatch span.
+// A zero TraceID marks an observation recorded without a sampled span in
+// context, which carries no exemplar and therefore joins to no trace.
+type Exemplar struct {
+	Value   float64
+	Time    time.Time
+	TraceID trace.TraceID
+	SpanID  trace.SpanID
+}
+
+// ExemplarsOf retrieves the trace correlation attached to one collected
+// effect.dispatch.duration histogram datapoint: each returned Exemplar
+// names the dispatch span one sampled observation was recorded in.
+// Unsampled observations carry no exemplar and contribute no entry.
+func ExemplarsOf(dp metricdata.HistogramDataPoint[float64]) []Exemplar {
+	out := make([]Exemplar, 0, len(dp.Exemplars))
+	for _, e := range dp.Exemplars {
+		var traceID trace.TraceID
+		copy(traceID[:], e.TraceID)
+		var spanID trace.SpanID
+		copy(spanID[:], e.SpanID)
+		out = append(out, Exemplar{
+			Value:   e.Value,
+			Time:    e.Time,
+			TraceID: traceID,
+			SpanID:  spanID,
+		})
+	}
+	return out
 }
 
 // RecordEdgeParity records 1 when the named replication/consistency edge is

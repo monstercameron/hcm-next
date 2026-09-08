@@ -2,6 +2,19 @@
 
 ## 2026-09-08
 
+- `OBS-016` telemetry correlation (this batch, uncommitted): new
+  `internal/platform/telemetry/correlation` package joins structured logs,
+  traces, metrics and business identifiers through owned business causation
+  without conflating authority — trace identity can never become an
+  idempotency, authorization or evidence key, metric labels refuse
+  correlation/trace identity, and every signal join carries its own
+  tenant/purpose scope. `effect.dispatch.duration` histogram joins the
+  metric catalog (Go + `definitions/telemetry/metrics-catalog.yaml`) with
+  an OTel adapter instrument and exemplar extraction. Full six-test matrix
+  (primary, property, golden, security, conformance, mutation) plus two
+  exemplar linkage tests pass; whole `./internal/platform/telemetry/...`
+  tree green.
+
 - Lane-work group commits (this batch) - `185f252f` (policy), `2133aa41`
   (data), `2dbc1db6` (domain), `f895257c` (trust), `d790d98c` + `a97b9cd6`
   (operations), `13f9f402` (transport), `6ec0e1a8` (ui), plus this docs

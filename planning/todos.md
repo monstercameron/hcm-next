@@ -9186,7 +9186,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** one conformance kit supports unit, integration, fault and vertical-slice tests; backend smoke tests remain separate.
   - **Refs:** [testing contract](specs/structured-logging-and-opentelemetry.md#testing-contract), [test doctrine](#secondary-test-taxonomy-and-required-return-contracts), [maximal slices](workflows/vertical-slices/maximal-configuration-profile.md).
 
-- [ ] `OBS-016` **[P0][TERRA] Correlate structured logs, traces, metrics and business identifiers without conflating authority.**
+- [x] `OBS-016` **[P0][TERRA] Correlate structured logs, traces, metrics and business identifiers without conflating authority.**
+  - **Evidence (2026-09-08):** `TestTelemetryCorrelationJoinsSignalsButNeverUsesTraceIdentityAsBusinessAuthority` + `TestTodo_OBS_016_Property/Golden/Security/Conformance/Mutation` in new `internal/platform/telemetry/correlation` (typed Correlation keeps owned intent/correlation/tenant causation apart from trace linkage by construction; IdempotencyKey derives from owned identity only; CheckMetricLabel refuses correlation/trace identity as labels; Join authorizes every signal join under its own exact tenant/purpose scope); `TestTodo_OBS_016_ExemplarLinksObservationToItsTrace` + `TestTodo_OBS_016_NoExemplarWithoutSampledContext` in `internal/platform/telemetry/otel` (effect.dispatch.duration histogram exemplar carries the dispatch span's exact trace/span IDs; unsampled observations carry none); `go test -count=1 ./internal/platform/telemetry/...` PASS.
   - **Depends:** `OBS-009`, `OBS-012`, `OBS-013`, `OBS-015`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=join diagnosis across multiple traces and signals while keeping stable business causation independent from sampled telemetry identifiers`.
   - **TEST:** `TestTelemetryCorrelationJoinsSignalsButNeverUsesTraceIdentityAsBusinessAuthority`.

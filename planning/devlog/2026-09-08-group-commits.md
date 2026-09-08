@@ -129,3 +129,27 @@ domain, trust, operations, transport, ui, docs.
 - Missing matrix test variants for WEB-056–064, WEB-193–204, WEB-229–236.
 - Docker-in-WSL still needs `sudo apt-get install -y uidmap iptables
 slirp4netns` from the user; Postgres runs unprivileged from ~/pgroot.
+
+## OBS-016 correlation (2026-09-08, uncommitted)
+
+- RED: `hcmotel.ExemplarsOf` undefined; `correlation` package absent.
+- GREEN: new `internal/platform/telemetry/correlation` (`Correlation`,
+  `Join`/`JoinScope`/`JoinTicket`, `CheckMetricLabel`, `LogFields`,
+  context helpers) with the six-test OBS-016 matrix; `effect.dispatch.
+duration` histogram in the Go catalog + YAML mirror + OTel adapter
+  instrument + `RecordEffectDispatchLatency` + `ExemplarsOf`, with two
+  exemplar tests proving real-SDK trace linkage and the unsampled-empty
+  case. Catalog growth flowed into `DefaultRequiredSignals` by
+  construction; OBS-002 fixtures updated to emit all six instruments.
+- Verification: `go build ./...`, `go vet
+./internal/platform/telemetry/...`, `go test -count=1
+./internal/platform/telemetry/...` all PASS.
+- STAGED, commit blocked on environment (this devlog + CHANGELOG +
+  todos staged in the same atomic set): correlation pkg (3 files), otel
+  metrics + tests, catalog YAML, regenerated archdoc testdata,
+  substratecoverage ownership row. `git commit` runs but the husky hook
+  cannot start: WSL interop is down in this shell (Windows binaries fail
+  with Exec format error; binfmt_misc lacks WSLInterop; uid 1000 so no
+  repair). Retry from a Windows shell. `otel/obs013_test.go` Golden
+  content and the `gofmt -w internal/data/jobs/obs013_test.go`
+  worktree-only normalization stay uncommitted (prior sessions' work).
