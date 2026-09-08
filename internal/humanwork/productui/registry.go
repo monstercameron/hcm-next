@@ -56,7 +56,7 @@ func PageVisible(page PageID, roles []string) bool {
 	// the platform admin bypass above still applies.
 	case PageLeaveEvidence:
 		return hasAnyProductRole(roles, "hr_partner")
-	case PageJourneys, PageWork, PageHistory, PagePeople, PagePerson, PageHeadcount, PagePosition, PageRequisition, PageCandidates, PageCandidate, PageInterviews, PageEvaluation, PageOffer, PageOnboarding, PageOnboardingTasks, PageActivationReadiness, PageTimeApproval, PageTimeExceptions, PageTeamCoverage, PageCompProposals, PageSalaryComparison, PageCyclePopulations, PageCompWorksheet, PageCompCalibration, PageInsights:
+	case PageJourneys, PageWork, PageHistory, PagePeople, PagePerson, PageHeadcount, PagePosition, PageRequisition, PageCandidates, PageCandidate, PageInterviews, PageEvaluation, PageOffer, PageOnboarding, PageOnboardingTasks, PageActivationReadiness, PageTimeApproval, PageTimeExceptions, PageTeamCoverage, PageCompProposals, PageSalaryComparison, PageCyclePopulations, PageCompWorksheet, PageCompCalibration, PagePayBenefitRecon, PageInsights:
 		return hasAnyProductRole(roles, "manager", "hr_partner", "comp_admin", "hiring_manager", "payroll_manager")
 	default:
 		return false
@@ -138,6 +138,7 @@ func registeredPages() []PageDefinition {
 		{ID: PageBenefitsOverview, Route: "/workspace/app/benefits/overview", Label: "Benefits overview", Icon: "people", Title: "Benefit-program overview", Subtitle: "Programs from the governed benefits service.", LabelKey: "page.benefits_overview.label", TitleKey: "page.benefits_overview.title", SubtitleKey: "page.benefits_overview.subtitle", SearchTerms: []string{"benefits", "programs", "overview", "enrollment", "coverage"}, RenderOrder: 99, render: benefitsOverviewPage},
 		{ID: PageBenefitsCompare, Route: "/workspace/app/benefits/compare", Label: "Benefits compare", Icon: "people", Title: "Benefit-plan comparison", Subtitle: "Compare plans through the governed benefits service.", LabelKey: "page.benefits_compare.label", TitleKey: "page.benefits_compare.title", SubtitleKey: "page.benefits_compare.subtitle", SearchTerms: []string{"compare", "plans", "versus", "options", "benefits"}, RenderOrder: 100, render: benefitsComparePage},
 		{ID: PageBenefitsEnroll, Route: "/workspace/app/benefits/enroll", Label: "Benefits enroll", Icon: "people", Title: "Benefit enrollment", Subtitle: "Enroll through the governed benefits service.", LabelKey: "page.benefits_enroll.label", TitleKey: "page.benefits_enroll.title", SubtitleKey: "page.benefits_enroll.subtitle", SearchTerms: []string{"enroll", "election", "sign up", "choose", "benefits"}, RenderOrder: 101, render: benefitsEnrollPage},
+		{ID: PagePayBenefitRecon, Route: "/workspace/app/pay/reconciliation", Label: "Pay-benefit recon", Icon: "people", Title: "Payroll and benefit reconciliation status", Subtitle: "Agreement status from the governed reconciliation service.", LabelKey: "page.pay_benefit_recon.label", TitleKey: "page.pay_benefit_recon.title", SubtitleKey: "page.pay_benefit_recon.subtitle", SearchTerms: []string{"reconciliation", "agree", "breaks", "payroll", "benefits"}, RenderOrder: 102, render: payBenefitReconPage},
 	}
 }
 
