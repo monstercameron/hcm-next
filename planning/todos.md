@@ -16023,7 +16023,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [authorization model](specs/organization-scope-and-authz.md).
 
-- [ ] `WEB-072` **[GATE_C][SOL_HIGH] Prove cross-surface authorization noninterference.**
+- [x] `WEB-072` **[GATE_C][SOL_HIGH] Prove cross-surface authorization noninterference.**
   - **Depends:** `WEB-071`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.SECURITY,BI.PRIVACY,BI.EXPERIENCE; DIRECT=none; WHY=prove cross-surface authorization noninterference without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_072`.

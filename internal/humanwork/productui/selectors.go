@@ -66,6 +66,21 @@ func admittedWork(view View) []WorkItem {
 	return admitted
 }
 
+// peopleVerdictsPresent reports whether the verdict map addresses the
+// directory population at all: at least one projected worker carries
+// a verdict. Journey verdicts alone leave workers ungated.
+func peopleVerdictsPresent(view View) bool {
+	if len(view.RecordVerdicts) == 0 {
+		return false
+	}
+	for _, person := range view.People {
+		if _, ok := view.RecordVerdicts[person.ID]; ok {
+			return true
+		}
+	}
+	return false
+}
+
 // workVerdictsPresent reports whether the verdict map addresses the work
 // population at all: at least one projected instance carries a verdict.
 // Person-record verdicts alone leave journeys ungated.
@@ -104,14 +119,17 @@ func exactPerson(view View) (Person, bool) {
 }
 
 // admittedPeople limits the directory population to admitted records
-// once the server speaks: records without a verdict and non-disclosable
-// records leave the population, so rows, facet options, and counts can
-// never advertise what the viewer may not open. An empty verdict map
-// means the server is silent, and the current population stands —
-// presentation enforces the authorization it is given instead of
-// inventing its own. Order is preserved and inputs are never mutated.
+// once the server speaks about people: records without a verdict and
+// non-disclosable records leave the population, so rows, facet
+// options, and counts can never advertise what the viewer may not
+// open. Silence is population-scoped, symmetric with admittedWork: a
+// verdict map addressing only journeys says nothing about workers,
+// and dropping workers for a verdict about a journey would invent
+// authority presentation does not have. An empty map, or a map with
+// no person-record verdict, keeps the current population. Order is
+// preserved and inputs are never mutated.
 func admittedPeople(view View) []Person {
-	if len(view.RecordVerdicts) == 0 {
+	if !peopleVerdictsPresent(view) {
 		return view.People
 	}
 	admitted := make([]Person, 0, len(view.People))
