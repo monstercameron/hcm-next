@@ -51,6 +51,7 @@ const (
 	PageCompWorksheet          PageID = "comp-worksheet"
 	PageCompCalibration        PageID = "comp-calibration"
 	PageBenefitsOverview       PageID = "benefits-overview"
+	PageBenefitsCompare        PageID = "benefits-compare"
 	PageOrganization           PageID = "organization"
 	PageInsights               PageID = "insights"
 	PageAdmin                  PageID = "admin"
