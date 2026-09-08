@@ -16309,7 +16309,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md).
 
-- [ ] `WEB-100` **[GATE_C][TERRA] Implement personal-essential summaries.**
+- [x] `WEB-100` **[GATE_C][TERRA] Implement personal-essential summaries.**
   - **Depends:** `WEB-099`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE,BI.WORK; DIRECT=none; WHY=implement personal-essential summaries without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_100`.
