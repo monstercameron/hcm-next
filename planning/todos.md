@@ -17458,7 +17458,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md).
 
-- [ ] `WEB-213` **[PHASE_3][SOL_HIGH] Implement final-document delivery.**
+- [x] `WEB-213` **[PHASE_3][SOL_HIGH] Implement final-document delivery.**
   - **Depends:** `WEB-212`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.LIFECYCLE,BI.ACCESS,BI.PAYROLL,BI.EXPERIENCE; DIRECT=none; WHY=implement final-document delivery without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_213`.
