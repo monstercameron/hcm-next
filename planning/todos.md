@@ -16095,7 +16095,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [experience contract](specs/experience-ui-and-branding.md).
 
-- [ ] `WEB-079` **[GATE_C][SOL_HIGH] Enforce page classification ceilings.**
+- [x] `WEB-079` **[GATE_C][SOL_HIGH] Enforce page classification ceilings.**
   - **Depends:** `WEB-078`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE,BI.TENANT; DIRECT=none; WHY=enforce page classification ceilings without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_079`.

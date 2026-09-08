@@ -3,10 +3,10 @@ package productui
 import "fmt"
 
 // WidgetDefinition is one registered widget contract: its type, trust
-// tier, pinned version, and opaque classification ceiling. Comparison
-// of ceilings awaits the classification taxonomy (a later lifecycle
-// step); registration pins the ceiling without comparing it, and no
-// ordering is invented here.
+// tier, pinned version, and opaque classification ceiling.
+// Registration pins the ceiling without comparing it; comparison
+// happens in ValidateDraftCeiling against the publication ladder,
+// and the Classification service taxonomy stays authoritative.
 type WidgetDefinition struct {
 	ID                  string
 	Tier                string
