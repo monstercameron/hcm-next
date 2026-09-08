@@ -17500,7 +17500,7 @@ This program implements [the production frontend and governed page-composition p
 
 ### Insights and governed reporting
 
-- [ ] `WEB-217` **[PHASE_2][TERRA] Implement the report catalog.**
+- [x] `WEB-217` **[PHASE_2][TERRA] Implement the report catalog.**
   - **Depends:** `WEB-037`, `REPORT-001`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ANALYTICS,BI.INTELLIGENCE,BI.EXPERIENCE; DIRECT=none; WHY=implement the report catalog without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_217`.

@@ -102,6 +102,7 @@ const (
 	PageOffboardingEffects     PageID = "offboarding-effects"
 	PageRetainedObligations    PageID = "retained-obligations"
 	PageExitCompletion         PageID = "exit-completion"
+	PageReportCatalog          PageID = "report-catalog"
 	PageOrganization           PageID = "organization"
 	PageInsights               PageID = "insights"
 	PageAdmin                  PageID = "admin"
