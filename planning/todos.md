@@ -16401,7 +16401,7 @@ This program implements [the production frontend and governed page-composition p
 
 ### People directory and worker object
 
-- [ ] `WEB-109` **[GATE_C][TERRA] Implement the authorized People directory.**
+- [x] `WEB-109` **[GATE_C][TERRA] Implement the authorized People directory.**
   - **Depends:** `WEB-037`, `PEOPLE-001`, `TRUST-009`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.PEOPLE,BI.EXPERIENCE; DIRECT=none; WHY=implement the authorized people directory without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_109`.

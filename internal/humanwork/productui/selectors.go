@@ -170,8 +170,11 @@ func filteredPeople(view View) []Person {
 }
 
 func sortedPeople(people []Person, field, direction string) []Person {
-	field = normalizePeopleSort(field)
-	descending := normalizePeopleDirection(direction) == peopleSortDescending
+	parsedField, parsedDirection := ParsePeopleSort(field, direction)
+	return SortPeopleDirectory(people, parsedField, parsedDirection)
+}
+
+func sortPeopleValues(people []Person, field string, descending bool) []Person {
 	type sortablePerson struct {
 		index   int
 		primary string
