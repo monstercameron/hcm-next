@@ -951,6 +951,7 @@ generated=42 hand-written=2046
 | internal/humanwork/productui                             | typed_styles.go                       | yes           |
 | internal/humanwork/productui                             | typed_theme.go                        | yes           |
 | internal/humanwork/productui                             | widget.go                             | yes           |
+| internal/humanwork/productui                             | widget_migration.go                   | yes           |
 | internal/humanwork/productui                             | work_components.go                    | yes           |
 | internal/humanwork/productui                             | worker_id_components.go               | yes           |
 | internal/humanwork/profilephoto                          | filestore.go                          | yes           |

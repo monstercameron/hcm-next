@@ -16115,7 +16115,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [experience contract](specs/experience-ui-and-branding.md).
 
-- [ ] `WEB-081` **[GATE_C][SOL_HIGH] Migrate page definitions across widget versions.**
+- [x] `WEB-081` **[GATE_C][SOL_HIGH] Migrate page definitions across widget versions.**
   - **Depends:** `WEB-080`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE,BI.TENANT; DIRECT=none; WHY=migrate page definitions across widget versions without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_081`.
