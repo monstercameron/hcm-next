@@ -58,6 +58,7 @@ const (
 	PageGoalPlanning           PageID = "goal-planning"
 	PageGovernedFeedback       PageID = "governed-feedback"
 	PageManagerCheckins        PageID = "manager-checkins"
+	PagePerfReview             PageID = "perf-review"
 	PageOrganization           PageID = "organization"
 	PageInsights               PageID = "insights"
 	PageAdmin                  PageID = "admin"
