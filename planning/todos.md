@@ -16299,7 +16299,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md).
 
-- [ ] `WEB-099` **[GATE_C][TERRA] Implement recent-work continuity.**
+- [x] `WEB-099` **[GATE_C][TERRA] Implement recent-work continuity.**
   - **Depends:** `WEB-098`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE,BI.WORK; DIRECT=none; WHY=implement recent-work continuity without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_099`.

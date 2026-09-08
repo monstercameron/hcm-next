@@ -943,6 +943,7 @@ generated=42 hand-written=2046
 | internal/humanwork/productui                             | policy_simulation.go                  | yes           |
 | internal/humanwork/productui                             | popover.go                            | yes           |
 | internal/humanwork/productui                             | provider.go                           | yes           |
+| internal/humanwork/productui                             | recent_work.go                        | yes           |
 | internal/humanwork/productui                             | region.go                             | yes           |
 | internal/humanwork/productui                             | registry.go                           | yes           |
 | internal/humanwork/productui                             | render.go                             | yes           |
