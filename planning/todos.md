@@ -17306,7 +17306,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md).
 
-- [ ] `WEB-198` **[PHASE_3][SOL_HIGH] Implement restricted case messaging.**
+- [x] `WEB-198` **[PHASE_3][SOL_HIGH] Implement restricted case messaging.**
   - **Depends:** `WEB-197`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.CASES,BI.PRIVACY,BI.EXPERIENCE; DIRECT=none; WHY=implement restricted case messaging without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_198`.

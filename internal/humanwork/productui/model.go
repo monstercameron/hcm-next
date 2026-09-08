@@ -83,6 +83,7 @@ const (
 	PageHRServiceRequest       PageID = "hr-service-request"
 	PageConfidentialCase       PageID = "confidential-case"
 	PageCaseStatus             PageID = "case-status"
+	PageCaseMessaging          PageID = "case-messaging"
 	PageOrganization           PageID = "organization"
 	PageInsights               PageID = "insights"
 	PageAdmin                  PageID = "admin"
