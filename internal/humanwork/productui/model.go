@@ -73,6 +73,7 @@ const (
 	PagePositionOccupancy      PageID = "position-occupancy"
 	PageHeadcountPlan          PageID = "headcount-plan"
 	PageWorkforceScenario      PageID = "workforce-scenario"
+	PageGovernedPopulation     PageID = "governed-population"
 	PageOrganization           PageID = "organization"
 	PageInsights               PageID = "insights"
 	PageAdmin                  PageID = "admin"

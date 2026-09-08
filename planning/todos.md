@@ -17204,7 +17204,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [position domain](specs/position-and-headcount-domain.md).
 
-- [ ] `WEB-188` **[PHASE_3][SOL_HIGH] Implement governed population building.**
+- [x] `WEB-188` **[PHASE_3][SOL_HIGH] Implement governed population building.**
   - **Depends:** `WEB-187`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.WORKFORCE,BI.PEOPLE,BI.EXPERIENCE; DIRECT=none; WHY=implement governed population building without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_188`.
