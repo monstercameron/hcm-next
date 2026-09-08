@@ -190,6 +190,10 @@ type OrganizationVisibilityPolicy struct {
 	RoleID            string
 	Mode              string
 	OrganizationUnits []string
+	// DataDomains is the presentation admit-list naming which spec data
+	// domains this role's surfaces may present. It grants no authority;
+	// the owning domain services still authorize every read.
+	DataDomains []string
 }
 
 type AccessRole struct {

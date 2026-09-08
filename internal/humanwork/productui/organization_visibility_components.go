@@ -12,10 +12,13 @@ type OrganizationVisibilityPageProps struct {
 	Roles          []AccessRole
 	Policies       []OrganizationVisibilityPolicy
 	AvailableUnits []string
-	Back           ActionLinkProps
-	RolesLink      ActionLinkProps
-	Editable       bool
-	OnSave         func(OrganizationVisibilityPolicy)
+	// AvailableDomains bounds which data-domain names the editors may
+	// render; anything outside it resolves to the honest empty state.
+	AvailableDomains []string
+	Back             ActionLinkProps
+	RolesLink        ActionLinkProps
+	Editable         bool
+	OnSave           func(OrganizationVisibilityPolicy)
 }
 
 type organizationVisibilityMode struct{ Value, Label, Detail string }
@@ -93,6 +96,7 @@ func roleVisibilityEditor(props OrganizationVisibilityPageProps, role AccessRole
 		organizationScopeResolution(props, "organization_visibility.current_scope", "organization-scope-current", policy.Mode, policy.OrganizationUnits, props.AvailableUnits, modeLabels),
 		organizationScopeResolution(props, "organization_visibility.proposed_scope", "organization-scope-proposed", draft.Mode, draft.OrganizationUnits, props.AvailableUnits, modeLabels),
 	)
+	domainBlock := dataDomainScope(props, policy.DataDomains, props.AvailableDomains)
 	detailsProps := html.Props{Class: "surface role-visibility-editor", Raw: map[string]any{"data-role-id": role.ID}}
 	if expanded {
 		detailsProps.Raw["open"] = true
@@ -103,6 +107,7 @@ func roleVisibilityEditor(props OrganizationVisibilityPageProps, role AccessRole
 			html.Fieldset(html.Props{Class: "organization-visibility-modes"}, modeFieldset...),
 			html.Fieldset(html.Props{Class: "organization-visibility-units"}, unitFieldset...),
 			scopeBlock,
+			domainBlock,
 			html.Div(html.Props{Class: "organization-visibility-boundary", Raw: map[string]any{"role": "note"}}, html.Strong(html.Props{}, ui.Text(props.Text("organization_visibility.boundary_title"))), html.P(html.Props{}, ui.Text(props.Text("organization_visibility.boundary_detail")))),
 			html.Div(html.Props{Class: "organization-visibility-actions"}, html.Button(html.Props{Class: "button primary", Type: "submit", Disabled: !props.Editable}, ui.Text(props.Text("organization_visibility.save"))), html.P(html.Props{ID: "organization-visibility-status-" + role.ID, Class: "muted", Raw: map[string]any{"role": "status", "aria-live": "polite"}}, ui.Text(props.Text("organization_visibility.status")))),
 		),

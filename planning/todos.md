@@ -13644,6 +13644,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **Refs:** [BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo).
 
 - [ ] `TAXPROFILE-003` **[CONFORMANCE][SOL_HIGH] Produce version-pinned tax input and prove payroll/tax parity.**
+  - **Implementation evidence (2026-09-08; commit gates pending):** Snapshot matrix tests and `TestTodo_TAXPROFILE_003_CrossPackagePayrollBinding` exercise sealed version pins, all 27 presence-state combinations, exact calculation output, frozen membership and rejection of foreign run/population/pay-group substitution. Review removed digest-string authority minting and closed the typed-population transplant path. `go test -count=1 ./internal/domains/taxprofile/ ./internal/domains/payroll/calcpolicy/ ./internal/domains/payroll/` PASS; subsequent independent `go test -count=1 -cover ./internal/domains/payroll/` PASS at 64.2%, with the existing exact payroll coverage exception through 2026-12-31. No tax-rate provider or payroll execution deployment is claimed.
   - **Depends:** `TAXPROFILE-002`, `GOVERN-002`, `LEDGER-003`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.PAYROLL,BI.REGULATORY,BI.PEOPLE; DIRECT=none; WHY=provide an explicit semantic engine owner for this accepted BusinessIntent partition`.
   - **TEST:** `TestTaxProfileSnapshotFeedsPinnedTaxCalculationAndPayrollRun`.
@@ -15951,7 +15952,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [authorization model](specs/organization-scope-and-authz.md).
 
-- [ ] `WEB-065` **[GATE_C][SOL_HIGH] Enforce data-domain presentation scope.**
+- [x] `WEB-065` **[GATE_C][SOL_HIGH] Enforce data-domain presentation scope.**
   - **Depends:** `WEB-064`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.SECURITY,BI.PRIVACY,BI.EXPERIENCE; DIRECT=none; WHY=enforce data-domain presentation scope without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_065`.

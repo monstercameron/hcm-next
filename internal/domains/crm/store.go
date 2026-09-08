@@ -48,6 +48,7 @@ type StoreError struct {
 	Code             StoreErrorCode
 	Detail           string
 	Expected, Actual uint64
+	cause            error
 }
 
 func (e *StoreError) Error() string {
@@ -63,6 +64,9 @@ func (e *StoreError) Error() string {
 func (e *StoreError) Unwrap() error {
 	if e == nil {
 		return nil
+	}
+	if e.cause != nil {
+		return e.cause
 	}
 	switch e.Code {
 	case StoreNotFoundCode:
@@ -147,6 +151,9 @@ func (s *MemoryStore) GetPool(ctx context.Context, tenant values.TenantId, id st
 	if err := contextError(ctx); err != nil {
 		return TalentPoolRevision{}, err
 	}
+	if s == nil {
+		return TalentPoolRevision{}, storeInvalid("nil memory store")
+	}
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	pool, ok := s.pools[string(tenant)][id][revision]
@@ -159,6 +166,9 @@ func (s *MemoryStore) GetPool(ctx context.Context, tenant values.TenantId, id st
 func (s *MemoryStore) ListPoolVersions(ctx context.Context, tenant values.TenantId, id string) ([]TalentPoolRevision, error) {
 	if err := contextError(ctx); err != nil {
 		return nil, err
+	}
+	if s == nil {
+		return nil, storeInvalid("nil memory store")
 	}
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -220,7 +230,7 @@ func (s *MemoryStore) PutMembership(ctx context.Context, tenant values.TenantId,
 	}
 	latest := latestMembershipRevision(byRevision)
 	if _, exists := byRevision[revision]; exists {
-		return &StoreError{Code: StoreDuplicateCode, Detail: fmt.Sprintf("membership %s revision %d", membership.MembershipID.Id, revision)}
+		return &StoreError{Code: StoreDuplicateCode, Detail: fmt.Sprintf("membership %s revision %d", membership.MembershipID.Id, revision), cause: ErrMembershipDuplicate}
 	}
 	if expected != latest || revision != latest+1 {
 		return stale(expected, latest, fmt.Sprintf("membership %s", membership.MembershipID.Id))
@@ -233,11 +243,14 @@ func (s *MemoryStore) GetMembership(ctx context.Context, tenant values.TenantId,
 	if err := contextError(ctx); err != nil {
 		return TalentPoolMembershipRevision{}, err
 	}
+	if s == nil {
+		return TalentPoolMembershipRevision{}, storeInvalid("nil memory store")
+	}
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	membership, ok := s.memberships[string(tenant)][id][revision]
 	if !ok {
-		return TalentPoolMembershipRevision{}, &StoreError{Code: StoreNotFoundCode, Detail: fmt.Sprintf("membership %s revision %d", id, revision)}
+		return TalentPoolMembershipRevision{}, &StoreError{Code: StoreNotFoundCode, Detail: fmt.Sprintf("membership %s revision %d", id, revision), cause: ErrMembershipNotFound}
 	}
 	return membership, nil
 }
@@ -246,11 +259,14 @@ func (s *MemoryStore) ListMembershipVersions(ctx context.Context, tenant values.
 	if err := contextError(ctx); err != nil {
 		return nil, err
 	}
+	if s == nil {
+		return nil, storeInvalid("nil memory store")
+	}
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	byRevision := s.memberships[string(tenant)][id]
 	if len(byRevision) == 0 {
-		return nil, &StoreError{Code: StoreNotFoundCode, Detail: fmt.Sprintf("membership %s", id)}
+		return nil, &StoreError{Code: StoreNotFoundCode, Detail: fmt.Sprintf("membership %s", id), cause: ErrMembershipNotFound}
 	}
 	keys := make([]uint64, 0, len(byRevision))
 	for revision := range byRevision {

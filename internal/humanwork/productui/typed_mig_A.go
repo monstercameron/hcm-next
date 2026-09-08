@@ -1060,6 +1060,41 @@ func declareorganizationVisibilityStylesStyles() {
 		gwccss.FontSize(gwccss.Rem(.8)),
 		gwccss.TextColor(gwccss.Var("muted")),
 	)
+	declareGlobal(".data-domain-scope",
+		gwccss.GridColumn(gwccss.GridRange(gwccss.GridLineAt(1), gwccss.GridLineAt(-1))),
+		gwccss.Display.Grid,
+		gwccss.Raw("align-content", "start"),
+		gwccss.Gap(gwccss.Px(6)),
+		gwccss.MinWidth(gwccss.Zero),
+		gwccss.Raw("margin", "0 22px 18px"),
+	)
+	declareGlobal(".data-domain-scope-title",
+		gwccss.Margin(gwccss.Zero),
+		gwccss.FontSize(gwccss.Rem(.85)),
+	)
+	declareGlobal(".data-domain-scope-domains",
+		gwccss.Display.Flex,
+		gwccss.Raw("flex-wrap", "wrap"),
+		gwccss.Gap(gwccss.Px(6)),
+		gwccss.Raw("list-style", "none"),
+		gwccss.Margin(gwccss.Zero),
+		gwccss.Padding(gwccss.Zero),
+	)
+	declareGlobal(".data-domain-scope-domain",
+		gwccss.PaddingY(gwccss.Px(3)), gwccss.PaddingX(gwccss.Px(9)),
+		gwccss.Border(gwccss.Px(1), gwccss.Var("line")),
+		gwccss.Rounded(gwccss.VarLength("hcm-radius-control")),
+		gwccss.Bg(gwccss.Var("surface")),
+		gwccss.FontSize(gwccss.Rem(.8)),
+	)
+	declareGlobal(".data-domain-scope-empty",
+		gwccss.Margin(gwccss.Zero),
+		gwccss.FontSize(gwccss.Rem(.8)),
+		gwccss.TextColor(gwccss.Var("muted")),
+	)
+	declareGlobal(".data-domain-scope-domains",
+		mediaRule(gwccss.MaxW(620), gwccss.Raw("flex-direction", "column"), gwccss.Raw("align-items", "stretch")),
+	)
 	declareGlobal(".organization-visibility-form",
 		mediaRule(gwccss.MaxW(900), gwccss.GridCols(gwccss.Fr(1))),
 	)
