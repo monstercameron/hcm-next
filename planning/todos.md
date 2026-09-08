@@ -17194,7 +17194,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [position domain](specs/position-and-headcount-domain.md).
 
-- [ ] `WEB-187` **[PHASE_3][SOL_HIGH] Implement workforce scenario authoring.**
+- [x] `WEB-187` **[PHASE_3][SOL_HIGH] Implement workforce scenario authoring.**
   - **Depends:** `WEB-186`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.WORKFORCE,BI.PEOPLE,BI.EXPERIENCE; DIRECT=none; WHY=implement workforce scenario authoring without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_187`.
