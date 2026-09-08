@@ -45,6 +45,7 @@ const (
 	PagePaySummary             PageID = "pay-summary"
 	PagePayStatements          PageID = "pay-statements"
 	PagePayDiscrepancy         PageID = "pay-discrepancy"
+	PageCompProposals          PageID = "comp-proposals"
 	PageOrganization           PageID = "organization"
 	PageInsights               PageID = "insights"
 	PageAdmin                  PageID = "admin"

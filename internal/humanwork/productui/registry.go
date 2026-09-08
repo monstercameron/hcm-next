@@ -56,7 +56,7 @@ func PageVisible(page PageID, roles []string) bool {
 	// the platform admin bypass above still applies.
 	case PageLeaveEvidence:
 		return hasAnyProductRole(roles, "hr_partner")
-	case PageJourneys, PageWork, PageHistory, PagePeople, PagePerson, PageHeadcount, PagePosition, PageRequisition, PageCandidates, PageCandidate, PageInterviews, PageEvaluation, PageOffer, PageOnboarding, PageOnboardingTasks, PageActivationReadiness, PageTimeApproval, PageTimeExceptions, PageTeamCoverage, PageInsights:
+	case PageJourneys, PageWork, PageHistory, PagePeople, PagePerson, PageHeadcount, PagePosition, PageRequisition, PageCandidates, PageCandidate, PageInterviews, PageEvaluation, PageOffer, PageOnboarding, PageOnboardingTasks, PageActivationReadiness, PageTimeApproval, PageTimeExceptions, PageTeamCoverage, PageCompProposals, PageInsights:
 		return hasAnyProductRole(roles, "manager", "hr_partner", "comp_admin", "hiring_manager", "payroll_manager")
 	default:
 		return false
@@ -130,6 +130,7 @@ func registeredPages() []PageDefinition {
 		{ID: PagePaySummary, Route: "/workspace/app/pay/summary", Label: "Pay summary", Icon: "people", Title: "Employee pay summary", Subtitle: "Pay figures from the governed pay service.", LabelKey: "page.pay_summary.label", TitleKey: "page.pay_summary.title", SubtitleKey: "page.pay_summary.subtitle", SearchTerms: []string{"pay", "salary", "summary", "earnings", "wages"}, RenderOrder: 91, render: paySummaryPage},
 		{ID: PagePayStatements, Route: "/workspace/app/pay/statements", Label: "Pay statements", Icon: "people", Title: "Accessible pay statements", Subtitle: "Statements from the governed pay service.", LabelKey: "page.pay_statements.label", TitleKey: "page.pay_statements.title", SubtitleKey: "page.pay_statements.subtitle", SearchTerms: []string{"statements", "payslip", "period", "pay", "documents"}, RenderOrder: 92, render: payStatementsPage},
 		{ID: PagePayDiscrepancy, Route: "/workspace/app/pay/discrepancy", Label: "Pay discrepancy", Icon: "people", Title: "Pay-discrepancy intake", Subtitle: "Report a pay problem through the governed pay service.", LabelKey: "page.pay_discrepancy.label", TitleKey: "page.pay_discrepancy.title", SubtitleKey: "page.pay_discrepancy.subtitle", SearchTerms: []string{"discrepancy", "wrong pay", "report", "problem", "intake"}, RenderOrder: 93, render: payDiscrepancyPage},
+		{ID: PageCompProposals, Route: "/workspace/app/pay/comp-proposals", Label: "Comp proposals", Icon: "people", Title: "Manager compensation proposals", Subtitle: "Propose compensation through the governed compensation service.", LabelKey: "page.comp_proposals.label", TitleKey: "page.comp_proposals.title", SubtitleKey: "page.comp_proposals.subtitle", SearchTerms: []string{"compensation", "propose", "merit", "bonus", "manager"}, RenderOrder: 94, render: compProposalsPage},
 	}
 }
 
