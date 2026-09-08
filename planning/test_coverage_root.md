@@ -869,6 +869,7 @@ generated=42 hand-written=2046
 | internal/humanwork/productui                             | appearance_components.go              | yes           |
 | internal/humanwork/productui                             | authorized_presentation.go            | yes           |
 | internal/humanwork/productui                             | authority_banner.go                   | yes           |
+| internal/humanwork/productui                             | binding_inspector.go                  | yes           |
 | internal/humanwork/productui                             | brand_logo.go                         | yes           |
 | internal/humanwork/productui                             | break_glass.go                        | yes           |
 | internal/humanwork/productui                             | breadcrumb.go                         | yes           |
