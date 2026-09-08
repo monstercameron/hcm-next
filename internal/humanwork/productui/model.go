@@ -119,6 +119,7 @@ const (
 	PageConfigurationCenter     PageID = "configuration-center"
 	PageIntegrationOperations   PageID = "integration-operations"
 	PageReconciliationWorkbench PageID = "reconciliation-workbench"
+	PagePrivacyTelemetry        PageID = "privacy-telemetry"
 	PageOrganization            PageID = "organization"
 	PageInsights                PageID = "insights"
 	PageAdmin                   PageID = "admin"
