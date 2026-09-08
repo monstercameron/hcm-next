@@ -16858,7 +16858,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [Leave flow](user-flows/reference/medical-leave-and-return.md).
 
-- [ ] `WEB-154` **[PHASE_3][SOL_HIGH] Implement restricted leave-evidence tasks.**
+- [x] `WEB-154` **[PHASE_3][SOL_HIGH] Implement restricted leave-evidence tasks.**
   - **Depends:** `WEB-153`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.WORKFORCE,BI.REGULATORY,BI.EXPERIENCE; DIRECT=none; WHY=implement restricted leave-evidence tasks without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_154`.
