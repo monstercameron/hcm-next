@@ -17296,7 +17296,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md).
 
-- [ ] `WEB-197` **[PHASE_3][SOL_HIGH] Implement safe participant case status.**
+- [x] `WEB-197` **[PHASE_3][SOL_HIGH] Implement safe participant case status.**
   - **Depends:** `WEB-196`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.CASES,BI.PRIVACY,BI.EXPERIENCE; DIRECT=none; WHY=implement safe participant case status without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_197`.
