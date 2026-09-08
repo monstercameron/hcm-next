@@ -16594,7 +16594,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [Promotion flow](user-flows/reference/promote-into-management.md).
 
-- [ ] `WEB-128` **[GATE_C][SOL_HIGH] Implement proposal confirmation review.**
+- [x] `WEB-128` **[GATE_C][SOL_HIGH] Implement proposal confirmation review.**
   - **Depends:** `WEB-127`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.PEOPLE,BI.REWARDS,BI.WORK,BI.EXPERIENCE; DIRECT=none; WHY=implement proposal confirmation review without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_128`.
