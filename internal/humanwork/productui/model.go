@@ -79,6 +79,7 @@ const (
 	PagePlannedVsCommitted     PageID = "planned-vs-committed"
 	PageOrgResponsive          PageID = "org-responsive"
 	PageHelpHub                PageID = "help-hub"
+	PageKnowledgeSearch        PageID = "knowledge-search"
 	PageOrganization           PageID = "organization"
 	PageInsights               PageID = "insights"
 	PageAdmin                  PageID = "admin"

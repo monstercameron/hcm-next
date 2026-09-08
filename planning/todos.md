@@ -17266,7 +17266,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md).
 
-- [ ] `WEB-194` **[PHASE_3][SOL_HIGH] Implement authorized knowledge search.**
+- [x] `WEB-194` **[PHASE_3][SOL_HIGH] Implement authorized knowledge search.**
   - **Depends:** `WEB-193`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.CASES,BI.PRIVACY,BI.EXPERIENCE; DIRECT=none; WHY=implement authorized knowledge search without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_194`.
