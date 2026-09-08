@@ -17366,7 +17366,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md).
 
-- [ ] `WEB-204` **[PHASE_3][SOL_HIGH] Prove case-view redaction and audit.**
+- [x] `WEB-204` **[PHASE_3][SOL_HIGH] Prove case-view redaction and audit.**
   - **Depends:** `WEB-203`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.CASES,BI.PRIVACY,BI.EXPERIENCE; DIRECT=none; WHY=prove case-view redaction and audit without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_204`.
