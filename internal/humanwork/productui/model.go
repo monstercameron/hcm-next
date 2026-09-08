@@ -71,6 +71,7 @@ const (
 	PageOrgEffectiveDate       PageID = "org-effective-date"
 	PagePositionObject         PageID = "position-object"
 	PagePositionOccupancy      PageID = "position-occupancy"
+	PageHeadcountPlan          PageID = "headcount-plan"
 	PageOrganization           PageID = "organization"
 	PageInsights               PageID = "insights"
 	PageAdmin                  PageID = "admin"
