@@ -885,6 +885,7 @@ generated=42 hand-written=2046
 | internal/humanwork/productui                             | dependency_impact.go                  | yes           |
 | internal/humanwork/productui                             | display.go                            | yes           |
 | internal/humanwork/productui                             | doc.go                                | yes           |
+| internal/humanwork/productui                             | draft_center.go                       | yes           |
 | internal/humanwork/productui                             | field_disposition.go                  | yes           |
 | internal/humanwork/productui                             | focus.go                              | yes           |
 | internal/humanwork/productui                             | floorplan.go                          | yes           |
