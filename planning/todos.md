@@ -17622,7 +17622,7 @@ This program implements [the production frontend and governed page-composition p
 
 ### Administration operations and release
 
-- [ ] `WEB-229` **[GATE_C][SOL_HIGH] Implement the authorization-resolved Admin home.**
+- [x] `WEB-229` **[GATE_C][SOL_HIGH] Implement the authorization-resolved Admin home.**
   - **Depends:** `WEB-037`, `DATAOPS-001`, `OBS-001`, `A11Y-001`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.OPERATIONS,BI.SECURITY,BI.EXPERIENCE; DIRECT=none; WHY=implement the authorization-resolved admin home without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_229`.
