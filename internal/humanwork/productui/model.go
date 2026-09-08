@@ -30,6 +30,7 @@ const (
 	PageOnboarding             PageID = "onboarding"
 	PageOnboardingTasks        PageID = "onboarding-tasks"
 	PageActivationReadiness    PageID = "activation-readiness"
+	PageTimeHub                PageID = "time-hub"
 	PageOrganization           PageID = "organization"
 	PageInsights               PageID = "insights"
 	PageAdmin                  PageID = "admin"

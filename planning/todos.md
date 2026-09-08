@@ -16768,7 +16768,7 @@ This program implements [the production frontend and governed page-composition p
 
 ### Time and leave
 
-- [ ] `WEB-145` **[PHASE_3][SOL_HIGH] Implement the employee time hub.**
+- [x] `WEB-145` **[PHASE_3][SOL_HIGH] Implement the employee time hub.**
   - **Depends:** `WEB-121`, `TIME-001`, `CONF-011`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.WORKFORCE,BI.REGULATORY,BI.EXPERIENCE; DIRECT=none; WHY=implement the employee time hub without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_145`.
