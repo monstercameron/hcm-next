@@ -16890,7 +16890,7 @@ This program implements [the production frontend and governed page-composition p
 
 ### Pay rewards and benefits
 
-- [ ] `WEB-157` **[PHASE_4][SOL_HIGH] Implement the employee pay summary.**
+- [x] `WEB-157` **[PHASE_4][SOL_HIGH] Implement the employee pay summary.**
   - **Depends:** `WEB-121`, `COMP-003`, `CONF-010`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.REWARDS,BI.PAYROLL,BI.EXPERIENCE; DIRECT=none; WHY=implement the employee pay summary without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_157`.

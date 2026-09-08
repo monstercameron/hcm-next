@@ -50,7 +50,7 @@ func PageVisible(page PageID, roles []string) bool {
 		// portal admits them role-less. It is not primary
 		// navigation and exposes no workforce surfaces.
 		return true
-	case PageMyself, PageTimeHub, PageTimeEntry, PageTimeCorrection, PageTimeOff, PageTimeOffRequest, PageProtectedLeave, PageLeaveTimeline, PageReturnToWork, PageOrganization:
+	case PageMyself, PageTimeHub, PageTimeEntry, PageTimeCorrection, PageTimeOff, PageTimeOffRequest, PageProtectedLeave, PageLeaveTimeline, PageReturnToWork, PagePaySummary, PageOrganization:
 		return hasAnyProductRole(roles, "worker_self", "manager", "hr_partner", "hiring_manager", "payroll_manager")
 	// Restricted evidence surfaces admit HR partners only;
 	// the platform admin bypass above still applies.
@@ -124,6 +124,10 @@ func registeredPages() []PageDefinition {
 		{ID: PageStudio, Route: "/workspace/app/studio", Label: "Experience Studio", Icon: "studio", Title: "Experience Studio", Subtitle: "Customer page configuration requires its governed service.", LabelKey: "page.studio.label", TitleKey: "page.studio.title", SubtitleKey: "page.studio.subtitle", SearchTerms: []string{"custom pages", "layout", "builder", "designer", "experience", "configuration"}, ParentNav: PageAdmin, RenderOrder: 70, render: studioPage},
 		{ID: PageHelp, Route: "/workspace/app/help", Label: "Help", Icon: "help", Title: "Help center", Subtitle: "Guidance for the live promotion workflow.", LabelKey: "page.help.label", TitleKey: "page.help.title", SubtitleKey: "page.help.subtitle", SearchTerms: []string{"support", "guidance", "documentation", "docs", "assistance"}, RenderOrder: 80, render: helpPage},
 		{ID: PageSettings, Route: "/workspace/app/settings", Label: "Settings", Icon: "settings", Title: "Settings", Subtitle: "Current authenticated session and available preferences.", LabelKey: "page.settings.label", TitleKey: "page.settings.title", SubtitleKey: "page.settings.subtitle", SearchTerms: []string{"preferences", "locale", "language", "accessibility", "account", "session"}, RenderOrder: 90, render: settingsPage},
+		// Post-settings extension range: unpublished fallback
+		// surfaces land here in delivery order so the governed
+		// tail above never renumbers.
+		{ID: PagePaySummary, Route: "/workspace/app/pay/summary", Label: "Pay summary", Icon: "people", Title: "Employee pay summary", Subtitle: "Pay figures from the governed pay service.", LabelKey: "page.pay_summary.label", TitleKey: "page.pay_summary.title", SubtitleKey: "page.pay_summary.subtitle", SearchTerms: []string{"pay", "salary", "summary", "earnings", "wages"}, RenderOrder: 91, render: paySummaryPage},
 	}
 }
 
