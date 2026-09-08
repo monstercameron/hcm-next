@@ -56,7 +56,7 @@ func PageVisible(page PageID, roles []string) bool {
 	// the platform admin bypass above still applies.
 	case PageLeaveEvidence:
 		return hasAnyProductRole(roles, "hr_partner")
-	case PageJourneys, PageWork, PageHistory, PagePeople, PagePerson, PageHeadcount, PagePosition, PageRequisition, PageCandidates, PageCandidate, PageInterviews, PageEvaluation, PageOffer, PageOnboarding, PageOnboardingTasks, PageActivationReadiness, PageTimeApproval, PageTimeExceptions, PageTeamCoverage, PageCompProposals, PageSalaryComparison, PageCyclePopulations, PageInsights:
+	case PageJourneys, PageWork, PageHistory, PagePeople, PagePerson, PageHeadcount, PagePosition, PageRequisition, PageCandidates, PageCandidate, PageInterviews, PageEvaluation, PageOffer, PageOnboarding, PageOnboardingTasks, PageActivationReadiness, PageTimeApproval, PageTimeExceptions, PageTeamCoverage, PageCompProposals, PageSalaryComparison, PageCyclePopulations, PageCompWorksheet, PageInsights:
 		return hasAnyProductRole(roles, "manager", "hr_partner", "comp_admin", "hiring_manager", "payroll_manager")
 	default:
 		return false
@@ -133,6 +133,7 @@ func registeredPages() []PageDefinition {
 		{ID: PageCompProposals, Route: "/workspace/app/pay/comp-proposals", Label: "Comp proposals", Icon: "people", Title: "Manager compensation proposals", Subtitle: "Propose compensation through the governed compensation service.", LabelKey: "page.comp_proposals.label", TitleKey: "page.comp_proposals.title", SubtitleKey: "page.comp_proposals.subtitle", SearchTerms: []string{"compensation", "propose", "merit", "bonus", "manager"}, RenderOrder: 94, render: compProposalsPage},
 		{ID: PageSalaryComparison, Route: "/workspace/app/pay/salary-comparison", Label: "Salary comparison", Icon: "people", Title: "Salary-range and budget comparison", Subtitle: "Compare ranges and budgets through the governed compensation service.", LabelKey: "page.salary_comparison.label", TitleKey: "page.salary_comparison.title", SubtitleKey: "page.salary_comparison.subtitle", SearchTerms: []string{"salary", "range", "budget", "bands", "compare"}, RenderOrder: 95, render: salaryComparisonPage},
 		{ID: PageCyclePopulations, Route: "/workspace/app/pay/cycle-populations", Label: "Cycle populations", Icon: "people", Title: "Compensation-cycle populations", Subtitle: "Scope cycle populations through the governed compensation service.", LabelKey: "page.cycle_populations.label", TitleKey: "page.cycle_populations.title", SubtitleKey: "page.cycle_populations.subtitle", SearchTerms: []string{"cycle", "population", "scope", "eligibility", "compensation"}, RenderOrder: 96, render: cyclePopulationsPage},
+		{ID: PageCompWorksheet, Route: "/workspace/app/pay/comp-worksheet", Label: "Comp worksheet", Icon: "people", Title: "Compensation worksheet", Subtitle: "Work the cycle through the governed compensation service.", LabelKey: "page.comp_worksheet.label", TitleKey: "page.comp_worksheet.title", SubtitleKey: "page.comp_worksheet.subtitle", SearchTerms: []string{"worksheet", "cycle", "adjust", "rows", "compensation"}, RenderOrder: 97, render: compWorksheetPage},
 	}
 }
 
