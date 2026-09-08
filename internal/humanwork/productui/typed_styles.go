@@ -2025,6 +2025,70 @@ func declareBreakGlassStyles() {
 	)
 }
 
+func PolicySimulationStylesheet() string {
+	return buildTypedSheet(declarePolicySimulationStyles)
+}
+
+func declarePolicySimulationStyles() {
+	declareGlobal(".policy-simulation",
+		gwccss.Display.Grid, gwccss.Gap(gwccss.Px(6)),
+		gwccss.PaddingY(gwccss.Px(12)), gwccss.PaddingX(gwccss.Px(16)),
+		gwccss.Raw("border-block-end", "1px solid var(--control-border,var(--line))"),
+		gwccss.Raw("background", "var(--surface-subtle,var(--canvas))"),
+	)
+	declareGlobal(".policy-simulation-title",
+		gwccss.Margin(gwccss.Zero),
+		gwccss.FontSize(gwccss.Rem(0.9)), gwccss.FontWeight.Semibold,
+		gwccss.TextColor(gwccss.Var("ink")),
+	)
+	declareGlobal(".policy-simulation-notice",
+		gwccss.Margin(gwccss.Zero),
+		gwccss.FontWeight.Semibold,
+		gwccss.TextColor(gwccss.Var("accent")),
+	)
+	declareGlobal(".policy-simulation-row",
+		gwccss.Display.Flex, gwccss.Items.Baseline, gwccss.ColumnGap(gwccss.Px(8)),
+		gwccss.Margin(gwccss.Zero),
+		gwccss.Raw("flex-wrap", "wrap"),
+	)
+	declareGlobal(".policy-simulation-label",
+		gwccss.FontWeight.Semibold,
+		gwccss.TextColor(gwccss.Var("muted")),
+	)
+	declareGlobal(".policy-simulation-value",
+		gwccss.TextColor(gwccss.Var("ink")),
+	)
+	declareGlobal(".policy-simulation-detail",
+		gwccss.Margin(gwccss.Zero),
+		gwccss.TextColor(gwccss.Var("ink")),
+	)
+	declareGlobal(".policy-simulation-rules",
+		gwccss.Display.Flex, gwccss.ColumnGap(gwccss.Px(8)),
+		gwccss.Margin(gwccss.Zero),
+		gwccss.Raw("list-style", "none"),
+		gwccss.Raw("flex-wrap", "wrap"),
+		gwccss.Padding(gwccss.Zero),
+	)
+	declareGlobal(".policy-simulation-rule",
+		gwccss.Raw("border", "1px solid var(--control-border,var(--line))"),
+		gwccss.Rounded(gwccss.RawLength("var(--hcm-radius-control,var(--radius))")),
+		gwccss.PaddingY(gwccss.Px(2)), gwccss.PaddingX(gwccss.Px(8)),
+		gwccss.TextColor(gwccss.Var("ink")),
+	)
+	declareGlobal(".policy-simulation-actions",
+		gwccss.Display.Flex, gwccss.Items.Center, gwccss.ColumnGap(gwccss.Px(12)),
+		gwccss.Raw("flex-wrap", "wrap"),
+	)
+	declareGlobal("a.policy-simulation-exit",
+		gwccss.Display.InlineFlex, gwccss.Items.Center,
+		gwccss.MinHeight(gwccss.Px(36)), gwccss.PaddingY(gwccss.Px(6)), gwccss.PaddingX(gwccss.Px(12)),
+		gwccss.Raw("border", "1px solid var(--control-border,var(--line))"),
+		gwccss.Rounded(gwccss.RawLength("var(--hcm-radius-control,var(--radius))")),
+		gwccss.Bg(gwccss.Var("surface")), gwccss.TextColor(gwccss.Var("ink")),
+		gwccss.Raw("text-decoration", "none"), gwccss.FontWeight.Semibold,
+	)
+}
+
 func MobileShellStylesheet() string {
 	return buildTypedSheet(declareMobileShellStyles)
 }

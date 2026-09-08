@@ -5649,7 +5649,8 @@ closed.
   - **REFACTOR:** deterministic services execute all effects.
   - **Refs:** [Agent runtime](data/models/assurance-intelligence-platform.md), [Gate A bounded agent](execution-plan.md#gate-a--paid-design-partner-observation).
 
-- [ ] `AGENT-002` **[DESIGN][SOL_HIGH] Track semantic trust and prompt-injection taint.**
+- [x] `AGENT-002` **[DESIGN][SOL_HIGH] Track semantic trust and prompt-injection taint.**
+  - **Evidence (2026-09-08):** `TestTodo_AGENT_002`, `TestTodo_AGENT_002_Golden`, `FuzzTodo_AGENT_002`, and adversarial admission/result/inference tests; `go test -count=1 -cover ./internal/agentsecurity/` PASS (95.6%); `go vet ./internal/agentsecurity/` PASS; `go test -run '^$' -fuzz '^FuzzTodo_AGENT_002$' -fuzztime=3s ./internal/agentsecurity/` PASS (42,824 executions; documented Windows cleanup warning only). Sol and root refinement bind admissions and validated results to exact payloads, refuse fabricated canonical facts, preserve source citations and inherited taints through inference, and quarantine detector faults and detected hostile source content before derivation. This is the semantic gateway design boundary, not a claim of exhaustive injection detection or a deployed model-serving adapter.
   - **Depends:** `AGENT-001`, `MODEL-020`, `MODEL-024`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=expose governed intent creation, inspection or consumption without persistence or provider bypass`.
   - **TEST:** `TestTodo_AGENT_002`.
@@ -15872,7 +15873,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [authorization model](specs/organization-scope-and-authz.md).
 
-- [ ] `WEB-058` **[GATE_C][SOL_HIGH] Implement safe view-as policy simulation.**
+- [x] `WEB-058` **[GATE_C][SOL_HIGH] Implement safe view-as policy simulation.**
   - **Depends:** `WEB-057`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.SECURITY,BI.EXPERIENCE; DIRECT=none; WHY=implement safe view-as policy simulation without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_058`.

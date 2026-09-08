@@ -48,6 +48,7 @@ func appShellWithHeading(view View, page ui.Node, showHeading bool) ui.Node {
 		stepUpChallenge(view),
 		actingAuthorityBanner(view),
 		breakGlassActivation(view),
+		policySimulation(view),
 		html.Div(html.Props{Class: "shell-grid"}, primarySidebar(view), pageFrame(view, content, showHeading)),
 	)
 }

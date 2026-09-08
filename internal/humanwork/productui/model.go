@@ -348,6 +348,10 @@ type View struct {
 	// activation for emergency access. Nil means no emergency elevation
 	// is offered; the prompt authorizes nothing either way.
 	BreakGlassActivation *BreakGlassActivationProps
+	// PolicySimulation carries the server-projected view-as policy
+	// simulation. Nil means the viewer sees their own view; the panel
+	// assumes no authority either way.
+	PolicySimulation *PolicySimulationProps
 }
 
 // Can reports whether the resolved role grants an operation on a page. An
