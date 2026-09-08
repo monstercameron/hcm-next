@@ -17102,7 +17102,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [user-flow catalog](user-flows/catalog.md).
 
-- [ ] `WEB-178` **[PHASE_3][TERRA] Implement the manager talent workbench.**
+- [x] `WEB-178` **[PHASE_3][TERRA] Implement the manager talent workbench.**
   - **Depends:** `WEB-177`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.TALENT,BI.EXPERIENCE; DIRECT=none; WHY=implement the manager talent workbench without creating a second source of business authority`.
   - **TEST:** `TestTodo_WEB_178`.

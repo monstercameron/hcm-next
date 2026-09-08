@@ -56,7 +56,7 @@ func PageVisible(page PageID, roles []string) bool {
 	// the platform admin bypass above still applies.
 	case PageLeaveEvidence:
 		return hasAnyProductRole(roles, "hr_partner")
-	case PageJourneys, PageWork, PageHistory, PagePeople, PagePerson, PageHeadcount, PagePosition, PageRequisition, PageCandidates, PageCandidate, PageInterviews, PageEvaluation, PageOffer, PageOnboarding, PageOnboardingTasks, PageActivationReadiness, PageTimeApproval, PageTimeExceptions, PageTeamCoverage, PageCompProposals, PageSalaryComparison, PageCyclePopulations, PageCompWorksheet, PageCompCalibration, PagePayBenefitRecon, PageManagerCheckins, PagePerfReview, PageReviewParticipants, PageInsights:
+	case PageJourneys, PageWork, PageHistory, PagePeople, PagePerson, PageHeadcount, PagePosition, PageRequisition, PageCandidates, PageCandidate, PageInterviews, PageEvaluation, PageOffer, PageOnboarding, PageOnboardingTasks, PageActivationReadiness, PageTimeApproval, PageTimeExceptions, PageTeamCoverage, PageCompProposals, PageSalaryComparison, PageCyclePopulations, PageCompWorksheet, PageCompCalibration, PagePayBenefitRecon, PageManagerCheckins, PagePerfReview, PageReviewParticipants, PageTalentWorkbench, PageInsights:
 		return hasAnyProductRole(roles, "manager", "hr_partner", "comp_admin", "hiring_manager", "payroll_manager")
 	default:
 		return false
@@ -148,6 +148,7 @@ func registeredPages() []PageDefinition {
 		{ID: PageSkillsProfile, Route: "/workspace/app/growth/skills", Label: "Skills profile", Icon: "people", Title: "Governed skills profile", Subtitle: "Skills from the governed growth service.", LabelKey: "page.skills_profile.label", TitleKey: "page.skills_profile.title", SubtitleKey: "page.skills_profile.subtitle", SearchTerms: []string{"skills", "profile", "proficiency", "endorsed", "growth"}, RenderOrder: 109, render: skillsProfilePage},
 		{ID: PageAssignedLearning, Route: "/workspace/app/growth/learning", Label: "Assigned learning", Icon: "people", Title: "Assigned learning", Subtitle: "Assignments from the governed learning service.", LabelKey: "page.assigned_learning.label", TitleKey: "page.assigned_learning.title", SubtitleKey: "page.assigned_learning.subtitle", SearchTerms: []string{"learning", "assigned", "courses", "training", "growth"}, RenderOrder: 110, render: assignedLearningPage},
 		{ID: PageCareerDiscovery, Route: "/workspace/app/growth/opportunities", Label: "Career discovery", Icon: "people", Title: "Career-opportunity discovery", Subtitle: "Openings from the governed growth service.", LabelKey: "page.career_discovery.label", TitleKey: "page.career_discovery.title", SubtitleKey: "page.career_discovery.subtitle", SearchTerms: []string{"career", "opportunities", "openings", "jobs", "discover"}, RenderOrder: 111, render: careerDiscoveryPage},
+		{ID: PageTalentWorkbench, Route: "/workspace/app/growth/talent-workbench", Label: "Talent workbench", Icon: "people", Title: "Manager talent workbench", Subtitle: "Work team talent through the governed growth service.", LabelKey: "page.talent_workbench.label", TitleKey: "page.talent_workbench.title", SubtitleKey: "page.talent_workbench.subtitle", SearchTerms: []string{"talent", "workbench", "team", "successors", "manager"}, RenderOrder: 112, render: talentWorkbenchPage},
 	}
 }
 
