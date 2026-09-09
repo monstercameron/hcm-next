@@ -69,15 +69,38 @@ Implementation is cheap and review is expensive, so route the work that way.
 - **Implementation runs in Codex GPT-5.6 Luna lanes.** They are dirt cheap; spawn as many as the machine can carry (about twenty concurrent on this host before embedded PostgreSQL starts timing out). One lane per todo or per tightly coupled todo chain, launched with `scripts/run-lane.sh <name>` from a brief that names the todo ids, the file roots the lane owns, its reserved migration numbers and the standing rules in `.claude/lanes/luna-lane-preamble.md`. A lane never runs git, never edits `planning/`, `definitions/`, `go.mod` or `go.sum`, and reports the registry rows and policy edits it needs verbatim.
 - **Review and integration run in GPT-6 or Claude Fable 5.1.** The strong model reads what the lanes produced (`.claude/agents/integration-reviewer.md`), hunts for real defects (authorization after a side effect, tenant-scoping gaps, aliased or assertion-free tests, forged or replayable inputs, business logic in transport), applies the fixes, registers the definitions rows, ticks the todos with evidence, and takes the commit through the gates. Do not spend the strong model on first drafts, and do not let a cheap lane be the last set of eyes on anything.
 
-**Treat every todo as atomic.** Each one goes through the whole loop before the next one is called done:
+**Treat every todo as atomic.** Each one goes through the whole loop before the next one is called done. A red gate at any stage returns to the earliest
+stage that owns the defect; the defect is fixed at the source, never bypassed, never filed for later.
 
-1. **Code.** A lane implements RED to GREEN in the packages the todo's Refs name, with the tests the TEST and TEST MATRIX fields name.
-2. **Review.** The strong model reads the diff against the todo's contract and the rules in this file. Findings are fixed, not filed.
-3. **Refine.** Remove speculative abstraction, duplicated helpers and dead code the change introduced; match the surrounding style.
-4. **Unit test.** Every hand-written file is exercised in its package; matrix labels prove what they say; the package clears the 70% floor.
-5. **End-to-end test.** Where the todo touches a workflow, a store or an endpoint, run the harness that drives it through the real runtime (`test/workflow`, `test/bootstrap`, the endpoint parity harness, the embedded-PostgreSQL integration test), not only the unit suite.
-6. **Visual inspection when a surface exists.** If the change is observable in the product UI, drive it in the browser pane (dev server, the affected page, the state after the interaction, a screenshot) before calling it done; do not ask the user to look. Inspect responsively: desktop plus narrow mobile widths (390 px and 320 px), light and dark where the surface supports themes, with no overlap, truncation, or console diagnostics; record the widths and states checked. Where the surface renders text or controls, run the applicable checks under `tools/uxqual/` (i18n across en-US, de-DE, and RTL ar; accessibility/WCAG: names, keyboard semantics, focus, reduced motion, form-error association); record the suites run.
-7. **Commit gates.** Tick the todo with its evidence line, update `CHANGELOG.md` and the current `planning/devlog/` entry (the commits, the defects found, the decisions taken; what was verified and what was left partial, in plain prose), then commit in its group through the full pre-commit hook: format, lint, unit tests, coverage floor, drift, API, substrate and race policies, nested-module tests and build. A red gate is fixed at the source, never bypassed.
+1. **Requirements.** The contract is `planning/plan.md`, `planning/execution-plan.md`, `planning/specs/*` and the todo's `planning/todos.md` entry. The TEST
+   and TEST MATRIX fields are the acceptance criteria. A todo with no testable criteria is not ready; send it back to the orchestrator.
+2. **Context.** Read every package the todo's Refs name, plus the source, tests, migrations and git state actually in scope. Run the narrowest relevant test
+   before changing anything.
+3. **Plan.** Write the smallest sufficient change down: the files owned, the tests to add or amend, the definitions rows and migration numbers needed. No
+   speculative abstraction, no adjacent cleanup.
+4. **Adversarial plan review.** The strong model tries to kill the plan: wrong package, missing tenant scope, untestable criterion, raced assumption.
+   Findings are fixed in the plan, not filed. A rejected plan returns to step 3.
+5. **Build.** Implement the plan with accessibility and i18n built in, not bolted on: names, keyboard semantics, focus, reduced motion, form-error
+   association, en-US / de-DE / RTL ar wherever the surface renders text or controls. Lanes follow `.claude/lanes/luna-lane-preamble.md` and never run git.
+6. **Review loop.** The strong model reads the diff against the todo's contract and the rules in this file (`.claude/agents/integration-reviewer.md`):
+   authorization before side effects, tenant scoping, assertion-free or aliased tests, forged or replayable inputs, business logic in transport. Findings are
+   fixed, then refined: remove speculative abstraction, duplicated helpers and dead code; match the surrounding style. Repeat until clean.
+7. **Test ladder.** Three rungs, in order, no skipping: unit (every hand-written file exercised in its package, matrix labels prove what they say, the package
+   clears the 70% floor); component (the vitest suites, the `tools/uxqual` harnesses); end-to-end (the real runtime: `test/workflow`, `test/bootstrap`, the
+   endpoint parity harness, the embedded-PostgreSQL integration test). A failure at any rung returns to step 5.
+8. **Coverage gate.** `npm run check:coverage:staged`. A package below the floor gets tests, or an exception naming its exact path, kind, owner, reason and
+   expiry; prefixes and wildcards are refused, and an expired exception waives nothing.
+9. **Visual inspection when a surface exists.** Drive the observable surface in the browser pane (dev server, the affected page, the post-interaction state, a
+   screenshot) before calling it done; do not ask the user to look. Desktop plus 390 px and 320 px widths, light and dark where themes exist, no overlap,
+   truncation or console diagnostics. Record the widths, states and suites run.
+10. **Commit gates.** Tick the todo with its evidence line, update `CHANGELOG.md` and the current `planning/devlog/` entry (the commits, the defects found,
+    the decisions taken; what was verified and what was left partial, in plain prose), then commit in its group through the full pre-commit hook: format,
+    lint, unit tests, coverage floor, drift, API, substrate and engine coverage, race policy, nested-module tests and build.
+11. **Pull request.** Push the topic branch and open a PR naming the todos closed and their evidence. A PR never contains scratch directories, credentials or
+    files outside the change.
+12. **CI gate.** `.github/workflows/tests.yml` runs the full module with the race detector plus every hook gate. Green is required before merge. Red returns to
+    step 5 on the same branch; CI re-runs.
+13. **Merge into main.** Merge only when CI is green and review is done. Never push directly to main, never rewrite it.
 
 ## Ownership and lanes
 
@@ -92,7 +115,9 @@ Front-end surfaces (`WEB-`, `UX-`, `UXFLOW-`, `A11Y-` todos; `internal/humanwork
 ## Git discipline
 
 - Commit only when asked, in groups by area (data, trust, domain, operations, transport, policy, docs), each through the full hook.
-- Never `git stash`, `git reset --hard`, `git commit --amend`, `git rebase` or `git push`. Never `--no-verify`.
+- The orchestrator owns git; lanes never run git. Work happens on topic branches named `<area>/<todo-id>-<slug>` using the same areas.
+- Push only topic branches, only to open or update a PR. Merge into main only through a PR whose CI is green.
+- Never push to main. Never `git stash`, `git reset --hard`, `git commit --amend`, `git rebase` or force-push. Never `--no-verify`.
 - Every commit ends with `Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>`.
 - Update `CHANGELOG.md` and the current `planning/devlog/` entry with the commits, the defects found and the decisions taken. Devlog updates say what was verified and what was left partial, in plain prose.
 
