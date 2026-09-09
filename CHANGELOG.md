@@ -1,5 +1,32 @@
 # Changelog
 
+## 2026-09-09
+
+- Rebrand to Human Capital Management Suite (uncommitted batch, this
+  change): Go module `github.com/monstercameron/hcm-next` becomes
+  `github.com/monstercameron/human-capital-management-suite` (go.mod, all
+  imports, `.proto` `go_package`, regenerated protobuf output with the
+  lock-pinned buf 1.72.0 / protoc-gen-go v1.36.12); sibling module
+  `hcm-next-executor` becomes `human-capital-management-suite-executor`;
+  npm scope `@hcm-next/*` becomes `@human-capital-management-suite/*`
+  with lockfile relinked. Display strings, brand pack, docs, CI scripts
+  and live planning specs follow the new name. Every affected golden was
+  regenerated through its own sanctioned path (schemaflux/modelgen,
+  buf-breaking baseline, connectorsdk, deferredschema, crosscut,
+  phase-one manifest, archdoc, productslice, conformance, SBOM + signed
+  windows/arm64 provenance, vuln-impact pins) with diffs verified to be
+  exactly the rename plus derived digests. Crypto domain separators,
+  persisted provenance/version markers, protocol audiences/issuers, client
+  storage keys, DB identifiers, env vars, binary/proto-package names and
+  dated history intentionally keep the old strings (compat surface);
+  details in `planning/devlog/2026-09-09-rebrand.md`. Verified: whole-repo
+  `go build`, executor build, `tools/gen/...`, policy/conformance/
+  planning suites, `tsc` all workspaces, vitest root (159 tests) plus all
+  workspace suites, eslint/prettier/gofmt gates. Known-red and unrelated:
+  `sbomgen` cmd tests (license-completeness gate over unchanged tool
+  deps), hermetic depadmission real-repo test (needs module network), and
+  gateevidence migration-checksum test (fails identically at HEAD).
+
 ## 2026-09-08
 
 - `OBS-016` telemetry correlation (this batch, uncommitted): new
