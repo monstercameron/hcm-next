@@ -1,6 +1,6 @@
 package orgtransfer
 
-import "hcm-next-executor/internal/executor"
+import "human-capital-management-suite-executor/internal/executor"
 
 const (
 	// PreflightBlockName is the org transfer deterministic validation block name.

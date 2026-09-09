@@ -1,6 +1,6 @@
 package blockshared
 
-import "hcm-next-executor/internal/executor"
+import "human-capital-management-suite-executor/internal/executor"
 
 const (
 	// RiskLow marks a valid preflight with no material warning context.

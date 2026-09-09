@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"testing"
 
-	"hcm-next-executor/internal/executor"
+	"human-capital-management-suite-executor/internal/executor"
 )
 
 func TestExecutePlanTransactionVoluntaryTermination(t *testing.T) {

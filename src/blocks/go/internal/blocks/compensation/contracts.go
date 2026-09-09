@@ -1,6 +1,6 @@
 package compensation
 
-import "hcm-next-executor/internal/executor"
+import "human-capital-management-suite-executor/internal/executor"
 
 const (
 	// PreflightBlockName is the compensation deterministic validation block name.

@@ -17,4 +17,4 @@ Go blocks keep deterministic workflow-specific business logic out of the TypeScr
 
 Validation blocks should set `routeKey` with the standard validation route keys and mirror business errors into `validationErrors`. Transaction planning blocks should set `routeKey` to `transaction_plan_ready` and populate `transactionPlan`, `ledgerFacts`, `externalCalls`, and `projectionPatches`.
 
-Customer-authored blocks can import `hcm-next-executor/sdk` for the stable contract aliases and helper constructors.
+Customer-authored blocks can import `human-capital-management-suite-executor/sdk` for the stable contract aliases and helper constructors.

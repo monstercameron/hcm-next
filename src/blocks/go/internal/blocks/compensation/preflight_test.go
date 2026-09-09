@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"testing"
 
-	"hcm-next-executor/internal/blockshared"
-	"hcm-next-executor/internal/executor"
+	"human-capital-management-suite-executor/internal/blockshared"
+	"human-capital-management-suite-executor/internal/executor"
 )
 
 func TestExecutePreflightValidCompensationChange(t *testing.T) {

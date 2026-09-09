@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"hcm-next-executor/internal/executor"
+	"human-capital-management-suite-executor/internal/executor"
 )
 
 func TestExecutePlanTransactionOutputShape(t *testing.T) {

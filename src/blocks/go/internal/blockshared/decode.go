@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 
-	"hcm-next-executor/internal/executor"
+	"human-capital-management-suite-executor/internal/executor"
 )
 
 // DecodeStrict decodes block input while rejecting unknown fields.

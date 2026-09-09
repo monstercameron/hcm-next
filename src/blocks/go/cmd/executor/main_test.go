@@ -7,13 +7,13 @@ import (
 	"testing"
 	"time"
 
-	"hcm-next-executor/internal/blocks/compensation"
-	"hcm-next-executor/internal/blocks/contactinfo"
-	"hcm-next-executor/internal/blocks/emergencycontact"
-	"hcm-next-executor/internal/blocks/legalname"
-	"hcm-next-executor/internal/blocks/orgtransfer"
-	"hcm-next-executor/internal/blocks/termination"
-	"hcm-next-executor/internal/executor"
+	"human-capital-management-suite-executor/internal/blocks/compensation"
+	"human-capital-management-suite-executor/internal/blocks/contactinfo"
+	"human-capital-management-suite-executor/internal/blocks/emergencycontact"
+	"human-capital-management-suite-executor/internal/blocks/legalname"
+	"human-capital-management-suite-executor/internal/blocks/orgtransfer"
+	"human-capital-management-suite-executor/internal/blocks/termination"
+	"human-capital-management-suite-executor/internal/executor"
 )
 
 // registeredBlockNames lists every block reference the service binary must

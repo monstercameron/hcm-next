@@ -1,6 +1,6 @@
 package emergencycontact
 
-import "hcm-next-executor/internal/executor"
+import "human-capital-management-suite-executor/internal/executor"
 
 const (
 	// PreflightBlockName is the emergency-contact deterministic validation block name.

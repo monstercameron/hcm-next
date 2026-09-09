@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"hcm-next-executor/internal/executor"
+	"human-capital-management-suite-executor/internal/executor"
 )
 
 const (

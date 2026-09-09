@@ -4,8 +4,8 @@ import (
 	"strings"
 	"time"
 
-	"hcm-next-executor/internal/blockshared"
-	"hcm-next-executor/internal/executor"
+	"human-capital-management-suite-executor/internal/blockshared"
+	"human-capital-management-suite-executor/internal/executor"
 )
 
 // PreflightInput is the contract for legal-name change validation.

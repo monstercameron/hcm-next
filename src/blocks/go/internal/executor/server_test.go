@@ -9,8 +9,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"hcm-next-executor/internal/blocks/legalname"
-	"hcm-next-executor/internal/executor"
+	"human-capital-management-suite-executor/internal/blocks/legalname"
+	"human-capital-management-suite-executor/internal/executor"
 )
 
 func TestHealthEndpoint(t *testing.T) {
