@@ -23,7 +23,7 @@ coordinates          compares external HCM/finance
 ```
 
 The Position Domain owns canonical position state only when source-authority
-policy assigns that field/time interval to HCM Next. Otherwise it owns proposals,
+policy assigns that field/time interval to Human Capital Management Suite. Otherwise it owns proposals,
 transactions, and external observations while reconciling the incumbent source.
 Master Data owns referenced job/location/cost-center concepts. Workflow may call
 position capabilities but cannot mutate position tables or emit position events.
@@ -174,7 +174,7 @@ Acceptance requires:
 2. Competing reservations produce one winner and an explainable conflict.
 3. A future position revision invalidates or reapproval-routes a stale proposal.
 4. Position and reference-data ownership remain separate in code and schemas.
-5. Reconciliation distinguishes HCM Next transaction truth from incumbent
+5. Reconciliation distinguishes Human Capital Management Suite transaction truth from incumbent
    external observation.
 
 ## Go-Only Realization

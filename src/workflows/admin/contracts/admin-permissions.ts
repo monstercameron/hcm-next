@@ -5,8 +5,8 @@ import {
   permissionDeniedError,
   type AppError,
   type Result,
-} from "@hcm-next/foundation";
-import type { ActorRecord } from "@hcm-next/data-store";
+} from "@human-capital-management-suite/foundation";
+import type { ActorRecord } from "@human-capital-management-suite/data-store";
 
 const workflowAdminRoles = new Set<string>([
   ACTOR_ROLES.HR_ADMIN,

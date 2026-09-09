@@ -1,8 +1,8 @@
-﻿=== root (github.com/monstercameron/hcm-next) ===
+﻿=== root (github.com/monstercameron/human-capital-management-suite) ===
 files(non-test)=2088 generated=42 hand-written=2046 hand-written-in-untested-pkgs=2
 untested pkgs(2): tools/gen/librarystrategy/cmd/generatelibrarystrategy, tools/gen/schemaflux/cmd/modelgen
 
-# Test-coverage file inventory - root (github.com/monstercameron/hcm-next) module
+# Test-coverage file inventory - root (github.com/monstercameron/human-capital-management-suite) module
 
 generated=42 hand-written=2046
 

@@ -1,4 +1,4 @@
-import type { Result } from "@hcm-next/foundation";
+import type { Result } from "@human-capital-management-suite/foundation";
 
 import type { DatabaseClient } from "../client";
 import { findOne } from "./repository-utils";

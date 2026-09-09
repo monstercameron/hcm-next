@@ -16,7 +16,7 @@
 # LIB-004/LIB-006/LIB-007/LIB-008 todo entries in planning/todos.md.
 
 version: 1
-module: github.com/monstercameron/hcm-next
+module: github.com/monstercameron/human-capital-management-suite
 
 # LIB-003: Protobuf/grpc-go qualified as wire and RPC mechanics only.
 #

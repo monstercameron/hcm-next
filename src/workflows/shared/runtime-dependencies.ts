@@ -1,6 +1,6 @@
-import type { AiClient } from "@hcm-next/ai-client";
-import type { ActorRecord, Repositories } from "@hcm-next/data-store";
-import type { AppError, Result, StructuredLogger } from "@hcm-next/foundation";
+import type { AiClient } from "@human-capital-management-suite/ai-client";
+import type { ActorRecord, Repositories } from "@human-capital-management-suite/data-store";
+import type { AppError, Result, StructuredLogger } from "@human-capital-management-suite/foundation";
 
 export type ApiRequestContext = {
   actor: ActorRecord;

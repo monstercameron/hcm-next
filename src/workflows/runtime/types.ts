@@ -1,5 +1,5 @@
-import type { WorkflowTransition } from "@hcm-next/foundation";
-import type { WorkflowInstanceRecord } from "@hcm-next/data-store";
+import type { WorkflowTransition } from "@human-capital-management-suite/foundation";
+import type { WorkflowInstanceRecord } from "@human-capital-management-suite/data-store";
 import type {
   WorkflowActionConfig,
   WorkflowConfig,

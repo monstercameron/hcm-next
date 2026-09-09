@@ -1,7 +1,7 @@
 # Simulated Compensation Decision API
 
 This package is a separate simulated third-party compensation approval service.
-It is intentionally outside `src/api`, which is the internal HCM Next API server.
+It is intentionally outside `src/api`, which is the internal Human Capital Management Suite API server.
 
 Run it locally:
 

@@ -1,6 +1,6 @@
 # Transaction Ledger, Reconciliation, and Repair
 
-Extracted from the HCM Next architecture constitution so this contract can evolve independently. The master delivery scope remains governed by [../execution-plan.md](../execution-plan.md).
+Extracted from the Human Capital Management Suite architecture constitution so this contract can evolve independently. The master delivery scope remains governed by [../execution-plan.md](../execution-plan.md).
 
 ## 8. Platform Capabilities
 
@@ -25,7 +25,7 @@ Routes actions using HCM-specific context such as:
 
 Simulation should disclose what is known and how it is known. Effects are classified as:
 
-- Deterministic HCM Next effects
+- Deterministic Human Capital Management Suite effects
 - Policy-based predictions
 - Connector-derived intended payloads
 - Estimated external-system outcomes
@@ -66,13 +66,13 @@ Ledger authority is attached to the assertion, not inferred from the fact that a
 
 | Assertion class        | Meaning                                                                                           |
 | ---------------------- | ------------------------------------------------------------------------------------------------- |
-| `TRANSACTION_FACT`     | HCM Next authoritatively records its own proposal, decision, plan, attempt, or transaction result |
-| `DOMAIN_FACT`          | HCM Next is the configured authority for the asserted domain fact and effective interval          |
+| `TRANSACTION_FACT`     | Human Capital Management Suite authoritatively records its own proposal, decision, plan, attempt, or transaction result |
+| `DOMAIN_FACT`          | Human Capital Management Suite is the configured authority for the asserted domain fact and effective interval          |
 | `EXTERNAL_OBSERVATION` | Another configured authority reported a value at an observation time                              |
 | `CLAIM`                | A human, service, agent, document, or import asserted something not yet promoted to domain truth  |
 | `CORRECTION`           | A later governed assertion corrects, completes, or supersedes an earlier assertion                |
 
-For example, `CompensationObserved(amount=145000, source=Workday)` is authoritative evidence that HCM Next observed Workday report that value. It becomes authoritative compensation truth only if the source-authority contract says that Workday governed that field and interval, or a governed process promotes the assertion.
+For example, `CompensationObserved(amount=145000, source=Workday)` is authoritative evidence that Human Capital Management Suite observed Workday report that value. It becomes authoritative compensation truth only if the source-authority contract says that Workday governed that field and interval, or a governed process promotes the assertion.
 
 ```text
 immutable event chronology
@@ -114,7 +114,7 @@ Retroactive changes never erase prior history. They create correction lineage an
 
 The ledger is the authoritative business-event source for the platform. It is not the application logging system.
 
-HCM Next operates two connected but separate information planes:
+Human Capital Management Suite operates two connected but separate information planes:
 
 | Business ledger                           | Software telemetry                        |
 | ----------------------------------------- | ----------------------------------------- |
@@ -254,7 +254,7 @@ Each event must identify its subject and stream, its sequence within the relevan
 
 - `occurred_at` — when the originating activity occurred
 - `effective_at` — when the business fact applies
-- `recorded_at` — when HCM Next durably recorded it
+- `recorded_at` — when Human Capital Management Suite durably recorded it
 
 A projection records the last source sequence it applied. If the ledger stream is ahead, the difference is measurable projection lag rather than invisible inconsistency.
 
@@ -302,7 +302,7 @@ If affected authoritative streams do not share one database transaction boundary
 
 ### 8.12 Continuous Integrity and Invariants
 
-Reconciliation is a permanent background capability, not an occasional administrative action. HCM Next must continuously test whether derived and external state agrees with authoritative business truth.
+Reconciliation is a permanent background capability, not an occasional administrative action. Human Capital Management Suite must continuously test whether derived and external state agrees with authoritative business truth.
 
 ```text
 Ledger
@@ -339,7 +339,7 @@ An invariant violation produces a business event, diagnosis, and governed repair
 
 ### 8.13 Business Correction and Derived-State Repair
 
-HCM Next must distinguish correction of a business assertion from repair of derived state.
+Human Capital Management Suite must distinguish correction of a business assertion from repair of derived state.
 
 ```text
 Business correction
@@ -478,7 +478,7 @@ The Operations Center should be a major product surface, not a hidden administra
 - Causal timelines and technical trace links
 - Repair simulation, approval, execution, and verification
 
-This turns the ledger from a persistence choice into a customer-visible capability: HCM Next can explain how workforce state came to exist, detect when derived or external systems disagree, and provide a governed path back to consistency.
+This turns the ledger from a persistence choice into a customer-visible capability: Human Capital Management Suite can explain how workforce state came to exist, detect when derived or external systems disagree, and provide a governed path back to consistency.
 
 ### 8.17 Storage, Checkpoint, and Reducer Evolution
 
@@ -493,7 +493,7 @@ Search indexes      = disposable state
 Telemetry           = operational evidence with separate retention
 ```
 
-Physical storage may evolve from a shared Postgres ledger into partitions, dedicated tenant infrastructure, change-data capture, event streams, search systems, and analytical storage. The rest of HCM Next should continue to use stable logical operations such as append event, read stream, read causal timeline, and replay stream.
+Physical storage may evolve from a shared Postgres ledger into partitions, dedicated tenant infrastructure, change-data capture, event streams, search systems, and analytical storage. The rest of Human Capital Management Suite should continue to use stable logical operations such as append event, read stream, read causal timeline, and replay stream.
 
 Snapshots and checkpoints improve replay performance but never become irrecoverable truth. The system must be able to discard and reconstruct them from authoritative events.
 

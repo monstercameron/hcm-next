@@ -15,6 +15,6 @@ export {
   validationFailedError,
   versionConflictError,
   workflowNotFoundError,
-} from "@hcm-next/foundation";
+} from "@human-capital-management-suite/foundation";
 
-export type { AppError, ErrorCode, Result } from "@hcm-next/foundation";
+export type { AppError, ErrorCode, Result } from "@human-capital-management-suite/foundation";

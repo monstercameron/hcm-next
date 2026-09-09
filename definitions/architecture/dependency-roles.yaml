@@ -4,7 +4,7 @@
 # the root go.mod's require block (direct and the "notable indirect ones"
 # per LIB-001's own phrasing) so nothing enters the build ungoverned.
 #
-# Governing rule (planning/todos.md, section 2B): HCM Next owns HCM
+# Governing rule (planning/todos.md, section 2B): Human Capital Management Suite owns HCM
 # semantics; third-party libraries provide infrastructure mechanics. Per the
 # LIB-001 RED clause, PROJECT_CORE is reserved for exactly the entries in
 # project_core_reserved below (Go itself, GWC, grpcbridge, SchemaFlux) and
@@ -18,7 +18,7 @@
 # graph pruning, Go 1.17+) already keeps go.mod's indirect requires to the
 # modules actually needed to build packages this module imports; "go list -m
 # all" additionally enumerates modules that ship in a dependency's own
-# go.mod but are never built into anything HCM Next produces (for example
+# go.mod but are never built into anything Human Capital Management Suite produces (for example
 # unused cloud-provider SDKs pulled in only for MVS version bookkeeping by
 # grpc-go's or testcontainers-go's own go.mod). Governing those would create
 # manifest rows with no owner able to give a meaningful upgrade SLA or
@@ -26,7 +26,7 @@
 # to decide whether any such module warrants an explicit PROHIBITED row.
 
 version: 1
-module: github.com/monstercameron/hcm-next
+module: github.com/monstercameron/human-capital-management-suite
 source: go.mod require block
 
 project_core_reserved:
@@ -97,7 +97,7 @@ modules:
     allowed_import_roots: []
     direct_import_expected: false
     upgrade_sla: Tracks pressly/goose/v3's own pin.
-    exposure: Build-time-only transitive dependency of goose's provider parsing; no direct import by HCM Next packages.
+    exposure: Build-time-only transitive dependency of goose's provider parsing; no direct import by Human Capital Management Suite packages.
     replacement_strategy: Tracks pressly/goose/v3; no independent replacement needed unless goose is replaced.
 
   - path: github.com/cockroachdb/apd/v3
@@ -640,7 +640,7 @@ modules:
     direct_import_expected: false
     upgrade_sla: Tracks github.com/monstercameron/schemaflux's own pin.
     exposure: >-
-      Transitive dependency of schemaflux; never imported directly. HCM Next
+      Transitive dependency of schemaflux; never imported directly. Human Capital Management Suite
       reads configuration through internal/platform/bootstrap, not .env files.
     replacement_strategy: Removed automatically when schemaflux is dropped.
 
@@ -732,7 +732,7 @@ modules:
     upgrade_sla: Best-effort.
     exposure: >-
       Indirect test-only dependency of gopkg.in/yaml.v3 (fmtsort) recorded by
-      go mod tidy; never imported by HCM Next code and never on the production
+      go mod tidy; never imported by Human Capital Management Suite code and never on the production
       request path.
     replacement_strategy: Disappears if yaml.v3 is replaced; no action.
   - path: gopkg.in/yaml.v3

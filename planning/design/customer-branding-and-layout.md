@@ -1,7 +1,7 @@
 # Customer branding, reorganization and styling
 
 Status: proposed customer-experience design contract, September 5, 2026.
-Green is the shipped HCM Next identity, not a fixed customer requirement.
+Green is the shipped Human Capital Management Suite identity, not a fixed customer requirement.
 
 The [interactive workspace slice](hcm-brandable-workspace.html) now demonstrates
 company identity, brand accent, shape, density, navigation grouping, section

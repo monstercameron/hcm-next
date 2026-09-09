@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { WORKFLOW_ROUTE_KEYS } from "@hcm-next/foundation";
+import { WORKFLOW_ROUTE_KEYS } from "@human-capital-management-suite/foundation";
 import type { WorkflowConfig } from "../shared/workflow-config.js";
 import { advanceWorkflowGraph } from "./graph-runtime.js";
 

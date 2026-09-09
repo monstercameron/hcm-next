@@ -7,13 +7,13 @@ import {
   validationFailedError,
   type AppError,
   type Result,
-} from "@hcm-next/foundation";
+} from "@human-capital-management-suite/foundation";
 import type {
   AiUiGenerationActor,
   AiUiGenerationRequest,
   AiUiGenerationSubject,
-} from "@hcm-next/ai-client";
-import type { EmployeeProjectionRecord } from "@hcm-next/data-store";
+} from "@human-capital-management-suite/ai-client";
+import type { EmployeeProjectionRecord } from "@human-capital-management-suite/data-store";
 import type { AppDependencies } from "./dependencies.js";
 import type { ApiRequestContext } from "./request-context.js";
 import {

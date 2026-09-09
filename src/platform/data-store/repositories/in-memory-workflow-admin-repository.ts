@@ -13,7 +13,7 @@ import {
   type Result,
   type WorkflowAdminDraftStatus,
   type WorkflowAdminFamilyStatus,
-} from "@hcm-next/foundation";
+} from "@human-capital-management-suite/foundation";
 import { makeId, nowIso, type HcmNextStore } from "../store.js";
 import type {
   WorkflowAdminDraftRecord,

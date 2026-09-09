@@ -6,7 +6,7 @@ import {
   mapUnknownToDatabaseError,
   ok,
   type Result,
-} from "@hcm-next/foundation";
+} from "@human-capital-management-suite/foundation";
 
 import { executeInTransaction, type DatabaseClient } from "../client";
 import { DEMO_ORGANIZATION } from "../demo-organization";

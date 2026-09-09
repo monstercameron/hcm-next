@@ -258,8 +258,8 @@ const targetsForbiddenLayer = (filePath, specifier) => {
   const target = resolvedImportTarget(filePath, specifier);
 
   return (
-    target === "@hcm-next/api" ||
-    target.startsWith("@hcm-next/api/") ||
+    target === "@human-capital-management-suite/api" ||
+    target.startsWith("@human-capital-management-suite/api/") ||
     target.startsWith("src/api/")
   );
 };

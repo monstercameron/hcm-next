@@ -3,7 +3,7 @@
 ## Purpose
 
 This contract defines the top-level responsibility boundaries and permitted
-dependency direction for HCM Next. A plane is a logical ownership boundary, not
+dependency direction for Human Capital Management Suite. A plane is a logical ownership boundary, not
 necessarily a separately deployed service.
 
 The central rule is:

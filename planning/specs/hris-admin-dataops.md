@@ -1,12 +1,12 @@
 # HRIS Admin Toolkit and DataOps
 
-This specification defines an adjacent product surface built from the same governed capabilities needed to operate HCM Next. It does not expand HCM Next into payroll, recruiting, benefits, or another HCM domain suite.
+This specification defines an adjacent product surface built from the same governed capabilities needed to operate Human Capital Management Suite. It does not expand Human Capital Management Suite into payroll, recruiting, benefits, or another HCM domain suite.
 
 ## Product Thesis
 
-HRIS administrators spend substantial time importing, mapping, comparing, debugging, correcting, promoting, and explaining data across systems. HCM Next already needs those primitives for ChangeOps.
+HRIS administrators spend substantial time importing, mapping, comparing, debugging, correcting, promoting, and explaining data across systems. Human Capital Management Suite already needs those primitives for ChangeOps.
 
-> When HCM Next builds an internal operation to diff, replay, inspect, map, validate, simulate, reconcile, explain, or promote, evaluate whether the same operation can safely become a governed customer capability.
+> When Human Capital Management Suite builds an internal operation to diff, replay, inspect, map, validate, simulate, reconcile, explain, or promote, evaluate whether the same operation can safely become a governed customer capability.
 
 ```text
                  HCM NEXT PLATFORM KERNEL
@@ -207,7 +207,7 @@ Large batches declare write sets, tenant budgets, concurrency, checkpoint size, 
                             |
        +--------------------+--------------------+
        v                    v                    v
- HCM Next projection   Workday observation   Payroll observation
+ Human Capital Management Suite projection   Workday observation   Payroll observation
        |                    |                    |
        +--------------------+--------------------+
                             v
@@ -255,7 +255,7 @@ history.explain(
 )
 ```
 
-Results label domain facts, external observations, claims, corrections, workflow proposals, and projection versions. “What was effective?” and “what did HCM Next know?” remain separate questions.
+Results label domain facts, external observations, claims, corrections, workflow proposals, and projection versions. “What was effective?” and “what did Human Capital Management Suite know?” remain separate questions.
 
 ### 4. AuthZ Simulator and Explainer
 

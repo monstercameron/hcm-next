@@ -14,7 +14,7 @@
 # ARCH-GO-004..013 todo entries in planning/todos.md.
 
 version: 1
-module: github.com/monstercameron/hcm-next
+module: github.com/monstercameron/human-capital-management-suite
 
 # ARCH-GO-004: internal/kernel stays dependency-minimal. Every kernel
 # subpackage's non-stdlib imports must match one of these prefixes; nothing
@@ -157,7 +157,7 @@ ceremony:
     - "*_impl"
   exceptions:
     - kind: one-method-interface-no-consumer
-      package: github.com/monstercameron/hcm-next/tools/conformance/runner
+      package: github.com/monstercameron/human-capital-management-suite/tools/conformance/runner
       owner: platform-foundation
       rationale: >-
         Runner is the deliberately replaceable conformance seam; its sole
@@ -166,7 +166,7 @@ ceremony:
       evidence: tools/conformance/runner/compiled.go and conformance callers
       expiry: "2026-12-31"
     - kind: forwarding-only-layer
-      package: github.com/monstercameron/hcm-next/tools/uxqual/cmd/uxqualwasm
+      package: github.com/monstercameron/human-capital-management-suite/tools/uxqual/cmd/uxqualwasm
       owner: experience-and-transport
       rationale: >-
         This command is a thin WebAssembly entrypoint required by the browser
@@ -175,7 +175,7 @@ ceremony:
       evidence: tools/uxqual/cmd/uxqualwasm/main_wasm.go and browser harness
       expiry: "2026-12-31"
     - kind: forwarding-only-layer
-      package: github.com/monstercameron/hcm-next/cmd/hcmctl
+      package: github.com/monstercameron/human-capital-management-suite/cmd/hcmctl
       owner: experience-and-transport
       rationale: >-
         cmd/hcmctl is the process entrypoint the repository layout requires
@@ -186,7 +186,7 @@ ceremony:
       evidence: cmd/hcmctl/main.go and cmd/hcmctl/main_test.go
       expiry: "2026-12-31"
     - kind: one-method-interface-no-consumer
-      package: github.com/monstercameron/hcm-next/internal/ledger
+      package: github.com/monstercameron/human-capital-management-suite/internal/ledger
       owner: data-and-ledger
       rationale: >-
         Digester is the consumer-owned hash-chain port implemented by the

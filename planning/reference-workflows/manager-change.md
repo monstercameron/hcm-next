@@ -3,7 +3,7 @@
 ## Purpose and scope
 
 Manager Change is the smallest useful proof that a primarily People-domain
-mutation still travels through the complete HCM Next control path. It is a
+mutation still travels through the complete Human Capital Management Suite control path. It is a
 design/conformance fixture and does not expand Phase 1 delivery scope.
 
 ```text
@@ -170,7 +170,7 @@ ObligationState    SATISFIED
 If an incumbent HRIS remains authoritative, the local ledger records the
 transaction request and external observation honestly. Business completion then
 depends on the governed external write and observing the incumbent report Bob;
-HCM Next must not promote its own intended projection to domain truth.
+Human Capital Management Suite must not promote its own intended projection to domain truth.
 
 ## Required conformance scenarios
 

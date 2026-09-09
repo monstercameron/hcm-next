@@ -1,4 +1,4 @@
-# HCM Next User-Story Corpus
+# Human Capital Management Suite User-Story Corpus
 
 A corpus of one thousand user stories that exercise the workflows in
 [`../workflows/catalog.md`](../workflows/catalog.md). Each story is written so

@@ -5,12 +5,12 @@ import {
   validationFailedError,
   type AppError,
   type Result,
-} from "@hcm-next/foundation";
+} from "@human-capital-management-suite/foundation";
 import type {
   ActorRecord,
   EmployeeProjectionRecord,
   LedgerEventRecord,
-} from "@hcm-next/data-store";
+} from "@human-capital-management-suite/data-store";
 import {
   canViewEmployee,
   type EmployeeAccessInput,

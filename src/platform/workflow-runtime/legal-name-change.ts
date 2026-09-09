@@ -5,7 +5,7 @@ import {
   WORKFLOW_TRANSITIONS,
   type WorkflowState,
   type WorkflowTransition,
-} from "@hcm-next/foundation";
+} from "@human-capital-management-suite/foundation";
 import { z } from "zod";
 
 export const legalNameInputSchema = z.object({

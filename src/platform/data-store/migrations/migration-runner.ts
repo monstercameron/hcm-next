@@ -7,7 +7,7 @@ import {
   mapUnknownToSystemError,
   ok,
   type Result,
-} from "@hcm-next/foundation";
+} from "@human-capital-management-suite/foundation";
 
 import { executeInTransaction, type DatabaseClient } from "../client";
 import type { Pool } from "pg";

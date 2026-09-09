@@ -6,8 +6,8 @@ import {
   validationFailedError,
   type AppError,
   type Result,
-} from "@hcm-next/foundation";
-import { DEMO_IDS, type Repositories } from "@hcm-next/data-store";
+} from "@human-capital-management-suite/foundation";
+import { DEMO_IDS, type Repositories } from "@human-capital-management-suite/data-store";
 import type { ApiRequestContext } from "../workflows/shared/runtime-dependencies.js";
 
 export type { ApiRequestContext } from "../workflows/shared/runtime-dependencies.js";

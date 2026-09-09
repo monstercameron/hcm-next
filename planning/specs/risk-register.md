@@ -1,6 +1,6 @@
 # Architecture and Product Risk Register
 
-Extracted from the HCM Next architecture constitution so this contract can evolve independently. The master delivery scope remains governed by [../execution-plan.md](../execution-plan.md).
+Extracted from the Human Capital Management Suite architecture constitution so this contract can evolve independently. The master delivery scope remains governed by [../execution-plan.md](../execution-plan.md).
 
 ## 15. Major Risks and Responses
 
@@ -120,7 +120,7 @@ Response:
 
 Resolve language, country, currency, timezone, calendar, and jurisdiction independently; keep canonical APIs locale-neutral; use explicit Money and business-time types; version calendars, rates, translations, and documents; distinguish localization from legal policy; and block unsafe fallback for regulated content.
 
-### Risk 20: HCM Next Encodes Incorrect or Stale Legal Interpretations
+### Risk 20: Human Capital Management Suite Encodes Incorrect or Stale Legal Interpretations
 
 Response:
 
@@ -696,7 +696,7 @@ Response:
 
 Label every comparative claim `INCUMBENT_CURRENT`, `HCM_NEXT_IMPLEMENTED`, `HCM_NEXT_PILOT`, `HCM_NEXT_CONTRACTED`, or `HCM_NEXT_ASPIRATION`, with verification date and evidence. Prohibit unlabeled radar charts and feature scores. Current automated/operating evidence is required before marketing a contract as shipped behavior.
 
-### Risk 116: HCM Next Adds More Complexity Than It Removes
+### Risk 116: Human Capital Management Suite Adds More Complexity Than It Removes
 
 Response:
 

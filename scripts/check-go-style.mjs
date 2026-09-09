@@ -64,7 +64,7 @@ const runGofmtCheck = (label, goFiles) => {
   );
 };
 
-// --- Legacy module: src/blocks/go (its own go.mod, hcm-next-executor) ---
+// --- Legacy module: src/blocks/go (its own go.mod, human-capital-management-suite-executor) ---
 
 const legacyGoRoot = "src/blocks/go";
 const legacyIgnoredPathSegments = new Set([".git", "dist", "tmp", "vendor"]);
@@ -84,7 +84,7 @@ if (!existsSync(legacyGoRoot)) {
   }
 }
 
-// --- Root module: github.com/monstercameron/hcm-next (repository root go.mod) ---
+// --- Root module: github.com/monstercameron/human-capital-management-suite (repository root go.mod) ---
 //
 // Walks every root-module Go file except the legacy module (src/), vendored
 // JS (node_modules/) and Go's own package-discovery exclusions (testdata/,

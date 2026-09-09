@@ -5,7 +5,7 @@ import {
   validationFailedError,
   type AppError,
   type Result,
-} from "@hcm-next/foundation";
+} from "@human-capital-management-suite/foundation";
 import legalNameWorkflowConfigJson from "../configs/employee-legal-name-change.workflow.json";
 import emergencyContactWorkflowConfigJson from "../configs/employee-emergency-contact-update.workflow.json";
 import contactInfoWorkflowConfigJson from "../configs/employee-contact-info-update.workflow.json";

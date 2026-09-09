@@ -2,7 +2,7 @@
 
 ## Binding Decision
 
-The HCM Next product core is authored in Go: services, workflow runtime, domain
+The Human Capital Management Suite product core is authored in Go: services, workflow runtime, domain
 packages, data access, connectors, operations workers, and command-line tools.
 Protobuf/gRPC is the canonical contract. PostgreSQL is the initial store.
 
@@ -96,7 +96,7 @@ contract authority in either case.
 
 ## Supporting Technology
 
-“Core libraries” does not mean HCM Next must implement databases, cryptography,
+“Core libraries” does not mean Human Capital Management Suite must implement databases, cryptography,
 or protocols from scratch. Supporting infrastructure may include PostgreSQL,
 Protobuf/gRPC, OpenTelemetry, object storage, operating-system facilities, and
 other reviewed open-source or managed infrastructure.
@@ -106,7 +106,7 @@ Selection order is:
 ```text
 Go standard library
       |
-HCM Next core libraries
+Human Capital Management Suite core libraries
       |
 small maintained open-source Go package
       |

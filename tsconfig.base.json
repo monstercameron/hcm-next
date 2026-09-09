@@ -17,18 +17,30 @@
     "skipLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@hcm-next/foundation": ["src/platform/foundation/index.ts"],
-      "@hcm-next/foundation/*": ["src/platform/foundation/*"],
-      "@hcm-next/data-store": ["src/platform/data-store/index.ts"],
-      "@hcm-next/data-store/*": ["src/platform/data-store/*"],
-      "@hcm-next/workflow-runtime": ["src/platform/workflow-runtime/index.ts"],
-      "@hcm-next/workflow-runtime/*": ["src/platform/workflow-runtime/*"],
-      "@hcm-next/ui-contracts": ["src/platform/ui-contracts/index.ts"],
-      "@hcm-next/ui-contracts/*": ["src/platform/ui-contracts/*"],
-      "@hcm-next/ui-runtime": ["src/platform/ui-runtime/index.ts"],
-      "@hcm-next/ui-runtime/*": ["src/platform/ui-runtime/*"],
-      "@hcm-next/ai-client": ["src/platform/ai-client/index.ts"],
-      "@hcm-next/ai-client/*": ["src/platform/ai-client/*"]
+      "@human-capital-management-suite/foundation": [
+        "src/platform/foundation/index.ts"
+      ],
+      "@human-capital-management-suite/foundation/*": ["src/platform/foundation/*"],
+      "@human-capital-management-suite/data-store": [
+        "src/platform/data-store/index.ts"
+      ],
+      "@human-capital-management-suite/data-store/*": ["src/platform/data-store/*"],
+      "@human-capital-management-suite/workflow-runtime": [
+        "src/platform/workflow-runtime/index.ts"
+      ],
+      "@human-capital-management-suite/workflow-runtime/*": [
+        "src/platform/workflow-runtime/*"
+      ],
+      "@human-capital-management-suite/ui-contracts": [
+        "src/platform/ui-contracts/index.ts"
+      ],
+      "@human-capital-management-suite/ui-contracts/*": ["src/platform/ui-contracts/*"],
+      "@human-capital-management-suite/ui-runtime": [
+        "src/platform/ui-runtime/index.ts"
+      ],
+      "@human-capital-management-suite/ui-runtime/*": ["src/platform/ui-runtime/*"],
+      "@human-capital-management-suite/ai-client": ["src/platform/ai-client/index.ts"],
+      "@human-capital-management-suite/ai-client/*": ["src/platform/ai-client/*"]
     }
   }
 }

@@ -3,8 +3,8 @@ import {
   createRepositories,
   createSeededDemoStore,
   DEMO_IDS,
-} from "@hcm-next/data-store";
-import { createNullAiClient } from "@hcm-next/ai-client";
+} from "@human-capital-management-suite/data-store";
+import { createNullAiClient } from "@human-capital-management-suite/ai-client";
 import type { AppDependencies } from "./dependencies.js";
 import type { ApiRequestContext } from "./request-context.js";
 import { AI_CHAT_TOOL_DEFINITIONS, executeToolCall } from "./ai-chat-tools.js";

@@ -12,7 +12,7 @@
 # invariants this manifest turns into an evaluable rule set.
 
 version: 1
-module: github.com/monstercameron/hcm-next
+module: github.com/monstercameron/human-capital-management-suite
 
 disposition: >-
   Rules describe semantic ownership direction, not directory-depth

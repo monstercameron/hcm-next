@@ -1,4 +1,4 @@
-# HCM Next visual language and UI craft
+# Human Capital Management Suite visual language and UI craft
 
 Status: proposed visual specification, September 5, 2026. Preserves the approved
 green Home direction. This document refines visual decisions; it does not

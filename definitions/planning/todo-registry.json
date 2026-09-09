@@ -4820,7 +4820,7 @@
     },
     "red": "disabled/unlinked identity authenticates, live or queued authority survives revocation epoch, token/authenticator/federation/delegation remains usable, weak recovery elevates assurance or concurrent authenticate wins after committed revoke",
     "green": "durable account/person/principal/tenant bindings drive immutable lifecycle transitions and revocation epochs; all derived sessions, token families, authenticators and delegation chains are fenced, recovery is assurance-bounded and relink preserves history/evidence",
-    "refactor": "lifecycle fan-out consumes canonical authority relationships; providers never own HCM Next principal truth",
+    "refactor": "lifecycle fan-out consumes canonical authority relationships; providers never own Human Capital Management Suite principal truth",
     "refs": "[security models](data/models/security-trust.md), [identity foundation](specs/platform-foundation-gap-closure.md), [production identity](#32-production-identity-key-custody-and-edge-enforcement)",
     "retired": false,
     "done": true,
@@ -6496,7 +6496,7 @@
       "PROPERTY": "TestTodo_COMP_001_Property",
       "SECURITY": "TestTodo_COMP_001_Security"
     },
-    "red": "unauthorized components, raw bank/payroll data, implicit currency/pay basis or incumbent observation labeled HCM Next fact is returned",
+    "red": "unauthorized components, raw bank/payroll data, implicit currency/pay basis or incumbent observation labeled Human Capital Management Suite fact is returned",
     "green": "allowed package/components include currency, basis, frequency, effective/known time, authority, source and exact decimals",
     "refactor": "field-level disclosure uses shared masks and classification",
     "refs": "[Compensation domain](specs/compensation-domain.md), [rewards models](data/models/rewards-payroll-workforce.md)",
@@ -8628,7 +8628,7 @@
       "PROPERTY": "TestTodo_CUSTOMER_001_Property",
       "SECURITY": "TestTodo_CUSTOMER_001_Security"
     },
-    "red": "blueprint lacks customer/HCM Next/provider owner, prerequisite, input/output artifact, due/expiry, acceptance oracle, data-processing boundary, escalation or fallback for any pilot workstream; assumed customer capability reports ready",
+    "red": "blueprint lacks customer/Human Capital Management Suite/provider owner, prerequisite, input/output artifact, due/expiry, acceptance oracle, data-processing boundary, escalation or fallback for any pilot workstream; assumed customer capability reports ready",
     "green": "versioned RACI and implementation graph covers discovery through hypercare, binds every dependency to exact evidence and stop/go gate and returns `UNKNOWN|BLOCKED` for missing or stale customer/provider inputs",
     "refactor": "instantiate the reusable blueprint per tenant; customer-specific facts never alter the platform's semantic contracts",
     "refs": "[responsibility boundaries](specs/platform-responsibility-boundaries.md), [customer onboarding](#35-artifact-bytes-and-customer-data-onboarding), [execution plan](execution-plan.md)",
@@ -11355,7 +11355,7 @@
     },
     "red": "abstract WAF/proxy/DNS, wildcard/default route, unpinned version, ownerless certificate, fail-open egress, unlogged bypass or absent outage/replacement path reports ready",
     "green": "concrete manifest proves exact route/method/body/TLS/DNS/east-west/egress allowlist, logging/redaction, rate/abuse budgets, ownership, degraded/outage and migration behavior against endpoint and threat registries",
-    "refactor": "edge products remain adapters to HCM Next route/security policy and cannot define semantic authorization",
+    "refactor": "edge products remain adapters to Human Capital Management Suite route/security policy and cannot define semantic authorization",
     "refs": "[edge enforcement](#32-production-identity-key-custody-and-edge-enforcement), [endpoint contract](specs/http-grpc-endpoint-contract.md), [threat registry](#product-decision-and-implementation-convergence)",
     "retired": false,
     "done": true,
@@ -20333,7 +20333,7 @@
       "PROPERTY": "TestTodo_LIB_002_Property"
     },
     "red": "`TestThirdPartySemanticFirewall` injects pgx/CEL/apd/OTel/OIDC/Goose/Testcontainers/provider types into Protobuf, definitions, intent, capability, workflow definitions, domain models, ledger events or owner ports and reports the shortest forbidden import/type-exposure path",
-    "green": "only manifest-approved implementation roots import each dependency; exported owned contracts contain HCM Next/kernel/generated types; compile-time and descriptor scans prove third-party types do not become wire, stored semantic or cross-package authority contracts",
+    "green": "only manifest-approved implementation roots import each dependency; exported owned contracts contain Human Capital Management Suite/kernel/generated types; compile-time and descriptor scans prove third-party types do not become wire, stored semantic or cross-package authority contracts",
     "refactor": "allow narrowly evidenced standard-library use without wrapper ceremony; exceptions are owner-, rationale-, version- and expiry-bound",
     "refs": "[Package dependency policy](#2a-modular-go-monolith-and-semantic-package-architecture), [capability registry](specs/capability-registry-and-lifecycle.md)",
     "retired": false,
@@ -20358,7 +20358,7 @@
       "PRIMARY": "TestGRPCBackendQualification"
     },
     "red": "`TestGRPCBackendQualification` fails on an unpinned generator/runtime pair, descriptor/runtime incompatibility, lost presence/unknown fields, inconsistent canonical errors/deadlines/cancellation or transport metadata becoming caller-selectable governance context",
-    "green": "a pinned `google.golang.org/protobuf` and `google.golang.org/grpc` combination passes generated round-trip, streaming, cancellation, size-limit and grpcbridge parity vectors while HCM Next owns all message semantics, capability metadata and error taxonomy",
+    "green": "a pinned `google.golang.org/protobuf` and `google.golang.org/grpc` combination passes generated round-trip, streaming, cancellation, size-limit and grpcbridge parity vectors while Human Capital Management Suite owns all message semantics, capability metadata and error taxonomy",
     "refactor": "generated wire code remains isolated from authored domains and grpc-go types do not cross capability/domain ports",
     "refs": "[Public API contracts](#29-machine-readable-model-sources-and-public-api-contracts), [grpcbridge boundary](specs/go-only-technology-constitution.md)",
     "retired": false,
@@ -20493,8 +20493,8 @@
       "RACE": "TestTodo_LIB_008_Race"
     },
     "red": "`TestGooseBackendQualification` fails on checksum drift, duplicate/concurrent application, dirty-state continuation, missing lock/journal evidence, nontransactional ambiguity or a Go migration lacking explicit need, idempotency and resumable failure contract",
-    "green": "pinned `goose/v3` runs SQL migrations by default through `cmd/migrate`, records HCM Next schema-release evidence, supports zero-to-head and approved reversible/roll-forward paths, and allows Go migrations only for reviewed data transformations",
-    "refactor": "HCM Next owns compatibility, fencing and evidence semantics; Goose supplies ordering/execution mechanics only",
+    "green": "pinned `goose/v3` runs SQL migrations by default through `cmd/migrate`, records Human Capital Management Suite schema-release evidence, supports zero-to-head and approved reversible/roll-forward paths, and allows Go migrations only for reviewed data transformations",
+    "refactor": "Human Capital Management Suite owns compatibility, fencing and evidence semantics; Goose supplies ordering/execution mechanics only",
     "refs": "[Database migration framework](specs/platform-foundation-gap-closure.md), [database materialization](#26-postgresql-database-and-model-materialization)",
     "retired": false,
     "done": true,
@@ -20629,7 +20629,7 @@
       "PROPERTY": "TestTodo_LIB_013_Property"
     },
     "red": "`TestProhibitedFrameworkPolicy` fails when GORM/Ent or another ORM controls authoritative transaction semantics; Temporal/Camunda becomes the persisted business workflow model; JavaScript/Lua/Python/Starlark executes customer rules; Kafka/full broker becomes mandatory for Phase 1 correctness; or provider SDK types enter domain contracts",
-    "green": "authoritative SQL/locking/temporal/outbox behavior stays explicit; workflow/rules/integration semantics remain HCM Next-owned; PostgreSQL/outbox is sufficient for Phase 1; a future mechanical scheduler/broker/provider SDK requires a measured gate and adapter conformance without changing semantic contracts",
+    "green": "authoritative SQL/locking/temporal/outbox behavior stays explicit; workflow/rules/integration semantics remain Human Capital Management Suite-owned; PostgreSQL/outbox is sufficient for Phase 1; a future mechanical scheduler/broker/provider SDK requires a measured gate and adapter conformance without changing semantic contracts",
     "refactor": "policy prohibits semantic capture, not evidence-based use of a replaceable mechanic in a later phase",
     "refs": "[Workflow runtime](specs/workflow-runtime.md), [Phase 1 scope](execution-plan.md), [Go technology constitution](specs/go-only-technology-constitution.md)",
     "retired": false,
@@ -20699,7 +20699,7 @@
       "PRIMARY": "TestReadmeLibraryStrategyMatchesManifest"
     },
     "red": "`TestReadmeLibraryStrategyMatchesManifest` fails when README omits semantic ownership, mislabels an infrastructure module as project core, lists an unapproved dependency, omits a prohibited semantic framework, implies Node/TypeScript production support or disagrees with the package/dependency manifests",
-    "green": "README states that HCM Next owns intent/capability/governance/workflow/transaction/ledger/engine/domain semantics; Go plus GWC/grpcbridge/SchemaFlux are the declared core; approved third-party Go modules are replaceable mechanics; and the package/dependency diagram and candidate status are generated from current manifests",
+    "green": "README states that Human Capital Management Suite owns intent/capability/governance/workflow/transaction/ledger/engine/domain semantics; Go plus GWC/grpcbridge/SchemaFlux are the declared core; approved third-party Go modules are replaceable mechanics; and the package/dependency diagram and candidate status are generated from current manifests",
     "refactor": "keep concise human guidance authored while generating volatile versions/status/tables to prevent documentation drift",
     "refs": "[Go technology constitution](specs/go-only-technology-constitution.md), [repository architecture](#2a-modular-go-monolith-and-semantic-package-architecture), [documentation governance](specs/specification-ownership-registry.md)",
     "retired": false,
@@ -21413,7 +21413,7 @@
       "RACE": "TestTodo_MODEL_003_Race"
     },
     "red": "vectors reject NaN, infinity, negative zero, excess scale, overflow and implicit currency conversion",
-    "green": "HCM Next-owned Money, Percentage, Quantity and Rate return exact bytes/scale and declared rounding for positive, negative and midpoint cases through the qualified decimal backend",
+    "green": "Human Capital Management Suite-owned Money, Percentage, Quantity and Rate return exact bytes/scale and declared rounding for positive, negative and midpoint cases through the qualified decimal backend",
     "refactor": "all financial domains consume one audited decimal kernel; no `apd` type or mutable context escapes it",
     "refs": "[Wire primitives](data/models/wire-contract-primitives.md), [compensation domain](specs/compensation-domain.md)",
     "retired": false,
@@ -30027,12 +30027,12 @@
       "PROPERTY": "TestTodo_RULE_001_Property"
     },
     "red": "arbitrary code/I/O/time/randomness, type mismatch, unbounded complexity or absent UNKNOWN semantics fails compilation",
-    "green": "HCM Next-owned typed expression compiles through the qualified CEL backend to bounded backend-neutral IR with dependency/version digest, cost limits and golden outputs",
+    "green": "Human Capital Management Suite-owned typed expression compiles through the qualified CEL backend to bounded backend-neutral IR with dependency/version digest, cost limits and golden outputs",
     "refactor": "no scripting runtime or public/stored CEL type becomes part of the rules contract",
     "refs": "[Business rules](specs/human-work-forms-and-rules.md), [RULE step](workflows/_engine/step-types.md#11-rule)",
     "retired": false,
     "done": true,
-    "evidence": "`TestTodo_RULE_001` in `internal/engines/rules` (HCM Next-owned typed expression compiles through the qualified CEL backend to bounded backend-neutral IR with dependency/version digest, cost limits and golden outputs; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/engines/rules/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
+    "evidence": "`TestTodo_RULE_001` in `internal/engines/rules` (Human Capital Management Suite-owned typed expression compiles through the qualified CEL backend to bounded backend-neutral IR with dependency/version digest, cost limits and golden outputs; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/engines/rules/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "RULE-002",
@@ -34535,7 +34535,7 @@
       "SECURITY": "TestTodo_TRUST_002_Security"
     },
     "red": "OAuth/OIDC/SAML fixtures reject open redirect, missing PKCE/state/nonce, issuer mix-up, token substitution and stale signing metadata",
-    "green": "configured federation adapters return one HCM Next-owned normalized authentication result and linked platform principal, recording provider/config/key/library versions without leaking raw claims into AuthZ",
+    "green": "configured federation adapters return one Human Capital Management Suite-owned normalized authentication result and linked platform principal, recording provider/config/key/library versions without leaking raw claims into AuthZ",
     "refactor": "provider adapters cannot create authorization grants",
     "refs": "[Platform foundation identity lifecycle](specs/platform-foundation-gap-closure.md), [security models](data/models/security-trust.md)",
     "retired": false,
@@ -42046,7 +42046,7 @@
     },
     "red": "`TestNativeCapabilityAssessmentRejectsStaleOrUnlicensedClaims` rejects undated product claims or features not licensed/configured by the partner",
     "green": "assessment records edition, version, license, current configuration, gaps and evidence date",
-    "refactor": "preserve vendor observations separately from HCM Next product facts",
+    "refactor": "preserve vendor observations separately from Human Capital Management Suite product facts",
     "refs": "[Competitive positioning](specs/competitive-positioning-and-authority-expansion.md), [Gate A qualification](execution-plan.md#gate-a--paid-design-partner-observation)",
     "retired": false,
     "done": true,
@@ -42117,18 +42117,18 @@
       "PROPERTY": "TestTodo_WEDGE_006_Property"
     },
     "red": "`TestAdoptionMetricRejectsHiddenBypass` fails when manual/incumbent/spreadsheet/emergency paths are absent from the eligible denominator",
-    "green": "every eligible transaction is classified as HCM Next, approved bypass or unexplained exception",
+    "green": "every eligible transaction is classified as Human Capital Management Suite, approved bypass or unexplained exception",
     "refactor": "keep bypass reason codes versioned and customer-readable",
     "refs": "[Gate A acceptance](execution-plan.md#gate-a-acceptance--paid-observation), [learning agenda](plan.md#124-learning-agenda)",
     "retired": false,
     "done": true,
-    "evidence": "`TestAdoptionMetricRejectsHiddenBypass` in `internal/operations/wedge` (every eligible transaction is classified as HCM Next, approved bypass or unexplained exception; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/operations/wedge/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
+    "evidence": "`TestAdoptionMetricRejectsHiddenBypass` in `internal/operations/wedge` (every eligible transaction is classified as Human Capital Management Suite, approved bypass or unexplained exception; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/operations/wedge/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "WEDGE-007",
     "phase": "GATE_A",
     "model": "TERRA",
-    "title": "Measure customer labor and HCM Next cost-to-serve",
+    "title": "Measure customer labor and Human Capital Management Suite cost-to-serve",
     "section": "1. Design partner, wedge and commercial proof",
     "depends": [
       "WEDGE-002"
@@ -42139,12 +42139,12 @@
       "PRIMARY": "TestCostEvidenceRejectsMissingRoleOrWindow"
     },
     "red": "`TestCostEvidenceRejectsMissingRoleOrWindow` rejects totals without role, activity, rate/source, time window and allocation method",
-    "green": "report separates customer implementation/operation labor and HCM Next infrastructure/support cost",
+    "green": "report separates customer implementation/operation labor and Human Capital Management Suite infrastructure/support cost",
     "refactor": "do not introduce usage billing; retain evidence for commercial hypotheses",
     "refs": "[Commercial hypotheses](plan.md#125-commercial-architecture-hypotheses), [Gate A scorecard](execution-plan.md#gate-a-acceptance--paid-observation)",
     "retired": false,
     "done": true,
-    "evidence": "`TestCostEvidenceRejectsMissingRoleOrWindow` in `internal/operations/wedge` (report separates customer implementation/operation labor and HCM Next infrastructure/support cost; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/operations/wedge/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
+    "evidence": "`TestCostEvidenceRejectsMissingRoleOrWindow` in `internal/operations/wedge` (report separates customer implementation/operation labor and Human Capital Management Suite infrastructure/support cost; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/operations/wedge/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "WEDGE-008",
@@ -42284,7 +42284,7 @@
       "PRIMARY": "TestPaidUseRejectsDemoOrInternalActor",
       "SECURITY": "TestTodo_WEDGE_013_Security"
     },
-    "red": "`TestPaidUseRejectsDemoOrInternalActor` rejects synthetic demos, HCM Next employees and unlicensed users from paid-use counts",
+    "red": "`TestPaidUseRejectsDemoOrInternalActor` rejects synthetic demos, Human Capital Management Suite employees and unlicensed users from paid-use counts",
     "green": "evidence identifies authorized customer actor, eligible transaction, completed workflow stage and outcome linkage",
     "refactor": "minimize actor data while preserving auditability",
     "refs": "[Gate A acceptance](execution-plan.md#gate-a-acceptance--paid-observation)",

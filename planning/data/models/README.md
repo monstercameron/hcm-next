@@ -1,4 +1,4 @@
-# HCM Next Business Data Models
+# Human Capital Management Suite Business Data Models
 
 This directory is the exploratory business-entity catalog derived from the
 [Business Intent catalog](../../specs/business-intent-catalog.md), the

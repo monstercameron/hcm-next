@@ -3,15 +3,15 @@ import {
   createRepositories,
   createSeededDemoStore,
   DEMO_IDS,
-} from "@hcm-next/data-store";
+} from "@human-capital-management-suite/data-store";
 import {
   createNullAiClient,
   type AiChatMessage,
   type AiChatToolCall,
   type AiChatTurnResponse,
   type AiClient,
-} from "@hcm-next/ai-client";
-import { ERROR_CODES, ok, type AppError, type Result } from "@hcm-next/foundation";
+} from "@human-capital-management-suite/ai-client";
+import { ERROR_CODES, ok, type AppError, type Result } from "@human-capital-management-suite/foundation";
 import type { AppDependencies } from "./dependencies.js";
 import type { ApiRequestContext } from "./request-context.js";
 import { AI_CHAT_SYSTEM_PROMPT, handleAiChat } from "./ai-chat.js";
@@ -109,7 +109,7 @@ function initialUserMessages(content: string): AiChatMessage[] {
 
 describe("AI_CHAT_SYSTEM_PROMPT", () => {
   it("anchors the assistant persona and instructs tool use", () => {
-    expect(AI_CHAT_SYSTEM_PROMPT).toContain("HCM Next assistant");
+    expect(AI_CHAT_SYSTEM_PROMPT).toContain("Human Capital Management Suite assistant");
     expect(AI_CHAT_SYSTEM_PROMPT).toContain("use tools");
     expect(AI_CHAT_SYSTEM_PROMPT).toContain("generate_ui_page");
   });

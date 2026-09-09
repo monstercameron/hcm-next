@@ -1,5 +1,5 @@
-import { err, notFoundError, type AppError, type Result } from "@hcm-next/foundation";
-import type { Repositories, WorkflowVersionRecord } from "@hcm-next/data-store";
+import { err, notFoundError, type AppError, type Result } from "@human-capital-management-suite/foundation";
+import type { Repositories, WorkflowVersionRecord } from "@human-capital-management-suite/data-store";
 import type { WorkflowConfig } from "../shared/workflow-config.js";
 import {
   findFilesystemWorkflowConfigByIntent,

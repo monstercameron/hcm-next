@@ -7,20 +7,20 @@ import {
   aiUiGenerationError,
   type AppError,
   type Result,
-} from "@hcm-next/foundation";
+} from "@human-capital-management-suite/foundation";
 import {
   createRepositories,
   createSeededDemoStore,
   DEMO_IDS,
   type ActorRecord,
   type Repositories,
-} from "@hcm-next/data-store";
+} from "@human-capital-management-suite/data-store";
 import type {
   AiChangeReview,
   AiClient,
   AiUiGenerationRequest,
   AiUiGenerationResult,
-} from "@hcm-next/ai-client";
+} from "@human-capital-management-suite/ai-client";
 import type { AppDependencies } from "../../api/dependencies.js";
 import type { ExecutorClient, ExecutorResponse } from "../../api/executor-client.js";
 import { createApiServer } from "../../api/server.js";

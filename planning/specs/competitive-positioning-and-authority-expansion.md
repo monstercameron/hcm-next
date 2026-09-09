@@ -2,7 +2,7 @@
 
 ## Purpose and evidence date
 
-This specification prevents the long-term suite vision from obscuring HCM Next's
+This specification prevents the long-term suite vision from obscuring Human Capital Management Suite's
 entry wedge or turning incumbent feature catalogs into an implementation backlog.
 Competitive observations are time-sensitive. The baseline below was reviewed on
 2026-08-13 against official UKG product, HCM, WFM, and platform announcements.
@@ -14,7 +14,7 @@ portfolio across HR, payroll, workforce management, talent, HR service delivery,
 time, scheduling, workforce planning, compliance, analytics, communications, and
 AI. UKG also uses `Workforce Operating Platform`, real-time workforce action, and
 agentic orchestration language. Therefore those nouns and broad feature categories
-are competitor context, not HCM Next differentiation.
+are competitor context, not Human Capital Management Suite differentiation.
 
 Primary evidence:
 
@@ -32,10 +32,10 @@ quality, customer outcome, implementation ease, or architectural internals.
 Incumbent suite proposition
   Run HR, pay, time, talent, and workforce operations in the suite.
 
-HCM Next entry proposition
+Human Capital Management Suite entry proposition
   Safely coordinate workforce change across everything you already run.
 
-HCM Next durable proposition
+Human Capital Management Suite durable proposition
   Turn every material workforce action into a governed, inspectable,
   authority-aware, reconcilable, and repairable transaction.
 ```
@@ -76,7 +76,7 @@ suite breadth
 "system of action" or "workforce operating platform" language
 ```
 
-HCM Next must prove the combined transaction-control thesis:
+Human Capital Management Suite must prove the combined transaction-control thesis:
 
 ```text
 BusinessIntent
@@ -99,7 +99,7 @@ than customer-built coordination.
 
 ## Coexistence architecture is the wedge
 
-HCM Next must model mixed estates as normal:
+Human Capital Management Suite must model mixed estates as normal:
 
 ```text
                     HCM NEXT
@@ -121,7 +121,7 @@ An incumbent may be:
 system of record for selected fields
 execution destination for selected effects
 observation source
-coexisting product for a domain HCM Next does not intend to own
+coexisting product for a domain Human Capital Management Suite does not intend to own
 event producer or governed capability provider
 ```
 
@@ -139,9 +139,9 @@ customer segment and phase:
 | -------------------------- | ------------------------------------------------------------------------------- |
 | `OBSERVE`                  | Read/compare with authority remaining elsewhere                                 |
 | `ORCHESTRATE`              | Govern intent and effects while the incumbent remains authoritative             |
-| `OWN_SELECTED_SCOPE`       | HCM Next is authoritative for explicitly named fields/populations/jurisdictions |
-| `REPLACE_SELECTED_PRODUCT` | Customer migrates a bounded incumbent function to HCM Next                      |
-| `PARTNER_LONG_TERM`        | HCM Next intentionally integrates rather than builds                            |
+| `OWN_SELECTED_SCOPE`       | Human Capital Management Suite is authoritative for explicitly named fields/populations/jurisdictions |
+| `REPLACE_SELECTED_PRODUCT` | Customer migrates a bounded incumbent function to Human Capital Management Suite                      |
+| `PARTNER_LONG_TERM`        | Human Capital Management Suite intentionally integrates rather than builds                            |
 | `DEFER`                    | Architectural contract only; no funded product work                             |
 | `REJECT`                   | Does not fit strategy/economics/risk                                            |
 
@@ -210,7 +210,7 @@ Phase 3    own transaction truth and selected domain writes
 Phase 4+   consider native payroll/WFM scopes only through authority gate
 ```
 
-HCM Next must not imply parity from architecture diagrams, intent catalogs, or a
+Human Capital Management Suite must not imply parity from architecture diagrams, intent catalogs, or a
 `Payroll`/`Workforce` plane label.
 
 ## AI and workflow differentiation

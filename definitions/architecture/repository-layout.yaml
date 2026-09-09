@@ -13,7 +13,7 @@
 # disposition (2026-09-02).
 
 version: 1
-module: github.com/monstercameron/hcm-next
+module: github.com/monstercameron/human-capital-management-suite
 
 disposition: >-
   P1A ships exactly four initial commands (hcmnext, worker, projector,
@@ -283,13 +283,13 @@ approved_commands:
   later: []
 
 # The legacy Go module at src/blocks/go is a separate module (its own
-# go.mod, module hcm-next-executor) and is out of scope of this root-module
+# go.mod, module human-capital-management-suite-executor) and is out of scope of this root-module
 # policy. It is historical implementation evidence per the Go technology
 # constitution's "Legacy Repository Treatment" and is not extended with new
 # behavior.
 legacy_module_exemptions:
   - path: src/blocks/go
-    module: hcm-next-executor
+    module: human-capital-management-suite-executor
     reason: >-
       Separate Go module with its own go.mod/go.sum; not part of the root
       module's package graph and not governed by this layout policy.
@@ -311,6 +311,6 @@ waivers:
       npm-managed vendor tree. "go list ./..." resolves a stray Go source
       file bundled inside the "flatted" npm package
       (node_modules/flatted/golang/pkg/flatted/flatted.go). It is vendored
-      third-party npm package content, not HCM Next production Go source,
+      third-party npm package content, not Human Capital Management Suite production Go source,
       so it is out of scope of this policy rather than a real violation.
     expiry: P1B

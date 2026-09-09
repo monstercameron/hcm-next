@@ -200,5 +200,5 @@ Legend: `R` required, `C` conditional, `-` not applicable to the modeled scope.
    represented across jurisdictions.
 7. Termination access-revocation timing relative to notice, last work time and
    employment end.
-8. Payroll-correction authority when HCM Next is observer/controller rather than
+8. Payroll-correction authority when Human Capital Management Suite is observer/controller rather than
    payroll system of record.

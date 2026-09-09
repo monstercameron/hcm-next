@@ -795,7 +795,7 @@ for product-specific decisions:
   all resolved addresses, disabled redirects, and defenses against DNS pinning:
   <https://cheatsheetseries.owasp.org/cheatsheets/Server_Side_Request_Forgery_Prevention_Cheat_Sheet.html>.
 - Kubernetes publishes explicit component version-skew and upgrade-order rules;
-  HCM Next applies the same principle of declared compatibility to its own
+  Human Capital Management Suite applies the same principle of declared compatibility to its own
   binaries and durable state: <https://kubernetes.io/releases/version-skew-policy/>.
 - NIST's Privacy Framework includes processing visibility, provenance, disclosure
   records, and mitigation such as consent withdrawal and deletion:

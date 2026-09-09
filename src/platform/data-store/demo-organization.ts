@@ -1,4 +1,4 @@
-import { ACTOR_ROLES } from "@hcm-next/foundation";
+import { ACTOR_ROLES } from "@human-capital-management-suite/foundation";
 import type {
   AssignmentLifecycleStatus,
   EmployeeProjectionDocument,

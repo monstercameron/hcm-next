@@ -3,14 +3,14 @@ import {
   type AppError,
   type RequestContext,
   type Result,
-} from "@hcm-next/foundation";
+} from "@human-capital-management-suite/foundation";
 import type {
   Repositories,
   WorkflowAdminDraftRecord,
   WorkflowAdminFamilyRecord,
   WorkflowAdminVersionRecord,
   WorkflowTemplateRecord,
-} from "@hcm-next/data-store";
+} from "@human-capital-management-suite/data-store";
 
 export type WorkflowRegistrySummary = {
   workflowFamilyId: string;

@@ -8,7 +8,7 @@ import type {
   WorkflowAdminVersionStatus,
   WorkflowState,
   WorkflowStatus,
-} from "@hcm-next/foundation";
+} from "@human-capital-management-suite/foundation";
 
 export type TenantRecord = {
   tenantId: string;

@@ -3,13 +3,13 @@ import {
   ok,
   type AppError,
   type Result,
-} from "@hcm-next/foundation";
+} from "@human-capital-management-suite/foundation";
 import {
   makeId,
   nowIso,
   type ActorRecord,
   type WorkflowTransitionAttemptRecord,
-} from "@hcm-next/data-store";
+} from "@human-capital-management-suite/data-store";
 
 export type WorkflowTransitionAttemptBody = {
   transition: string;

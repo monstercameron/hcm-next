@@ -1,5 +1,5 @@
 {
-  "name": "@hcm-next/api",
+  "name": "@human-capital-management-suite/api",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -10,9 +10,9 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
-    "@hcm-next/ai-client": "0.1.0",
-    "@hcm-next/data-store": "0.1.0",
-    "@hcm-next/foundation": "0.1.0",
+    "@human-capital-management-suite/ai-client": "0.1.0",
+    "@human-capital-management-suite/data-store": "0.1.0",
+    "@human-capital-management-suite/foundation": "0.1.0",
     "dotenv": "^17.4.2"
   }
 }

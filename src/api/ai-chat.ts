@@ -6,14 +6,14 @@ import {
   validationFailedError,
   type AppError,
   type Result,
-} from "@hcm-next/foundation";
+} from "@human-capital-management-suite/foundation";
 import type {
   AiChatMessage,
   AiChatToolCall,
   AiChatTurnRequest,
   AiChatTurnResponse,
   AiGeneratedPageDefinition,
-} from "@hcm-next/ai-client";
+} from "@human-capital-management-suite/ai-client";
 import type { AppDependencies } from "./dependencies.js";
 import type { ApiRequestContext } from "./request-context.js";
 import {
@@ -28,7 +28,7 @@ const MAX_AGENT_ITERATIONS = 10;
  * System prompt that anchors the assistant's persona and rules. Verbatim text
  * is part of the contract — changes ripple through the tests.
  */
-export const AI_CHAT_SYSTEM_PROMPT = `You are the HCM Next assistant. You help HR coordinators complete employee
+export const AI_CHAT_SYSTEM_PROMPT = `You are the Human Capital Management Suite assistant. You help HR coordinators complete employee
 workflows (terminations, org changes, contact updates, approvals).
 
 Capabilities — you can:

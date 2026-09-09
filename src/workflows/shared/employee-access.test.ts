@@ -6,7 +6,7 @@ import type {
   OrganizationUnitRecord,
   RoleBindingRecord,
   WorkerAssignmentRecord,
-} from "@hcm-next/data-store";
+} from "@human-capital-management-suite/data-store";
 import {
   MASKED_EMPLOYEE_FIELD_VALUE,
   canViewEmployee,

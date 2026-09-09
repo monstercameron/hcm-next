@@ -7,7 +7,7 @@ import {
   fromThrowable,
   ok,
   type StructuredLogger,
-} from "@hcm-next/foundation";
+} from "@human-capital-management-suite/foundation";
 import type {
   AiChangeReview,
   AiChangeReviewRequest,
@@ -175,7 +175,7 @@ const PAGE_DEFINITION_JSON_SCHEMA = {
 } as const;
 
 const UI_GENERATION_SYSTEM_PROMPT =
-  "You are an HR coordinator assistant inside HCM Next. " +
+  "You are an HR coordinator assistant inside Human Capital Management Suite. " +
   "Your job is to lay out the screen that lets the user complete the current workflow state. " +
   "Speak in practical, plain language. Do not mention JSON, schemas, models, or that an assistant generated the page. " +
   "Compose the screen using only the widgets and fields available in the workflow you are given. " +

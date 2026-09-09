@@ -5,7 +5,7 @@ import {
   type AppError,
   type Result,
   type StructuredLogger,
-} from "@hcm-next/foundation";
+} from "@human-capital-management-suite/foundation";
 
 export type ExecutorBlockRef = {
   name: string;

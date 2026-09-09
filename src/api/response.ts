@@ -1,4 +1,4 @@
-import { ERROR_CODES, type AppError, type Result } from "@hcm-next/foundation";
+import { ERROR_CODES, type AppError, type Result } from "@human-capital-management-suite/foundation";
 
 export type JsonHttpResponse = {
   status: number;

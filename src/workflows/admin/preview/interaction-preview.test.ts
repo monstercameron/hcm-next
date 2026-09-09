@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { PERMISSION_KEYS, WORKFLOW_INTENTS } from "@hcm-next/foundation";
+import { PERMISSION_KEYS, WORKFLOW_INTENTS } from "@human-capital-management-suite/foundation";
 import {
   findFilesystemWorkflowConfigByIntent,
   type WorkflowConfig,

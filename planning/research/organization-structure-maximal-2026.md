@@ -1,4 +1,4 @@
-# The maximal organizational shape of an hcm-next customer, 2026 research
+# The maximal organizational shape of an human-capital-management-suite customer, 2026 research
 
 Read date for web sources referenced below: 2026-09-06. This document defines the worst-case organizational complexity the account and organization tables in this repository must be able to represent, and proposes a PostgreSQL table design for it in the companion file `planning/research/organization-structure-tables.sql`. Claims that depend on a named product's data model or on a regulatory text are cited by name and date. Claims that are ordinary domain reasoning about HCM/payroll systems in general, without one specific citable source, are marked "general knowledge" so a reviewer can tell the two apart.
 
@@ -38,7 +38,7 @@ The organizational complexity described here is not hypothetical; it is the ordi
 
 ### 3.1 Provider tenant serving many client organizations
 
-The platform itself can be operated by an HR service provider -- a PEO, an ASO (administrative services organization, which unlike a PEO does not become co-employer), an EOR, a staffing agency, or a subcontracted HR shop -- that uses one hcm-next deployment to serve many unrelated client businesses. Two shapes are both real and both must be supported:
+The platform itself can be operated by an HR service provider -- a PEO, an ASO (administrative services organization, which unlike a PEO does not become co-employer), an EOR, a staffing agency, or a subcontracted HR shop -- that uses one human-capital-management-suite deployment to serve many unrelated client businesses. Two shapes are both real and both must be supported:
 
 - The client is small enough, or wants isolation shallow enough, that it can live as a "company"/legal entity inside the provider's own tenant (the `platform-architecture-catalog.md` "Tenant / Enterprise Group / Company / Legal Entity" model, section 9.9). This case needs no new cross-tenant machinery: it is `legal_entity_ownership_edge` plus `service_relationship_revision` inside one tenant.
 - The client needs its own hard isolation boundary -- its own encryption keys, its own data residency, its own admins who must never see another client's tenant even in aggregate -- and becomes its own tenant. The provider-client relationship then has to be expressed _between_ tenants, which 00002/00008's tenant model does not have a table for today. `tenant_relationship_revision` (Section 8 of the SQL) closes that gap.

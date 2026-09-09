@@ -1,4 +1,4 @@
-import type { AppError, Result, StructuredLogger } from "@hcm-next/foundation";
+import type { AppError, Result, StructuredLogger } from "@human-capital-management-suite/foundation";
 
 /**
  * Permission-gated input for an AI change review. The caller is responsible

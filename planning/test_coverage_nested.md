@@ -1,8 +1,8 @@
-﻿=== nested (hcm-next-executor) ===
+﻿=== nested (human-capital-management-suite-executor) ===
 files(non-test)=30 generated=0 hand-written=30 hand-written-in-untested-pkgs=0
 untested pkgs(0):
 
-# Test-coverage file inventory - nested (hcm-next-executor) module
+# Test-coverage file inventory - nested (human-capital-management-suite-executor) module
 
 generated=0 hand-written=30
 

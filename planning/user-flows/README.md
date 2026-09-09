@@ -1,4 +1,4 @@
-# HCM Next User-Flow Design Program
+# Human Capital Management Suite User-Flow Design Program
 
 ## Purpose
 

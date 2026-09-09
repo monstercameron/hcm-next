@@ -34,7 +34,7 @@ exceptions:
   # serving-path adapter; until it does, this is a placement gap in the
   # rule, not in the kit.
   - kind: tenant_scope
-    package: github.com/monstercameron/hcm-next/internal/data/partition
+    package: github.com/monstercameron/human-capital-management-suite/internal/data/partition
     owner: data-platform
     rationale: >-
       Kit (internal/data/partition/kit.go) is DATA-017's partition-parity
@@ -59,7 +59,7 @@ exceptions:
   # FROM workflow_timer <where>). The predicate is a caller-supplied
   # fragment, so the scanner cannot see it.
   - kind: tenant_scope
-    package: github.com/monstercameron/hcm-next/internal/data/runtimestate
+    package: github.com/monstercameron/human-capital-management-suite/internal/data/runtimestate
     owner: workflow-runtime
     rationale: >-
       TimerStore.list (internal/data/runtimestate/scheduling.go) is the
@@ -83,7 +83,7 @@ exceptions:
   # `SELECT count(*) FROM %s` branch taken only when
   # td.TenantScopingColumn == "" (a control-plane/non-tenant table).
   - kind: tenant_scope
-    package: github.com/monstercameron/hcm-next/internal/data/health
+    package: github.com/monstercameron/human-capital-management-suite/internal/data/health
     owner: data-platform
     rationale: >-
       probeGeneric (internal/data/health/probe.go) forks on
@@ -109,7 +109,7 @@ exceptions:
   # internal/data/aggregates/store.go: put(), the
   # `UPDATE %s SET superseded_at = $1 WHERE row_id = $2` statement.
   - kind: tenant_scope
-    package: github.com/monstercameron/hcm-next/internal/data/aggregates
+    package: github.com/monstercameron/human-capital-management-suite/internal/data/aggregates
     owner: workforce-data
     rationale: >-
       put() (internal/data/aggregates/store.go) supersedes a live

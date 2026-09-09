@@ -3,7 +3,7 @@ import {
   LEDGER_EVENT_TYPES,
   WORKFLOW_INTENTS,
   type WorkflowState,
-} from "@hcm-next/foundation";
+} from "@human-capital-management-suite/foundation";
 import {
   getWorkflowConfigByIntent,
   type WorkflowApprovalGateApproverResolverConfig,

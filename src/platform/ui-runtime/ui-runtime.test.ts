@@ -1,4 +1,4 @@
-import { canonicalWidgetTypeIds, type PageDefinition } from "@hcm-next/ui-contracts";
+import { canonicalWidgetTypeIds, type PageDefinition } from "@human-capital-management-suite/ui-contracts";
 import { describe, expect, it } from "vitest";
 import { brandTokensToCssVariables, defaultBrandPack } from "./brand";
 import { resolveBinding } from "./bindings";

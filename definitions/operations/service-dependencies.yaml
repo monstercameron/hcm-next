@@ -1,7 +1,7 @@
 # OPS-007 logical dependency inventory. Addresses are intentionally absent;
 # endpoint resolution and health belong to the connectivity plane.
 version: 1
-module: github.com/monstercameron/hcm-next
+module: github.com/monstercameron/human-capital-management-suite
 effective_at: "2026-09-03T00:00:00Z"
 
 dependencies:

@@ -1,4 +1,4 @@
-import { err, systemError, type AppError, type Result } from "@hcm-next/foundation";
+import { err, systemError, type AppError, type Result } from "@human-capital-management-suite/foundation";
 import { getAppDependencies } from "./dependency-container.js";
 import type { AppDependencies } from "./dependencies.js";
 import { buildApiRequestContext, type ApiRequestContext } from "./request-context.js";

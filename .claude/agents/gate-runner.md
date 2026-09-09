@@ -1,6 +1,6 @@
 ---
 name: gate-runner
-description: Runs the hcm-next quality gates and reports precisely what failed and where. Use before committing, when the pre-commit hook is red, or when asked whether the tree is green. Returns a triaged failure list, not raw log output.
+description: Runs the human-capital-management-suite quality gates and reports precisely what failed and where. Use before committing, when the pre-commit hook is red, or when asked whether the tree is green. Returns a triaged failure list, not raw log output.
 tools: Bash, Read, Grep, Glob
 model: sonnet
 ---

@@ -1,4 +1,4 @@
-# HCM Next Phase 1 Execution Plan
+# Human Capital Management Suite Phase 1 Execution Plan
 
 This document converts the architecture constitution in [plan.md](plan.md) into a bounded Phase 1 delivery plan. When the two documents differ on near-term scope, this execution plan controls implementation sequencing; `plan.md` continues to control architectural invariants and long-term direction.
 
@@ -10,7 +10,7 @@ plan defines the gates and their acceptance, not the release inventory.
 
 ## Phase 1 Outcome
 
-Prove that HCM Next improves one Promotion + Compensation Change workflow for paid design partners without becoming the employee system of record or building the eventual Workforce OS prematurely.
+Prove that Human Capital Management Suite improves one Promotion + Compensation Change workflow for paid design partners without becoming the employee system of record or building the eventual Workforce OS prematurely.
 
 ```text
 manager/HR intent
@@ -24,7 +24,7 @@ manager/HR intent
       -> complete evidence
 ```
 
-The competitive proof is not that HCM Next has workflow, APIs, webhooks, AI, or
+The competitive proof is not that Human Capital Management Suite has workflow, APIs, webhooks, AI, or
 an HCM feature catalog. Those are table stakes in current enterprise suites. The
 pilot must show that cross-system proposal integrity, source authority, conflict
 control, execution-time revalidation, observation, reconciliation, and repair
@@ -253,7 +253,7 @@ earlier gate does not imply permission to perform the next gate's effects.
 
 ### Gate A — Paid Design-Partner Observation
 
-Objective: prove customer value without HCM Next owning or executing the employee
+Objective: prove customer value without Human Capital Management Suite owning or executing the employee
 change.
 
 ```text
@@ -364,7 +364,7 @@ Gate A passes only when:
 
 - A paid design partner repeatedly uses the GWC workspace on its own incumbent
   data and the agreed time/error/visibility metric improves against baseline.
-- HCM Next reads and observes only the approved fields through one connector;
+- Human Capital Management Suite reads and observes only the approved fields through one connector;
   source authority and every transformation remain visible.
 - A dated incumbent-edition/topology assessment proves that the selected failure
   class is not already governed adequately by licensed native functionality.
@@ -380,7 +380,7 @@ Gate A passes only when:
   backup exists and has been restored once in a non-production environment.
   Signed builds, SBOMs, telemetry privacy gateways, and restore drills are
   Gate B and Gate C controls, not Gate A.
-- The partner and HCM Next jointly record proceed, change-wedge, or stop evidence.
+- The partner and Human Capital Management Suite jointly record proceed, change-wedge, or stop evidence.
 - The handoff is consumable by the incumbent/downstream operating process and
   produces an acknowledgement or observation. Approval binding alone is not proof
   of cycle-time, quality, audit-effort or adoption improvement.

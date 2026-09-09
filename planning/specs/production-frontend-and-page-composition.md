@@ -15,7 +15,7 @@ narrows and admits them.
 
 ## Product outcome
 
-HCM Next presents one calm, predictable product organized around human jobs
+Human Capital Management Suite presents one calm, predictable product organized around human jobs
 rather than storage tables or product modules. An occasional employee can
 finish a task without training; a manager can understand the consequences of a
 people decision; a specialist can work efficiently across a queue; and an
@@ -490,7 +490,7 @@ enterprise floorplans, and component-based customer composition. WCAG 2.2 and
 NIST SP 800-63-4 are normative inputs for accessibility and session design;
 OWASP's authorization guidance supports least privilege, deny-by-default, and
 permission validation on every request. External patterns inform usability only;
-the HCM Next authority and workflow contracts remain controlling.
+the Human Capital Management Suite authority and workflow contracts remain controlling.
 
 The visual-design sequence and current mockups are tracked in
 [Page Design Inventory](../design/page-design-inventory.md).

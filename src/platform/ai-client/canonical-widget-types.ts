@@ -1,7 +1,7 @@
 /**
  * Canonical widget type IDs exposed to the AI as the only allowed vocabulary
  * for `widgets[].type`. This list is duplicated here (instead of imported
- * from `@hcm-next/ui-runtime`) so the ai-client workspace does not take a
+ * from `@human-capital-management-suite/ui-runtime`) so the ai-client workspace does not take a
  * runtime dependency on the registry. It MUST stay in sync with the
  * canonical entries declared in:
  *   src/platform/ui-runtime/registry.ts (canonicalWidgetDefinitions)

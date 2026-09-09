@@ -36,7 +36,7 @@
 # baseTables() helper does.
 
 version: 1
-module: github.com/monstercameron/hcm-next
+module: github.com/monstercameron/human-capital-management-suite
 source: migrations/00001_platform_control.sql .. migrations/00261_operation_store.sql
 
 disposition: >-

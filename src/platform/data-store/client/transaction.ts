@@ -6,7 +6,7 @@ import {
   mapUnknownToDatabaseError,
   ok,
   type Result,
-} from "@hcm-next/foundation";
+} from "@human-capital-management-suite/foundation";
 
 /**
  * Executes a checked operation inside an explicit Postgres transaction.

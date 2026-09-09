@@ -1,5 +1,5 @@
 {
-  "name": "@hcm-next/ui-runtime",
+  "name": "@human-capital-management-suite/ui-runtime",
   "version": "0.1.0",
   "private": true,
   "main": "dist/index.js",
@@ -15,6 +15,6 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@hcm-next/ui-contracts": "0.1.0"
+    "@human-capital-management-suite/ui-contracts": "0.1.0"
   }
 }

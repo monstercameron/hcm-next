@@ -14,7 +14,7 @@ import {
   versionConflictError,
   type AppError,
   type Result,
-} from "@hcm-next/foundation";
+} from "@human-capital-management-suite/foundation";
 import {
   createDemoDocumentRecord,
   createInitialWorkflowInstance,
@@ -29,7 +29,7 @@ import {
   type Repositories,
   type TransactionPlanRecord,
   type WorkflowInstanceRecord,
-} from "@hcm-next/data-store";
+} from "@human-capital-management-suite/data-store";
 import { findAccessGrantsForActor } from "../shared/access-context.js";
 import {
   canViewEmployee,

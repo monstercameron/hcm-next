@@ -1,4 +1,4 @@
-# HCM Next Page Design Inventory
+# Human Capital Management Suite Page Design Inventory
 
 ## Interaction design corpus — September 2026
 
@@ -233,7 +233,7 @@ minimum-population and disclosure controls.
 
 ## Landing-page concept v1
 
-![HCM Next public landing page concept](mockups/public-landing-v1.png)
+![Human Capital Management Suite public landing page concept](mockups/public-landing-v1.png)
 
 The first concept establishes the public visual language and positioning:
 
@@ -246,7 +246,7 @@ The first concept establishes the public visual language and positioning:
 
 ## Enterprise sign-in concept v1
 
-![HCM Next enterprise sign-in concept](mockups/enterprise-login-v1.png)
+![Human Capital Management Suite enterprise sign-in concept](mockups/enterprise-login-v1.png)
 
 The first access concept keeps authentication deliberately focused:
 
@@ -260,7 +260,7 @@ The first access concept keeps authentication deliberately focused:
 
 ## Authenticated Home concept v1
 
-![HCM Next authenticated Home concept](mockups/authenticated-home-v1.png)
+![Human Capital Management Suite authenticated Home concept](mockups/authenticated-home-v1.png)
 
 The first authenticated concept establishes the production shell and default
 attention hierarchy:
@@ -278,31 +278,31 @@ attention hierarchy:
 
 ### My Work
 
-![HCM Next My Work concept](mockups/authenticated-my-work-v1.png)
+![Human Capital Management Suite My Work concept](mockups/authenticated-my-work-v1.png)
 
 ### People
 
-![HCM Next People concept](mockups/authenticated-people-v1.png)
+![Human Capital Management Suite People concept](mockups/authenticated-people-v1.png)
 
 ### Organization
 
-![HCM Next Organization concept](mockups/authenticated-organization-v2.png)
+![Human Capital Management Suite Organization concept](mockups/authenticated-organization-v2.png)
 
 ### Insights
 
-![HCM Next Insights concept](mockups/authenticated-insights-v1.png)
+![Human Capital Management Suite Insights concept](mockups/authenticated-insights-v1.png)
 
 ### Admin
 
-![HCM Next Admin concept](mockups/authenticated-admin-v1.png)
+![Human Capital Management Suite Admin concept](mockups/authenticated-admin-v1.png)
 
 ### Help
 
-![HCM Next Help concept](mockups/authenticated-help-v1.png)
+![Human Capital Management Suite Help concept](mockups/authenticated-help-v1.png)
 
 ### Settings
 
-![HCM Next Settings concept](mockups/authenticated-settings-v1.png)
+![Human Capital Management Suite Settings concept](mockups/authenticated-settings-v1.png)
 
 The expanded corpus now includes concepts for Workflow Studio, Time/PTO,
 Recruiting, Payroll, worker profile/analysis, communications and recovery.

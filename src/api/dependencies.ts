@@ -1,6 +1,6 @@
-import { createRepositories, createSeededDemoStore } from "@hcm-next/data-store";
-import { createStructuredLogger } from "@hcm-next/foundation";
-import { createNullAiClient, createOpenAiClient } from "@hcm-next/ai-client";
+import { createRepositories, createSeededDemoStore } from "@human-capital-management-suite/data-store";
+import { createStructuredLogger } from "@human-capital-management-suite/foundation";
+import { createNullAiClient, createOpenAiClient } from "@human-capital-management-suite/ai-client";
 import type { AppDependencies } from "../workflows/shared/runtime-dependencies.js";
 import { createCompensationDecisionExternalWriteClient } from "./compensation-decision-client.js";
 import { createHttpExecutorClient } from "./executor-client.js";

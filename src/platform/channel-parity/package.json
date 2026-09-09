@@ -1,5 +1,5 @@
 {
-  "name": "@hcm-next/channel-parity",
+  "name": "@human-capital-management-suite/channel-parity",
   "version": "0.1.0",
   "private": true,
   "main": "dist/index.js",

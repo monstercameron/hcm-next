@@ -39,7 +39,7 @@ gwc_known_gaps:
 
 candidates:
   ssr:
-    package: github.com/monstercameron/hcm-next/tools/uxqual/render/ssr
+    package: github.com/monstercameron/human-capital-management-suite/tools/uxqual/render/ssr
     required_field_semantics: pass
     error_association: pass
     detail: >-
@@ -48,7 +48,7 @@ candidates:
       `aria-describedby="<id>-error" aria-invalid="true"` when
       Validation.Message is non-empty.
   gwc:
-    package: github.com/monstercameron/hcm-next/tools/uxqual/render/gwc
+    package: github.com/monstercameron/human-capital-management-suite/tools/uxqual/render/gwc
     required_field_semantics: fail
     error_association: pass
     detail: >-

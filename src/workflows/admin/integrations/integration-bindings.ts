@@ -1,4 +1,4 @@
-import { ok, type AppError, type Result } from "@hcm-next/foundation";
+import { ok, type AppError, type Result } from "@human-capital-management-suite/foundation";
 import type {
   WorkflowConfig,
   WorkflowGraphNodeConfig,

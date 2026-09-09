@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ERROR_CODES } from "@hcm-next/foundation";
+import { ERROR_CODES } from "@human-capital-management-suite/foundation";
 import { createRepositories } from "../repositories.js";
 import { createEmptyStore } from "../store.js";
 

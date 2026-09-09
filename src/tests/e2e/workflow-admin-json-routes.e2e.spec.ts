@@ -11,7 +11,7 @@ import {
   type AppError,
   type Result,
   ok,
-} from "@hcm-next/foundation";
+} from "@human-capital-management-suite/foundation";
 import {
   createInitialWorkflowInstance,
   createRepositories,
@@ -22,7 +22,7 @@ import {
   type IntegrationOutboxRecord,
   type WorkflowInstanceRecord,
   type Repositories,
-} from "@hcm-next/data-store";
+} from "@human-capital-management-suite/data-store";
 import { createApiServer } from "../../api/server.js";
 import type { AppDependencies } from "../../api/dependencies.js";
 import type {

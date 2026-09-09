@@ -1,7 +1,7 @@
 # Simulated Compensation Market API
 
 This package is a separate simulated third-party datasource. It is intentionally
-outside `src/api`, which is the internal HCM Next API server.
+outside `src/api`, which is the internal Human Capital Management Suite API server.
 
 Run it locally:
 

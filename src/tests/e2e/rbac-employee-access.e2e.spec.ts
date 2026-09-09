@@ -4,7 +4,7 @@ import {
   ok,
   type AppError,
   type Result,
-} from "@hcm-next/foundation";
+} from "@human-capital-management-suite/foundation";
 import {
   createRepositories,
   createSeededDemoStore,
@@ -13,7 +13,7 @@ import {
   type EmployeeProjectionDocument,
   type EmployeeProjectionRecord,
   type Repositories,
-} from "@hcm-next/data-store";
+} from "@human-capital-management-suite/data-store";
 import type {
   ExecutorClient,
   ExecutorRequest,

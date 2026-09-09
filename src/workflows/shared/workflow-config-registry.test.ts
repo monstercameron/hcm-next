@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { WORKFLOW_INTENTS } from "@hcm-next/foundation";
+import { WORKFLOW_INTENTS } from "@human-capital-management-suite/foundation";
 import {
   canonicalJsonString,
   cloneWorkflowConfig,

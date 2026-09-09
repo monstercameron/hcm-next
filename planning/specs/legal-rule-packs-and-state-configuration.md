@@ -1,7 +1,7 @@
 # Legal Rule Packs and State Configuration Contract
 
 This contract defines how jurisdiction-specific employment law becomes executable
-content in HCM Next: the jurisdiction model, the versioned rule-pack definition
+content in Human Capital Management Suite: the jurisdiction model, the versioned rule-pack definition
 family, the typed obligation kinds, the per-state configuration matrix, the
 evaluation semantics, the authoring and review pipeline, and the tests that hold
 all of it in place.
@@ -15,7 +15,7 @@ compatibility rule that governs it.
 
 The normative inputs are the fifty state research files in
 [`planning/research/state-employment-law/`](../research/state-employment-law/README.md),
-read through their "Summary for HCM Next" and "Implications for P1A/P1B"
+read through their "Summary for Human Capital Management Suite" and "Implications for P1A/P1B"
 sections. Those files are drafted research, not legal advice, and not a
 contract; a rule reaches the product only through a reviewed, signed release as
 described in [Authoring and Review Pipeline](#7-authoring-and-review-pipeline).
@@ -110,7 +110,7 @@ records its own provenance entry.
 
 `primary_work_threshold` is tenant configuration with no platform default; the
 absence of a configured threshold makes A4 and A5 both resolve to
-`LEGAL_CONTEXT_UNKNOWN`. HCM Next does not choose a work-location tiebreak on the
+`LEGAL_CONTEXT_UNKNOWN`. Human Capital Management Suite does not choose a work-location tiebreak on the
 customer's behalf.
 
 The physical-work-location-controls policy in A3 is a stated policy, not a legal
@@ -806,7 +806,7 @@ vectors above.
    transaction and whether its obligations were discharged. Nothing more.
 2. **No automatic filings.** `SEPARATION_FILING`, `MINI_WARN` and pay-data
    reporting produce obligations, deadlines, owners and content — never a
-   transmission. HCM Next does not file with any state agency, and no rule pack
+   transmission. Human Capital Management Suite does not file with any state agency, and no rule pack
    may declare a transmitting effect.
 3. **No legal-conclusion inference.** The platform never decides whether a
    non-compete is enforceable, whether an exemption test is met, whether a

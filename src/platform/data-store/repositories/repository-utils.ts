@@ -9,7 +9,7 @@ import {
   type AppError,
   type JsonRecord,
   type Result,
-} from "@hcm-next/foundation";
+} from "@human-capital-management-suite/foundation";
 
 import type { DatabaseClient } from "../client";
 

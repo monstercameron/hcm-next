@@ -8,7 +8,7 @@
 # (planning/specs/platform-plane-model.md, planning/next-steps.md).
 
 version: 1
-module: github.com/monstercameron/hcm-next
+module: github.com/monstercameron/human-capital-management-suite
 
 disposition: >-
   P1A ships four commands: hcmnext, worker, projector, migrate. hcmctl (the

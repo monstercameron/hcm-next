@@ -1,6 +1,6 @@
 import type { Server } from "node:http";
 import type { AddressInfo } from "node:net";
-import { ERROR_CODES, err, ok, type AppError, type Result } from "@hcm-next/foundation";
+import { ERROR_CODES, err, ok, type AppError, type Result } from "@human-capital-management-suite/foundation";
 import type { AppDependencies } from "../../api/dependencies.js";
 import { createApiServer } from "../../api/server.js";
 import type { ApiRequestContext } from "../../api/request-context.js";

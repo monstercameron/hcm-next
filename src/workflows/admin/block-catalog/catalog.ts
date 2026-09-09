@@ -4,7 +4,7 @@ import {
   validationFailedError,
   type AppError,
   type Result,
-} from "@hcm-next/foundation";
+} from "@human-capital-management-suite/foundation";
 
 export type WorkflowBlockRuntime = "go";
 

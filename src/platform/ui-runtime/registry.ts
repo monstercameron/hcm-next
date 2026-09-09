@@ -5,8 +5,8 @@ import type {
   WidgetInstance,
   WidgetTrustTier,
   WidgetTypeAliasDefinition,
-} from "@hcm-next/ui-contracts";
-import { canonicalWidgetTypeIds } from "@hcm-next/ui-contracts";
+} from "@human-capital-management-suite/ui-contracts";
+import { canonicalWidgetTypeIds } from "@human-capital-management-suite/ui-contracts";
 import { normalizeGeneratedFieldsInProps } from "./field-types";
 
 const allSurfaces: readonly SurfaceMode[] = [

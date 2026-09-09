@@ -4,14 +4,14 @@ import {
   ok,
   type AppError,
   type Result,
-} from "@hcm-next/foundation";
+} from "@human-capital-management-suite/foundation";
 import type {
   Repositories,
   WorkflowAdminDraftRecord,
   WorkflowAdminFamilyRecord,
   WorkflowTemplateRecord,
-} from "@hcm-next/data-store";
-import type { RequestContext } from "@hcm-next/foundation";
+} from "@human-capital-management-suite/data-store";
+import type { RequestContext } from "@human-capital-management-suite/foundation";
 import {
   cloneWorkflowConfig,
   listFilesystemWorkflowConfigEntries,

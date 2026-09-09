@@ -5,13 +5,13 @@ import {
   type Result,
   type WorkflowState,
   type WorkflowStatus,
-} from "@hcm-next/foundation";
+} from "@human-capital-management-suite/foundation";
 import type {
   ActorRecord,
   ApprovalTaskRecord,
   EmployeeProjectionDocument,
   WorkflowInstanceRecord,
-} from "@hcm-next/data-store";
+} from "@human-capital-management-suite/data-store";
 import { workflowConditionMatches } from "../../shared/workflow-conditions.js";
 import {
   resolveWorkflowTemplate,

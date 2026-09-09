@@ -1,8 +1,8 @@
-# HCM Next
+# Human Capital Management Suite
 
 > **Every workforce action, one governed operating model.**
 
-HCM Next is a Go-based architecture for expressing, governing, executing,
+Human Capital Management Suite is a Go-based architecture for expressing, governing, executing,
 observing, and repairing Human Capital Management business intent.
 
 It is not architecturally centered on integrations, a collection of modules, or
@@ -24,13 +24,13 @@ Person / Worker Graph <-----+-----> Capability Graph
                           Outcome
 ```
 
-The initial product, **HCM Next ChangeOps**, applies this architecture to
+The initial product, **Human Capital Management Suite ChangeOps**, applies this architecture to
 cross-system employee changes while incumbent systems remain authoritative. That
 is the entry wedge—not the boundary of the architecture.
 
 ## Project status
 
-HCM Next is currently an architecture and early implementation project. It is
+Human Capital Management Suite is currently an architecture and early implementation project. It is
 not a production HCM suite, payroll engine, or UKG/Workday replacement.
 
 Artifact maturity must be interpreted precisely:
@@ -93,7 +93,7 @@ All enter the same architectural spine:
                                 |
               +-----------------+-----------------+
               v                 v                 v
-       HCM Next state     External systems    Human interaction
+       Human Capital Management Suite state     External systems    Human interaction
               |                 |                 |
               +-----------------+-----------------+
                                 |
@@ -124,7 +124,7 @@ The responsibilities remain distinct:
 ## BusinessIntent is the behavioral root
 
 `BusinessIntent` means something a human, agent, service, schedule, rule, or
-external event wants HCM Next to accomplish or answer.
+external event wants Human Capital Management Suite to accomplish or answer.
 
 The stable kernel has three families, distinguished by one question: may this
 intent cause a material mutation or effect?
@@ -184,7 +184,7 @@ people.manager.change
 Workday / UKG connector
 ```
 
-Later, for a scope where HCM Next owns People:
+Later, for a scope where Human Capital Management Suite owns People:
 
 ```text
 ChangeManager
@@ -196,7 +196,7 @@ same governed workflow
 people.manager.change
       |
       v
-HCM Next People domain
+Human Capital Management Suite People domain
 ```
 
 The semantic capability is stable. Authority resolution changes:
@@ -319,7 +319,7 @@ ObligationState    SATISFIED
 ```
 
 If Jane is promoted but one downstream access grant fails, Jane remains promoted.
-HCM Next records the drift, creates a bounded `RepairPlan`, redrives or corrects
+Human Capital Management Suite records the drift, creates a bounded `RepairPlan`, redrives or corrects
 the access effect, observes the result, and closes reconciliation. It does not
 rewrite the promotion or claim that everything succeeded.
 
@@ -356,7 +356,7 @@ budgets, kill switches, and incident handling surround every agent path.
 
 ## Product path
 
-HCM Next approaches the HCM market through earned authority:
+Human Capital Management Suite approaches the HCM market through earned authority:
 
 ```text
 Stage 1  ChangeOps overlay
@@ -366,7 +366,7 @@ Stage 2  workflow operating layer
          controlled cross-system execution and repair
               |
 Stage 3  system of transaction
-         HCM Next owns transaction truth and selected writes
+         Human Capital Management Suite owns transaction truth and selected writes
               |
 Stage 4  selected system of record
          explicit field/domain/population authority
@@ -495,7 +495,7 @@ See the [Go Technology Constitution](planning/specs/go-only-technology-constitut
 
 ## Library strategy
 
-HCM Next owns intent, capability, governance, workflow, transaction, ledger,
+Human Capital Management Suite owns intent, capability, governance, workflow, transaction, ledger,
 engine, and domain semantics. Go plus GWC, grpcbridge, and SchemaFlux are the
 declared core choices for UI, transport edge, and definition generation;
 qualification determines which choice is admitted. Libraries supply
@@ -518,7 +518,7 @@ this README remains human-authored.
 ### Package and dependency shape
 
 ```text
-Go product core (github.com/monstercameron/hcm-next)
+Go product core (github.com/monstercameron/human-capital-management-suite)
 ├── package roots
 │   ├── internal/application [application; P1A; owner=platform-foundation]
 │   ├── internal/authn [trust; P1A; owner=governance-and-trust]
@@ -706,7 +706,7 @@ Important starting points:
 ### Review the production frontend
 
 The development frontend contains no sample-data provider or alternate UI
-server. It is a same-origin gateway to a running HCM Next cell, including the
+server. It is a same-origin gateway to a running Human Capital Management Suite cell, including the
 authenticated HTML shell, Go/WASM client, and gRPC-over-WebSocket tunnel.
 For the normal local loop, start the cell and gateway in two terminals:
 

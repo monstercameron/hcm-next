@@ -1,6 +1,6 @@
 # Workflow Execution Kernel
 
-This specification defines the domain-neutral execution kernel used by HCM Next workflows. The master delivery scope remains governed by [the Phase 1 execution plan](../execution-plan.md).
+This specification defines the domain-neutral execution kernel used by Human Capital Management Suite workflows. The master delivery scope remains governed by [the Phase 1 execution plan](../execution-plan.md).
 
 The engine does not understand payroll, GDPR, IAM, benefits, or compensation internally. Those systems expose typed, governed capabilities. The engine compiles and durably coordinates their invocation.
 
@@ -829,7 +829,7 @@ requirement for the Promotion pilot.
 
 Past execution remains immutable. Current and future execution may be repaired through new authorized actions and ledger events.
 
-If a completed step was wrong, HCM Next does not delete that step from history. It records detection, intervention, compensation or correction, revalidation, and resumed execution.
+If a completed step was wrong, Human Capital Management Suite does not delete that step from history. It records detection, intervention, compensation or correction, revalidation, and resumed execution.
 
 ```text
 A -> B -> C -> D

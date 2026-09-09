@@ -5,7 +5,7 @@ import type {
   WidgetDefinition,
   WidgetInstance,
   WidgetTypeAliasDefinition,
-} from "@hcm-next/ui-contracts";
+} from "@human-capital-management-suite/ui-contracts";
 import { brandTokensToCssVariables } from "./brand";
 import { resolveWidgetBindings } from "./bindings";
 import type { UiRuntimeContext } from "./context";

@@ -1,5 +1,5 @@
-import { ok, type AppError, type Result } from "@hcm-next/foundation";
-import type { AccessGrantRecord, ActorRecord } from "@hcm-next/data-store";
+import { ok, type AppError, type Result } from "@human-capital-management-suite/foundation";
+import type { AccessGrantRecord, ActorRecord } from "@human-capital-management-suite/data-store";
 import type {
   EmployeeAccessGrant,
   EmployeeAccessGrants,

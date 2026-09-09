@@ -5,12 +5,12 @@ import {
   validationFailedError,
   type AppError,
   type Result,
-} from "@hcm-next/foundation";
+} from "@human-capital-management-suite/foundation";
 import type {
   Repositories,
   WorkflowInstanceRecord,
   WorkflowVersionRecord,
-} from "@hcm-next/data-store";
+} from "@human-capital-management-suite/data-store";
 import { stringField } from "./json-fields.js";
 import type { WorkflowConfig } from "./workflow-config.js";
 import {

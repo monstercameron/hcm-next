@@ -12,13 +12,13 @@ import {
   versionConflictError,
   type AppError,
   type Result,
-} from "@hcm-next/foundation";
+} from "@human-capital-management-suite/foundation";
 import {
   nowIso,
   type LedgerEventRecord,
   type Repositories,
   type WorkflowInstanceRecord,
-} from "@hcm-next/data-store";
+} from "@human-capital-management-suite/data-store";
 import type {
   ApiRequestContext,
   AppDependencies,

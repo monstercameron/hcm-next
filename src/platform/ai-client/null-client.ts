@@ -1,4 +1,4 @@
-import { ok } from "@hcm-next/foundation";
+import { ok } from "@human-capital-management-suite/foundation";
 import type {
   AiChangeReview,
   AiChatMessage,

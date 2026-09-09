@@ -68,7 +68,7 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 
 ---
 
-## Provenance and precedence (added by hcm-next; not part of the original)
+## Provenance and precedence (added by human-capital-management-suite; not part of the original)
 
 Vendored verbatim from
 [`multica-ai/andrej-karpathy-skills`](https://github.com/multica-ai/andrej-karpathy-skills/tree/2c606141936f1eeef17fa3043a72095b4765b9c2/skills/karpathy-guidelines),

@@ -3,7 +3,7 @@
 ## Scope
 
 This specification owns operational logs, traces, metrics, propagation and
-telemetry export for every HCM Next process. It applies to HTTP/gRPC requests,
+telemetry export for every Human Capital Management Suite process. It applies to HTTP/gRPC requests,
 capability invocation, BusinessIntent creation, workflows, transactions,
 projectors, schedulers, jobs, integrations, messaging, agents and operator
 actions.

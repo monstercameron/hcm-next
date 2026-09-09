@@ -5,7 +5,7 @@ import {
   type AppError,
   type Result,
   type WorkflowTransition,
-} from "@hcm-next/foundation";
+} from "@human-capital-management-suite/foundation";
 import { numberField, objectField, stringField } from "../shared/json-fields.js";
 import type { ApprovalDecisionInput, EvidenceInput, TransitionBody } from "./types.js";
 

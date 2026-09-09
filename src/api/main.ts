@@ -15,5 +15,5 @@ const port = Number(process.env["PORT"] ?? defaultPort);
 const server = createApiServer();
 
 server.listen(port, () => {
-  process.stdout.write(`HCM Next API listening on http://localhost:${port}\n`);
+  process.stdout.write(`Human Capital Management Suite API listening on http://localhost:${port}\n`);
 });

@@ -1,10 +1,10 @@
 # Reference Workflow Integration Suite
 
-Extracted from the HCM Next architecture constitution so this contract can evolve independently. The master delivery scope remains governed by [../execution-plan.md](../execution-plan.md).
+Extracted from the Human Capital Management Suite architecture constitution so this contract can evolve independently. The master delivery scope remains governed by [../execution-plan.md](../execution-plan.md).
 
 ### 7.5 Reference Workflow Integration Suite
 
-HCM Next should use five end-to-end worker-lifecycle workflows as architectural integration tests. They are reference specifications and validation scenarios, not a commitment to implement all five during the initial ChangeOps phase.
+Human Capital Management Suite should use five end-to-end worker-lifecycle workflows as architectural integration tests. They are reference specifications and validation scenarios, not a commitment to implement all five during the initial ChangeOps phase.
 
 | #   | Reference workflow                 | Architectural purpose                                                           |
 | --- | ---------------------------------- | ------------------------------------------------------------------------------- |

@@ -1,6 +1,6 @@
 # Integration Platform
 
-This specification defines HCM Next's horizontal framework for external APIs, files, webhooks, events, and named vendor connectors. It is consumed by ChangeOps, HRIS DataOps, reference workflows, and future HCM domains.
+This specification defines Human Capital Management Suite's horizontal framework for external APIs, files, webhooks, events, and named vendor connectors. It is consumed by ChangeOps, HRIS DataOps, reference workflows, and future HCM domains.
 
 ## Architectural Role
 
@@ -19,7 +19,7 @@ Connector Definition + Connection
       +-- RECONCILE
       |
       v
-Canonical HCM Next Capabilities
+Canonical Human Capital Management Suite Capabilities
       |
       v
 BusinessIntent / Workflow / Ledger / Repair
@@ -35,11 +35,11 @@ The five verbs are deliberately distinct:
 | `OBSERVE`   | Determine external state and record an `EXTERNAL_OBSERVATION`                               |
 | `RECONCILE` | Compare intended/canonical state with observed external state under source-authority policy |
 
-A connector provides transport and semantic adaptation. It does not automatically make HCM Next or the vendor authoritative for a field. Source authority remains an independent, effective-dated tenant policy.
+A connector provides transport and semantic adaptation. It does not automatically make Human Capital Management Suite or the vendor authoritative for a field. Source authority remains an independent, effective-dated tenant policy.
 
 ## Connector Families
 
-| Family                | Representative ecosystems                      | HCM Next use                                                   |
+| Family                | Representative ecosystems                      | Human Capital Management Suite use                                                   |
 | --------------------- | ---------------------------------------------- | -------------------------------------------------------------- |
 | Core HCM              | Workday, UKG, Oracle, SAP, Dayforce, ADP       | People, employment, jobs, positions, org, compensation         |
 | Payroll               | ADP, UKG, Dayforce, regional payroll providers | Pay inputs/results, status, correction, reconciliation         |
@@ -144,7 +144,7 @@ ACTIVE -> REVOKED
 ACTIVE -> QUARANTINED
 ```
 
-`REVOKED` means credentials or consent no longer authorize use. `QUARANTINED` means HCM Next blocked the connection because of security, schema, behavioral, or data-integrity risk.
+`REVOKED` means credentials or consent no longer authorize use. `QUARANTINED` means Human Capital Management Suite blocked the connection because of security, schema, behavioral, or data-integrity risk.
 
 ### ConnectorOperation
 
@@ -224,7 +224,7 @@ Business completion and integration completion remain separate. An acknowledged 
 
 ## Semantic Boundary
 
-Domain and workflow code calls HCM Next capabilities:
+Domain and workflow code calls Human Capital Management Suite capabilities:
 
 ```text
 worker.read
@@ -279,10 +279,10 @@ Affected:
   Termination v7
 ```
 
-External permission and consent are not substitutes for HCM Next AuthZ. Both must allow the operation:
+External permission and consent are not substitutes for Human Capital Management Suite AuthZ. Both must allow the operation:
 
 ```text
-HCM Next authority
+Human Capital Management Suite authority
         INTERSECT
 connection organization scope
         INTERSECT
@@ -365,7 +365,7 @@ discover/import -> normalize schema snapshot -> registry
 
 Discovery output is untrusted external metadata until reviewed and registered. Automatic discovery never silently republishes mappings or changes production behavior.
 
-For vendors without discovery, HCM Next imports a maintained vendor schema package and detects behavioral drift through contract fixtures and observed-response classification.
+For vendors without discovery, Human Capital Management Suite imports a maintained vendor schema package and detects behavioral drift through contract fixtures and observed-response classification.
 
 ## Generic Synchronization Engine
 
@@ -568,7 +568,7 @@ incident -> degradation policy -> owner/escalation -> repair -> verify
 | ----- | ------------------- | ----------------------------------------------------------------------------------------- |
 | L0    | Transport Adapter   | Transport/auth/file/event mechanics; no vendor object semantics                           |
 | L1    | Typed Connector     | Versioned vendor objects, operations, errors, pagination, and fixtures                    |
-| L2    | Semantic Connector  | Maps supported vendor behavior to canonical HCM Next capabilities                         |
+| L2    | Semantic Connector  | Maps supported vendor behavior to canonical Human Capital Management Suite capabilities                         |
 | L3    | Governed Connector  | Simulation, observation, reconciliation, idempotency, capacity, repair, schema monitoring |
 | L4    | Certified Connector | Supported version matrix, reference workflows, scale/security/failure tests, owned SLO    |
 

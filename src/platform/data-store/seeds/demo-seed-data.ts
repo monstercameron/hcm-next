@@ -11,7 +11,7 @@ import {
   WORKFLOW_STATES,
   WORKFLOW_STATUSES,
   WORKFLOW_TRANSITIONS,
-} from "@hcm-next/foundation";
+} from "@human-capital-management-suite/foundation";
 
 import {
   DEMO_EMPLOYEE_IDS,
@@ -145,7 +145,7 @@ export const DEMO_ACTORS = [
     actorType: ACTOR_TYPES.SYSTEM,
     linkedWorkerId: null,
     email: null,
-    displayName: "HCM Next System",
+    displayName: "Human Capital Management Suite System",
     roles: [ROLE_KEYS.SYSTEM],
     externalSubject: DEMO_SEED_ALIASES.SYSTEM_ACTOR,
     accessPersonas: [],

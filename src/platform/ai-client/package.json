@@ -1,5 +1,5 @@
 {
-  "name": "@hcm-next/ai-client",
+  "name": "@human-capital-management-suite/ai-client",
   "version": "0.1.0",
   "private": true,
   "exports": {
@@ -13,7 +13,7 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
-    "@hcm-next/foundation": "0.1.0",
+    "@human-capital-management-suite/foundation": "0.1.0",
     "openai": "^4.0.0"
   }
 }

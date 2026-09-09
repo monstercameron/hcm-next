@@ -1,6 +1,6 @@
 # Platform Capability Coverage Matrix
 
-This matrix is the maintained inventory of backend responsibilities implied by HCM Next. It prevents architectural mentions from being mistaken for owned systems and prevents `DEFERRED` from being mistaken for forgotten.
+This matrix is the maintained inventory of backend responsibilities implied by Human Capital Management Suite. It prevents architectural mentions from being mistaken for owned systems and prevents `DEFERRED` from being mistaken for forgotten.
 
 ## Coverage States
 

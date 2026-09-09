@@ -26,7 +26,7 @@ method: >-
 
 candidates:
   gwc:
-    package: github.com/monstercameron/hcm-next/tools/uxqual/render/gwc
+    package: github.com/monstercameron/human-capital-management-suite/tools/uxqual/render/gwc
     criteria:
       - name: "Buildable (GOOS=js GOARCH=wasm)"
         pass: true
@@ -88,7 +88,7 @@ candidates:
       concatenation into the SSR head, not a node).
 
   ssr:
-    package: github.com/monstercameron/hcm-next/tools/uxqual/render/ssr
+    package: github.com/monstercameron/human-capital-management-suite/tools/uxqual/render/ssr
     criteria:
       - name: "Buildable (native)"
         pass: true

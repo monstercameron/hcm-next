@@ -3,7 +3,7 @@ import type {
   BindingConfidence,
   DataBinding,
   WidgetInstance,
-} from "@hcm-next/ui-contracts";
+} from "@human-capital-management-suite/ui-contracts";
 import type { UiRuntimeContext } from "./context";
 import { readPath } from "./object-path";
 

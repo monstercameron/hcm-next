@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { ERROR_CODES } from "@hcm-next/foundation";
-import type { StructuredLogger } from "@hcm-next/foundation";
+import { ERROR_CODES } from "@human-capital-management-suite/foundation";
+import type { StructuredLogger } from "@human-capital-management-suite/foundation";
 
 import { createOpenAiClient } from "./openai-client.js";
 import type { AiGeneratedPageDefinition, AiUiGenerationRequest } from "./ai-client.js";
@@ -331,7 +331,7 @@ describe("createOpenAiClient.runChatTurn", () => {
 
     const client = createOpenAiClient({ apiKey: "test-key" });
     const result = await client.runChatTurn({
-      systemPrompt: "You are the HCM Next assistant.",
+      systemPrompt: "You are the Human Capital Management Suite assistant.",
       messages: [{ role: "user", content: "hi" }],
       tools: [
         {
@@ -359,7 +359,7 @@ describe("createOpenAiClient.runChatTurn", () => {
     expect(args.model).toBe("gpt-4o");
     expect(args.messages[0]).toEqual({
       role: "system",
-      content: "You are the HCM Next assistant.",
+      content: "You are the Human Capital Management Suite assistant.",
     });
     expect(args.messages[1]).toEqual({ role: "user", content: "hi" });
     expect(args.tools?.[0]?.function.name).toBe("list_workflows");

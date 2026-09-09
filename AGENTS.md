@@ -1,4 +1,4 @@
-# hcm-next Agent Instructions
+# human-capital-management-suite Agent Instructions
 
 ## Scope
 
@@ -52,7 +52,7 @@ Root `go test ./...` is not a gate on the development machine: every data packag
 
 ## Go engineering rules
 
-- Module path is `github.com/monstercameron/hcm-next`. The typo `monstercamarin` recurs; check it.
+- Module path is `github.com/monstercameron/human-capital-management-suite`. The typo `monstercamarin` recurs; check it.
 - Every hand-written `.go` file has a test in its package that exercises it. Generated code (`gen/go/...`), `testdata/` fixtures and thin `cmd` wrappers whose every call is covered by their library are the only exclusions, and each is named in `planning/test_coverage_root.md`.
 - A test must be able to fail: assert on outputs, errors (`errors.Is` against sentinels) and state after the call. A test that only calls a function, repeats its fixture or aliases another test is not a test.
 - Test names come from the todo's TEST and TEST MATRIX fields (`TestTodo_<ID>`, `TestTodo_<ID>_<Kind>`). A matrix label must prove what it says: a Race test runs goroutines, an Integration test reaches a real store, a Golden test pins bytes.

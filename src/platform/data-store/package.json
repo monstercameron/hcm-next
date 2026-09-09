@@ -1,5 +1,5 @@
 {
-  "name": "@hcm-next/data-store",
+  "name": "@human-capital-management-suite/data-store",
   "version": "0.1.0",
   "private": true,
   "main": "dist/index.js",
@@ -17,7 +17,7 @@
     "db:seed": "tsx scripts/seed.ts"
   },
   "dependencies": {
-    "@hcm-next/foundation": "0.1.0",
+    "@human-capital-management-suite/foundation": "0.1.0",
     "pg": "^8.13.1"
   },
   "devDependencies": {

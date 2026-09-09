@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { ERROR_CODES, WORKFLOW_INTENTS } from "@hcm-next/foundation";
+import { ERROR_CODES, WORKFLOW_INTENTS } from "@human-capital-management-suite/foundation";
 import {
   createEmptyStore,
   createRepositories,
   type WorkflowVersionRecord,
-} from "@hcm-next/data-store";
+} from "@human-capital-management-suite/data-store";
 import {
   cloneWorkflowConfig,
   findFilesystemWorkflowConfigByIntent,

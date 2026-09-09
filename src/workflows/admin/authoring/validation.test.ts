@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { WORKFLOW_INTENTS } from "@hcm-next/foundation";
+import { WORKFLOW_INTENTS } from "@human-capital-management-suite/foundation";
 import {
   cloneWorkflowConfig,
   findFilesystemWorkflowConfigByIntent,
@@ -94,7 +94,7 @@ describe("workflow admin authoring validation", () => {
 
     expect(validationResult.ok).toBe(true);
     expect(validationResult.ok && validationResult.value.jsonSchema["title"]).toBe(
-      "HCM Next Workflow Config",
+      "Human Capital Management Suite Workflow Config",
     );
   });
 });

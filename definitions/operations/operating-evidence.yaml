@@ -2,7 +2,7 @@
 # runtime configuration: tools/planning/operations evaluates it against an
 # explicit clock and never executes work from it.
 version: 1
-module: github.com/monstercameron/hcm-next
+module: github.com/monstercameron/human-capital-management-suite
 effective_at: "2026-09-03T00:00:00Z"
 
 evidence:

@@ -5,13 +5,13 @@ import {
   PERMISSION_KEYS,
   WORKFLOW_INTENTS,
   ok,
-} from "@hcm-next/foundation";
+} from "@human-capital-management-suite/foundation";
 import type {
   ActorRecord,
   ApprovalTaskRecord,
   EmployeeProjectionRecord,
   WorkflowInstanceRecord,
-} from "@hcm-next/data-store";
+} from "@human-capital-management-suite/data-store";
 import { diffWorkflowConfigs } from "./diff/workflow-diff.js";
 import { runPublishGuardrails } from "./guardrails/publish-guardrails.js";
 import {

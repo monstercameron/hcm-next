@@ -6,7 +6,7 @@ import {
   mapUnknownToDatabaseError,
   ok,
   type Result,
-} from "@hcm-next/foundation";
+} from "@human-capital-management-suite/foundation";
 
 export type DatabaseClient = {
   query: <TRow extends QueryResultRow = QueryResultRow>(

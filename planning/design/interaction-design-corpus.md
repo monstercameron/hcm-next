@@ -1,4 +1,4 @@
-# HCM Next interaction design corpus
+# Human Capital Management Suite interaction design corpus
 
 Status: design proposal for review, September 5, 2026. The approved Home remains
 the visual reference. These boards and contracts specify behavior; they do not

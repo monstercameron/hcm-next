@@ -6,7 +6,7 @@ import {
   validationFailedError,
   type AppError,
   type Result,
-} from "@hcm-next/foundation";
+} from "@human-capital-management-suite/foundation";
 import type { ExternalWriteClient } from "./external-write-client.js";
 
 export type CompensationDecisionResponse = {

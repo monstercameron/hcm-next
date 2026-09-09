@@ -8,13 +8,13 @@ import {
   validationFailedError,
   type AppError,
   type Result,
-} from "@hcm-next/foundation";
+} from "@human-capital-management-suite/foundation";
 import type {
   ChangeRequestRecord,
   Repositories,
   TransactionPlanRecord,
   WorkflowInstanceRecord,
-} from "@hcm-next/data-store";
+} from "@human-capital-management-suite/data-store";
 import { objectField, stringField } from "../shared/json-fields.js";
 import type {
   ApiRequestContext,

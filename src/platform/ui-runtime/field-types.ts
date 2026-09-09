@@ -2,7 +2,7 @@ import {
   canonicalFieldTypeIds,
   type CanonicalFieldTypeId,
   type FieldTypeAliasDefinition,
-} from "@hcm-next/ui-contracts";
+} from "@human-capital-management-suite/ui-contracts";
 
 type FieldRecord = Readonly<Record<string, unknown>>;
 

@@ -7,7 +7,7 @@ export type WorkflowConfigJsonSchema = Record<string, unknown>;
 export const canonicalWorkflowConfigJsonSchema: WorkflowConfigJsonSchema = {
   $schema: "https://json-schema.org/draft/2020-12/schema",
   $id: "https://hcm-next.local/schemas/workflow-config-v0.4.json",
-  title: "HCM Next Workflow Config",
+  title: "Human Capital Management Suite Workflow Config",
   type: "object",
   additionalProperties: true,
   required: [

@@ -8,7 +8,7 @@ import {
   ok,
   type AppError,
   type Result,
-} from "@hcm-next/foundation";
+} from "@human-capital-management-suite/foundation";
 import {
   createRepositories,
   createSeededDemoStore,
@@ -16,13 +16,13 @@ import {
   type ActorRecord,
   type ApprovalTaskRecord,
   type Repositories,
-} from "@hcm-next/data-store";
+} from "@human-capital-management-suite/data-store";
 import {
   DEMO_ORGANIZATION,
   orgUnitKeyForCostCenter,
   orgUnitKeyForLocation,
   orgUnitKeyForTeam,
-} from "@hcm-next/data-store/demo-organization";
+} from "@human-capital-management-suite/data-store/demo-organization";
 import type { AppDependencies } from "../../api/dependencies.js";
 import type {
   ExecutorClient,

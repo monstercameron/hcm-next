@@ -337,7 +337,7 @@ non-digital/accommodation route where required
 ```
 
 WCAG 2.2 requires error-prevention support for legal, financial and data-changing
-transactions through reversibility, checking or review/confirmation; HCM Next
+transactions through reversibility, checking or review/confirmation; Human Capital Management Suite
 applies that principle to the complete approval process, not only its submit
 button. See [WCAG 2.2 SC 3.3.4](https://www.w3.org/WAI/WCAG22/Understanding/error-prevention-legal-financial-data.html).
 

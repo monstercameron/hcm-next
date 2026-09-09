@@ -1,4 +1,4 @@
-import type { WorkflowInstanceRecord } from "@hcm-next/data-store";
+import type { WorkflowInstanceRecord } from "@human-capital-management-suite/data-store";
 
 /**
  * Serializes the stable public workflow-instance shape used by API responses.

@@ -1,4 +1,4 @@
-# HCM Next Convergence Plan
+# Human Capital Management Suite Convergence Plan
 
 This is the dependency-ordered bridge from the current planning repository to a
 paid, production-shaped ChangeOps pilot. It narrows sequencing; it does not
@@ -66,12 +66,12 @@ decision for the durable runtime is recorded before P1B code starts.
 
 Before implementation, the partner must select exactly one authority topology:
 
-- **External authority:** HCM Next records the approval-bound transaction and
+- **External authority:** Human Capital Management Suite records the approval-bound transaction and
   intended effect, the incumbent receives one governed mutation, and observed
-  incumbent state remains `EXTERNAL_OBSERVATION`. HCM Next must not emit false
+  incumbent state remains `EXTERNAL_OBSERVATION`. Human Capital Management Suite must not emit false
   local domain facts for externally mastered fields.
 - **Transferred authority:** the partner explicitly transfers the selected field
-  authority, permitting HCM Next to commit the corresponding domain facts.
+  authority, permitting Human Capital Management Suite to commit the corresponding domain facts.
 
 Do not build both topologies speculatively.
 
@@ -135,7 +135,7 @@ connector read path, mixed-source snapshot, no-effect simulation, immutable
 proposal, consumable handoff, downstream observation, reconciliation and
 non-executable repair recommendation. The provider adapter owns transport
 mechanics only; mapping, authority, idempotency, truth classification and repair
-remain HCM Next semantics.
+remain Human Capital Management Suite semantics.
 
 Exit: repeated paid use beats the baseline, all facts expose authority/provenance/
 freshness, and the zero-workforce-effect invariant passes under retry, crash,

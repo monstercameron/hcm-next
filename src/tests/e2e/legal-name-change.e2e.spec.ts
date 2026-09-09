@@ -5,14 +5,14 @@ import {
   WORKFLOW_TRANSITIONS,
   type Result,
   type AppError,
-} from "@hcm-next/foundation";
+} from "@human-capital-management-suite/foundation";
 import {
   createRepositories,
   createSeededDemoStore,
   DEMO_IDS,
   type ActorRecord,
   type Repositories,
-} from "@hcm-next/data-store";
+} from "@human-capital-management-suite/data-store";
 import type {
   ExecutorClient,
   ExecutorRequest,

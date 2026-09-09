@@ -6,7 +6,7 @@ import {
   ok,
   type AppError,
   type Result,
-} from "@hcm-next/foundation";
+} from "@human-capital-management-suite/foundation";
 import type {
   ApprovalGroupRecord,
   ApprovalTaskRecord,
@@ -15,7 +15,7 @@ import type {
   Repositories,
   WorkflowInstanceRecord,
   WorkflowTransitionAttemptRecord,
-} from "@hcm-next/data-store";
+} from "@human-capital-management-suite/data-store";
 import type {
   ApiRequestContext,
   AppDependencies,

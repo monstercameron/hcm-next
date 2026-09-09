@@ -2,7 +2,7 @@
 
 ## Purpose
 
-HCM Next supports static product navigation, governed schema-driven pages, and
+Human Capital Management Suite supports static product navigation, governed schema-driven pages, and
 agent-assembled contextual workspaces through one presentation contract. The
 server remains authoritative for state, actions, permissions, and business
 effects.

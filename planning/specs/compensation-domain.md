@@ -25,7 +25,7 @@ Currencies, pay bands, frequencies, and component codes are governed references;
 the package and its effective-dated values are domain facts.
 
 SourceAuthority is declared by component, employment/legal entity, organization,
-and interval. When an incumbent is authoritative, HCM Next records proposed
+and interval. When an incumbent is authoritative, Human Capital Management Suite records proposed
 transactions and external observations rather than claiming the observed amount
 as its own domain fact.
 

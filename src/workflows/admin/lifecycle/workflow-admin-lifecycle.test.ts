@@ -5,13 +5,13 @@ import {
   LEDGER_EVENT_TYPES,
   WORKFLOW_INTENTS,
   type RequestContext,
-} from "@hcm-next/foundation";
+} from "@human-capital-management-suite/foundation";
 import {
   createInitialWorkflowInstance,
   createRepositories,
   createSeededDemoStore,
   DEMO_IDS,
-} from "@hcm-next/data-store";
+} from "@human-capital-management-suite/data-store";
 import {
   cloneWorkflowConfig,
   findFilesystemWorkflowConfigByIntent,

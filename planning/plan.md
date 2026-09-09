@@ -1,6 +1,6 @@
-# HCM Next High-Level Plan
+# Human Capital Management Suite High-Level Plan
 
-This document is the durable product strategy and architecture constitution. It defines what HCM Next is, the invariants that must remain true, the authority-expansion path, and the long-term Workforce OS direction. It is intentionally broader than the executable delivery plan.
+This document is the durable product strategy and architecture constitution. It defines what Human Capital Management Suite is, the invariants that must remain true, the authority-expansion path, and the long-term Workforce OS direction. It is intentionally broader than the executable delivery plan.
 
 Use the planning set according to this hierarchy:
 
@@ -35,21 +35,21 @@ execution plan.
 
 ## 1. Executive Summary
 
-HCM Next is a vendor-agnostic transaction control plane for enterprise HR changes. It helps organizations design, validate, approve, simulate, execute, reconcile, and audit employee changes across HCM, payroll, finance, identity, and internal systems.
+Human Capital Management Suite is a vendor-agnostic transaction control plane for enterprise HR changes. It helps organizations design, validate, approve, simulate, execute, reconcile, and audit employee changes across HCM, payroll, finance, identity, and internal systems.
 
-The initial product is **HCM Next ChangeOps**, a governed operating layer for high-risk employee changes such as promotions, compensation adjustments, manager changes, and organizational moves.
+The initial product is **Human Capital Management Suite ChangeOps**, a governed operating layer for high-risk employee changes such as promotions, compensation adjustments, manager changes, and organizational moves.
 
 The product does not begin by replacing Workday, UKG, Oracle HCM, SAP SuccessFactors, Dayforce, or customer-built systems. It begins by controlling the fragmented transaction process around them.
 
 ```text
 Existing HCM systems
         +
-HCM Next ChangeOps
+Human Capital Management Suite ChangeOps
         =
 safer, faster, explainable employee changes
 ```
 
-The long-term opportunity is larger than becoming a system of record for a few HR domains. HCM Next can become a **Workforce Operating System**: a unified system spanning people, workforce operations, talent, rewards, employee experience, and workforce access on one shared Person/Worker Graph.
+The long-term opportunity is larger than becoming a system of record for a few HR domains. Human Capital Management Suite can become a **Workforce Operating System**: a unified system spanning people, workforce operations, talent, rewards, employee experience, and workforce access on one shared Person/Worker Graph.
 
 That destination does not change the entry strategy. ChangeOps remains the wedge, and authority must be earned gradually through demonstrated transaction safety, operational reliability, customer trust, and domain-specific readiness. The transaction control plane is the path into the suite, not the limit of the vision.
 
@@ -71,7 +71,7 @@ A single promotion may involve:
 
 Most enterprises manage this process through a mixture of suite workflows, tickets, spreadsheets, email, chat, manual entry, and custom integrations. Each tool sees part of the process, but no system reliably governs the whole transaction.
 
-HCM Next creates a shared transaction model above those systems. Its value is not generic workflow automation. Its value is the combination of:
+Human Capital Management Suite creates a shared transaction model above those systems. Its value is not generic workflow automation. Its value is the combination of:
 
 - HCM-specific transaction semantics
 - Effective-dated employee changes
@@ -121,7 +121,7 @@ suites already market overlapping categories and language. The durable thesis is
 
 ### 3.5 Product Boundary
 
-HCM Next is not initially:
+Human Capital Management Suite is not initially:
 
 - A complete HCM suite
 - A payroll calculation engine
@@ -132,7 +132,7 @@ HCM Next is not initially:
 - An autonomous AI decision maker
 - A universal integration platform
 
-HCM Next is initially:
+Human Capital Management Suite is initially:
 
 - The governed entry point for selected employee changes
 - The place where proposed changes are validated and approved
@@ -151,7 +151,7 @@ with their own evidence gates.
 
 HCM is the umbrella category rather than one application beside recruiting, payroll, time, and talent. Major HCM suites already group core HR, talent acquisition, talent management, learning, compensation, benefits, payroll, time, absence, workforce planning, and analytics into connected portfolios. Rippling extends the boundary further by connecting HR with workforce identity, application access, devices, and selected finance operations around common workforce data.
 
-HCM Next should therefore plan for two related identities:
+Human Capital Management Suite should therefore plan for two related identities:
 
 ```text
 Near-term category:
@@ -350,7 +350,7 @@ Every proposed product family must pass four tests before investment:
 1. **Shared-model advantage** — does the Person/Worker Graph materially improve the product?
 2. **Workflow advantage** — do governed transactions, reconciliation, and audit create differentiation?
 3. **Customer pull** — are existing customers asking and willing to pay for it?
-4. **Operating readiness** — can HCM Next safely own the required domain authority and regulatory burden?
+4. **Operating readiness** — can Human Capital Management Suite safely own the required domain authority and regulatory burden?
 
 This prevents the broader vision from weakening the ChangeOps wedge or turning the roadmap into a checklist of incumbent-suite modules.
 
@@ -418,7 +418,7 @@ A workflow task is only one part of an employee change. The product must govern 
 
 ### 5.2 Separate Different Kinds of Truth
 
-HCM Next must distinguish:
+Human Capital Management Suite must distinguish:
 
 ```text
 Transaction truth:
@@ -428,13 +428,13 @@ Domain truth:
     the authoritative employee state for a field and period
 
 Execution truth:
-    what HCM Next sent or changed
+    what Human Capital Management Suite sent or changed
 
 Observed external truth:
     what a destination system reports after execution
 ```
 
-HCM Next owns transaction truth from the beginning. It owns employee-domain truth only when a customer explicitly promotes a defined domain or field scope to HCM Next authority.
+Human Capital Management Suite owns transaction truth from the beginning. It owns employee-domain truth only when a customer explicitly promotes a defined domain or field scope to Human Capital Management Suite authority.
 
 ### 5.3 Approval Must Bind to an Immutable Proposal
 
@@ -515,11 +515,11 @@ Legal requirements must not be buried in workflow code, UI warnings, or develope
 
 > AuthZ answers whether this actor may act. Legal policy answers whether the organization may act or process data in these circumstances and what obligations attach. Workflow executes those obligations. The ledger proves what happened.
 
-HCM Next supplies governed infrastructure, baseline legal packs, provenance, and change-management tools. Customer counsel controls final interpretations and ambiguous configuration; the platform does not represent itself as a substitute for legal advice.
+Human Capital Management Suite supplies governed infrastructure, baseline legal packs, provenance, and change-management tools. Customer counsel controls final interpretations and ambiguous configuration; the platform does not represent itself as a substitute for legal advice.
 
 ### 5.13 Preserve Epistemic Integrity
 
-HCM Next must know what the workforce looked like, how it changed, why decisions were made, and what humans or systems believed when they acted. It must never confuse those categories.
+Human Capital Management Suite must know what the workforce looked like, how it changed, why decisions were made, and what humans or systems believed when they acted. It must never confuse those categories.
 
 ```text
 FACT
@@ -532,7 +532,7 @@ DECISION
 what an actor chose and why
 
 INTERACTION
-what an actor did inside HCM Next
+what an actor did inside Human Capital Management Suite
 
 INFERENCE
 what an algorithm believes may be true
@@ -552,7 +552,7 @@ Agents are an overlay, not the product's primary interface. The governed request
 
 ### 5.15 One Canonical History, Many Rebuildable Read Planes
 
-HCM Next will not treat the data layer as one database. It will maintain one authoritative chronology of business facts, plus authoritative content-addressed artifacts where a ledger event references large verbatim content. Operational projections, caches, search indexes, embeddings, analytical tables, and semantic indexes are derived serving planes.
+Human Capital Management Suite will not treat the data layer as one database. It will maintain one authoritative chronology of business facts, plus authoritative content-addressed artifacts where a ledger event references large verbatim content. Operational projections, caches, search indexes, embeddings, analytical tables, and semantic indexes are derived serving planes.
 
 > Normalize and protect truth. Denormalize reads aggressively. Make every derived representation disposable, reproducible, and continuously reconcilable.
 
@@ -560,15 +560,15 @@ Historical mutation is prohibited through ordinary product and administrative in
 
 ### 5.16 Bill at Semantic Boundaries; Meter Technical Work Precisely
 
-Entitlements determine what a customer has purchased. Authorization determines which principal may use it. Metering records usage. Rating applies an effective contract and price. Billing produces charges, credits, statements, and invoices. Cost accounting records what HCM Next paid to deliver the service.
+Entitlements determine what a customer has purchased. Authorization determines which principal may use it. Metering records usage. Rating applies an effective contract and price. Billing produces charges, credits, statements, and invoices. Cost accounting records what Human Capital Management Suite paid to deliver the service.
 
 > Bill customers at stable, understandable product boundaries while preserving fine-grained technical usage and cost lineage underneath.
 
-Internal refactoring must not unexpectedly change a customer bill. One packaged promotion must not cost more merely because HCM Next changed it from seven internal calls to eleven. Variable API, AI, analytics, integration, and storage consumption may be priced explicitly, but only through published, versioned meters and contracts.
+Internal refactoring must not unexpectedly change a customer bill. One packaged promotion must not cost more merely because Human Capital Management Suite changed it from seven internal calls to eleven. Variable API, AI, analytics, integration, and storage consumption may be priced explicitly, but only through published, versioned meters and contracts.
 
 ### 5.17 Resolve Jurisdictions; Compose Domain-Specific Regulatory Rules
 
-Global regulatory behavior cannot be reduced to one country field or one generic legal rules engine. HCM Next resolves the applicable supranational, national, state or provincial, local, contractual, collective, plan, and company authorities for a specific action and effective time. Specialized deterministic engines then calculate amounts, generate filings, or produce typed obligations under their own composition semantics.
+Global regulatory behavior cannot be reduced to one country field or one generic legal rules engine. Human Capital Management Suite resolves the applicable supranational, national, state or provincial, local, contractual, collective, plan, and company authorities for a specific action and effective time. Specialized deterministic engines then calculate amounts, generate filings, or produce typed obligations under their own composition semantics.
 
 > The Legal Plane governs whether and why the organization may act. The Regulatory Platform deterministically computes which jurisdictional rules, calculations, filings, deadlines, and evidence apply.
 
@@ -582,9 +582,9 @@ three families do not include a filing family.
 
 ### 5.18 Go Core, Contract-First, and Open-Source-First
 
-Go is the authored language for the HCM Next product core: backend services, deterministic engines, workflow execution, control-plane capabilities, integrations, command-line tools, and operational workers. Protobuf and gRPC define service contracts. GWC/GoWebComponents, `grpcbridge`, and SchemaFlux are the preferred choices for UI, transport edge, and definition generation, each with a named qualification fixture and a named fallback (Go server-rendered HTML, grpc-gateway or connect-go, and protoc with Go code generation).
+Go is the authored language for the Human Capital Management Suite product core: backend services, deterministic engines, workflow execution, control-plane capabilities, integrations, command-line tools, and operational workers. Protobuf and gRPC define service contracts. GWC/GoWebComponents, `grpcbridge`, and SchemaFlux are the preferred choices for UI, transport edge, and definition generation, each with a named qualification fixture and a named fallback (Go server-rendered HTML, grpc-gateway or connect-go, and protoc with Go code generation).
 
-> HCM Next ships one Go platform. Its house libraries earn their place by passing a fixture, not by decree; TypeScript, React, and Node are not release-image or runtime dependencies, and Node-based developer tooling is allowed.
+> Human Capital Management Suite ships one Go platform. Its house libraries earn their place by passing a fixture, not by decree; TypeScript, React, and Node are not release-image or runtime dependencies, and Node-based developer tooling is allowed.
 
 Open-source-first does not mean dependency-first or self-host-everything. A dependency must reduce total complexity after security response, upgrades, operations, testing, licensing, portability, and exit cost are included. Managed services remain acceptable when they materially reduce regulated operational risk and preserve export, replay, and migration paths.
 
@@ -857,7 +857,7 @@ See [the HRIS Admin Toolkit and DataOps specification](specs/hris-admin-dataops.
 
 ### 7.7 Horizontal Subsystem: Integration Platform
 
-External APIs, files, webhooks, and named vendor connectors must enter HCM Next through one governed integration runtime rather than bespoke domain code:
+External APIs, files, webhooks, and named vendor connectors must enter Human Capital Management Suite through one governed integration runtime rather than bespoke domain code:
 
 ```text
 External System
@@ -875,7 +875,7 @@ Connector Definition + Tenant Connection
 Mapping + Crosswalk + Capacity-Aware Scheduler
       |
       v
-Canonical HCM Next Capability / Workflow / Ledger
+Canonical Human Capital Management Suite Capability / Workflow / Ledger
 ```
 
 The framework owns connection testing, external-permission diagnosis, schema discovery and impact, mappings and reference-data crosswalks, synchronization, webhooks, rate-aware queues, operation journals, health, redrive, and reconciliation. Domain code invokes semantic capabilities such as `worker.read` or `identity.deprovision`; it does not import vendor-specific clients.
@@ -1022,7 +1022,7 @@ experience and branding contract](specs/experience-ui-and-branding.md), and
 
 ## 8. Platform Plane Model and Capabilities
 
-HCM Next uses nine logical planes with two cross-cutting overlays. These are
+Human Capital Management Suite uses nine logical planes with two cross-cutting overlays. These are
 responsibility boundaries, not a mandate for nine separately deployed services.
 
 ```text
@@ -1114,7 +1114,7 @@ Authority is configured per tenant, domain, field, system, and effective period.
 - Conflict ownership
 - Whether automatic repair is allowed
 
-Authority is promoted deliberately. Orchestrating a change does not automatically make HCM Next authoritative for the underlying employee domain.
+Authority is promoted deliberately. Orchestrating a change does not automatically make Human Capital Management Suite authoritative for the underlying employee domain.
 
 ### 9.2 Conflict Contract
 
@@ -1151,7 +1151,7 @@ Two identity domains must remain terminologically distinct:
 
 ```text
 PLATFORM IAM
-  authenticates and authorizes HCM Next users, services, agents,
+  authenticates and authorizes Human Capital Management Suite users, services, agents,
   operators, workloads, sessions, and production administration
 
 WORKFORCE ACCESS PRODUCT
@@ -1293,7 +1293,7 @@ The operating model must include:
 - Backup, restore, and disaster-recovery testing
 - Tenant-level recovery procedures
 
-Operational readiness also requires measurable event-distribution lag, projection lag, reconciliation freshness, invariant coverage, incident aggregation, repair throughput, and successful independent rebuilds. These are product health measures because they establish whether HCM Next's derived answers still agree with authoritative business truth.
+Operational readiness also requires measurable event-distribution lag, projection lag, reconciliation freshness, invariant coverage, incident aggregation, repair throughput, and successful independent rebuilds. These are product health measures because they establish whether Human Capital Management Suite's derived answers still agree with authoritative business truth.
 
 ### 11.3 Quantitative Service and Capacity Contract
 
@@ -1324,7 +1324,7 @@ Initial internal planning objectives—not contractual customer promises—are:
 
 | Work class                                      | Initial planning objective                                                      |
 | ----------------------------------------------- | ------------------------------------------------------------------------------- |
-| Interactive projection read                     | p95 under 500 ms inside the HCM Next boundary                                   |
+| Interactive projection read                     | p95 under 500 ms inside the Human Capital Management Suite boundary                                   |
 | Change preflight without slow external provider | p95 under 2 seconds                                                             |
 | Local authoritative command commit              | p99 under 1 second                                                              |
 | Critical projection freshness                   | p95 lag under 5 seconds; never used silently beyond its declared age            |
@@ -1452,7 +1452,7 @@ Design partners must validate:
 - Expansion triggers and reasons not to expand
 - Whether customers value cross-system transaction control beyond incumbent workflow/API features
 - Whether HRIS DataOps or workforce-access lifecycle creates independently paid pull
-- Which domains customers explicitly prefer HCM Next to integrate with rather than own
+- Which domains customers explicitly prefer Human Capital Management Suite to integrate with rather than own
 
 ### 12.5 Commercial Architecture Hypotheses
 
@@ -1535,7 +1535,7 @@ Work begins as vertical slices through this spine. A shared subsystem is promote
 
 Goal:
 
-> Prove that HCM Next improves one high-risk employee-change workflow without becoming the employee system of record.
+> Prove that Human Capital Management Suite improves one high-risk employee-change workflow without becoming the employee system of record.
 
 Primary scope:
 
@@ -1693,7 +1693,7 @@ Promotion evidence:
 
 Goal:
 
-> Become authoritative for selected domains where HCM Next can operate more safely and effectively than an integration-only approach.
+> Become authoritative for selected domains where Human Capital Management Suite can operate more safely and effectively than an integration-only approach.
 
 Candidate domains:
 
@@ -1712,7 +1712,7 @@ Each domain requires its own:
 - Reconciliation and recovery model
 - Reversible cutover plan
 
-Before HCM Next becomes authoritative for leave, payroll-adjacent, employment, or identity domains, the applicable Leave → Return, Payroll Correction, Hire, Transfer, and Termination reference scenarios must pass under production-scale recovery and privacy controls.
+Before Human Capital Management Suite becomes authoritative for leave, payroll-adjacent, employment, or identity domains, the applicable Leave → Return, Payroll Correction, Hire, Transfer, and Termination reference scenarios must pass under production-scale recovery and privacy controls.
 
 Authoritative payroll, tax, statutory leave, or government-reporting capability additionally requires jurisdiction-specific specialist validation, golden calculations, filing certification or provider approval where applicable, regulatory update operations, correction procedures, and customer transition plans.
 
@@ -1722,7 +1722,7 @@ Goal:
 
 > Replace selected legacy HCM modules and expand into a unified Workforce Operating System only after years of operational evidence and customer trust.
 
-This phase is justified only when HCM Next can demonstrate that operating an authoritative domain is safer, more adaptable, and economically better than integrating with the incumbent.
+This phase is justified only when Human Capital Management Suite can demonstrate that operating an authoritative domain is safer, more adaptable, and economically better than integrating with the incumbent.
 
 Expansion should follow shared worker journeys rather than recreating an incumbent catalog in arbitrary order. A likely strategic sequence is:
 
@@ -1895,7 +1895,7 @@ Owners review these risks at each authority gate. The complete long-term registe
 
 | Decision                           | Direction                                                                                                                                   |
 | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| Initial product                    | HCM Next ChangeOps                                                                                                                          |
+| Initial product                    | Human Capital Management Suite ChangeOps                                                                                                                          |
 | Adjacent administrator product     | HRIS DataOps, productized incrementally from proven governed operator capabilities                                                          |
 | Integration architecture           | Horizontal connector definitions, tenant connections, mappings, operation journals, scheduling, observation, and repair                     |
 | Communications architecture        | Semantic intent, audience/endpoint resolution, deterministic content, secure inbox, channel policy, delivery evidence, and workflow signals |
@@ -1913,7 +1913,7 @@ Owners review these risks at each authority gate. The complete long-term registe
 | Completion model                   | Business, external consistency, reconciliation, operational, and obligation states remain separate                                          |
 | Initial relationship to incumbents | Overlay and control layer, not replacement                                                                                                  |
 | Core data model                    | Shared Person/Worker Graph with stable HCM primitives and governed metadata                                                                 |
-| Source of truth                    | HCM Next for transaction truth; configured authority for employee domains                                                                   |
+| Source of truth                    | Human Capital Management Suite for transaction truth; configured authority for employee domains                                                                   |
 | Ledger assertion authority         | Transaction fact, domain fact, external observation, claim, and correction remain explicit                                                  |
 | Multi-stream transaction           | Validate expected heads and append local authoritative events, projections, and outbox atomically                                           |
 | Approval model                     | Immutable proposal and context-bound approval                                                                                               |
@@ -1995,7 +1995,7 @@ Owners review these risks at each authority gate. The complete long-term registe
 | Government reporting               | Versioned definitions and immutable FilingPackages through governed submission workflows                                                    |
 | Obligation model                   | Typed, assigned, deadline-aware requirements with evidence and satisfaction conditions                                                      |
 | Regulatory interpretation          | Vendor baseline plus specialist and customer-counsel-controlled production approval                                                         |
-| Legal interpretation               | HCM Next baselines with final tenant configuration controlled by customer counsel                                                           |
+| Legal interpretation               | Human Capital Management Suite baselines with final tenant configuration controlled by customer counsel                                                           |
 | Privacy processing                 | Purpose, legal basis, classification, parties, regions, retention, and transfer                                                             |
 | Sensitive ledger data              | Minimal immutable facts with encrypted, retainable, destructible payload references                                                         |
 | Compliance operations              | DSAR, retention, holds, DPIA, breach, and legal-change workflows                                                                            |
@@ -2050,7 +2050,7 @@ The detailed charter inventory is maintained in [the architecture specification 
 
 ## 18. Final Plan Statement
 
-> HCM Next will begin as the governed transaction layer around existing enterprise HCM systems. It will first make high-risk job, compensation, manager, and organization changes safer and easier to operate. It will distinguish transaction truth from employee-domain authority, bind approvals to immutable proposals, resolve concurrent and effective-dated changes explicitly, reconcile external outcomes, preserve explainable history, and use AI only within governed human accountability. Its ledger will act as the business black box recorder, while rebuildable projections, continuous integrity checks, causal incident views, and governed RepairPlans keep derived and external state aligned with that truth. Every product action will be exposed as a semantic capability governed by record, field, relationship, purpose, context, risk, and identity; agents will discover and compose those capabilities without receiving unrestricted credentials or bypassing deterministic workflows. Live processes will remain version-pinned and historically immutable, yet repairable through explicit intervention and migration plans. Corporate hierarchy, inheritance, and cross-company workflows will operate inside the tenant boundary with directional sharing and security-preserving scope resolution. Authentication will establish principal identity while customer-defined authorization composes organization scope, capability, resource, data domain, field, population, relationship, purpose, and current context into an explainable decision and enforceable workflow obligations. Globalization will preserve canonical business values while independently resolving language, currency, timezone, calendar, formatting, and jurisdiction for every transaction, workflow, document, integration, and human audience. The Legal and Compliance Plane will resolve whether the organization may act or process data, attach versioned obligations and prohibitions, and turn privacy rights, retention, legal holds, regulated AI, legal change, and breach response into auditable workflows controlled by customer-approved interpretation. Workforce Intelligence will connect historical facts, semantic observations, human and agent decisions, meaningful interactions, and explicit inferences through a governed bitemporal semantic model while preserving the authority, provenance, privacy, and uncertainty of each class. The Agent Runtime will make intent the primary interface, discover governed capabilities and semantic context, create reproducible analyses and workflows, and learn through evaluated proposals while deterministic services retain exclusive control of authoritative execution. The physical data plane will protect one canonical event chronology and content-addressed artifacts while serving product, search, analytics, and agents through specialized, provenance-bearing stores that can be independently rebuilt, reconciled, and replaced. The Billing Plane will separate purchased entitlement, principal authority, semantic usage, versioned rating, append-only customer billing, and provider cost so the product remains commercially predictable, operationally explainable, and economically governable as API and agent consumption grows.
+> Human Capital Management Suite will begin as the governed transaction layer around existing enterprise HCM systems. It will first make high-risk job, compensation, manager, and organization changes safer and easier to operate. It will distinguish transaction truth from employee-domain authority, bind approvals to immutable proposals, resolve concurrent and effective-dated changes explicitly, reconcile external outcomes, preserve explainable history, and use AI only within governed human accountability. Its ledger will act as the business black box recorder, while rebuildable projections, continuous integrity checks, causal incident views, and governed RepairPlans keep derived and external state aligned with that truth. Every product action will be exposed as a semantic capability governed by record, field, relationship, purpose, context, risk, and identity; agents will discover and compose those capabilities without receiving unrestricted credentials or bypassing deterministic workflows. Live processes will remain version-pinned and historically immutable, yet repairable through explicit intervention and migration plans. Corporate hierarchy, inheritance, and cross-company workflows will operate inside the tenant boundary with directional sharing and security-preserving scope resolution. Authentication will establish principal identity while customer-defined authorization composes organization scope, capability, resource, data domain, field, population, relationship, purpose, and current context into an explainable decision and enforceable workflow obligations. Globalization will preserve canonical business values while independently resolving language, currency, timezone, calendar, formatting, and jurisdiction for every transaction, workflow, document, integration, and human audience. The Legal and Compliance Plane will resolve whether the organization may act or process data, attach versioned obligations and prohibitions, and turn privacy rights, retention, legal holds, regulated AI, legal change, and breach response into auditable workflows controlled by customer-approved interpretation. Workforce Intelligence will connect historical facts, semantic observations, human and agent decisions, meaningful interactions, and explicit inferences through a governed bitemporal semantic model while preserving the authority, provenance, privacy, and uncertainty of each class. The Agent Runtime will make intent the primary interface, discover governed capabilities and semantic context, create reproducible analyses and workflows, and learn through evaluated proposals while deterministic services retain exclusive control of authoritative execution. The physical data plane will protect one canonical event chronology and content-addressed artifacts while serving product, search, analytics, and agents through specialized, provenance-bearing stores that can be independently rebuilt, reconciled, and replaced. The Billing Plane will separate purchased entitlement, principal authority, semantic usage, versioned rating, append-only customer billing, and provider cost so the product remains commercially predictable, operationally explainable, and economically governable as API and agent consumption grows.
 >
 > Five lifecycle reference workflows—Hire and Onboard, Promotion and Compensation, Cross-Company Transfer, Leave and Return, and Termination and Offboarding—will serve as architecture conformance tests, with Payroll Correction as the bitemporal repair stress test. Their shared Workflow Simulation Contract will make planned state, authority, legal obligations, conflicts, side effects, costs, completion dimensions, revalidation, and repair visible before material execution.
 >
@@ -2068,7 +2068,7 @@ The detailed charter inventory is maintained in [the architecture specification 
 >
 > Production correctness begins in Phase 1 with logical placement, tenant limits, criticality-aware admission and bounded retries, workload identity on material paths, controlled egress, signed builds, JIT operator access, agent tool mediation, kill switches, restore verification, time-skew monitoring, and privacy-governed telemetry. Physical multi-cell operation, live relocation, advanced crypto migration, and regional recovery are promoted only when authority, scale, or customer commitments require them.
 >
-> The company will earn broader authority through measured customer value and operational evidence. It will expand from overlay, to workflow operating layer, to system of transaction, and only then to an authoritative system of record for selected domains. From that foundation, HCM Next can become a Workforce Operating System spanning People, Workforce, Talent, Rewards, Experience, and Access on one governed Person/Worker Graph. Product scope, technical authority, and commercial investment will advance through explicit decision gates rather than vision alone.
+> The company will earn broader authority through measured customer value and operational evidence. It will expand from overlay, to workflow operating layer, to system of transaction, and only then to an authoritative system of record for selected domains. From that foundation, Human Capital Management Suite can become a Workforce Operating System spanning People, Workforce, Talent, Rewards, Experience, and Access on one governed Person/Worker Graph. Product scope, technical authority, and commercial investment will advance through explicit decision gates rather than vision alone.
 
 The strategic punchline remains:
 
@@ -2080,9 +2080,9 @@ The strategic punchline remains:
 - [Workday Human Capital Management](https://www.workday.com/en-us/products/human-capital-management/overview.html)
 - [Rippling product ecosystem](https://www.rippling.com/products)
 - [UKG Pro Human Capital Management](https://www.ukg.com/products/ukg-pro)
-- [HCM Next transaction, ledger, reconciliation, and repair contract](specs/transaction-ledger-reconciliation-and-repair.md)
-- [HCM Next canonical platform plane model](specs/platform-plane-model.md)
-- [HCM Next business intent catalog](specs/business-intent-catalog.md)
+- [Human Capital Management Suite transaction, ledger, reconciliation, and repair contract](specs/transaction-ledger-reconciliation-and-repair.md)
+- [Human Capital Management Suite canonical platform plane model](specs/platform-plane-model.md)
+- [Human Capital Management Suite business intent catalog](specs/business-intent-catalog.md)
 - [Federal Trade Commission: Using Consumer Reports—What Employers Need to Know](https://www.ftc.gov/business-guidance/resources/using-consumer-reports-what-employers-need-know)
 - [EUR-Lex: General Data Protection Regulation](https://eur-lex.europa.eu/eli/reg/2016/679/oj/eng/)
 - [European Data Protection Board: Consent under GDPR](https://www.edpb.europa.eu/system/files/2026-04/edpb-summary-consent_en.pdf)

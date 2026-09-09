@@ -1,5 +1,5 @@
 {
-  "name": "@hcm-next/foundation",
+  "name": "@human-capital-management-suite/foundation",
   "version": "0.1.0",
   "private": true,
   "main": "dist/index.js",

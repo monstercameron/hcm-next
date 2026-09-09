@@ -3,7 +3,7 @@ import {
   WORKFLOW_TRANSITIONS,
   type WorkflowState,
   type WorkflowStatus,
-} from "@hcm-next/foundation";
+} from "@human-capital-management-suite/foundation";
 import { workflowConditionMatches } from "../shared/workflow-conditions.js";
 import type {
   WorkflowConfig,

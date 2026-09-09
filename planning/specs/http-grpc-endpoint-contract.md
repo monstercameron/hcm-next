@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This specification defines how HCM Next publishes typed service endpoints
+This specification defines how Human Capital Management Suite publishes typed service endpoints
 without creating a second HTTP business model. Protobuf/gRPC is canonical.
 grpcbridge projects approved methods into HTTP, and both transports invoke the
 same capability gateway, trusted-context construction, governance, application

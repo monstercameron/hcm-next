@@ -2,7 +2,7 @@
 # Infrastructure mechanics remain replaceable; none of these dependencies may
 # become an HCM domain, workflow, rule, persistence, or public contract.
 version: 1
-module: github.com/monstercameron/hcm-next
+module: github.com/monstercameron/human-capital-management-suite
 policy_date: "2026-09-03"
 
 runtime_roots:

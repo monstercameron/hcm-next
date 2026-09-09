@@ -1,6 +1,6 @@
 # Platform Architecture Catalog
 
-Extracted from the HCM Next architecture constitution so this contract can evolve independently. The master delivery scope remains governed by [../execution-plan.md](../execution-plan.md).
+Extracted from the Human Capital Management Suite architecture constitution so this contract can evolve independently. The master delivery scope remains governed by [../execution-plan.md](../execution-plan.md).
 
 ## Canonical Plane Atlas
 
@@ -418,7 +418,7 @@ Promotion workflow
   └── communications.send
 ```
 
-Different customers may compose different governed behaviors without requiring an HCM Next product release for each variation. Composition remains type-checked, permission-checked, simulated, versioned, approved, and auditable.
+Different customers may compose different governed behaviors without requiring an Human Capital Management Suite product release for each variation. Composition remains type-checked, permission-checked, simulated, versioned, approved, and auditable.
 
 Customer configuration cannot weaken the underlying capability's authority, risk, privacy, or reconciliation requirements.
 
@@ -462,7 +462,7 @@ No transport adapter or internal service may silently reinterpret a capability. 
 
 The combined platform thesis is:
 
-> The ledger gives HCM Next memory and truth. The workflow engine gives it deterministic behavior. The capability plane gives it composability. Authorization makes that composability safe. Agents turn governed capabilities into customer-specific software.
+> The ledger gives Human Capital Management Suite memory and truth. The workflow engine gives it deterministic behavior. The capability plane gives it composability. Authorization makes that composability safe. Agents turn governed capabilities into customer-specific software.
 
 ### 9.9 Corporate Scope and Inheritance
 
@@ -857,7 +857,7 @@ Policies are drafted, validated, simulated, reviewed, published, monitored, and 
 
 #### Role Templates and Policy Composition
 
-HCM Next provides standard role templates such as Employee, Manager, HRBP, Recruiter, Payroll Admin, Compensation Partner, Benefits Admin, HRIS Admin, Security Admin, and Auditor.
+Human Capital Management Suite provides standard role templates such as Employee, Manager, HRBP, Recruiter, Payroll Admin, Compensation Partner, Benefits Admin, HRIS Admin, Security Admin, and Auditor.
 
 Customers compose those templates with organization scopes and policy changes:
 
@@ -1581,7 +1581,7 @@ GDPR recognizes several lawful bases, and employment processing commonly relies 
 
 #### Data Classification and Domain Separation
 
-HCM Next classifies sensitive domains explicitly:
+Human Capital Management Suite classifies sensitive domains explicitly:
 
 ```text
 PUBLIC_WORKFORCE
@@ -1731,7 +1731,7 @@ Privacy roles attach to a processing activity, not permanently to a company.
 - Subprocessor
 - Recipient
 
-A parent, subsidiary, HCM Next, and payroll provider may occupy different roles for different purposes. Each activity records responsibilities, instructions, agreements, regions, and contact or escalation ownership.
+A parent, subsidiary, Human Capital Management Suite, and payroll provider may occupy different roles for different purposes. Each activity records responsibilities, instructions, agreements, regions, and contact or escalation ownership.
 
 This connects corporate hierarchy to compliance without assuming the parent automatically controls or may inspect every subsidiary processing activity.
 
@@ -1864,7 +1864,7 @@ Rules must not appear as unexplained system magic.
 
 #### Customer Counsel Control
 
-HCM Next provides baseline packs, update feeds, tooling, test cases, and provenance. The customer's authorized legal and privacy teams review, approve, modify, or replace the final tenant interpretation.
+Human Capital Management Suite provides baseline packs, update feeds, tooling, test cases, and provenance. The customer's authorized legal and privacy teams review, approve, modify, or replace the final tenant interpretation.
 
 Ambiguous requirements may be published with:
 
@@ -1989,7 +1989,7 @@ The analytical model preserves five distinct classes:
 | Fact        | Authoritative business assertion or event            | Worker promoted from L4 to L5               |
 | Observation | A sourced assessment or reported belief              | Manager rates readiness as high             |
 | Decision    | An actor's explicit choice with rationale and inputs | Promotion approved                          |
-| Interaction | A meaningful action inside HCM Next                  | Manager opened compensation then simulation |
+| Interaction | A meaningful action inside Human Capital Management Suite                  | Manager opened compensation then simulation |
 | Inference   | A model-derived hypothesis or score                  | Possible flight risk with medium confidence |
 
 ```text
@@ -2178,7 +2178,7 @@ Activity events answer product and process questions without polluting business 
 
 #### Anti-Surveillance Boundary
 
-Activity collection means meaningful actions performed inside HCM Next. It does not mean keylogging, arbitrary mouse tracking, screenshots, unrelated browser monitoring, or covert worker surveillance.
+Activity collection means meaningful actions performed inside Human Capital Management Suite. It does not mean keylogging, arbitrary mouse tracking, screenshots, unrelated browser monitoring, or covert worker surveillance.
 
 The Legal and Compliance Plane governs:
 
@@ -2287,7 +2287,7 @@ effective time
   when the business fact applies
 
 recorded time
-  when HCM Next learned or recorded it
+  when Human Capital Management Suite learned or recorded it
 ```
 
 This supports two different questions:
@@ -2578,7 +2578,7 @@ Analytical output must label:
 
 The deeper product thesis is:
 
-> HCM Next does not merely store workforce records and run workflows. It accumulates governed institutional knowledge about how the workforce operates, how the organization makes decisions, what information those decisions used, and what outcomes followed—without sacrificing the epistemic integrity of authoritative HR facts.
+> Human Capital Management Suite does not merely store workforce records and run workflows. It accumulates governed institutional knowledge about how the workforce operates, how the organization makes decisions, what information those decisions used, and what outcomes followed—without sacrificing the epistemic integrity of authoritative HR facts.
 
 ### 9.14 Agent Runtime Plane
 
@@ -3386,7 +3386,7 @@ Administrative database access, disaster recovery, infrastructure credentials, k
 
 #### Per-Stream Ordering, Hash Chains, and Concurrency
 
-HCM Next should not create one global event sequence or hash chain. That would impose an unnecessary global serialization point.
+Human Capital Management Suite should not create one global event sequence or hash chain. That would impose an unnecessary global serialization point.
 
 Ordering belongs at the consistency boundaries where causality matters:
 
@@ -3419,7 +3419,7 @@ actual stream sequence is 885
 -> refresh, revalidate, merge, supersede, or reject under domain policy
 ```
 
-Hashing without protected key custody proves less than it appears to: an attacker able to rewrite all events may also recompute plain hashes. Where stronger assurance is required, HCM Next should use keyed integrity protection or externally signed integrity roots whose signing authority is outside the transactional database.
+Hashing without protected key custody proves less than it appears to: an attacker able to rewrite all events may also recompute plain hashes. Where stronger assurance is required, Human Capital Management Suite should use keyed integrity protection or externally signed integrity roots whose signing authority is outside the transactional database.
 
 #### Integrity Epochs and WORM Evidence
 
@@ -3651,7 +3651,7 @@ SemanticFragment
   embedding_ref?
 ```
 
-Source facts and governed observations are durable under their own retention policies. Embeddings are projections. When a model, dimension, or chunking strategy changes, HCM Next can build a new embedding generation, compare retrieval quality, switch an index alias, and discard the old vectors without losing business meaning.
+Source facts and governed observations are durable under their own retention policies. Embeddings are projections. When a model, dimension, or chunking strategy changes, Human Capital Management Suite can build a new embedding generation, compare retrieval quality, switch an index alias, and discard the old vectors without losing business meaning.
 
 #### Analytical Plane
 
@@ -3885,7 +3885,7 @@ Authorization   which principal may act on which resource
 Metering        what billable or cost-bearing usage occurred
 Rating          what that usage is worth under an effective contract
 Billing         charges, credits, tax inputs, statements, and invoices
-Cost accounting what HCM Next paid to provide the usage
+Cost accounting what Human Capital Management Suite paid to provide the usage
 ```
 
 All six may evaluate the same capability execution, but no one substitutes for another. Purchasing Payroll does not authorize every employee to run it. Having authorization does not mean the tenant purchased it. Recording an HTTP request does not prove a billable unit was delivered.
@@ -3933,7 +3933,7 @@ Human / App / Agent -> Capability Gateway
              Invoice / Showback / Margin
 ```
 
-This is a logical architecture. Early commercial operations may rely on an external invoicing and payment provider. HCM Next still owns the semantic contracts, usage evidence, entitlement decisions, contract versions, rating provenance, and reconciliation required to explain a charge.
+This is a logical architecture. Early commercial operations may rely on an external invoicing and payment provider. Human Capital Management Suite still owns the semantic contracts, usage evidence, entitlement decisions, contract versions, rating provenance, and reconciliation required to explain a charge.
 
 #### Do Not Bill From Telemetry
 
@@ -4072,7 +4072,7 @@ Billing access follows the same organization and field-governance rules as other
 Customers should buy understandable products, not dozens of infrastructure meters.
 
 ```text
-HCM Next Platform
+Human Capital Management Suite Platform
   + People
   + Workforce
   + Talent
@@ -4376,7 +4376,7 @@ The simulation distinguishes:
 
 - Included usage
 - Forecast overage
-- Internal HCM Next cost
+- Internal Human Capital Management Suite cost
 - External customer-paid vendor cost
 - Unknown or unmodeled cost
 
@@ -4565,7 +4565,7 @@ Billing policy governs:
 - Segregation between customer support, finance, engineering, and provider-cost access
 - Redaction of sensitive workflow purposes in commercial explanations
 
-Internal provider cost and margin are HCM Next-confidential by default and are not automatically exposed through customer billing APIs.
+Internal provider cost and margin are Human Capital Management Suite-confidential by default and are not automatically exposed through customer billing APIs.
 
 #### Commercial Explanation Contract
 
@@ -4656,7 +4656,7 @@ The result classifies each effect:
 
 ```text
 DETERMINISTIC
-  governed HCM Next calculation or state transition
+  governed Human Capital Management Suite calculation or state transition
 
 POLICY_DERIVED
   result from versioned AuthZ, Legal, workflow, or customer policy
@@ -4665,7 +4665,7 @@ CONNECTOR_DERIVED
   intended payload or documented connector behavior
 
 EXTERNAL_ESTIMATE
-  predicted result in a system HCM Next does not control
+  predicted result in a system Human Capital Management Suite does not control
 
 UNKNOWN
   downstream automation or circumstance the platform cannot model
@@ -4743,7 +4743,7 @@ The five lifecycle workflows and payroll-correction stress test form a standing 
 
 ### 9.18 Regulatory Computation Platform
 
-When HCM Next becomes authoritative for global HCM domains, jurisdictional computation becomes a core substrate alongside AuthZ, workflow, ledger, globalization, data, billing, and agents.
+When Human Capital Management Suite becomes authoritative for global HCM domains, jurisdictional computation becomes a core substrate alongside AuthZ, workflow, ledger, globalization, data, billing, and agents.
 
 It should not become one giant “legal rules engine.” Tax, wage and hour, leave, privacy, immigration, statutory benefits, payroll reporting, labor agreements, and government notices have materially different calculation and composition semantics. They share a jurisdiction graph, versioned Rule Pack lifecycle, obligation vocabulary, provenance model, effective-time model, and execution boundary.
 
@@ -5214,7 +5214,7 @@ superseded
 cancelled
 ```
 
-HCM Next can therefore answer which obligations exist, what created them, who owns them, what evidence satisfies them, which are due soon, which are overdue, and which worker or company transactions remain blocked.
+Human Capital Management Suite can therefore answer which obligations exist, what created them, who owns them, what evidence satisfies them, which are due soon, which are overdue, and which worker or company transactions remain blocked.
 
 #### Statutory Calendar Engine
 
@@ -5295,7 +5295,7 @@ Customer counsel controls the final production interpretation layer for ambiguou
 
 ```text
 government source
-  -> HCM Next baseline content
+  -> Human Capital Management Suite baseline content
   -> customer legal or specialist review
   -> customer-approved Rule Pack
   -> future-effective publication
@@ -5458,7 +5458,7 @@ The central regulatory rule is:
 
 ### 9.19 Foundation Gap-Closure Program
 
-The platform vision now identifies seventy system-level capabilities. They should not become seventy independent services or simultaneous projects. HCM Next will close them through shared contracts, cohesive capability portfolios, and thin end-to-end slices through the reference workflows.
+The platform vision now identifies seventy system-level capabilities. They should not become seventy independent services or simultaneous projects. Human Capital Management Suite will close them through shared contracts, cohesive capability portfolios, and thin end-to-end slices through the reference workflows.
 
 The immediate priority is ten foundations whose absence would force expensive redesign later:
 
@@ -5608,9 +5608,9 @@ The engine answers:
 
 - Which system may originate a value?
 - Which system is authoritative for the current and future-effective fact?
-- Is HCM Next authoritative, transactional, observational, or derived?
+- Is Human Capital Management Suite authoritative, transactional, observational, or derived?
 - Does an external change represent drift, legitimate concurrent work, or a new authority fact?
-- May HCM Next repair the target, import the target value, open a dispute, or require a human decision?
+- May Human Capital Management Suite repair the target, import the target value, open a dispute, or require a human decision?
 - What happens during source migration or temporary authority handoff?
 
 Authority changes are simulated, approved, effective-dated, reversible where possible, and reconciled before promotion. “Last write wins” is never the default business policy.
@@ -6136,11 +6136,11 @@ The default evaluation set is intentionally portable:
 | Language and runtime        | Go only, standard library, small focused Go packages                                                 |
 | UI                          | GWC/GoWebComponents with Go/WASM and selective SSR/hydration; no React or TypeScript                 |
 | Service contracts           | Protobuf, `grpc-go`, generated Go clients                                                            |
-| Web protocol bridge         | `grpcbridge`, maintained as a core HCM Next library                                                  |
+| Web protocol bridge         | `grpcbridge`, maintained as a core Human Capital Management Suite library                                                  |
 | Structured definition build | SchemaFlux core pipeline plus authoritative Protobuf and migration sources                           |
 | Transactional data          | PostgreSQL with direct SQL, `pgx`, generated queries where valuable, transactional outbox            |
 | Local and test data         | PostgreSQL-compatible containers; SQLite only for bounded tooling where semantics are not misleading |
-| Authorization               | Open policy/relationship engine evaluated behind HCM Next's AuthZ contract                           |
+| Authorization               | Open policy/relationship engine evaluated behind Human Capital Management Suite's AuthZ contract                           |
 | Policy expressions          | CEL or another sandboxed open expression language where domain code is unnecessary                   |
 | Secrets                     | Open-source vault candidate plus cloud KMS/HSM adapters for stronger custody                         |
 | Object storage              | S3-compatible API with open-source local/test implementation                                         |
@@ -6165,7 +6165,7 @@ total cost at expected scale
 exit cost
 ```
 
-Self-hosting is not automatically cheaper. HCM Next should pay for managed PostgreSQL, key custody, object durability, or other infrastructure when the operational risk avoided is worth more than the premium and no strategic data or protocol lock-in is created.
+Self-hosting is not automatically cheaper. Human Capital Management Suite should pay for managed PostgreSQL, key custody, object durability, or other infrastructure when the operational risk avoided is worth more than the premium and no strategic data or protocol lock-in is created.
 
 #### Extraction From the Historical TypeScript Foundation
 
@@ -6211,7 +6211,7 @@ The gap-closure principle is:
 
 ### 9.20 ASCII Architecture Atlas
 
-This atlas gives the major HCM Next systems a shared visual language. The diagrams are explanatory architecture views, not substitutes for versioned schemas, capability manifests, workflow definitions, policies, or executable contracts.
+This atlas gives the major Human Capital Management Suite systems a shared visual language. The diagrams are explanatory architecture views, not substitutes for versioned schemas, capability manifests, workflow definitions, policies, or executable contracts.
 
 Legend:
 
@@ -6550,14 +6550,14 @@ If irreversible external effect already occurred:
 
 ```text
                        Authority Policy
-                    salary -> HCM Next
+                    salary -> Human Capital Management Suite
                     tax ID -> Payroll
                     title  -> Workday
                            |
         +------------------+------------------+
         |                  |                  |
         v                  v                  v
- HCM Next intent[A]   External actual[E]  Prior observation
+ Human Capital Management Suite intent[A]   External actual[E]  Prior observation
         |                  |                  |
         +------------------+------------------+
                            v
@@ -7675,7 +7675,7 @@ workload identity                  workload identity
                    typed gRPC call
 ```
 
-The preferred open-source starting point is SPIFFE-compatible identity, with SPIRE evaluated as an implementation. Go gRPC interceptors enforce workload identity, tenant binding, capability authorization, deadline/criticality propagation, and evidence capture. OPA/CEL or OpenFGA may provide policy components where they fit, but HCM Next retains one explainable service authorization decision contract.
+The preferred open-source starting point is SPIFFE-compatible identity, with SPIRE evaluated as an implementation. Go gRPC interceptors enforce workload identity, tenant binding, capability authorization, deadline/criticality propagation, and evidence capture. OPA/CEL or OpenFGA may provide policy components where they fit, but Human Capital Management Suite retains one explainable service authorization decision contract.
 
 East-west traffic is default-deny. Runtime network policy constrains service ingress and egress, while application AuthZ remains authoritative. A compromised Search Indexer may read its authorized projection feed; it cannot call `payroll.execute` merely because the network is reachable.
 
@@ -8000,13 +8000,13 @@ deploy/
   cells/ identity/ network-policy/ telemetry/ recovery/
 ```
 
-Candidate dependencies must pass the open-source dependency charter. Likely starting points are SPIFFE/SPIRE for workload identity, Kubernetes NetworkPolicy and disruption controls where Kubernetes is used, OpenTelemetry Collector for telemetry routing, Sigstore/Cosign plus Syft and Grype/Trivy for supply-chain evidence, and Prometheus/Grafana/Loki/Tempo-class components for low-cost operations. These are replaceable implementations behind HCM Next contracts, not permanent semantic dependencies.
+Candidate dependencies must pass the open-source dependency charter. Likely starting points are SPIFFE/SPIRE for workload identity, Kubernetes NetworkPolicy and disruption controls where Kubernetes is used, OpenTelemetry Collector for telemetry routing, Sigstore/Cosign plus Syft and Grype/Trivy for supply-chain evidence, and Prometheus/Grafana/Loki/Tempo-class components for low-cost operations. These are replaceable implementations behind Human Capital Management Suite contracts, not permanent semantic dependencies.
 
 SchemaFlux may compile workload manifests, degradation policies, telemetry classifications, capability risk metadata, and provider-eligibility definitions when its IR is suitable. Protobuf remains authoritative for runtime contracts. grpcbridge exposes only intentionally public control APIs. GoWebComponents provides operations consoles for placement, capacity, JIT access, AI containment, recovery exercises, and control evidence.
 
 #### 9.21.11 Non-Postponable Production Baseline
 
-Before production authority expands beyond limited pilots, HCM Next must demonstrate:
+Before production authority expands beyond limited pilots, Human Capital Management Suite must demonstrate:
 
 1. Logical cell placement on every request and event, even if only one physical cell exists.
 2. Tenant budgets and per-criticality admission/load shedding with bounded retries.

@@ -7,7 +7,7 @@ import {
   validationFailedError,
   type AppError,
   type Result,
-} from "@hcm-next/foundation";
+} from "@human-capital-management-suite/foundation";
 import {
   makeId,
   nowIso,
@@ -15,7 +15,7 @@ import {
   type Repositories,
   type WorkflowDefinitionRecord,
   type WorkflowVersionRecord,
-} from "@hcm-next/data-store";
+} from "@human-capital-management-suite/data-store";
 import type {
   ApiRequestContext,
   AppDependencies,

@@ -2,8 +2,8 @@ version: 1
 vulnerability_disclosure_policy:
   contact: security@example.invalid
   scope:
-    - hcm-next web application
-    - hcm-next API
+    - human-capital-management-suite web application
+    - human-capital-management-suite API
     - supported release artifacts
   safe_harbour: Good-faith research is authorized when it avoids privacy impact, service disruption, and data access beyond proof of the issue; no legal action is pursued for compliant research.
   timelines:

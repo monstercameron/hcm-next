@@ -1,4 +1,4 @@
-# HCM Next Architecture Specifications
+# Human Capital Management Suite Architecture Specifications
 
 The master [plan](../plan.md) defines product strategy, governing principles, phases, and long-term architecture. This directory is the destination for focused, independently reviewable contracts extracted from that plan.
 

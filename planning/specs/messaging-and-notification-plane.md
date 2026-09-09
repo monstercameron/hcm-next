@@ -1,6 +1,6 @@
 # Messaging and Notification Plane
 
-This specification defines HCM Next's human Communications Plane and its relationship to workflow signals and system-to-system event delivery. The master delivery scope remains governed by [the Phase 1 execution plan](../execution-plan.md) and the P1A/P1B contents in [next-steps.md](../next-steps.md).
+This specification defines Human Capital Management Suite's human Communications Plane and its relationship to workflow signals and system-to-system event delivery. The master delivery scope remains governed by [the Phase 1 execution plan](../execution-plan.md) and the P1A/P1B contents in [next-steps.md](../next-steps.md).
 
 ## Phase 1 Boundary
 
@@ -23,7 +23,7 @@ destination contract. None is a Phase 1 dependency, and the secure inbox is
 `MINIMAL CONTRACT`: an inbox message record readable from the Promotion
 workspace, with no separate channel machinery.
 
-Notification as a Service is used here as an architectural pattern: product domains express one semantic notification intent while shared infrastructure owns multi-channel routing, templates, preferences, and delivery observability. HCM Next extends that pattern with secure inbox, inbound replies, durable conversations, legal evidence, workflow signals, and HR-specific data controls.
+Notification as a Service is used here as an architectural pattern: product domains express one semantic notification intent while shared infrastructure owns multi-channel routing, templates, preferences, and delivery observability. Human Capital Management Suite extends that pattern with secure inbox, inbound replies, durable conversations, legal evidence, workflow signals, and HR-specific data controls.
 
 ## Architectural Boundary
 
@@ -207,7 +207,7 @@ source_authority
 last_observed_at
 ```
 
-One person may have work/personal email, phone, push devices, Slack/Teams identities, and an HCM Next inbox. Existence does not imply eligibility. Compensation details may be prohibited over SMS; a personal address may be permitted for post-employment tax documents but prohibited for internal investigations.
+One person may have work/personal email, phone, push devices, Slack/Teams identities, and an Human Capital Management Suite inbox. Existence does not imply eligibility. Compensation details may be prohibited over SMS; a personal address may be permitted for post-employment tax documents but prohibited for internal investigations.
 
 Endpoint verification proves control or authoritative provisioning according to channel policy. It does not prove that the current person actually read a message.
 
@@ -303,7 +303,7 @@ acknowledged             != signed
 
 ## Secure Inbox
 
-The HCM Next inbox is the canonical sensitive human-delivery channel:
+The Human Capital Management Suite inbox is the canonical sensitive human-delivery channel:
 
 ```text
 InboxMessage
@@ -442,7 +442,7 @@ Channel
   SMS -------- Provider A / Provider B
   Push ------- APNs / FCM / web push
   Chat ------- Slack / Teams
-  Inbox ------ HCM Next
+  Inbox ------ Human Capital Management Suite
 ```
 
 ```text
@@ -842,4 +842,4 @@ never a Gate A dependency.
 
 ## Reference
 
-The Notification as a Service pattern—one API across channels with routing, templates, preferences, and delivery observability—is described in [SuprSend's NaaS overview](https://www.suprsend.com/post/notifications-as-a-service). HCM Next treats this as a useful infrastructure pattern, not as a commitment to a specific provider.
+The Notification as a Service pattern—one API across channels with routing, templates, preferences, and delivery observability—is described in [SuprSend's NaaS overview](https://www.suprsend.com/post/notifications-as-a-service). Human Capital Management Suite treats this as a useful infrastructure pattern, not as a commitment to a specific provider.

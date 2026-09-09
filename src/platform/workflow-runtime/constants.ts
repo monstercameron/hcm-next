@@ -13,7 +13,7 @@ export {
   WORKFLOW_STATES,
   WORKFLOW_STATUSES,
   WORKFLOW_TRANSITIONS,
-} from "@hcm-next/foundation";
+} from "@human-capital-management-suite/foundation";
 
 export type {
   ActorRole,
@@ -30,7 +30,7 @@ export type {
   WorkflowState,
   WorkflowStatus,
   WorkflowTransition,
-} from "@hcm-next/foundation";
+} from "@human-capital-management-suite/foundation";
 
 export const TRANSITION_ATTEMPT_STATUSES = {
   IN_PROGRESS: "in_progress",

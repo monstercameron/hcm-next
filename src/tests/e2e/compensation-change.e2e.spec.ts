@@ -7,14 +7,14 @@ import {
   WORKFLOW_TRANSITIONS,
   type AppError,
   type Result,
-} from "@hcm-next/foundation";
+} from "@human-capital-management-suite/foundation";
 import {
   createRepositories,
   createSeededDemoStore,
   DEMO_IDS,
   type ActorRecord,
   type Repositories,
-} from "@hcm-next/data-store";
+} from "@human-capital-management-suite/data-store";
 import { createCompensationDecisionExternalWriteClient } from "../../api/compensation-decision-client.js";
 import type { AppDependencies } from "../../api/dependencies.js";
 import type {

@@ -1,8 +1,11 @@
-import type { BrandPack, BrandTokenMap } from "@hcm-next/ui-contracts";
+import type {
+  BrandPack,
+  BrandTokenMap,
+} from "@human-capital-management-suite/ui-contracts";
 
 export const defaultBrandPack: BrandPack = {
-  id: "hcm-next-default",
-  name: "HCM Next",
+  id: "human-capital-management-suite-default",
+  name: "Human Capital Management Suite",
   version: 1,
   status: "published",
   density: "default",
@@ -17,10 +20,10 @@ export const defaultBrandPack: BrandPack = {
   },
   assets: [
     {
-      id: "hcm-next-logo",
+      id: "human-capital-management-suite-logo",
       kind: "logo",
-      src: "/hcm-next-logo.svg",
-      altText: "HCM Next",
+      src: "/human-capital-management-suite-logo.svg",
+      altText: "Human Capital Management Suite",
     },
   ],
   tokens: {

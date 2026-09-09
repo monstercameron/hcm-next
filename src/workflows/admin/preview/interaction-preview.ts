@@ -5,7 +5,7 @@ import {
   validationFailedError,
   type AppError,
   type Result,
-} from "@hcm-next/foundation";
+} from "@human-capital-management-suite/foundation";
 import { valueAtDotPath } from "../../shared/json-fields.js";
 import type {
   WorkflowActionConfig,

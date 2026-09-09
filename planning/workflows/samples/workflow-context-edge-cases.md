@@ -16,7 +16,7 @@ START transfer_991
   -> WAIT connector capacity
 
 AUTHORITY HANDOFF
-  Workday -> HCM Next, epoch=13, cutover watermark=wd_881
+  Workday -> Human Capital Management Suite, epoch=13, cutover watermark=wd_881
 
 WAKE op_44
   -> CAPABILITY integration.pre_send.revalidate

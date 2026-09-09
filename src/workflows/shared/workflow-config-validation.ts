@@ -3,7 +3,7 @@ import {
   PERMISSION_KEYS,
   WORKFLOW_STATES,
   WORKFLOW_STATUSES,
-} from "@hcm-next/foundation";
+} from "@human-capital-management-suite/foundation";
 import { workflowConfigHash } from "./workflow-config-hash.js";
 import type { WorkflowConfig } from "./workflow-config.js";
 

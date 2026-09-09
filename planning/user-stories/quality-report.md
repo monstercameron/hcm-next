@@ -250,7 +250,7 @@ searched the repository for any check over `stories.jsonl` or the disclosure
 vocabulary and found none, and said so in strong terms. It was right about the
 repository and the claim as written was wrong: the validation lives in the
 generator that produces the corpus, which is not part of the repository, so
-nothing in `hcm-next` enforces anything about these files. The corpus is
+nothing in `human-capital-management-suite` enforces anything about these files. The corpus is
 generated; the guarantee holds for the corpus as generated and is not a
 property of the repository.
 
@@ -649,7 +649,7 @@ tests than either alone.
 
 The corpus is generated. These are the checks the generator runs on every
 build, and they are the reason the invariants above hold for the files as they
-stand. They are not repository checks and nothing in `hcm-next` runs them.
+stand. They are not repository checks and nothing in `human-capital-management-suite` runs them.
 
 ```text
 id format and sequence      US-0001 .. US-1000 with no gap and no reuse
@@ -714,7 +714,7 @@ are the ones a benchmark would most want, because they are where the platform's
 newest surfaces are.
 
 **5. Nothing in the repository enforces any of this.** The corpus is generated
-by a program that lives outside `hcm-next`, and the validations described in
+by a program that lives outside `human-capital-management-suite`, and the validations described in
 this report are that program's. Anyone editing `stories.jsonl` or the markdown
 files by hand can break every invariant recorded here and no check will notice.
 Round 3 was right to attack the earlier claim to the contrary and the position

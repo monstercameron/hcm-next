@@ -8,7 +8,7 @@ import {
   WORKFLOW_INTENTS,
   WORKFLOW_STATES,
   WORKFLOW_STATUSES,
-} from "@hcm-next/foundation";
+} from "@human-capital-management-suite/foundation";
 import {
   DEMO_EMPLOYEE_IDS,
   DEMO_EMPLOYEE_SPECS,
