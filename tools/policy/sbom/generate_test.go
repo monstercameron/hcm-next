@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/tools/policy/internal/repopath"
-	"github.com/monstercameron/hcm-next/tools/policy/sbom"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/internal/repopath"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/sbom"
 )
 
 // TestSBOMCompleteness is TOOL-017's primary test. It generates the real
@@ -14,7 +14,7 @@ import (
 // exactly as a downstream validator would ("parse the generated
 // document"), and checks the three completeness clauses TOOL-017 names:
 // every go.mod require appears, the root component is
-// github.com/monstercameron/hcm-next, and no component lacks a version.
+// github.com/monstercameron/human-capital-management-suite, and no component lacks a version.
 func TestSBOMCompleteness(t *testing.T) {
 	root := repopath.RootDir()
 
@@ -32,7 +32,7 @@ func TestSBOMCompleteness(t *testing.T) {
 		t.Fatalf("Unmarshal: %v", err)
 	}
 
-	t.Run("GREEN: root component is github.com/monstercameron/hcm-next", func(t *testing.T) {
+	t.Run("GREEN: root component is github.com/monstercameron/human-capital-management-suite", func(t *testing.T) {
 		if parsed.Metadata.Component.Name != sbom.RootModulePath {
 			t.Fatalf("root component name = %q, want %q", parsed.Metadata.Component.Name, sbom.RootModulePath)
 		}
@@ -140,8 +140,8 @@ func TestTodo_TOOL_017_Golden(t *testing.T) {
     "timestamp": "2026-01-02T03:04:05Z",
     "tools": [
       {
-        "vendor": "github.com/monstercameron/hcm-next",
-        "name": "hcm-next-sbomgen",
+        "vendor": "github.com/monstercameron/human-capital-management-suite",
+        "name": "human-capital-management-suite-sbomgen",
         "version": "golden-test"
       }
     ],

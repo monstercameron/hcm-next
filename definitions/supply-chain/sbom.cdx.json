@@ -7,17 +7,17 @@
     "timestamp": "2026-09-06T03:30:36Z",
     "tools": [
       {
-        "vendor": "github.com/monstercameron/hcm-next",
-        "name": "hcm-next-sbomgen",
+        "vendor": "github.com/monstercameron/human-capital-management-suite",
+        "name": "human-capital-management-suite-sbomgen",
         "version": "dev"
       }
     ],
     "component": {
-      "bom-ref": "pkg:golang/github.com/monstercameron/hcm-next@0.0.0-devel",
+      "bom-ref": "pkg:golang/github.com/monstercameron/human-capital-management-suite@0.0.0-devel",
       "type": "application",
-      "name": "github.com/monstercameron/hcm-next",
+      "name": "github.com/monstercameron/human-capital-management-suite",
       "version": "0.0.0-devel",
-      "purl": "pkg:golang/github.com/monstercameron/hcm-next@0.0.0-devel",
+      "purl": "pkg:golang/github.com/monstercameron/human-capital-management-suite@0.0.0-devel",
       "license": "UNKNOWN"
     }
   },
@@ -953,7 +953,7 @@
       ]
     },
     {
-      "ref": "pkg:golang/github.com/monstercameron/hcm-next@0.0.0-devel",
+      "ref": "pkg:golang/github.com/monstercameron/human-capital-management-suite@0.0.0-devel",
       "dependsOn": [
         "pkg:golang/connectrpc.com/connect@v1.20.0",
         "pkg:golang/github.com/BurntSushi/toml@v1.4.1-0.20240526193622-a339e1f7089c",

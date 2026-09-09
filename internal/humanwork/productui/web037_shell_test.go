@@ -99,7 +99,7 @@ func TestTodo_WEB_037_Golden(t *testing.T) {
 	}
 	digest := sha256.Sum256([]byte(doc))
 	got := hex.EncodeToString(digest[:])
-	const want = "63db306e4540870bd36032ed02a5f7a5b502dd978010bd260d451a0b9dec0d26"
+	const want = "ad6740d6339c2fe105e1867ba24e5f0f61370eb89d6e07810cf2bb972f188c03"
 	if got != want {
 		t.Fatalf("stable shell golden digest = %s, want %s", got, want)
 	}

@@ -7,15 +7,15 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/policy/internal/repopath"
-	"github.com/monstercameron/hcm-next/tools/policy/sbom"
-	"github.com/monstercameron/hcm-next/tools/policy/vulnimpact"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/internal/repopath"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/sbom"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/vulnimpact"
 )
 
 const (
-	checkedInImpactDigest  = "2da4392b5aac9b1387fd3a14466699299c063ce07a89d4b9f7ccda221fc38a80"
-	checkedInFindingDigest = "3bc751cf0c6b206731b554fc3a9b7b85a44b58a3afab999bd51f3ce5edaa40ca"
-	checkedInCanonicalSBOM = "c5c40a15bcfbcf4976e2d7d9ac4e3f702462a30e0392a3d67c6310b9f8ae7171"
+	checkedInImpactDigest  = "43681cc4a0a9afdb772e89e7f6cada3229d96d61f0d5c9788a617da6d10dcf26"
+	checkedInFindingDigest = "fe00c9b2a9c9b14aba8640bbf7229db67e80d6bcd3936c4b300e7273fa2428cc"
+	checkedInCanonicalSBOM = "d500e0171a2478954519f0e9d9cc047085f9ee5e651c3e4aaa99848026df0d4b"
 )
 
 func checkedInSBOM(t *testing.T) sbom.Document {

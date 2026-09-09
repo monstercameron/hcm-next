@@ -81,7 +81,7 @@ identifiers:
     carried_by: [presentation, persistence, transport]
   - kind: package_path
     owning_layer: governance
-    canonical_form: github.com/monstercameron/hcm-next/<slash-separated package path>
+    canonical_form: github.com/monstercameron/human-capital-management-suite/<slash-separated package path>
     digest_rule: sha256 of the architecture and phase-one package manifests
     minted_by: [governance]
     carried_by: [presentation, business, persistence]
@@ -181,4 +181,4 @@ identifiers:
     digest_rule: sha256 of the immutable work-item assignment and lifecycle revision
     minted_by: [business]
     carried_by: [presentation, persistence, transport]
-digest: sha256:ad898c8f2a32e7921097f1832663d06c880e1f6c7caa16d0bb038ea0bd0b1ebc
+digest: sha256:d5b994d27e394690bb5f775f27f013dd4e44a432768ce7686597bcde2601fc0b

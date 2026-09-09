@@ -38,11 +38,11 @@ slices:
         - hcmnext.rewards.simulate_compensation
         - hcmnext.rewards.evaluate_pay_band_position
       packages:
-        - github.com/monstercameron/hcm-next/cmd/hcmnext
-        - github.com/monstercameron/hcm-next/internal/capability
-        - github.com/monstercameron/hcm-next/internal/humanwork/workspace
-        - github.com/monstercameron/hcm-next/internal/transport/journey
-        - github.com/monstercameron/hcm-next/tools/uxqual/render/journey
+        - github.com/monstercameron/human-capital-management-suite/cmd/hcmnext
+        - github.com/monstercameron/human-capital-management-suite/internal/capability
+        - github.com/monstercameron/human-capital-management-suite/internal/humanwork/workspace
+        - github.com/monstercameron/human-capital-management-suite/internal/transport/journey
+        - github.com/monstercameron/human-capital-management-suite/tools/uxqual/render/journey
       todos:
         - WEB-001
         - WEB-002
@@ -72,4 +72,4 @@ slices:
         - ProposeJourney and ExecuteJourney invoke the canonical JourneyService RPCs with trusted context, expected version and idempotency
         - DecideJourney records an approval-bound decision that names its ledger event
         - the projection reads exposed to the two Promotion pages name their source version and freshness
-digest: sha256:0f60ebfbbd1aaa05df18d53ad3c31b714e4367ef81f153d299f3755b838e3101
+digest: sha256:297985fcbec2463970517be28f4eb1ad42ff6df57df4ad34967b15b1c0514f81

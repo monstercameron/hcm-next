@@ -156,7 +156,7 @@
     {
       "id": "RISK-020",
       "category": "ARCHITECTURE",
-      "statement": "HCM Next Encodes Incorrect or Stale Legal Interpretations",
+      "statement": "Human Capital Management Suite Encodes Incorrect or Stale Legal Interpretations",
       "owner": "architecture-governance",
       "source_document": "planning/specs/risk-register.md",
       "source_line": 123
@@ -924,7 +924,7 @@
     {
       "id": "RISK-116",
       "category": "PRODUCT",
-      "statement": "HCM Next Adds More Complexity Than It Removes",
+      "statement": "Human Capital Management Suite Adds More Complexity Than It Removes",
       "owner": "product-governance",
       "source_document": "planning/specs/risk-register.md",
       "source_line": 699

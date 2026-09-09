@@ -1,12 +1,12 @@
 [
   {
-    "Importer": "github.com/monstercameron/hcm-next/internal/trust/authz",
-    "Imported": "github.com/monstercameron/hcm-next/internal/domains/people/store",
+    "Importer": "github.com/monstercameron/human-capital-management-suite/internal/trust/authz",
+    "Imported": "github.com/monstercameron/human-capital-management-suite/internal/domains/people/store",
     "Rule": "crosscut-must-not-import-domain"
   },
   {
-    "Importer": "github.com/monstercameron/hcm-next/internal/operations/reconciler",
-    "Imported": "github.com/monstercameron/hcm-next/internal/data/postgres",
+    "Importer": "github.com/monstercameron/human-capital-management-suite/internal/operations/reconciler",
+    "Imported": "github.com/monstercameron/human-capital-management-suite/internal/data/postgres",
     "Rule": "crosscut-must-not-import-domain"
   }
 ]

@@ -1,5 +1,5 @@
 {
-  "tool_version": "hcm-next/tools/conformance (CONF-001) v1",
+  "tool_version": "human-capital-management-suite/tools/conformance (CONF-001) v1",
   "execution_mode": "SIMULATE",
   "fixed_clock": "2000-01-01T00:00:00Z",
   "root_path": "planning/reference-workflows",
@@ -338,5 +338,5 @@
       ]
     }
   ],
-  "manifest_digest": "85816ab2839216b1c81ee05e1c6292ff52b5b5dece5b39967ce8a7b94d28d2dd"
+  "manifest_digest": "b8c9f01bed5f53ae7a771db79535f4bed6f5e476e939fe9e8075ef91d0a6c610"
 }

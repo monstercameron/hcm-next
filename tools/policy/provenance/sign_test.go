@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/policy/provenance"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/provenance"
 )
 
 const devSigningKeyFixture = "testdata/dev-signing-key.json"
@@ -47,9 +47,9 @@ func goldenStatement() provenance.Statement {
 // itself would change these values.
 func TestTodo_TOOL_018_Golden(t *testing.T) {
 	const wantConfigDigest = "1d181fb921db9e2e0c270843fd7f07d0416337b7c78b1238625df8fa7b1fb217"
-	const wantCanonicalDigest = "311587bdbe2e8d268b58650c0837d6e32894f7365a667f69f440c1cb0245d453"
+	const wantCanonicalDigest = "b2a6abf8f732c28f09a5054203e700ce68008ef70ba8f68f8b298470679cfd31"
 	const wantPublicKey = "93019e7b15fc44dbfb7f36e105e465486e5d5a6ddec109abda44507e0d45332b"
-	const wantSignature = "54ea8b076f4a367501702d61aa9150dc94461d23f3f743da35ca8594237cddb2dc8c1c268c31cf5f3898f6d153d0d6b220e0880b13c041dcc9d5c7371523e30e"
+	const wantSignature = "c5f56cacce4d5829c5edfba50d7f097031ab7a8380e04fdb5b8f370890f28214a52a0f1b624812b171073d7a9c1dcd403830fbaa2566473d4f8401f42af53600"
 
 	s := goldenStatement()
 	if s.BuildConfig.ConfigDigest != wantConfigDigest {

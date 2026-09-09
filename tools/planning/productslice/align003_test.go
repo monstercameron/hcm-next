@@ -65,7 +65,7 @@ func TestTodo_ALIGN_003_Golden(t *testing.T) {
 	if err := json.Unmarshal(want, &golden); err != nil {
 		t.Fatalf("parse identifier vocabulary golden: %v", err)
 	}
-	const wantDigest = "sha256:ad898c8f2a32e7921097f1832663d06c880e1f6c7caa16d0bb038ea0bd0b1ebc"
+	const wantDigest = "sha256:d5b994d27e394690bb5f775f27f013dd4e44a432768ce7686597bcde2601fc0b"
 	if golden.Digest != wantDigest {
 		t.Fatalf("golden digest=%q want=%q", golden.Digest, wantDigest)
 	}
@@ -80,7 +80,7 @@ func TestTodo_ALIGN_003_Golden(t *testing.T) {
 	if err != nil {
 		t.Fatalf("LoadRegistryYAML: %v", err)
 	}
-	const wantProductSliceDigest = "sha256:0f60ebfbbd1aaa05df18d53ad3c31b714e4367ef81f153d299f3755b838e3101"
+	const wantProductSliceDigest = "sha256:297985fcbec2463970517be28f4eb1ad42ff6df57df4ad34967b15b1c0514f81"
 	if registry.Digest != wantProductSliceDigest {
 		t.Fatalf("real product-slice digest=%q want=%q", registry.Digest, wantProductSliceDigest)
 	}

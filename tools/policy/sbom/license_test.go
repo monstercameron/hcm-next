@@ -138,8 +138,8 @@ func TestTodo_SUPPLY_003_Golden(t *testing.T) {
     "timestamp": "2026-09-05T00:00:00Z",
     "tools": [
       {
-        "vendor": "github.com/monstercameron/hcm-next",
-        "name": "hcm-next-sbomgen",
+        "vendor": "github.com/monstercameron/human-capital-management-suite",
+        "name": "human-capital-management-suite-sbomgen",
         "version": "dev"
       }
     ],
@@ -254,7 +254,7 @@ func TestTodo_SUPPLY_003_Integration(t *testing.T) {
 	root := t.TempDir()
 	cache := t.TempDir()
 	writeLicenseFixture(t, root, map[string]string{
-		"go.mod":  "module github.com/monstercameron/hcm-next\ngo 1.26.3\n// SPDX-License-Identifier: MIT\n",
+		"go.mod":  "module github.com/monstercameron/human-capital-management-suite\ngo 1.26.3\n// SPDX-License-Identifier: MIT\n",
 		"LICENSE": "unrecognized fallback text\n",
 	})
 	depPath, depVersion := "example.com/fixture-dep", "v1.0.0"
@@ -272,9 +272,9 @@ func TestTodo_SUPPLY_003_Integration(t *testing.T) {
 	if err != nil {
 		t.Fatalf("dependency evidence: %v", err)
 	}
-	doc := buildDocumentWithLicenses("github.com/monstercameron/hcm-next", []Require{{Path: depPath, Version: depVersion}}, nil, nil, Options{RootVersion: "v0.0.0"}, map[string]LicenseEvidence{
-		"github.com/monstercameron/hcm-next@v0.0.0": rootEvidence,
-		depPath + "@" + depVersion:                  depEvidence,
+	doc := buildDocumentWithLicenses("github.com/monstercameron/human-capital-management-suite", []Require{{Path: depPath, Version: depVersion}}, nil, nil, Options{RootVersion: "v0.0.0"}, map[string]LicenseEvidence{
+		"github.com/monstercameron/human-capital-management-suite@v0.0.0": rootEvidence,
+		depPath + "@" + depVersion:                                        depEvidence,
 	})
 	if doc.Metadata.Component.License != "MIT" || doc.Components[0].License != "Apache-2.0" {
 		t.Fatalf("integrated licenses = root %q, dep %q", doc.Metadata.Component.License, doc.Components[0].License)

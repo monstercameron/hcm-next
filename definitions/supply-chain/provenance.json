@@ -1,18 +1,18 @@
 {
   "schema_version": 1,
   "predicate_type": "https://slsa.dev/provenance/v1",
-  "generated_at": "2026-09-06T03:32:46Z",
+  "generated_at": "2026-09-09T00:58:27Z",
   "subjects": [
     {
       "name": "hcmnext",
-      "sha256": "424d2fb5e9f12dbf6ee5c15228d0919a2ea525fb90d78d0ae8d2c14f23f3f3ad"
+      "sha256": "a252a18b46072dd76852b766ff6ce332f1554aff82acb782579e971b7a53f369"
     }
   ],
   "builder": {
-    "id": "github.com/monstercameron/hcm-next/tools/policy/provenance/cmd/provgen"
+    "id": "github.com/monstercameron/human-capital-management-suite/tools/policy/provenance/cmd/provgen"
   },
   "source": {
-    "repository": "github.com/monstercameron/hcm-next",
+    "repository": "github.com/monstercameron/human-capital-management-suite",
     "ref": "unknown",
     "commit": "unknown"
   },
@@ -20,17 +20,22 @@
     "go_version": "go1.26.3",
     "goos": "windows",
     "goarch": "arm64",
-    "flags": ["-trimpath=true", "CGO_ENABLED=0", "-compiler=gc", "-buildmode=exe"],
+    "flags": [
+      "-trimpath=true",
+      "CGO_ENABLED=0",
+      "-compiler=gc",
+      "-buildmode=exe"
+    ],
     "config_digest": "cde747fbe838ee886ddc09527bed529cc09915a7b7bd1e45d013d60e3779cd3d"
   },
   "sbom": {
     "path": "definitions/supply-chain/sbom.cdx.json",
-    "sha256": "70b290b26aac40b8ea9f5f4fb0e3edbe219391a2c3643adcc545a14d543ff43d"
+    "sha256": "6df911799045862d5ec8650654d3553002c4595a2fb9e17e8e637c89740f4c9d"
   },
   "signature": {
     "algorithm": "ed25519",
     "public_key": "93019e7b15fc44dbfb7f36e105e465486e5d5a6ddec109abda44507e0d45332b",
-    "value": "4ff3b2fcdb55bf1cd5d70fa85276fad9e829f262b26df7e64bc620dce5afca859ed895a7dfedb590461802b610930cf6d5f53fb7823018affc25ef6b7a3aa901",
+    "value": "d3f6e97ac5ea911cdb88c7528d86b289d00b3ee02f4a6456013e45f8d7a644945d82b1a40ab043448223a7a6e72d5140f07d1532224f770fa40f9029a45b8c0d",
     "key_fixture": "tools/planning/gateevidence/testdata/dev-signing-key.yaml"
   }
 }

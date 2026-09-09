@@ -96,7 +96,7 @@ func findSearchForm(root *xhtml.Node) *xhtml.Node {
 }
 
 // web041GoldenDigest is pinned from the GREEN implementation run.
-const web041GoldenDigest = "c0ff4036d8dff74a38b654b361d9a01a61edb151eda48e1fb077a750bc5b1686"
+const web041GoldenDigest = "fef9457543a1b84f42e9f7b8090b99c604bea8abd34c70d9b6abdb2303640213"
 
 func TestTodo_WEB_041_Golden(t *testing.T) {
 	doc, err := Render(testView(PageHome))
@@ -132,7 +132,7 @@ func TestTodo_WEB_041_Browser(t *testing.T) {
 	for _, want := range []string{
 		`role="combobox"`, `aria-autocomplete="list"`, `aria-expanded="true"`,
 		`role="listbox"`, `role="option"`, `aria-selected="true"`,
-		`aria-label="Search HCM Next"`, `href="/workspace/app/person?person=worker-avery"`,
+		`aria-label="Search Human Capital Management Suite"`, `href="/workspace/app/person?person=worker-avery"`,
 	} {
 		if !strings.Contains(markup, want) {
 			t.Fatalf("global search markup missing %q", want)

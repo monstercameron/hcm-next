@@ -1,5 +1,5 @@
 connector_id: fake.incumbent.hris
-vendor: HCM Next
+vendor: Human Capital Management Suite
 product: Fake Incumbent HRIS
 version: 1.0.0
 maturity: PREVIEW
@@ -23,4 +23,4 @@ idempotency: field=Idempotency-Key retention=24h0m0s reads_idempotent=true
 observation: watermark=recorded_at budget=24h0m0s completeness=true
 reconciliation: keys=[external_id] comparable=[job_code grade pay_zone] point_read=true
 health: probe=WORKER interval=1m0s degrade_after=3
-digest: sha256:f25ba33424bd4b45e12281a8d90c27eb54b598e032d01eb8e1c7610e409c0ee3
+digest: sha256:3818d54a9ca4f460b2ec26abfb10ad277bf2670a15b1b2dc1d00c9b96fa6bcaf

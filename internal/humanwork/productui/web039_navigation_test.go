@@ -79,7 +79,7 @@ func TestTodo_WEB_039_Golden(t *testing.T) {
 	}
 	digest := sha256.Sum256([]byte(doc))
 	got := hex.EncodeToString(digest[:])
-	const want = "5f2f905ee84b8118481751500f721fb2d18dce9fd7702773ca7163e085d08181"
+	const want = "c40ef2d0870edf59f680ce94b6743fb4e4c75da8d56fada47a5dcaf001a7bd72"
 	if got != want {
 		t.Fatalf("authorization-resolved navigation golden digest = %s, want %s", got, want)
 	}

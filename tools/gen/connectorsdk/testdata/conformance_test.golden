@@ -6,7 +6,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/connectivity/spi/spiconform"
+	"github.com/monstercameron/human-capital-management-suite/internal/connectivity/spi/spiconform"
 )
 
 // TestAdapterConformance drives Adapter through the whole spi.Adapter contract.

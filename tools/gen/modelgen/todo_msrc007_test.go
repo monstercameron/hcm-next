@@ -7,7 +7,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/intent/model"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/model"
 )
 
 func repoRootForTest(t *testing.T) string {
@@ -95,7 +95,7 @@ func TestTodo_MSRC_007_Golden(t *testing.T) {
 		t.Fatalf("regenerated %s differs from the checked-in file; run: go run ./tools/gen/modelgen/cmd/modelgen", OutputFile)
 	}
 
-	const goldenDigest = "sha256:d055eef2a947de664c53e68f0d26613b962f147204e019a3c581e2fab4070521"
+	const goldenDigest = "sha256:dc3de09f469ec2c6965460f04d826a22dfa804efd8b0004865dd07fa31c7154f"
 	if got := OutputDigest(files); got != goldenDigest {
 		t.Fatalf("output digest = %s, want pinned golden %s (update the constant only after confirming the source registry change is intentional)", got, goldenDigest)
 	}

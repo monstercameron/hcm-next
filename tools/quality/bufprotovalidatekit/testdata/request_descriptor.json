@@ -19,7 +19,7 @@
     }
   ],
   "options": {
-    "goPackage": "github.com/monstercamer/hcm-next/tools/quality/bufprotovalidatekit/testfixture;testfixture"
+    "goPackage": "github.com/monstercamer/human-capital-management-suite/tools/quality/bufprotovalidatekit/testfixture;testfixture"
   },
   "syntax": "proto3"
 }

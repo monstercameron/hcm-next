@@ -8,7 +8,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/gen/schemaflux/sources"
+	"github.com/monstercameron/human-capital-management-suite/tools/gen/schemaflux/sources"
 )
 
 func msrc007Manifest(t *testing.T) *sources.Manifest {
@@ -86,7 +86,7 @@ func TestTodo_MSRC_007_Golden(t *testing.T) {
 		t.Fatal(err)
 	}
 	wantSource := "sha256:0477e12b252685066eeb2274dd867023ee3cff01b87df05c7c19f15c7ea2c555"
-	wantGenerated := "sha256:2d1cef2c3897ce01eec02b4096a326733abd4b7e800acd00d2527e6c5a2decf4"
+	wantGenerated := "sha256:59a4bc80c72fb3a0ad81f05d2848deaa0b70fdd19c1de74fdbd4cd6280594b2d"
 	if a.SourceDigest != wantSource {
 		t.Fatalf("source digest = %s, want %s", a.SourceDigest, wantSource)
 	}

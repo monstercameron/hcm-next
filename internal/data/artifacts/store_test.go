@@ -7,9 +7,9 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/data/artifacts"
-	"github.com/monstercameron/hcm-next/internal/data/dbport"
-	"github.com/monstercameron/hcm-next/internal/intent/model"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/artifacts"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/model"
 )
 
 // TestTodo_MODEL_029 proves the immutable content-addressed store's golden
@@ -143,8 +143,8 @@ func TestTodo_MODEL_029_Golden(t *testing.T) {
 	t.Parallel()
 	f := newFixture(t)
 
-	const golden = "hcm-next artifact golden vector v1"
-	const want = "1409dbd73a425a1dd797538569c64b742796fdc20f866642d2a0677de23394f2"
+	const golden = "human-capital-management-suite artifact golden vector v1"
+	const want = "159e359b79583fde85a1f75ed4c36169690168ddb65855dee7c2b5b00179e74e"
 
 	rec := f.mustPut(t, f.putRequest([]byte(golden)))
 	if rec.ContentID != want {

@@ -10,7 +10,7 @@
 # all three.
 
 version: 1
-module: github.com/monstercameron/hcm-next
+module: github.com/monstercameron/human-capital-management-suite
 source: planning/data/models (payroll, benefits, time, leave, recruiting, talent, learning, case, access, regulatory)
 tables:
     - table: payroll_run_preview
