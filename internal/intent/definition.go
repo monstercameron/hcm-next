@@ -3,7 +3,7 @@ package intent
 import (
 	"slices"
 
-	"github.com/monstercameron/hcm-next/internal/intent/lifecycle"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/lifecycle"
 )
 
 // PopulationScope is the declared population a CHANGE_REQUEST operates on. It

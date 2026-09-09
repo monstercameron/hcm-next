@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"os"
 
-	clientsgen "github.com/monstercameron/hcm-next/tools/gen/clients"
+	clientsgen "github.com/monstercameron/human-capital-management-suite/tools/gen/clients"
 )
 
 func main() {

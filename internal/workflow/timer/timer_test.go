@@ -8,10 +8,10 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/data/dbport"
-	"github.com/monstercameron/hcm-next/internal/data/runtimestate"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
-	"github.com/monstercameron/hcm-next/internal/workflow/steps/wait"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/runtimestate"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/steps/wait"
 )
 
 // refusingExecutor fails the test if any statement reaches the database, so a

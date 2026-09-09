@@ -3,7 +3,7 @@ package ledger
 import (
 	"context"
 
-	temporaladapter "github.com/monstercameron/hcm-next/internal/data/ledger/temporal"
+	temporaladapter "github.com/monstercameron/human-capital-management-suite/internal/data/ledger/temporal"
 )
 
 // Temporal query value types, re-exported so a business package needs only

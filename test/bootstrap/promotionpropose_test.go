@@ -16,12 +16,12 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 
-	journeyv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/journey/v1"
-	"github.com/monstercameron/hcm-next/internal/intent/app"
-	"github.com/monstercameron/hcm-next/internal/intent/app/pgstore"
-	"github.com/monstercameron/hcm-next/internal/transport"
-	transportcell "github.com/monstercameron/hcm-next/internal/transport/cell"
-	"github.com/monstercameron/hcm-next/internal/transport/envelope"
+	journeyv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/journey/v1"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/app"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/app/pgstore"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport"
+	transportcell "github.com/monstercameron/human-capital-management-suite/internal/transport/cell"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/envelope"
 )
 
 // The intent-only `promotion.propose` contract (PROMO-007) end to end, over

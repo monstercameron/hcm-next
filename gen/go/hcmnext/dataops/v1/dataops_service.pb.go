@@ -7,7 +7,7 @@
 package dataopsv1
 
 import (
-	v1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/common/v1"
+	v1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/common/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
@@ -587,7 +587,7 @@ const file_hcmnext_dataops_v1_dataops_service_proto_rawDesc = "" +
 	"\n" +
 	"DiffRecord\x12%.hcmnext.dataops.v1.DiffRecordRequest\x1a&.hcmnext.dataops.v1.DiffRecordResponse\x12m\n" +
 	"\x10CreateRepairPlan\x12+.hcmnext.dataops.v1.CreateRepairPlanRequest\x1a,.hcmnext.dataops.v1.CreateRepairPlanResponse\x12g\n" +
-	"\x0eSimulateRepair\x12).hcmnext.dataops.v1.SimulateRepairRequest\x1a*.hcmnext.dataops.v1.SimulateRepairResponseBHZFgithub.com/monstercameron/hcm-next/gen/go/hcmnext/dataops/v1;dataopsv1b\x06proto3"
+	"\x0eSimulateRepair\x12).hcmnext.dataops.v1.SimulateRepairRequest\x1a*.hcmnext.dataops.v1.SimulateRepairResponseB^Z\\github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/dataops/v1;dataopsv1b\x06proto3"
 
 var (
 	file_hcmnext_dataops_v1_dataops_service_proto_rawDescOnce sync.Once

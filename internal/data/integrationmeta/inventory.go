@@ -4,7 +4,7 @@ import (
 	"context"
 	"sort"
 
-	"github.com/monstercameron/hcm-next/internal/data/dbport"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
 )
 
 // IntegrationTables is the exact set of base tables migration 00031 creates

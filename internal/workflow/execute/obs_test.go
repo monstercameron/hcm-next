@@ -10,15 +10,15 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/data/dbport"
-	"github.com/monstercameron/hcm-next/internal/engines/wire/digest"
-	"github.com/monstercameron/hcm-next/internal/humanwork/workitem"
-	"github.com/monstercameron/hcm-next/internal/intent"
-	"github.com/monstercameron/hcm-next/internal/transaction/idempotency"
-	"github.com/monstercameron/hcm-next/internal/workflow"
-	"github.com/monstercameron/hcm-next/internal/workflow/frontier"
-	"github.com/monstercameron/hcm-next/internal/workflow/runtime"
-	"github.com/monstercameron/hcm-next/internal/workflow/version"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/wire/digest"
+	"github.com/monstercameron/human-capital-management-suite/internal/humanwork/workitem"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent"
+	"github.com/monstercameron/human-capital-management-suite/internal/transaction/idempotency"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/frontier"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/runtime"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/version"
 )
 
 // --- OBS-023/OBS-024 shared in-memory fakes ---------------------------------

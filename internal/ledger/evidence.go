@@ -3,7 +3,7 @@ package ledger
 import (
 	"context"
 
-	evidenceadapter "github.com/monstercameron/hcm-next/internal/data/ledger/evidence"
+	evidenceadapter "github.com/monstercameron/human-capital-management-suite/internal/data/ledger/evidence"
 )
 
 // Evidence value types, re-exported so a business package needs only this

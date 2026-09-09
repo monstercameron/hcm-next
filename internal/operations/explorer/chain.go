@@ -7,7 +7,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/data/ledger/hashchain"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/ledger/hashchain"
 )
 
 // ChainView is one stream's hash-chain verification result

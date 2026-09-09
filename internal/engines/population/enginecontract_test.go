@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/engines/population"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/population"
 )
 
 // TestVersionIsStable is the ARCH-GO-009 engine package contract test for

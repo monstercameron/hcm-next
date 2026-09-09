@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // ErrNoticeInvalid is returned by [Notice.Validate] when a notice is missing

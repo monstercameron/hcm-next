@@ -1,5 +1,5 @@
 // Package workload owns two related trust-plane concerns for process-to-
-// process traffic inside HCM Next: issuing and verifying short-lived
+// process traffic inside Human Capital Management Suite: issuing and verifying short-lived
 // workload identities (TRUST-006), and deciding, deny-by-default, whether
 // one verified workload identity may act on another workload's resource
 // (TRUST-007).

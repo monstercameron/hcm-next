@@ -22,7 +22,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/monstercameron/hcm-next/internal/engines/transformation/ir"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/transformation/ir"
 )
 
 var (

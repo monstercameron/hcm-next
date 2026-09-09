@@ -9,14 +9,14 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/data/crmstore"
-	"github.com/monstercameron/hcm-next/internal/data/dbport"
-	"github.com/monstercameron/hcm-next/internal/data/pgtest"
-	"github.com/monstercameron/hcm-next/internal/data/pgxadapter"
-	"github.com/monstercameron/hcm-next/internal/data/tenancy"
-	"github.com/monstercameron/hcm-next/internal/domains/crm"
-	"github.com/monstercameron/hcm-next/internal/engines/population"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/crmstore"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/pgtest"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/pgxadapter"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/tenancy"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/crm"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/population"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 type storedCampaignAudienceOwner struct {

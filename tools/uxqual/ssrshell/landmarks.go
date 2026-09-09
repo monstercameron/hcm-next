@@ -1,6 +1,6 @@
 package ssrshell
 
-import "github.com/monstercameron/hcm-next/tools/uxqual/pagedef"
+import "github.com/monstercameron/human-capital-management-suite/tools/uxqual/pagedef"
 
 // LandmarkTags is the closed set of HTML elements this package ever emits
 // for a region: the six landmark-shaped elements the WEB-025 todo names

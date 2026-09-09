@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/authn/oidc"
+	"github.com/monstercameron/human-capital-management-suite/internal/authn/oidc"
 )
 
 func TestHTTPTokenExchanger_Success(t *testing.T) {

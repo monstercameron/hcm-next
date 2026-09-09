@@ -8,7 +8,7 @@ import (
 
 	"github.com/monstercameron/GoWebComponents/v5/ui"
 
-	"github.com/monstercameron/hcm-next/tools/uxqual/pagedef"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/pagedef"
 )
 
 // WidgetContext is everything a registered [Widget] constructor is given to

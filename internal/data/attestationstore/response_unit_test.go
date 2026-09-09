@@ -9,8 +9,8 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
-	trustattest "github.com/monstercameron/hcm-next/internal/trust/attest"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
+	trustattest "github.com/monstercameron/human-capital-management-suite/internal/trust/attest"
 )
 
 type responseRow struct{ values []any }

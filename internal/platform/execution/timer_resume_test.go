@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/intent/app"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/app"
 )
 
 func TestTodo_PROMO_EXEC_TIMERDISPATCH_ExecuteDriverAdapterSatisfiesTimerPort(t *testing.T) {

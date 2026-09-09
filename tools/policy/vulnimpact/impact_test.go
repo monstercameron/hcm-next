@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/policy/sbom"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/sbom"
 )
 
 func testDocument(rootName, rootVersion string, components ...sbom.Component) sbom.Document {

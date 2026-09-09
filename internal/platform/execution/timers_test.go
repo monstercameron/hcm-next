@@ -9,12 +9,12 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/data/dbport"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
-	"github.com/monstercameron/hcm-next/internal/workflow"
-	"github.com/monstercameron/hcm-next/internal/workflow/execute"
-	"github.com/monstercameron/hcm-next/internal/workflow/runtime"
-	"github.com/monstercameron/hcm-next/internal/workflow/timer"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/execute"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/runtime"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/timer"
 )
 
 // timerFixtureDataset is the tzdb and business-calendar release the fixture

@@ -7,10 +7,10 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	commonv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/common/v1"
-	dataopsv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/dataops/v1"
-	evidencev1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/evidence/v1"
-	integrationv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/integration/v1"
+	commonv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/common/v1"
+	dataopsv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/dataops/v1"
+	evidencev1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/evidence/v1"
+	integrationv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/integration/v1"
 )
 
 // TestTodo_PROTO_004 proves the generated DataOps, integration and evidence

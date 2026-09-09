@@ -3,7 +3,7 @@ package transport
 import (
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/transport/envelope"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/envelope"
 )
 
 // LogRecord is the structured record emitted once per completed request. Its

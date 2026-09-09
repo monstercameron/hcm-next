@@ -12,8 +12,8 @@ func TestParseGoTestOutputCarriesTheFailingTestLog(t *testing.T) {
 		"    service_test.go:43: second detail line",
 		"--- FAIL: TestServiceCreate (101.13s)",
 		"FAIL",
-		"FAIL\tgithub.com/monstercameron/hcm-next/internal/data/ledger/checkpoint\t135.037s",
-		"ok  \tgithub.com/monstercameron/hcm-next/internal/data/outbox\t278.314s\tcoverage: 67.9% of statements",
+		"FAIL\tgithub.com/monstercameron/human-capital-management-suite/internal/data/ledger/checkpoint\t135.037s",
+		"ok  \tgithub.com/monstercameron/human-capital-management-suite/internal/data/outbox\t278.314s\tcoverage: 67.9% of statements",
 	}, "\n")
 	results := ParseGoTestOutput(out)
 	if len(results) != 2 {
@@ -39,7 +39,7 @@ func TestParseGoTestOutputBoundsTheFailureLog(t *testing.T) {
 	for i := 0; i < MaxFailureLogLines+20; i++ {
 		lines = append(lines, "    noisy_test.go:1: line")
 	}
-	lines = append(lines, "--- FAIL: TestNoisy (0.00s)", "FAIL\tgithub.com/monstercameron/hcm-next/internal/noisy\t0.1s")
+	lines = append(lines, "--- FAIL: TestNoisy (0.00s)", "FAIL\tgithub.com/monstercameron/human-capital-management-suite/internal/noisy\t0.1s")
 	results := ParseGoTestOutput(strings.Join(lines, "\n"))
 	if len(results) != 1 || len(results[0].FailureLog) != MaxFailureLogLines {
 		t.Fatalf("failure log length = %d, want the cap %d", len(results[0].FailureLog), MaxFailureLogLines)

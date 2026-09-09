@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"slices"
 
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // ErrLegalContextUnknown is returned by [Resolve] whenever the supplied facts

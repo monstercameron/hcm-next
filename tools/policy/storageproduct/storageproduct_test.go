@@ -5,9 +5,9 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/planning/productslice"
-	"github.com/monstercameron/hcm-next/tools/policy/storageproduct"
-	"github.com/monstercameron/hcm-next/tools/policy/tableinventory"
+	"github.com/monstercameron/human-capital-management-suite/tools/planning/productslice"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/storageproduct"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/tableinventory"
 )
 
 func repoRoot(t *testing.T) string {
@@ -46,7 +46,7 @@ func TestTodo_ALIGN_016_Property(t *testing.T) {
 	slices := []productslice.ProductSliceDefinition{{
 		SliceID:  "promotion",
 		Version:  1,
-		Packages: []string{"github.com/monstercameron/hcm-next/internal/astore"},
+		Packages: []string{"github.com/monstercameron/human-capital-management-suite/internal/astore"},
 	}}
 	index := storageproduct.Generate(alignmentFixture(), slices, map[string][]string{
 		"alpha": {"internal/consumer"},

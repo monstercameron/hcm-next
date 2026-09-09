@@ -4,9 +4,9 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/experience/channelparity"
-	"github.com/monstercameron/hcm-next/internal/experience/presentation"
-	"github.com/monstercameron/hcm-next/internal/intent/lifecycle"
+	"github.com/monstercameron/human-capital-management-suite/internal/experience/channelparity"
+	"github.com/monstercameron/human-capital-management-suite/internal/experience/presentation"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/lifecycle"
 )
 
 func ux005Input() presentation.Input {

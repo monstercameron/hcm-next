@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/platform/logging"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/logging"
 )
 
 func fixedClock(t time.Time) logging.Clock {

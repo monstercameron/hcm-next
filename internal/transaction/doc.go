@@ -7,7 +7,7 @@
 // "transaction owns plan/participants/read-write sets/effects/boundaries/
 // prepare/commit/receipt/idempotency/fences/correction". Conflict analysis
 // (write footprints, overlap, classification) lives in the sibling package
-// github.com/monstercameron/hcm-next/internal/transaction/conflict, which
+// github.com/monstercameron/human-capital-management-suite/internal/transaction/conflict, which
 // this package may depend on but which must never import back into this
 // package or any of its subpackages -- that reverse edge is exactly the
 // coordination/conflict cycle ARCH-GO-011 forbids.

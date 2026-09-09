@@ -9,12 +9,12 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/commercial"
-	"github.com/monstercameron/hcm-next/internal/data/commercialstore"
-	"github.com/monstercameron/hcm-next/internal/data/pgtest"
-	"github.com/monstercameron/hcm-next/internal/data/pgxadapter"
-	"github.com/monstercameron/hcm-next/internal/data/tenancy"
-	"github.com/monstercameron/hcm-next/internal/domains/partnerapp"
+	"github.com/monstercameron/human-capital-management-suite/internal/commercial"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/commercialstore"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/pgtest"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/pgxadapter"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/tenancy"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/partnerapp"
 )
 
 func TestMain(m *testing.M) { pgtest.RunMain(m) }

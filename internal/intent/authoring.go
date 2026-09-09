@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // serverOwnedPrefixes are the input paths a template, a draft or a saved action

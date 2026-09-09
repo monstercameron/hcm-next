@@ -7,9 +7,9 @@ import (
 	"testing"
 
 	"github.com/monstercameron/GoWebComponents/v5/ui"
-	"github.com/monstercameron/hcm-next/tools/uxqual/forms"
-	"github.com/monstercameron/hcm-next/tools/uxqual/qual"
-	"github.com/monstercameron/hcm-next/tools/uxqual/wcag"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/forms"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/qual"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/wcag"
 	xhtml "golang.org/x/net/html"
 )
 

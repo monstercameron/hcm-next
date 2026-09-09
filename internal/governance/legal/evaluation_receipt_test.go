@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 func receiptFixture(t *testing.T) (*LegalContext, *Registry, *Signer, values.Instant) {

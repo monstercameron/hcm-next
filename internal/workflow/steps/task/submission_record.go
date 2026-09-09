@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/monstercameron/hcm-next/internal/humanwork/workitem"
+	"github.com/monstercameron/human-capital-management-suite/internal/humanwork/workitem"
 )
 
 // submissionWire is WORK-010's JSON encoding of one [Submission], minted for

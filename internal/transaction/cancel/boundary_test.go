@@ -12,13 +12,13 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/data/dbport"
-	"github.com/monstercameron/hcm-next/internal/data/pgtest"
-	"github.com/monstercameron/hcm-next/internal/data/pgxadapter"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
-	transactioncancel "github.com/monstercameron/hcm-next/internal/transaction/cancel"
-	transactioncommit "github.com/monstercameron/hcm-next/internal/transaction/commit"
-	"github.com/monstercameron/hcm-next/internal/transaction/plan"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/pgtest"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/pgxadapter"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
+	transactioncancel "github.com/monstercameron/human-capital-management-suite/internal/transaction/cancel"
+	transactioncommit "github.com/monstercameron/human-capital-management-suite/internal/transaction/commit"
+	"github.com/monstercameron/human-capital-management-suite/internal/transaction/plan"
 )
 
 func TestMain(m *testing.M) { pgtest.RunMain(m) }

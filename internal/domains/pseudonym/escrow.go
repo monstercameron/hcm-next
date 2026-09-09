@@ -11,7 +11,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/trust/custody"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/custody"
 )
 
 const (

@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/workflow/promotionexec"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/promotionexec"
 )
 
 // TestTodo_OBS_012_ConformancePromotionDriverSpanTree runs the published

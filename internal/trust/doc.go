@@ -6,7 +6,7 @@
 //
 // The single invariant of this package is that a [Principal] is created only
 // from a credential that a [Verifier] has actually verified. There is no code
-// path anywhere in HCM Next that turns a caller-supplied header, metadata key,
+// path anywhere in Human Capital Management Suite that turns a caller-supplied header, metadata key,
 // query parameter or request-message field into a Principal: the reserved
 // names that describe trusted context are enumerated in [ReservedMetadataKeys]
 // and transports reject a request that carries any of them.

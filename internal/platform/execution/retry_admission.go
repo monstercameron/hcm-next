@@ -10,10 +10,10 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/data/admissionstore"
-	"github.com/monstercameron/hcm-next/internal/operations/admission"
-	"github.com/monstercameron/hcm-next/internal/transaction/coordinator"
-	"github.com/monstercameron/hcm-next/internal/workflow/runtime"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/admissionstore"
+	"github.com/monstercameron/human-capital-management-suite/internal/operations/admission"
+	"github.com/monstercameron/human-capital-management-suite/internal/transaction/coordinator"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/runtime"
 )
 
 // RetryAdmission binds one trusted, persisted retry budget to one logical

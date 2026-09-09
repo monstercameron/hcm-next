@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/internal/connectivity/spi"
+	"github.com/monstercameron/human-capital-management-suite/internal/connectivity/spi"
 )
 
 // AdapterSkeleton describes one connector adapter to scaffold from a declared
@@ -63,8 +63,8 @@ func RenderAdapterSkeleton(s AdapterSkeleton) ([]byte, error) {
 	b.WriteString("import (\n")
 	b.WriteString("\t\"context\"\n")
 	b.WriteString("\t\"time\"\n\n")
-	b.WriteString("\t\"github.com/monstercameron/hcm-next/internal/connectivity\"\n")
-	b.WriteString("\t\"github.com/monstercameron/hcm-next/internal/connectivity/spi\"\n")
+	b.WriteString("\t\"github.com/monstercameron/human-capital-management-suite/internal/connectivity\"\n")
+	b.WriteString("\t\"github.com/monstercameron/human-capital-management-suite/internal/connectivity/spi\"\n")
 	b.WriteString(")\n\n")
 
 	fmt.Fprintf(&b, "// %s is a generated connector adapter skeleton for %s %s.\n", s.TypeName, s.Manifest.Vendor, s.Manifest.Product)
@@ -108,7 +108,7 @@ func RenderConformanceTest(s AdapterSkeleton) ([]byte, error) {
 	b.WriteString("import (\n")
 	b.WriteString("\t\"context\"\n")
 	b.WriteString("\t\"testing\"\n\n")
-	b.WriteString("\t\"github.com/monstercameron/hcm-next/internal/connectivity/spi/spiconform\"\n")
+	b.WriteString("\t\"github.com/monstercameron/human-capital-management-suite/internal/connectivity/spi/spiconform\"\n")
 	b.WriteString(")\n\n")
 	fmt.Fprintf(&b, "// Test%sConformance drives %s through the whole spi.Adapter contract.\n// It fails until ReadSnapshot and ObserveChanges are implemented.\nfunc Test%sConformance(t *testing.T) {\n",
 		s.TypeName, s.TypeName, s.TypeName)

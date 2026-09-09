@@ -2,13 +2,17 @@ package otel_test
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
+	"fmt"
+	"sort"
 	"strings"
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/platform/telemetry"
-	hcmotel "github.com/monstercameron/hcm-next/internal/platform/telemetry/otel"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/telemetry"
+	hcmotel "github.com/monstercameron/human-capital-management-suite/internal/platform/telemetry/otel"
 )
 
 func TestDurableAsyncContinuationCreatesExactSpanLinksWithoutOpenParentSpan(t *testing.T) {
@@ -189,5 +193,70 @@ func TestTodo_OBS_013_Conformance(t *testing.T) {
 	}
 	if got := hcmotel.AmbientTraceID(context.Background()); got != "" {
 		t.Fatalf("background context trace id = %q", got)
+	}
+}
+
+// TestTodo_OBS_013_Golden pins the exact durable-async span shape for fixed
+// inputs: span name, new-root parent, the one exact link, and the sorted
+// attribute set, digested. A digest change is a deliberate encoding change,
+// never silent drift: the new-root trace id itself is excluded because it is
+// random per span by construction.
+func TestTodo_OBS_013_Golden(t *testing.T) {
+	h := newTestHarness(t, testEvaluator(t))
+	continuation := hcmotel.DurableAsyncContinuation{
+		CorrelationID: "corr-golden", CausationID: "cause-golden",
+		LogicalOperationID: "op-golden", AttemptID: "attempt-golden",
+		TraceLink: &hcmotel.TraceLinkMetadata{
+			TraceID: "4bf92f3577b34da6a3ce929d0e0e4736", SpanID: "00f067aa0ba902b7",
+			TraceFlags: 1, TraceState: "vendor=value",
+			ExpiresAt: time.Unix(200, 0),
+		},
+	}
+	_, span, err := h.Provider.StartDurableAsyncSpan(context.Background(), "worker", "hcmnext.queue.deliver", continuation,
+		map[string]string{"message_kind": "outbox"}, time.Unix(100, 0))
+	if err != nil {
+		t.Fatalf("StartDurableAsyncSpan: %v", err)
+	}
+	span.End("SUCCESS", false)
+	if report := h.Provider.ForceFlush(context.Background()); report.Err() != nil {
+		t.Fatalf("ForceFlush: %v", report.Err())
+	}
+	got := h.SpanExporter.GetSpans()
+	if len(got) != 1 {
+		t.Fatalf("got %d spans, want exactly 1", len(got))
+	}
+	s := got[0]
+	if s.Name != "hcmnext.queue.deliver" || s.Parent.IsValid() {
+		t.Fatalf("span = name %q parent %v, want new root hcmnext.queue.deliver", s.Name, s.Parent)
+	}
+	if len(s.Links) != 1 {
+		t.Fatalf("links = %#v, want exactly the stored trace link", s.Links)
+	}
+	link := s.Links[0].SpanContext
+	if link.TraceID().String() != "4bf92f3577b34da6a3ce929d0e0e4736" || link.SpanID().String() != "00f067aa0ba902b7" || link.TraceFlags().String() != "01" {
+		t.Fatalf("link = %v, want the stored trace/span IDs with sampled flags", link)
+	}
+	var pairs []string
+	for _, attr := range s.Attributes {
+		pairs = append(pairs, fmt.Sprintf("%s=%s", string(attr.Key), attr.Value.AsString()))
+	}
+	sort.Strings(pairs)
+	// NOTE: causation_id is validated and persisted on the envelope but is
+	// not a span attribute (the forced span identities are correlation,
+	// logical-operation and attempt); outcome arrives via Span.End.
+	wantAttrs := []string{
+		"attempt_id=attempt-golden",
+		"correlation_id=corr-golden",
+		"logical_operation_id=op-golden",
+		"message_kind=outbox",
+		"outcome=SUCCESS",
+	}
+	if fmt.Sprintf("%q", pairs) != fmt.Sprintf("%q", wantAttrs) {
+		t.Fatalf("attrs = %q, want %q", pairs, wantAttrs)
+	}
+	digest := sha256.Sum256([]byte("hcmnext.queue.deliver|" + link.TraceID().String() + "|" + link.SpanID().String() + "|01|" + strings.Join(pairs, ",")))
+	const wantDigest = "sha256:f6ad928d3af3d343a70b1bac4b85d4b775f1de0d759179aeb532a3a155f395b5"
+	if got := "sha256:" + hex.EncodeToString(digest[:]); got != wantDigest {
+		t.Fatalf("golden digest = %s, want %s", got, wantDigest)
 	}
 }

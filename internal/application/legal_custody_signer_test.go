@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/governance/legal"
-	"github.com/monstercameron/hcm-next/internal/trust/custody"
+	"github.com/monstercameron/human-capital-management-suite/internal/governance/legal"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/custody"
 )
 
 type legalSignerProvider struct {

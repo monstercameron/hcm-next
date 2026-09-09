@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/trust"
-	"github.com/monstercameron/hcm-next/internal/trust/authz"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/authz"
 )
 
 func allowedRequest(t *testing.T) authz.Request {

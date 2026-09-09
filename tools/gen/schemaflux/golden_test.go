@@ -3,7 +3,7 @@ package schemaflux_test
 import (
 	"testing"
 
-	sfx "github.com/monstercameron/hcm-next/tools/gen/schemaflux"
+	sfx "github.com/monstercameron/human-capital-management-suite/tools/gen/schemaflux"
 )
 
 // goldenDefinition is the frozen expectation TestTodo_TOOL_004_Golden checks

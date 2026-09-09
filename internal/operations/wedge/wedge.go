@@ -109,7 +109,7 @@ func validSystem(s SystemIdentity) bool {
 }
 
 // BypassReason is a versioned, customer-readable reason for an approved path
-// outside HCM Next. The unexplained path intentionally has no reason code.
+// outside Human Capital Management Suite. The unexplained path intentionally has no reason code.
 type BypassReason struct {
 	Code  string `json:"code"`
 	Label string `json:"label"`
@@ -192,7 +192,7 @@ func (m AdoptionMetric) Validate() error {
 		switch record.Path {
 		case AdoptionHCMNext:
 			if record.BypassCode != "" {
-				return fmt.Errorf("%w: HCM Next path cannot carry a bypass code", ErrInvalidWedgeRecord)
+				return fmt.Errorf("%w: Human Capital Management Suite path cannot carry a bypass code", ErrInvalidWedgeRecord)
 			}
 		case AdoptionApprovedBypass:
 			if !known[record.BypassCode] {

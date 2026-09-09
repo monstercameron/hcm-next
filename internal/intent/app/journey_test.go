@@ -6,11 +6,11 @@ import (
 	"testing"
 	"time"
 
-	intentsv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/intents/v1"
-	"github.com/monstercameron/hcm-next/internal/domains/fixtures"
-	"github.com/monstercameron/hcm-next/internal/humanwork/workspace"
-	"github.com/monstercameron/hcm-next/internal/transport/envelope"
-	"github.com/monstercameron/hcm-next/internal/trust"
+	intentsv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/intents/v1"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/fixtures"
+	"github.com/monstercameron/human-capital-management-suite/internal/humanwork/workspace"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/envelope"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust"
 )
 
 // journeyProposalFixture is a complete, valid manager input.

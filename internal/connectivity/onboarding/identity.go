@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/connectivity"
+	"github.com/monstercameron/human-capital-management-suite/internal/connectivity"
 )
 
 // IdentityOutcome is the adjudicated result of resolving one external

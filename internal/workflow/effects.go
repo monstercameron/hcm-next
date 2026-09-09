@@ -3,7 +3,7 @@ package workflow
 import (
 	"sort"
 
-	"github.com/monstercameron/hcm-next/internal/capability"
+	"github.com/monstercameron/human-capital-management-suite/internal/capability"
 )
 
 // effectClassOf returns the node's effect class. A bound capability manifest

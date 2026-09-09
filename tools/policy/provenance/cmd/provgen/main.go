@@ -21,7 +21,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/monstercameron/hcm-next/tools/policy/provenance"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/provenance"
 )
 
 const (

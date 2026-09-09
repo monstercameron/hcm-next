@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	transactionplan "github.com/monstercameron/hcm-next/internal/transaction/plan"
+	transactionplan "github.com/monstercameron/human-capital-management-suite/internal/transaction/plan"
 )
 
 type scriptedConsumer struct {

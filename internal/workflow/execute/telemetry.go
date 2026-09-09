@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/workflow/runtime"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/runtime"
 )
 
 // OBS-023 outcome vocabulary. These are plain strings, not

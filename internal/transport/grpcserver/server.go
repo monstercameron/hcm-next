@@ -1,4 +1,4 @@
-// Package grpcserver exposes the canonical HCM Next gRPC surface.
+// Package grpcserver exposes the canonical Human Capital Management Suite gRPC surface.
 //
 // Semantic owner: experience-and-transport. Phase: P1A. Todos: ENDPOINT-002,
 // ENDPOINT-003, CAP-003.
@@ -20,9 +20,9 @@ import (
 
 	"google.golang.org/grpc"
 
-	intentsv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/intents/v1"
-	registryv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/registry/v1"
-	"github.com/monstercameron/hcm-next/internal/transport"
+	intentsv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/intents/v1"
+	registryv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/registry/v1"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport"
 )
 
 // defaultMaxRecvMsgBytes bounds an inbound message. Bounded decoding is part

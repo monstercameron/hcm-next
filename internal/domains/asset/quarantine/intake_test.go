@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/domains/asset/quarantine"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/asset/quarantine"
 )
 
 func baseRequest(content []byte, declared quarantine.ContentType) quarantine.UploadRequest {

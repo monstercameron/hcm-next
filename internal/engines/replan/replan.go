@@ -8,8 +8,8 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/monstercameron/hcm-next/internal/engines/canonicalbytes"
-	"github.com/monstercameron/hcm-next/internal/engines/fielddiff"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/canonicalbytes"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/fielddiff"
 )
 
 const schemaVersion = 1

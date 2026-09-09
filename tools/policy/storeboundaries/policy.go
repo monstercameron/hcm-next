@@ -13,7 +13,7 @@ import (
 
 	"gopkg.in/yaml.v3"
 
-	"github.com/monstercameron/hcm-next/internal/data/tenancy/storagedisposition"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/tenancy/storagedisposition"
 )
 
 // PolicyDate is the deterministic date used to evaluate reviewed exceptions

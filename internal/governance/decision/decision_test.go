@@ -9,7 +9,7 @@ import (
 	"testing"
 )
 
-import "github.com/monstercameron/hcm-next/internal/governance/decision"
+import "github.com/monstercameron/human-capital-management-suite/internal/governance/decision"
 
 func promotionInputs() decision.Inputs {
 	return decision.Inputs{

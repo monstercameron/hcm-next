@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/operations/incidentstate"
+	"github.com/monstercameron/human-capital-management-suite/internal/operations/incidentstate"
 )
 
 const contractVersion = 1
@@ -110,13 +110,13 @@ func safeFact(kind string) bool {
 func publicMessage(status Status) string {
 	switch status {
 	case StatusMitigating:
-		return "We are mitigating an issue affecting your HCM Next workflow."
+		return "We are mitigating an issue affecting your Human Capital Management Suite workflow."
 	case StatusMonitoring:
-		return "The issue affecting your HCM Next workflow is contained and under monitoring."
+		return "The issue affecting your Human Capital Management Suite workflow is contained and under monitoring."
 	case StatusResolved:
-		return "The issue affecting your HCM Next workflow has been resolved and reviewed."
+		return "The issue affecting your Human Capital Management Suite workflow has been resolved and reviewed."
 	default:
-		return "We are investigating an issue affecting your HCM Next workflow."
+		return "We are investigating an issue affecting your Human Capital Management Suite workflow."
 	}
 }
 

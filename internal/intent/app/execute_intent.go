@@ -6,15 +6,15 @@ import (
 	"fmt"
 	"reflect"
 
-	intentsv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/intents/v1"
-	"github.com/monstercameron/hcm-next/internal/capability"
-	"github.com/monstercameron/hcm-next/internal/engines/wire/digest"
-	"github.com/monstercameron/hcm-next/internal/intent"
-	transactioncommit "github.com/monstercameron/hcm-next/internal/transaction/commit"
-	"github.com/monstercameron/hcm-next/internal/transport/envelope"
-	"github.com/monstercameron/hcm-next/internal/trust"
-	"github.com/monstercameron/hcm-next/internal/workflow"
-	"github.com/monstercameron/hcm-next/internal/workflow/runtime"
+	intentsv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/intents/v1"
+	"github.com/monstercameron/human-capital-management-suite/internal/capability"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/wire/digest"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent"
+	transactioncommit "github.com/monstercameron/human-capital-management-suite/internal/transaction/commit"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/envelope"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/runtime"
 )
 
 // OBS-024's execution-evidence vocabulary entries [IntentService.ExecuteIntent]

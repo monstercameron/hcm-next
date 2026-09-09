@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"html/template"
 
-	"github.com/monstercameron/hcm-next/tools/uxqual/pagedef"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/pagedef"
 )
 
 // PageIslandElementID is the id of the data island every rendered shell

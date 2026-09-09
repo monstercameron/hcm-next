@@ -36,7 +36,7 @@ func TestDoc_PackageStaysKernelPure(t *testing.T) {
 		"\"net/http\"",
 		"\"time\"",
 		"path/filepath",
-		"hcm-next/internal/transport",
+		"human-capital-management-suite/internal/transport",
 		"google.golang.org/grpc",
 		"google.golang.org/protobuf",
 	}

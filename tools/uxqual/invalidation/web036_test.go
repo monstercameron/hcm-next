@@ -14,8 +14,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
-	"github.com/monstercameron/hcm-next/tools/uxqual/latencygate"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/latencygate"
 )
 
 var fastReconnect = ReconnectOptions{MaxAttempts: 2, InitialBackoff: time.Nanosecond, MaxBackoff: time.Nanosecond}

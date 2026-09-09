@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/trust/custody"
-	"github.com/monstercameron/hcm-next/tools/policy/provenance"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/custody"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/provenance"
 )
 
 type keySourceCustodyFake struct {

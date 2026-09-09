@@ -12,8 +12,8 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/internal/trust/authz"
-	"github.com/monstercameron/hcm-next/internal/trust/custody"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/authz"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/custody"
 )
 
 const schemaVersion = 1

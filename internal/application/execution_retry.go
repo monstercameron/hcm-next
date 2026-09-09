@@ -6,12 +6,12 @@ import (
 	"slices"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/data/admissionstore"
-	"github.com/monstercameron/hcm-next/internal/data/pgxadapter"
-	platformexecution "github.com/monstercameron/hcm-next/internal/platform/execution"
-	"github.com/monstercameron/hcm-next/internal/transaction/commit"
-	workflowexecute "github.com/monstercameron/hcm-next/internal/workflow/execute"
-	"github.com/monstercameron/hcm-next/internal/workflow/runtime"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/admissionstore"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/pgxadapter"
+	platformexecution "github.com/monstercameron/human-capital-management-suite/internal/platform/execution"
+	"github.com/monstercameron/human-capital-management-suite/internal/transaction/commit"
+	workflowexecute "github.com/monstercameron/human-capital-management-suite/internal/workflow/execute"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/runtime"
 )
 
 // composeExecutionRetryFor returns a request-scoped selector for the durable

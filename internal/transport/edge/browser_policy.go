@@ -13,7 +13,7 @@ import (
 
 	"connectrpc.com/connect"
 
-	"github.com/monstercameron/hcm-next/internal/transport/envelope"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/envelope"
 )
 
 // BrowserCSRFCookieName is the SameSite-backed token used by the browser

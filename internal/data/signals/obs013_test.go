@@ -7,11 +7,11 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/data/dbport"
-	"github.com/monstercameron/hcm-next/internal/data/pgtest"
-	"github.com/monstercameron/hcm-next/internal/data/runtimestate"
-	"github.com/monstercameron/hcm-next/internal/data/signals"
-	stepSignal "github.com/monstercameron/hcm-next/internal/workflow/steps/signal"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/pgtest"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/runtimestate"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/signals"
+	stepSignal "github.com/monstercameron/human-capital-management-suite/internal/workflow/steps/signal"
 )
 
 func TestTodo_OBS_013_SignalCausalMetadataRoundTripReplayAndTenantIsolation(t *testing.T) {

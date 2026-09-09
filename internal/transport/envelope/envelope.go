@@ -1,4 +1,4 @@
-// Package envelope owns the one canonical HCM Next error model and its
+// Package envelope owns the one canonical Human Capital Management Suite error model and its
 // projections onto transport status codes.
 //
 // Semantic owner: experience-and-transport. Phase: P1A. Todos: CAP-003,
@@ -43,7 +43,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	commonv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/common/v1"
+	commonv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/common/v1"
 )
 
 // Code is the canonical owned error condition. Values match
@@ -244,7 +244,7 @@ type DiagnosticGrant interface {
 }
 
 // Error is the canonical owned error. It is safe to project as-is: everything
-// it exposes was authored by HCM Next.
+// it exposes was authored by Human Capital Management Suite.
 type Error struct {
 	code          Code
 	reasonRef     string

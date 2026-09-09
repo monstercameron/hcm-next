@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/domains/asset/quarantine"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/asset/quarantine"
 )
 
 // compile-time proof that fakeScanner satisfies quarantine.Scanner.

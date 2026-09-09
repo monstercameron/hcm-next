@@ -7,7 +7,7 @@ import (
 
 	"github.com/monstercameron/GoWebComponents/v5/html"
 	"github.com/monstercameron/GoWebComponents/v5/ui"
-	"github.com/monstercameron/hcm-next/internal/humanwork/uicomponents"
+	"github.com/monstercameron/human-capital-management-suite/internal/humanwork/uicomponents"
 )
 
 // This file holds every section of the Promotion journey page. Three rules

@@ -11,11 +11,11 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/reflect/protoreflect"
 
-	commonv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/common/v1"
-	intentsv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/intents/v1"
-	"github.com/monstercameron/hcm-next/internal/transport/edge"
-	"github.com/monstercameron/hcm-next/internal/transport/envelope"
-	"github.com/monstercameron/hcm-next/internal/transport/transporttest"
+	commonv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/common/v1"
+	intentsv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/intents/v1"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/edge"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/envelope"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/transporttest"
 )
 
 // forbiddenInProjection is the set of markers that must never appear in

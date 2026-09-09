@@ -5,9 +5,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/domains/promotion/simassign"
-	promosnapshot "github.com/monstercameron/hcm-next/internal/domains/promotion/snapshot"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/promotion/simassign"
+	promosnapshot "github.com/monstercameron/human-capital-management-suite/internal/domains/promotion/snapshot"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // TestProposedEffectValidateNamesTheMissingDeclaration proves an incomplete

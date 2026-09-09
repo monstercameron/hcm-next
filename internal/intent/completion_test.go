@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/intent/lifecycle"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/lifecycle"
 )
 
 func TestTodo_INTENT_008(t *testing.T) {

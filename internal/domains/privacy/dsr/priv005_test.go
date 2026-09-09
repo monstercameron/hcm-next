@@ -3,7 +3,7 @@ package dsr
 import (
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/trust"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust"
 )
 
 // TestTodo_PRIV_005 is the PRIMARY test for planning/todos.md PRIV-005:

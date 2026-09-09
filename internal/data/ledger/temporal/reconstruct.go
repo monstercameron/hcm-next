@@ -6,8 +6,8 @@ import (
 	"sort"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/data/bitemporal"
-	datalogger "github.com/monstercameron/hcm-next/internal/data/ledger"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/bitemporal"
+	datalogger "github.com/monstercameron/human-capital-management-suite/internal/data/ledger"
 )
 
 // maxCorrectionDepth bounds the correction-chain walk [resolveTruthClass]

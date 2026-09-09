@@ -5,7 +5,7 @@ import (
 
 	"github.com/monstercameron/GoWebComponents/v5/html"
 	"github.com/monstercameron/GoWebComponents/v5/ui"
-	"github.com/monstercameron/hcm-next/internal/humanwork/uicomponents"
+	"github.com/monstercameron/human-capital-management-suite/internal/humanwork/uicomponents"
 )
 
 func appLink(view View, props html.Props, href string, children ...ui.Node) ui.Node {

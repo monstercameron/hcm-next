@@ -5,11 +5,11 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/monstercameron/hcm-next/internal/domains/evidence"
-	"github.com/monstercameron/hcm-next/internal/domains/intelligence"
-	"github.com/monstercameron/hcm-next/internal/intent"
-	"github.com/monstercameron/hcm-next/internal/intent/lifecycle"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/evidence"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/intelligence"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/lifecycle"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // transactionStreamKey names the ledger stream an intent's chronology is read

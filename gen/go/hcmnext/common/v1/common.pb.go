@@ -1469,7 +1469,7 @@ const file_hcmnext_common_v1_common_proto_rawDesc = "" +
 	"\x1dERROR_CODE_RESOURCE_EXHAUSTED\x10\b\x12 \n" +
 	"\x1cERROR_CODE_DEADLINE_EXCEEDED\x10\t\x12\x1a\n" +
 	"\x16ERROR_CODE_UNAVAILABLE\x10\n" +
-	"BFZDgithub.com/monstercameron/hcm-next/gen/go/hcmnext/common/v1;commonv1b\x06proto3"
+	"B\\ZZgithub.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/common/v1;commonv1b\x06proto3"
 
 var (
 	file_hcmnext_common_v1_common_proto_rawDescOnce sync.Once

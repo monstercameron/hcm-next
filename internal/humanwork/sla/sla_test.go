@@ -5,8 +5,8 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/humanwork/sla"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/humanwork/sla"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 var (

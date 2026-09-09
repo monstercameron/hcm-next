@@ -5,10 +5,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/domains/fixtures"
-	"github.com/monstercameron/hcm-next/internal/domains/people"
-	promosnapshot "github.com/monstercameron/hcm-next/internal/domains/promotion/snapshot"
-	"github.com/monstercameron/hcm-next/internal/domains/rewards"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/fixtures"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/people"
+	promosnapshot "github.com/monstercameron/human-capital-management-suite/internal/domains/promotion/snapshot"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/rewards"
 )
 
 // secretValues are the exact strings the fixture's protected inputs would

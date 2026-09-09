@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/policy/release"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/release"
 )
 
 func TestTodo_SECARCH_005(t *testing.T) {

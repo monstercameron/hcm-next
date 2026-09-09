@@ -7,7 +7,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/internal/governance/legal"
+	"github.com/monstercameron/human-capital-management-suite/internal/governance/legal"
 )
 
 // ContractPath is the repository-relative path of the rule-pack contract the

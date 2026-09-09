@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/platform/config"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/config"
 )
 
 func fixedSeed(b byte) []byte {

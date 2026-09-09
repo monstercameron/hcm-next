@@ -374,7 +374,7 @@ const file_hcmnext_capabilities_v1_capability_proto_rawDesc = "" +
 	"(CAPABILITY_SIDE_EFFECT_PROFILE_READ_ONLY\x10\x02\x124\n" +
 	"0CAPABILITY_SIDE_EFFECT_PROFILE_INTERNAL_MUTATION\x10\x03\x124\n" +
 	"0CAPABILITY_SIDE_EFFECT_PROFILE_EXTERNAL_MUTATION\x10\x04\x12A\n" +
-	"=CAPABILITY_SIDE_EFFECT_PROFILE_IRREVERSIBLE_EXTERNAL_MUTATION\x10\x05BRZPgithub.com/monstercameron/hcm-next/gen/go/hcmnext/capabilities/v1;capabilitiesv1b\x06proto3"
+	"=CAPABILITY_SIDE_EFFECT_PROFILE_IRREVERSIBLE_EXTERNAL_MUTATION\x10\x05BhZfgithub.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/capabilities/v1;capabilitiesv1b\x06proto3"
 
 var (
 	file_hcmnext_capabilities_v1_capability_proto_rawDescOnce sync.Once

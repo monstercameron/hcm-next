@@ -9,8 +9,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/monstercameron/hcm-next/tools/planning/controlcrosswalk"
-	"github.com/monstercameron/hcm-next/tools/planning/traceability"
+	"github.com/monstercameron/human-capital-management-suite/tools/planning/controlcrosswalk"
+	"github.com/monstercameron/human-capital-management-suite/tools/planning/traceability"
 )
 
 func main() { os.Exit(run(os.Args[1:], os.Stdout, os.Stderr)) }

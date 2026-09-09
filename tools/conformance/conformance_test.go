@@ -22,14 +22,14 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/conformance/checks"
-	"github.com/monstercameron/hcm-next/tools/conformance/discover"
-	"github.com/monstercameron/hcm-next/tools/conformance/internal/reporoot"
-	"github.com/monstercameron/hcm-next/tools/conformance/model"
-	"github.com/monstercameron/hcm-next/tools/conformance/parse"
-	"github.com/monstercameron/hcm-next/tools/conformance/report"
-	"github.com/monstercameron/hcm-next/tools/conformance/runner"
-	"github.com/monstercameron/hcm-next/tools/conformance/vocab"
+	"github.com/monstercameron/human-capital-management-suite/tools/conformance/checks"
+	"github.com/monstercameron/human-capital-management-suite/tools/conformance/discover"
+	"github.com/monstercameron/human-capital-management-suite/tools/conformance/internal/reporoot"
+	"github.com/monstercameron/human-capital-management-suite/tools/conformance/model"
+	"github.com/monstercameron/human-capital-management-suite/tools/conformance/parse"
+	"github.com/monstercameron/human-capital-management-suite/tools/conformance/report"
+	"github.com/monstercameron/human-capital-management-suite/tools/conformance/runner"
+	"github.com/monstercameron/human-capital-management-suite/tools/conformance/vocab"
 )
 
 func mustRepoRoot(t *testing.T) string {

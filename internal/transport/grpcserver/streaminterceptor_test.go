@@ -11,11 +11,11 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 
-	"github.com/monstercameron/hcm-next/internal/transport"
-	"github.com/monstercameron/hcm-next/internal/transport/envelope"
-	"github.com/monstercameron/hcm-next/internal/transport/grpcserver"
-	"github.com/monstercameron/hcm-next/internal/transport/transporttest"
-	"github.com/monstercameron/hcm-next/internal/trust"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/envelope"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/grpcserver"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/transporttest"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust"
 )
 
 // The streaming boundary is exercised through the exported interceptor

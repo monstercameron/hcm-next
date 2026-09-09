@@ -12,7 +12,7 @@
 // The package is scoped to the fourteen aggregate roots the drafted intent
 // catalog and the Promotion path actually require (see catalog.go), not the
 // full exploratory vocabulary in planning/data/models. Registries here are
-// immutable once compiled, exactly like [github.com/monstercameron/hcm-next/internal/intent.Registry]:
+// immutable once compiled, exactly like [github.com/monstercameron/human-capital-management-suite/internal/intent.Registry]:
 // there is no Add, no Remove and no setter, so publishing a new entity,
 // property, relationship or policy is a source change, never a runtime call.
 package model

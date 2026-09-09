@@ -8,15 +8,15 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/data/dbport"
-	"github.com/monstercameron/hcm-next/internal/data/paymethodstore"
-	"github.com/monstercameron/hcm-next/internal/data/pgtest"
-	"github.com/monstercameron/hcm-next/internal/data/pgxadapter"
-	"github.com/monstercameron/hcm-next/internal/data/tenancy"
-	"github.com/monstercameron/hcm-next/internal/domains/paymethod"
-	"github.com/monstercameron/hcm-next/internal/domains/payroll"
-	"github.com/monstercameron/hcm-next/internal/domains/settlement"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/paymethodstore"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/pgtest"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/pgxadapter"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/tenancy"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/paymethod"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/payroll"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/settlement"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 func TestMain(m *testing.M) { pgtest.RunMain(m) }

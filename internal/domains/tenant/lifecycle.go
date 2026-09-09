@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/trust/session"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/session"
 )
 
 // TenantStatus is the lifecycle state owned by the tenant domain.

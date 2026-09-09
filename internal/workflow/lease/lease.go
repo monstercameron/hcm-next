@@ -8,7 +8,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/data/runtimestate"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/runtimestate"
 )
 
 // Executor is the database capability this package needs: a transaction the

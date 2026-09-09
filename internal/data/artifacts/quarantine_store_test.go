@@ -11,10 +11,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 
-	"github.com/monstercameron/hcm-next/internal/data/artifacts"
-	"github.com/monstercameron/hcm-next/internal/data/dbport"
-	"github.com/monstercameron/hcm-next/internal/data/tenancy"
-	"github.com/monstercameron/hcm-next/internal/domains/asset/quarantine"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/artifacts"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/tenancy"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/asset/quarantine"
 )
 
 // pgScanner is a [quarantine.Scanner] double configured with a fixed

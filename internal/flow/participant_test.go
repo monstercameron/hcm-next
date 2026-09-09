@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
-	"github.com/monstercameron/hcm-next/internal/trust"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust"
 )
 
 func newPrincipalForTest(t *testing.T, subject, tenant string, assurance trust.Assurance, purposes []string) *trust.Principal {

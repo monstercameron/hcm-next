@@ -8,12 +8,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/data/dbport"
-	"github.com/monstercameron/hcm-next/internal/data/pgtest"
-	"github.com/monstercameron/hcm-next/internal/intent"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
-	"github.com/monstercameron/hcm-next/internal/transaction"
-	"github.com/monstercameron/hcm-next/internal/transaction/coordinator"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/pgtest"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/transaction"
+	"github.com/monstercameron/human-capital-management-suite/internal/transaction/coordinator"
 )
 
 func TestMain(m *testing.M) { pgtest.RunMain(m) }

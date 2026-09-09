@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/connectivity"
+	"github.com/monstercameron/human-capital-management-suite/internal/connectivity"
 )
 
 // EffectAttempt names one kind of outbound reach a [Fence] refused. It is a

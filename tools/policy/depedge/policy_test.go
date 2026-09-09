@@ -4,8 +4,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/policy/depedge"
-	"github.com/monstercameron/hcm-next/tools/policy/internal/repopath"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/depedge"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/internal/repopath"
 )
 
 func loadPolicy(t *testing.T) *depedge.Policy {

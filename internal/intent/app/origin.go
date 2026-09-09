@@ -1,9 +1,9 @@
 package app
 
 import (
-	"github.com/monstercameron/hcm-next/internal/intent"
-	"github.com/monstercameron/hcm-next/internal/transport"
-	"github.com/monstercameron/hcm-next/internal/trust"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust"
 )
 
 // deriveOrigin builds the trusted origin record for one invocation.

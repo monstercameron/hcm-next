@@ -7,5 +7,5 @@ package effectfulpkg
 
 import (
 	_ "fmt"
-	_ "github.com/monstercameron/hcm-next/internal/connectivity/writeadapters"
+	_ "github.com/monstercameron/human-capital-management-suite/internal/connectivity/writeadapters"
 )

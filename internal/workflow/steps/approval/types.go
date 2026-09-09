@@ -3,9 +3,9 @@ package approval
 import (
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/engines/wire/digest"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
-	"github.com/monstercameron/hcm-next/internal/workflow"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/wire/digest"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow"
 )
 
 // Requirement is the immutable subset of an ApprovalRequirement the runtime

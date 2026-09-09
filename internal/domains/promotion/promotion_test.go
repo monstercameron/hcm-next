@@ -12,12 +12,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/domains/evidence"
-	"github.com/monstercameron/hcm-next/internal/domains/fixtures"
-	"github.com/monstercameron/hcm-next/internal/domains/people"
-	"github.com/monstercameron/hcm-next/internal/domains/promotion"
-	"github.com/monstercameron/hcm-next/internal/domains/rewards"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/evidence"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/fixtures"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/people"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/promotion"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/rewards"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 var updateGolden = flag.Bool("update", false, "rewrite the golden files instead of comparing against them")

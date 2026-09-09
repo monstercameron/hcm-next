@@ -8,8 +8,8 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/monstercameron/hcm-next/internal/engines/canonicalbytes"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/canonicalbytes"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // ExpressionVersion is the owned expression/IR contract version. It is
@@ -206,7 +206,7 @@ type Expr struct {
 	Children       []Expr
 }
 
-// Expression is the HCM Next-owned expression definition passed to the
+// Expression is the Human Capital Management Suite-owned expression definition passed to the
 // compiler. Inputs and dependencies are declarations, not ambient lookups.
 type Expression struct {
 	Root             Expr

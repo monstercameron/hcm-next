@@ -8,13 +8,13 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/data/dbport"
-	"github.com/monstercameron/hcm-next/internal/data/ledger"
-	ledgercommit "github.com/monstercameron/hcm-next/internal/data/ledger/commit"
-	"github.com/monstercameron/hcm-next/internal/data/outbox"
-	"github.com/monstercameron/hcm-next/internal/data/pgtest"
-	"github.com/monstercameron/hcm-next/internal/data/projection"
-	"github.com/monstercameron/hcm-next/internal/data/provenance"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/ledger"
+	ledgercommit "github.com/monstercameron/human-capital-management-suite/internal/data/ledger/commit"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/outbox"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/pgtest"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/projection"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/provenance"
 )
 
 func TestMain(m *testing.M) { pgtest.RunMain(m) }

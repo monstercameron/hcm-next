@@ -6,11 +6,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/data/dbport"
-	"github.com/monstercameron/hcm-next/internal/data/pgtest"
-	"github.com/monstercameron/hcm-next/internal/transaction/idempotency"
-	wfrecover "github.com/monstercameron/hcm-next/internal/workflow/recover"
-	"github.com/monstercameron/hcm-next/internal/workflow/runtime"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/pgtest"
+	"github.com/monstercameron/human-capital-management-suite/internal/transaction/idempotency"
+	wfrecover "github.com/monstercameron/human-capital-management-suite/internal/workflow/recover"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/runtime"
 )
 
 // TestTodo_WF_RUN_003 is the PRIMARY test: a node whose worker died with an

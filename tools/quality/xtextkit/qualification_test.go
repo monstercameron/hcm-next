@@ -17,7 +17,7 @@ import (
 	"testing"
 	"unicode/utf8"
 
-	"github.com/monstercameron/hcm-next/tools/policy/libfirewall"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/libfirewall"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/collate"
 	"golang.org/x/text/language"

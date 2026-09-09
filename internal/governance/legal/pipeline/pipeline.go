@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"strings"
 
-	legal "github.com/monstercameron/hcm-next/internal/governance/legal"
+	legal "github.com/monstercameron/human-capital-management-suite/internal/governance/legal"
 )
 
 var (

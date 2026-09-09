@@ -5,12 +5,12 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/monstercameron/hcm-next/internal/domains/evidence"
-	"github.com/monstercameron/hcm-next/internal/domains/people"
-	"github.com/monstercameron/hcm-next/internal/domains/rewards"
-	"github.com/monstercameron/hcm-next/internal/engines/canonicalbytes"
-	"github.com/monstercameron/hcm-next/internal/engines/payband"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/evidence"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/people"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/rewards"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/canonicalbytes"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/payband"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // PreflightPromotion evaluates a proposed promotion against the governed

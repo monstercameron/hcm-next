@@ -9,10 +9,10 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/data/dbport"
-	datalogger "github.com/monstercameron/hcm-next/internal/data/ledger"
-	"github.com/monstercameron/hcm-next/internal/data/ledger/temporal"
-	"github.com/monstercameron/hcm-next/internal/data/pgtest"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
+	datalogger "github.com/monstercameron/human-capital-management-suite/internal/data/ledger"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/ledger/temporal"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/pgtest"
 )
 
 func TestMain(m *testing.M) {

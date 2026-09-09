@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/policy/internal/repopath"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/internal/repopath"
 )
 
 const (
@@ -34,10 +34,10 @@ func TestOIDCBackendQualification(t *testing.T) {
 
 	// Define allowed federation adapter roots: only these may import OIDC/OAuth2
 	allowedRoots := map[string]bool{
-		"github.com/monstercameron/hcm-next/internal/authn/federation": true,
-		"github.com/monstercameron/hcm-next/internal/trust/federation": true,
-		"github.com/monstercameron/hcm-next/internal/trust":            true, // May contain federation setup
-		"github.com/monstercameron/hcm-next/internal/authn":            true, // May contain federation setup
+		"github.com/monstercameron/human-capital-management-suite/internal/authn/federation": true,
+		"github.com/monstercameron/human-capital-management-suite/internal/trust/federation": true,
+		"github.com/monstercameron/human-capital-management-suite/internal/trust":            true, // May contain federation setup
+		"github.com/monstercameron/human-capital-management-suite/internal/authn":            true, // May contain federation setup
 	}
 
 	var violations []string
@@ -138,10 +138,10 @@ func TestTodo_LIB_010_Security(t *testing.T) {
 	}
 
 	allowedRoots := map[string]bool{
-		"github.com/monstercameron/hcm-next/internal/authn/federation": true,
-		"github.com/monstercameron/hcm-next/internal/trust/federation": true,
-		"github.com/monstercameron/hcm-next/internal/trust":            true,
-		"github.com/monstercameron/hcm-next/internal/authn":            true,
+		"github.com/monstercameron/human-capital-management-suite/internal/authn/federation": true,
+		"github.com/monstercameron/human-capital-management-suite/internal/trust/federation": true,
+		"github.com/monstercameron/human-capital-management-suite/internal/trust":            true,
+		"github.com/monstercameron/human-capital-management-suite/internal/authn":            true,
 	}
 
 	for _, pkg := range pkgs {
@@ -175,10 +175,10 @@ func TestTodo_LIB_010_Conformance(t *testing.T) {
 	}
 
 	allowedRoots := map[string]bool{
-		"github.com/monstercameron/hcm-next/internal/authn/federation": true,
-		"github.com/monstercameron/hcm-next/internal/trust/federation": true,
-		"github.com/monstercameron/hcm-next/internal/trust":            true,
-		"github.com/monstercameron/hcm-next/internal/authn":            true,
+		"github.com/monstercameron/human-capital-management-suite/internal/authn/federation": true,
+		"github.com/monstercameron/human-capital-management-suite/internal/trust/federation": true,
+		"github.com/monstercameron/human-capital-management-suite/internal/trust":            true,
+		"github.com/monstercameron/human-capital-management-suite/internal/authn":            true,
 	}
 
 	// Verify confinement

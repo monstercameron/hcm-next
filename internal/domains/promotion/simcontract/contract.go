@@ -5,13 +5,13 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/internal/domains/evidence"
-	"github.com/monstercameron/hcm-next/internal/domains/promotion"
-	"github.com/monstercameron/hcm-next/internal/domains/promotion/simassign"
-	"github.com/monstercameron/hcm-next/internal/engines/canonicalbytes"
-	"github.com/monstercameron/hcm-next/internal/governance/decision"
-	"github.com/monstercameron/hcm-next/internal/intent"
-	"github.com/monstercameron/hcm-next/internal/transaction/conflict"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/evidence"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/promotion"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/promotion/simassign"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/canonicalbytes"
+	"github.com/monstercameron/human-capital-management-suite/internal/governance/decision"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent"
+	"github.com/monstercameron/human-capital-management-suite/internal/transaction/conflict"
 )
 
 // SimulationResult is the immutable WorkflowSimulationContract PROMO-004
@@ -45,7 +45,7 @@ type SimulationResult struct {
 
 	// Findings are the business-rule findings the candidate's preflight
 	// produced, in the same vocabulary
-	// [github.com/monstercameron/hcm-next/internal/domains/promotion.PreflightResult]
+	// [github.com/monstercameron/human-capital-management-suite/internal/domains/promotion.PreflightResult]
 	// uses.
 	Findings []promotion.Finding
 	// Refusals are the typed effect refusals PROMO-002/003 produced, if any.

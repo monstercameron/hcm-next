@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/monstercameron/GoWebComponents/v5/ui"
-	"github.com/monstercameron/hcm-next/tools/uxqual/latencygate"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/latencygate"
 )
 
 func TestInteractionLatencyGate(t *testing.T) {

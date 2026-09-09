@@ -10,9 +10,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/tools/conformance/model"
-	"github.com/monstercameron/hcm-next/tools/conformance/parse"
-	"github.com/monstercameron/hcm-next/tools/conformance/vocab"
+	"github.com/monstercameron/human-capital-management-suite/tools/conformance/model"
+	"github.com/monstercameron/human-capital-management-suite/tools/conformance/parse"
+	"github.com/monstercameron/human-capital-management-suite/tools/conformance/vocab"
 )
 
 // FileResult is one *.md file's outcome: either a parsed Document, or an

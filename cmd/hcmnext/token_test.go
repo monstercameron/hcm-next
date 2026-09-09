@@ -10,13 +10,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/data/pgtest"
-	"github.com/monstercameron/hcm-next/internal/data/pgxadapter"
-	"github.com/monstercameron/hcm-next/internal/domains/fixtures"
-	"github.com/monstercameron/hcm-next/internal/intent/app"
-	"github.com/monstercameron/hcm-next/internal/intent/app/pgstore"
-	transportcell "github.com/monstercameron/hcm-next/internal/transport/cell"
-	"github.com/monstercameron/hcm-next/internal/trust"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/pgtest"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/pgxadapter"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/fixtures"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/app"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/app/pgstore"
+	transportcell "github.com/monstercameron/human-capital-management-suite/internal/transport/cell"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust"
 )
 
 // TestMain brings up the ephemeral PostgreSQL this package's cell-composing

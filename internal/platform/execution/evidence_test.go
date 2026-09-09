@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/intent/app"
-	"github.com/monstercameron/hcm-next/internal/workflow/execute"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/app"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/execute"
 )
 
 // TestTodo_OBS_024_Golden proves capabilityEvidenceAdapter's packing is

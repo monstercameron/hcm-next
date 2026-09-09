@@ -7,8 +7,8 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/workflow"
-	"github.com/monstercameron/hcm-next/internal/workflow/frontier"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/frontier"
 )
 
 // Additional stable refusal codes this file introduces for WF-RUN-025, on top

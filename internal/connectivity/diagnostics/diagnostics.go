@@ -6,7 +6,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/internal/connectivity"
+	"github.com/monstercameron/human-capital-management-suite/internal/connectivity"
 )
 
 // Status is the normalized outcome of one diagnostic check.

@@ -11,11 +11,11 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
-	"github.com/monstercameron/hcm-next/internal/transport"
-	admin "github.com/monstercameron/hcm-next/internal/transport/admin"
-	"github.com/monstercameron/hcm-next/internal/transport/admin/hcmctl"
-	"github.com/monstercameron/hcm-next/internal/transport/grpcserver"
-	"github.com/monstercameron/hcm-next/internal/trust"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport"
+	admin "github.com/monstercameron/human-capital-management-suite/internal/transport/admin"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/admin/hcmctl"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/grpcserver"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust"
 )
 
 const testToken = "hcmctl-test-operator-token"

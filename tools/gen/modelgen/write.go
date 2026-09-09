@@ -13,7 +13,7 @@ import (
 const OutputDir = "gen/go/hcmnext/model"
 
 // RepoRoot walks up from dir looking for go.mod, the same convention
-// [github.com/monstercameron/hcm-next/tools/gen/storagemanifest.RepoRoot]
+// [github.com/monstercameron/human-capital-management-suite/tools/gen/storagemanifest.RepoRoot]
 // uses, so this package's tests and its cmd/modelgen entry point behave the
 // same regardless of the working directory they run from. It is a small,
 // self-contained copy rather than an import of that package: the two

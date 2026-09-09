@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/monstercameron/hcm-next/tools/gen/librarystrategy"
+	"github.com/monstercameron/human-capital-management-suite/tools/gen/librarystrategy"
 )
 
 func main() {

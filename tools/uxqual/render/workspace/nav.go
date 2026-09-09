@@ -4,7 +4,7 @@ import (
 	"github.com/monstercameron/GoWebComponents/v5/html"
 	"github.com/monstercameron/GoWebComponents/v5/ui"
 
-	"github.com/monstercameron/hcm-next/tools/uxqual/journeyclient"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/journeyclient"
 )
 
 // NavElementID is the id of the shell's navigation landmark.

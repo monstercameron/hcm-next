@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"slices"
 
-	intentsv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/intents/v1"
-	"github.com/monstercameron/hcm-next/internal/engines/wire/digest"
-	"github.com/monstercameron/hcm-next/internal/intent"
-	"github.com/monstercameron/hcm-next/internal/intent/lifecycle"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	intentsv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/intents/v1"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/wire/digest"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/lifecycle"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // FamilyToProto encodes a kernel family.

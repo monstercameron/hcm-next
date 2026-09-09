@@ -5,10 +5,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/domains/people"
-	"github.com/monstercameron/hcm-next/internal/humanwork/workspace"
-	"github.com/monstercameron/hcm-next/internal/intent/app"
-	"github.com/monstercameron/hcm-next/internal/intent/app/pgstore"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/people"
+	"github.com/monstercameron/human-capital-management-suite/internal/humanwork/workspace"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/app"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/app/pgstore"
 )
 
 // The workforce half of the Promotion journey, end to end over the same

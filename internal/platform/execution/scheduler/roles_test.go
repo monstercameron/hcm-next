@@ -8,10 +8,10 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/data/pgtest"
-	"github.com/monstercameron/hcm-next/internal/data/tenancy"
-	"github.com/monstercameron/hcm-next/internal/platform/bootstrap"
-	"github.com/monstercameron/hcm-next/internal/workflow/lease"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/pgtest"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/tenancy"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/bootstrap"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/lease"
 )
 
 func TestTodo_SVC_005(t *testing.T) {

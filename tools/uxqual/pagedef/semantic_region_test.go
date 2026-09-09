@@ -3,8 +3,8 @@ package pagedef_test
 import (
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/uxqual/pagedef"
-	"github.com/monstercameron/hcm-next/tools/uxqual/ssrshell"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/pagedef"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/ssrshell"
 )
 
 func TestTodo_WEB_004(t *testing.T) {

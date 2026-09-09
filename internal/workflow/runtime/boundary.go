@@ -7,7 +7,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/transaction/conflict"
+	"github.com/monstercameron/human-capital-management-suite/internal/transaction/conflict"
 )
 
 // Stable refusal codes for the Promotion pre-execution boundaries.

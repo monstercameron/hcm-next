@@ -10,17 +10,17 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/data/dbport"
-	"github.com/monstercameron/hcm-next/internal/data/pgtest"
-	"github.com/monstercameron/hcm-next/internal/engines/wire/digest"
-	"github.com/monstercameron/hcm-next/internal/humanwork"
-	"github.com/monstercameron/hcm-next/internal/humanwork/workitem"
-	"github.com/monstercameron/hcm-next/internal/intent"
-	intentapproval "github.com/monstercameron/hcm-next/internal/intent/approval"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
-	"github.com/monstercameron/hcm-next/internal/workflow"
-	"github.com/monstercameron/hcm-next/internal/workflow/frontier"
-	stepapproval "github.com/monstercameron/hcm-next/internal/workflow/steps/approval"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/pgtest"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/wire/digest"
+	"github.com/monstercameron/human-capital-management-suite/internal/humanwork"
+	"github.com/monstercameron/human-capital-management-suite/internal/humanwork/workitem"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent"
+	intentapproval "github.com/monstercameron/human-capital-management-suite/internal/intent/approval"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/frontier"
+	stepapproval "github.com/monstercameron/human-capital-management-suite/internal/workflow/steps/approval"
 )
 
 var (

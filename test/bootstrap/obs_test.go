@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
-	intentsv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/intents/v1"
-	"github.com/monstercameron/hcm-next/internal/intent/app"
-	"github.com/monstercameron/hcm-next/internal/transport/envelope"
+	intentsv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/intents/v1"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/app"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/envelope"
 )
 
 // TestTodo_OBS_024_Integration proves OBS-024's GATE_REFUSED/GATE_ADMITTED

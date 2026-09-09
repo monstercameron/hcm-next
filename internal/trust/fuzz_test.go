@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/trust"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust"
 )
 
 // hmacSHA256 signs data with key. It reimplements the token signature so the

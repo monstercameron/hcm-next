@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/domains/tenant"
-	"github.com/monstercameron/hcm-next/internal/trust/session"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/tenant"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/session"
 )
 
 type revoker struct{ calls []string }

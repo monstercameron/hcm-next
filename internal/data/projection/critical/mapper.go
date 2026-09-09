@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	"github.com/monstercameron/hcm-next/gen/wire"
+	"github.com/monstercameron/human-capital-management-suite/gen/wire"
 )
 
 // Schema references this package's default [Mapper] recognizes. They follow

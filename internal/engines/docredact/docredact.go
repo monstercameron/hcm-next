@@ -13,9 +13,9 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/monstercameron/hcm-next/internal/engines/canonicalbytes"
-	"github.com/monstercameron/hcm-next/internal/engines/docextract"
-	"github.com/monstercameron/hcm-next/internal/trust/dlp"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/canonicalbytes"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/docextract"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/dlp"
 )
 
 const schemaVersion = 1

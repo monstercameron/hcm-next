@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"slices"
 
-	"github.com/monstercameron/hcm-next/internal/governance/legal"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
-	"github.com/monstercameron/hcm-next/internal/trust"
+	"github.com/monstercameron/human-capital-management-suite/internal/governance/legal"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust"
 )
 
 // ErrRequestInvalid is returned by [DataSubjectRequest.Validate] when a

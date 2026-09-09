@@ -5,9 +5,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
-	"github.com/monstercameron/hcm-next/internal/trust"
-	"github.com/monstercameron/hcm-next/internal/trust/session"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/session"
 )
 
 func TestParseWireValues_ClosedVocabularies(t *testing.T) {

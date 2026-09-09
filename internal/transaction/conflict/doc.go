@@ -13,7 +13,7 @@
 // Per ARCH-GO-011, this package owns "footprints/write intents/overlap/
 // classification/reservation checks and returns typed analysis consumed
 // before prepare"; it may never import
-// github.com/monstercameron/hcm-next/internal/transaction (the coordinator)
+// github.com/monstercameron/human-capital-management-suite/internal/transaction (the coordinator)
 // or any of that package's own subpackages. The coordinator depends on
 // conflict analysis, never the reverse -- importing back up would recreate
 // the exact coordination/conflict cycle that rule forbids.

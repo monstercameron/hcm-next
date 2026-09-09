@@ -9,8 +9,8 @@ import (
 	"github.com/monstercameron/GoWebComponents/v5/ui"
 	xhtml "golang.org/x/net/html"
 
-	"github.com/monstercameron/hcm-next/tools/uxqual/floorplan"
-	"github.com/monstercameron/hcm-next/tools/uxqual/pagedef"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/floorplan"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/pagedef"
 )
 
 // minimalPageDefinition mirrors tools/uxqual/ssrshell's own

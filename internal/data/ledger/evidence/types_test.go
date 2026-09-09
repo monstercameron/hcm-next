@@ -7,7 +7,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/data/ledger/evidence"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/ledger/evidence"
 )
 
 // TestPathsAreDerivedFromIndexNotFromCallerText proves the rule types.go

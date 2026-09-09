@@ -14,7 +14,7 @@ func TestRenderEveryAuthorizedProductPage(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			for _, want := range []string{"HCM Next", `id="main-content"`, `aria-label="Main"`, "manager", "Live source · JourneyService"} {
+			for _, want := range []string{"Human Capital Management Suite", `id="main-content"`, `aria-label="Main"`, "manager", "Live source · JourneyService"} {
 				if !strings.Contains(doc, want) {
 					t.Fatalf("document missing %q", want)
 				}

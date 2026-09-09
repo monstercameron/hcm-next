@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/monstercameron/hcm-next/internal/intent/lifecycle"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/lifecycle"
 )
 
 // CompletionStatus is the explicit closure-policy answer.

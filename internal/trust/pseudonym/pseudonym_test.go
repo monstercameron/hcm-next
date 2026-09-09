@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/trust/pseudonym"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/pseudonym"
 )
 
 func engine(t *testing.T) *pseudonym.Engine {

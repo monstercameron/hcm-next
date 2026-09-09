@@ -99,9 +99,9 @@ import (
 	"os"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/application"
-	"github.com/monstercameron/hcm-next/internal/platform/bootstrap"
-	"github.com/monstercameron/hcm-next/internal/platform/buildinfo"
+	"github.com/monstercameron/human-capital-management-suite/internal/application"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/bootstrap"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/buildinfo"
 )
 
 // EnvDatabaseURL names the server this command connects to, matching

@@ -18,8 +18,8 @@ import (
 	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/pressly/goose/v3"
 
-	"github.com/monstercameron/hcm-next/internal/platform/bootstrap"
-	"github.com/monstercameron/hcm-next/migrations"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/bootstrap"
+	"github.com/monstercameron/human-capital-management-suite/migrations"
 )
 
 // migrateUp applies every pending migration with Goose over the embedded tree.

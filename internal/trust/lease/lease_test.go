@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/trust/custody"
-	"github.com/monstercameron/hcm-next/internal/trust/lease"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/custody"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/lease"
 )
 
 // fakePort is a minimal, deterministic [lease.Port]: it issues a custody

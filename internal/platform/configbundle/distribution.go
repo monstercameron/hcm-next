@@ -9,9 +9,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/domains/tenant"
-	"github.com/monstercameron/hcm-next/internal/engines/canonicalbytes"
-	platformconfig "github.com/monstercameron/hcm-next/internal/platform/configregistry"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/tenant"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/canonicalbytes"
+	platformconfig "github.com/monstercameron/human-capital-management-suite/internal/platform/configregistry"
 )
 
 // DistributionVersion is the desired-state envelope contract version.

@@ -3,8 +3,8 @@ package sbom_test
 import (
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/policy/internal/repopath"
-	"github.com/monstercameron/hcm-next/tools/policy/sbom"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/internal/repopath"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/sbom"
 )
 
 // TestModGraph_Live runs `go mod graph` against this repository's real

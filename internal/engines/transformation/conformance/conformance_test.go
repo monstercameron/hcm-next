@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/engines/transformation/ir"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/transformation/ir"
 )
 
 func checkedIn(t *testing.T) (VectorSet, []byte) {

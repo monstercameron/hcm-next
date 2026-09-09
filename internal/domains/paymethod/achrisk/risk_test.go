@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/domains/contact"
-	"github.com/monstercameron/hcm-next/internal/domains/paymethod"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
-	"github.com/monstercameron/hcm-next/internal/trust/sod"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/contact"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/paymethod"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/sod"
 )
 
 func achRiskInterval(t *testing.T) values.EffectiveInterval {

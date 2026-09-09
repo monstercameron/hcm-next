@@ -5,9 +5,9 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/policy/depmanifest"
-	"github.com/monstercameron/hcm-next/tools/policy/internal/repopath"
-	"github.com/monstercameron/hcm-next/tools/policy/libfirewall"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/depmanifest"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/internal/repopath"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/libfirewall"
 )
 
 const pgxImportPath = "github.com/jackc/pgx/v5"
@@ -53,7 +53,7 @@ const leakedRowsAliasSource = `package fakeadapter
 
 import "github.com/jackc/pgx/v5"
 
-// Rows is a bare alias RED fixture: it leaks pgx.Rows under HCM Next's own
+// Rows is a bare alias RED fixture: it leaks pgx.Rows under Human Capital Management Suite's own
 // exported name without ever owning a wrapper.
 type Rows = pgx.Rows
 `

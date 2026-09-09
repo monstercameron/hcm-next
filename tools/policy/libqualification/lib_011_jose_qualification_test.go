@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/policy/internal/repopath"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/internal/repopath"
 )
 
 // Allowed JOSE/JWK modules that may be pinned if demonstrated need is proven.
@@ -43,10 +43,10 @@ func TestJOSEDependencyNeedAndConformance(t *testing.T) {
 	// Define allowed import roots for JOSE backends (if any are qualified).
 	// Until a backend is qualified, no imports are allowed.
 	allowedRoots := map[string]bool{
-		"github.com/monstercameron/hcm-next/internal/authn/federation": true,
-		"github.com/monstercameron/hcm-next/internal/trust/federation": true,
-		"github.com/monstercameron/hcm-next/internal/trust":            true,
-		"github.com/monstercameron/hcm-next/internal/authn":            true,
+		"github.com/monstercameron/human-capital-management-suite/internal/authn/federation": true,
+		"github.com/monstercameron/human-capital-management-suite/internal/trust/federation": true,
+		"github.com/monstercameron/human-capital-management-suite/internal/trust":            true,
+		"github.com/monstercameron/human-capital-management-suite/internal/authn":            true,
 	}
 
 	// Common JOSE/JWK module families.
@@ -149,10 +149,10 @@ func TestTodo_LIB_011_Conformance(t *testing.T) {
 	}
 
 	allowedRoots := map[string]bool{
-		"github.com/monstercameron/hcm-next/internal/authn/federation": true,
-		"github.com/monstercameron/hcm-next/internal/trust/federation": true,
-		"github.com/monstercameron/hcm-next/internal/trust":            true,
-		"github.com/monstercameron/hcm-next/internal/authn":            true,
+		"github.com/monstercameron/human-capital-management-suite/internal/authn/federation": true,
+		"github.com/monstercameron/human-capital-management-suite/internal/trust/federation": true,
+		"github.com/monstercameron/human-capital-management-suite/internal/trust":            true,
+		"github.com/monstercameron/human-capital-management-suite/internal/authn":            true,
 	}
 
 	joseModuleFamilies := []string{

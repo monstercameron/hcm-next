@@ -11,11 +11,11 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/data/dbport"
-	"github.com/monstercameron/hcm-next/internal/data/jobs"
-	"github.com/monstercameron/hcm-next/internal/data/pgtest"
-	"github.com/monstercameron/hcm-next/internal/data/pgxadapter"
-	"github.com/monstercameron/hcm-next/internal/data/tenancy"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/jobs"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/pgtest"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/pgxadapter"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/tenancy"
 )
 
 func TestDurableAsyncContinuationCreatesExactSpanLinksWithoutOpenParentSpan(t *testing.T) {
@@ -374,5 +374,99 @@ func assertCausalRoundTrip(t *testing.T, got *jobs.CausalMetadata, attempt strin
 	}
 	if (got.TraceLink != nil) != wantTrace {
 		t.Fatalf("trace link present = %v, want %v", got.TraceLink != nil, wantTrace)
+	}
+}
+
+// TestTodo_OBS_013_Race proves concurrent duplicate deliveries never fork
+// the logical operation: N racers declaring the same run leave exactly one
+// run row, and N racers claiming the same partition version leave exactly
+// one winner, with the losers cleanly refused and the attempt that won
+// recorded.
+func TestTodo_OBS_013_Race(t *testing.T) {
+	ctx := context.Background()
+	db := pgtest.New(t)
+	tenant := insertTenant(t, db, "obs013-race")
+	conn := appConn(t, db)
+	def := publish(t, ctx, conn, tenant, newDefinition(tenant, "job.obs013.race", 1))
+
+	const racers = 8
+	runID := uuid.New()
+	start := make(chan struct{})
+	type startOutcome struct {
+		attempt string
+		err     error
+	}
+	started := make(chan startOutcome, racers)
+	for i := 0; i < racers; i++ {
+		go func(i int) {
+			<-start
+			attempt := fmt.Sprintf("race-attempt-%d", i)
+			c := appConn(t, db)
+			err := inTenantTxErr(c, tenant, func(tx dbport.Tx) error {
+				_, err := (jobs.RunStore{}).StartRun(ctx, tx, jobs.JobRun{
+					TenantID: tenant, RunID: runID, JobID: def.JobID, JobVersion: def.Version,
+					DeclaredBy: "workload:obs013.race", DeclaredAt: fixedInstant,
+					Causal: &jobs.CausalMetadata{CorrelationID: "corr-race", CausationID: "cause-race", LogicalOperationID: "logical-race", AttemptID: attempt},
+				})
+				return err
+			})
+			started <- startOutcome{attempt: attempt, err: err}
+		}(i)
+	}
+	close(start)
+	var wins []string
+	for i := 0; i < racers; i++ {
+		out := <-started
+		if out.err == nil {
+			wins = append(wins, out.attempt)
+		} else if !errors.Is(out.err, jobs.ErrDuplicate) {
+			t.Fatalf("racer StartRun err = %v, want nil or ErrDuplicate", out.err)
+		}
+	}
+	if len(wins) != 1 {
+		t.Fatalf("StartRun winners = %d, want exactly 1 (attempts %v)", len(wins), wins)
+	}
+
+	partitionID := uuid.New()
+	var partition jobs.JobPartition
+	inTenantTx(t, conn, tenant, func(tx dbport.Tx) error {
+		var err error
+		partition, err = (jobs.PartitionStore{}).Create(ctx, tx, jobs.JobPartition{
+			TenantID: tenant, PartitionID: partitionID, RunID: runID, PartitionKey: "fanout-race",
+			CreatedAt: fixedInstant,
+			Causal:    &jobs.CausalMetadata{CorrelationID: "corr-race", CausationID: "cause-race", LogicalOperationID: "logical-race", AttemptID: wins[0]},
+		})
+		return err
+	})
+	claimStart := make(chan struct{})
+	type claimOutcome struct {
+		holder string
+		err    error
+	}
+	claimed := make(chan claimOutcome, racers)
+	for i := 0; i < racers; i++ {
+		go func(i int) {
+			<-claimStart
+			holder := fmt.Sprintf("worker:obs013.race-%d", i)
+			c := appConn(t, db)
+			err := inTenantTxErr(c, tenant, func(tx dbport.Tx) error {
+				_, err := (jobs.PartitionStore{}).ClaimPartition(ctx, tx, tenant, partitionID, partition.Version, holder, fixedInstant.Add(time.Minute))
+				return err
+			})
+			claimed <- claimOutcome{holder: holder, err: err}
+		}(i)
+	}
+	close(claimStart)
+	var claimWins []string
+	for i := 0; i < racers; i++ {
+		out := <-claimed
+		if out.err == nil {
+			claimWins = append(claimWins, out.holder)
+		} else if !errors.Is(out.err, jobs.ErrVersionConflict) {
+			t.Fatalf("racer ClaimPartition err = %v, want nil or ErrVersionConflict", out.err)
+		}
+	}
+	if len(claimWins) != 1 {
+		t.Fatalf("ClaimPartition winners = %d, want exactly 1 (holders %v)", len(claimWins), claimWins)
 	}
 }

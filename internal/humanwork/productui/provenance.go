@@ -8,9 +8,9 @@ import (
 
 	"github.com/monstercameron/GoWebComponents/v5/html"
 	"github.com/monstercameron/GoWebComponents/v5/ui"
-	evidencev1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/evidence/v1"
-	lineage "github.com/monstercameron/hcm-next/internal/data/provenance"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	evidencev1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/evidence/v1"
+	lineage "github.com/monstercameron/human-capital-management-suite/internal/data/provenance"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // ProvenanceProjection is an already-authorized, display-safe projection of

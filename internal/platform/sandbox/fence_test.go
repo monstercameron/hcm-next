@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/connectivity"
+	"github.com/monstercameron/human-capital-management-suite/internal/connectivity"
 )
 
 // stubConnector is a bare-bones [connectivity.Connector] a test can point at

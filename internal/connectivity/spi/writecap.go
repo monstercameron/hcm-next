@@ -4,7 +4,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/connectivity"
+	"github.com/monstercameron/human-capital-management-suite/internal/connectivity"
 )
 
 // AuthorityAmendmentDigest identifies a signed amendment to this release's

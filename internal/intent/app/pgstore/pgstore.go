@@ -32,13 +32,13 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/data/dbport"
-	datalogger "github.com/monstercameron/hcm-next/internal/data/ledger"
-	"github.com/monstercameron/hcm-next/internal/data/outbox"
-	"github.com/monstercameron/hcm-next/internal/data/projection"
-	"github.com/monstercameron/hcm-next/internal/intent"
-	"github.com/monstercameron/hcm-next/internal/intent/app"
-	ledgerport "github.com/monstercameron/hcm-next/internal/ledger"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
+	datalogger "github.com/monstercameron/human-capital-management-suite/internal/data/ledger"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/outbox"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/projection"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/app"
+	ledgerport "github.com/monstercameron/human-capital-management-suite/internal/ledger"
 )
 
 // ProjectionName is the projection checkpoint an intent's stream advances.

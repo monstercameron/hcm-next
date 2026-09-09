@@ -1,8 +1,8 @@
 package productslice
 
 import (
-	"github.com/monstercameron/hcm-next/tools/uxqual/pagedef"
-	"github.com/monstercameron/hcm-next/tools/uxqual/widgetreg"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/pagedef"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/widgetreg"
 )
 
 // PromotionSliceDefinition is ALIGN-001's projection proof: the admitted
@@ -49,11 +49,11 @@ func PromotionSliceDefinition() ProductSliceDefinition {
 			"hcmnext.rewards.evaluate_pay_band_position",
 		},
 		Packages: []string{
-			"github.com/monstercameron/hcm-next/cmd/hcmnext",
-			"github.com/monstercameron/hcm-next/internal/capability",
-			"github.com/monstercameron/hcm-next/internal/humanwork/workspace",
-			"github.com/monstercameron/hcm-next/internal/transport/journey",
-			"github.com/monstercameron/hcm-next/tools/uxqual/render/journey",
+			"github.com/monstercameron/human-capital-management-suite/cmd/hcmnext",
+			"github.com/monstercameron/human-capital-management-suite/internal/capability",
+			"github.com/monstercameron/human-capital-management-suite/internal/humanwork/workspace",
+			"github.com/monstercameron/human-capital-management-suite/internal/transport/journey",
+			"github.com/monstercameron/human-capital-management-suite/tools/uxqual/render/journey",
 		},
 		Todos: []string{
 			"WEB-001", "WEB-002", "WEB-003", "WEB-005",

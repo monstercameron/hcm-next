@@ -1,4 +1,4 @@
-// Package intent is the HCM Next business-intent kernel.
+// Package intent is the Human Capital Management Suite business-intent kernel.
 //
 // Semantic owner: intent-and-capability. Phase: P1A.
 //

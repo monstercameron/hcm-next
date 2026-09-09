@@ -6,8 +6,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/workflow"
-	version "github.com/monstercameron/hcm-next/internal/workflow/version"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow"
+	version "github.com/monstercameron/human-capital-management-suite/internal/workflow/version"
 )
 
 // TestTodo_WF_COMP_006_Golden pins the published compiled promotion reference

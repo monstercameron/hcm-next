@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/gen/archdoc"
+	"github.com/monstercameron/human-capital-management-suite/tools/gen/archdoc"
 )
 
 func TestArchitectureDocumentationMatchesImportGraph(t *testing.T) {
@@ -61,7 +61,7 @@ func TestTodo_ARCH_GO_028_Integration(t *testing.T) {
 	if err != nil {
 		t.Fatalf("generate from repository tree: %v", err)
 	}
-	if !strings.Contains(string(document), "`github.com/monstercameron/hcm-next/tools/gen/archdoc`") {
+	if !strings.Contains(string(document), "`github.com/monstercameron/human-capital-management-suite/tools/gen/archdoc`") {
 		t.Fatal("package inventory does not include the generated architecture package")
 	}
 }

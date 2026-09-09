@@ -7,8 +7,8 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/trust/custody"
-	"github.com/monstercameron/hcm-next/internal/trust/lease"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/custody"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/lease"
 )
 
 // MachineLeaseAuthorizer is the narrow TRUST-029 boundary used at dispatch.

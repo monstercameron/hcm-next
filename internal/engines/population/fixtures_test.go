@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/engines/population"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/population"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // testTenant is the fixture tenant every test definition is scoped to.

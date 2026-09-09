@@ -5,10 +5,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/domains/intelligence"
-	"github.com/monstercameron/hcm-next/internal/domains/people"
-	"github.com/monstercameron/hcm-next/internal/operations/admin"
-	"github.com/monstercameron/hcm-next/internal/trust"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/intelligence"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/people"
+	"github.com/monstercameron/human-capital-management-suite/internal/operations/admin"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust"
 )
 
 // newPrincipal builds a hermetic *trust.Principal directly through

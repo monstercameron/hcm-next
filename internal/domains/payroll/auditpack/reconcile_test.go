@@ -3,8 +3,8 @@ package auditpack_test
 import (
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/domains/payroll/auditpack"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/payroll/auditpack"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 func totalsOf(t *testing.T, register, bankFile, taxLiability, filingAck string) auditpack.RunTotals {

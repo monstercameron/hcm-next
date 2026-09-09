@@ -3,7 +3,7 @@ package workflow
 import (
 	"sort"
 
-	"github.com/monstercameron/hcm-next/internal/capability"
+	"github.com/monstercameron/human-capital-management-suite/internal/capability"
 )
 
 // BranchConsistencyVector is one concurrent branch's declared consistency

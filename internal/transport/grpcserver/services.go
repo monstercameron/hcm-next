@@ -3,9 +3,9 @@ package grpcserver
 import (
 	"context"
 
-	intentsv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/intents/v1"
-	registryv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/registry/v1"
-	"github.com/monstercameron/hcm-next/internal/transport"
+	intentsv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/intents/v1"
+	registryv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/registry/v1"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport"
 )
 
 // intentService adapts the generated IntentService server interface to the

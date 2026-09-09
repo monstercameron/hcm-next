@@ -15,13 +15,13 @@ import (
 	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/pressly/goose/v3"
 
-	"github.com/monstercameron/hcm-next/internal/data/dbport"
-	"github.com/monstercameron/hcm-next/internal/data/pgxadapter"
-	"github.com/monstercameron/hcm-next/internal/data/schema"
-	fixtureseed "github.com/monstercameron/hcm-next/internal/data/seed"
-	"github.com/monstercameron/hcm-next/internal/intent/app/pgstore"
-	"github.com/monstercameron/hcm-next/internal/platform/buildinfo"
-	"github.com/monstercameron/hcm-next/migrations"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/pgxadapter"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/schema"
+	fixtureseed "github.com/monstercameron/human-capital-management-suite/internal/data/seed"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/app/pgstore"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/buildinfo"
+	"github.com/monstercameron/human-capital-management-suite/migrations"
 )
 
 // releaseOwner is the team accountable for this schema artifact.

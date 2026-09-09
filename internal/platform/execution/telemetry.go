@@ -6,9 +6,9 @@ import (
 	"strconv"
 	"time"
 
-	hcmotel "github.com/monstercameron/hcm-next/internal/platform/telemetry/otel"
-	"github.com/monstercameron/hcm-next/internal/workflow/execute"
-	"github.com/monstercameron/hcm-next/internal/workflow/runtime"
+	hcmotel "github.com/monstercameron/human-capital-management-suite/internal/platform/telemetry/otel"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/execute"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/runtime"
 )
 
 // Span names OBS-023 opens. No OBS-012 span-topology contract exists yet
@@ -32,7 +32,7 @@ const (
 // tracerName identifies this package's own instrumentation scope, per
 // trace.TracerProvider's documented convention (an importable code path,
 // not a human label).
-const tracerName = "github.com/monstercameron/hcm-next/internal/platform/execution"
+const tracerName = "github.com/monstercameron/human-capital-management-suite/internal/platform/execution"
 
 // OTelInstrumentation is OBS-023's production [execute.Instrumentation]: it
 // opens real spans through internal/platform/telemetry/otel.Provider —

@@ -11,10 +11,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/connectivity/transport"
-	"github.com/monstercameron/hcm-next/internal/governance/legal"
-	"github.com/monstercameron/hcm-next/internal/trust/custody"
-	"github.com/monstercameron/hcm-next/internal/trust/envelope"
+	"github.com/monstercameron/human-capital-management-suite/internal/connectivity/transport"
+	"github.com/monstercameron/human-capital-management-suite/internal/governance/legal"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/custody"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/envelope"
 )
 
 var (

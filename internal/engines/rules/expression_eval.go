@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // EvalState is the result-presence state of an expression evaluation.

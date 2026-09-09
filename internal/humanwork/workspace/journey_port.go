@@ -5,8 +5,8 @@ import (
 	"errors"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/humanwork/workitem"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/humanwork/workitem"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // The Promotion journey is the workspace's second surface: one governed

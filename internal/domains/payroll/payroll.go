@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/internal/engines/canonicalbytes"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/canonicalbytes"
 )
 
 const payrollRunSchema = "hcmnext.domains.payroll.PayrollRun"

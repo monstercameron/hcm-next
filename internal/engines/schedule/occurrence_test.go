@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/engines/schedule"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/schedule"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 func occurrenceZone(t *testing.T) values.ZoneRef {

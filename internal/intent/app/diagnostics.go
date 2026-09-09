@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/monstercameron/hcm-next/internal/domains/dataops"
-	"github.com/monstercameron/hcm-next/internal/domains/intelligence"
-	"github.com/monstercameron/hcm-next/internal/domains/repair"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/dataops"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/intelligence"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/repair"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // maxObservationPages bounds how many pages one comparison will read while

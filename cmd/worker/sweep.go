@@ -7,9 +7,9 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/data/outbox"
-	"github.com/monstercameron/hcm-next/internal/platform/bootstrap"
-	hcmotel "github.com/monstercameron/hcm-next/internal/platform/telemetry/otel"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/outbox"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/bootstrap"
+	hcmotel "github.com/monstercameron/human-capital-management-suite/internal/platform/telemetry/otel"
 )
 
 // tenantLister lists the tenants a sweep should check for due outbox work.

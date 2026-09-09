@@ -9,13 +9,13 @@ import (
 
 	"google.golang.org/protobuf/proto"
 
-	commonv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/common/v1"
-	evidencev1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/evidence/v1"
-	intentsv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/intents/v1"
-	"github.com/monstercameron/hcm-next/internal/transport"
-	"github.com/monstercameron/hcm-next/internal/transport/envelope"
-	"github.com/monstercameron/hcm-next/internal/transport/streaming"
-	"github.com/monstercameron/hcm-next/internal/trust"
+	commonv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/common/v1"
+	evidencev1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/evidence/v1"
+	intentsv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/intents/v1"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/envelope"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/streaming"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust"
 )
 
 func exerciseMemoryStoreCancelIsIdempotentAndKeepsOwnerScope(t *testing.T) {

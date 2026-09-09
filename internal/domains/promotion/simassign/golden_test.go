@@ -8,10 +8,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/domains/fixtures"
-	"github.com/monstercameron/hcm-next/internal/domains/people"
-	"github.com/monstercameron/hcm-next/internal/domains/promotion/simassign"
-	promosnapshot "github.com/monstercameron/hcm-next/internal/domains/promotion/snapshot"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/fixtures"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/people"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/promotion/simassign"
+	promosnapshot "github.com/monstercameron/human-capital-management-suite/internal/domains/promotion/snapshot"
 )
 
 // update rewrites the golden tables instead of comparing against them.

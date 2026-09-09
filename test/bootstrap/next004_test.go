@@ -8,19 +8,19 @@ import (
 
 	"github.com/google/uuid"
 
-	intentsv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/intents/v1"
-	registryv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/registry/v1"
-	datalogger "github.com/monstercameron/hcm-next/internal/data/ledger"
-	"github.com/monstercameron/hcm-next/internal/data/outbox"
-	"github.com/monstercameron/hcm-next/internal/data/projection"
-	"github.com/monstercameron/hcm-next/internal/domains/promotion"
-	"github.com/monstercameron/hcm-next/internal/engines/wire/digest"
-	"github.com/monstercameron/hcm-next/internal/intent"
-	"github.com/monstercameron/hcm-next/internal/intent/app"
-	"github.com/monstercameron/hcm-next/internal/intent/app/pgstore"
-	"github.com/monstercameron/hcm-next/internal/intent/lifecycle"
-	ledgerport "github.com/monstercameron/hcm-next/internal/ledger"
-	"github.com/monstercameron/hcm-next/migrations"
+	intentsv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/intents/v1"
+	registryv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/registry/v1"
+	datalogger "github.com/monstercameron/human-capital-management-suite/internal/data/ledger"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/outbox"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/projection"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/promotion"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/wire/digest"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/app"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/app/pgstore"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/lifecycle"
+	ledgerport "github.com/monstercameron/human-capital-management-suite/internal/ledger"
+	"github.com/monstercameron/human-capital-management-suite/migrations"
 )
 
 // TestBootstrapCellMigratesServesSimulatesAppendsRestartsAndReconciles is the

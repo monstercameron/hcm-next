@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/engines/eligibility"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/eligibility"
 )
 
 // TestTodo_ELIG_002 proves the RED and GREEN clauses of planning/todos.md

@@ -3,7 +3,7 @@ package toolinventory_test
 import (
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/quality/toolinventory"
+	"github.com/monstercameron/human-capital-management-suite/tools/quality/toolinventory"
 )
 
 // TestTodo_TOOL_025_Mutation proves the manifest's tamper-detection

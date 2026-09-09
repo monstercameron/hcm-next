@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/intent/app/pgstore"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/app/pgstore"
 )
 
 // TestTodo_ARCH_GO_020_Conformance is the ARCH-GO-020 CONFORMANCE test: the

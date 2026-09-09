@@ -6,11 +6,11 @@ import (
 	"slices"
 	"strings"
 
-	promosnapshot "github.com/monstercameron/hcm-next/internal/domains/promotion/snapshot"
-	"github.com/monstercameron/hcm-next/internal/engines/canonicalbytes"
-	enginesnapshot "github.com/monstercameron/hcm-next/internal/engines/snapshot"
-	"github.com/monstercameron/hcm-next/internal/intent"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	promosnapshot "github.com/monstercameron/human-capital-management-suite/internal/domains/promotion/snapshot"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/canonicalbytes"
+	enginesnapshot "github.com/monstercameron/human-capital-management-suite/internal/engines/snapshot"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // schemaVersion pins the canonical encoding this package digests under. It is

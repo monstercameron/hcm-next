@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/trust/breakglass"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/breakglass"
 )
 
 func TestOpen_RejectsMalformedRequestAndApprovalWithSentinels(t *testing.T) {

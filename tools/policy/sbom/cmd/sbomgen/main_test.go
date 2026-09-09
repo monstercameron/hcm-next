@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/policy/internal/repopath"
-	"github.com/monstercameron/hcm-next/tools/policy/sbom"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/internal/repopath"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/sbom"
 )
 
 // TestRun_WritesFile proves the CLI's file-output path: it generates a

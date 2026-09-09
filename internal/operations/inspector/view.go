@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/monstercameron/hcm-next/internal/intent/lifecycle"
-	"github.com/monstercameron/hcm-next/internal/operations/internal/viewdigest"
-	"github.com/monstercameron/hcm-next/internal/trust/authz"
-	"github.com/monstercameron/hcm-next/internal/workflow"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/lifecycle"
+	"github.com/monstercameron/human-capital-management-suite/internal/operations/internal/viewdigest"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/authz"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow"
 )
 
 // Gated field identifiers. A caller building the [authz.Request] that feeds

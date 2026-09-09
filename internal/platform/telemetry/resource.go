@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/monstercameron/hcm-next/internal/platform/buildinfo"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/buildinfo"
 )
 
 // ResourceSchemaVersion tags Resource's field set. Any change to a required

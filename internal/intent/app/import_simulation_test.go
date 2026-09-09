@@ -7,12 +7,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/domains/dataops/importing"
-	"github.com/monstercameron/hcm-next/internal/engines/wire/digest"
-	"github.com/monstercameron/hcm-next/internal/intent"
-	intentdefinitions "github.com/monstercameron/hcm-next/internal/intent/definitions"
-	"github.com/monstercameron/hcm-next/internal/intent/model"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/dataops/importing"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/wire/digest"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent"
+	intentdefinitions "github.com/monstercameron/human-capital-management-suite/internal/intent/definitions"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/model"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 type importProposalDigester struct{}

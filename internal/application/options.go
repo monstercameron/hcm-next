@@ -18,14 +18,14 @@ import (
 	"net"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/data/pgxadapter"
-	"github.com/monstercameron/hcm-next/internal/domains/people"
-	"github.com/monstercameron/hcm-next/internal/domains/rewards"
-	"github.com/monstercameron/hcm-next/internal/intent"
-	"github.com/monstercameron/hcm-next/internal/intent/app"
-	"github.com/monstercameron/hcm-next/internal/platform/bootstrap"
-	hcmotel "github.com/monstercameron/hcm-next/internal/platform/telemetry/otel"
-	"github.com/monstercameron/hcm-next/internal/trust"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/pgxadapter"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/people"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/rewards"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/app"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/bootstrap"
+	hcmotel "github.com/monstercameron/human-capital-management-suite/internal/platform/telemetry/otel"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust"
 )
 
 // Migrator applies the pending schema before the listeners start.

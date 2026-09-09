@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/monstercameron/hcm-next/internal/workflow"
-	"github.com/monstercameron/hcm-next/internal/workflow/simulate"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/simulate"
 )
 
 func digest(profile string, parts ...string) string {

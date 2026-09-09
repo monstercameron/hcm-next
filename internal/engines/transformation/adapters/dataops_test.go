@@ -5,10 +5,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/domains/dataops/importing"
-	"github.com/monstercameron/hcm-next/internal/engines/transformation/adapters"
-	"github.com/monstercameron/hcm-next/internal/intent/model"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/dataops/importing"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/transformation/adapters"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/model"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // The DataOps migration proof.

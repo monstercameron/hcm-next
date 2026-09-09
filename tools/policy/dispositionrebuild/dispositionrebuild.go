@@ -8,8 +8,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/internal/data/tenancy/storagedisposition"
-	"github.com/monstercameron/hcm-next/tools/policy/tableinventory"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/tenancy/storagedisposition"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/tableinventory"
 )
 
 const schemaVersion = 1

@@ -15,10 +15,10 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/data/dbport"
-	"github.com/monstercameron/hcm-next/internal/domains/survey"
-	"github.com/monstercameron/hcm-next/internal/engines/messagetemplate"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/survey"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/messagetemplate"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 type Executor interface {

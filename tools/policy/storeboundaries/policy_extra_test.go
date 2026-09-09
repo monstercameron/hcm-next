@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/data/tenancy/storagedisposition"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/tenancy/storagedisposition"
 )
 
 func policyRepoRoot(t *testing.T) string {

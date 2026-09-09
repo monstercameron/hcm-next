@@ -8,7 +8,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/intent/model"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/model"
 )
 
 // IngestRequest is everything [Ingest] needs to quarantine and evaluate one

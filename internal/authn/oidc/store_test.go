@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/authn/oidc"
+	"github.com/monstercameron/human-capital-management-suite/internal/authn/oidc"
 )
 
 func TestMemoryStateStore_PutTake(t *testing.T) {

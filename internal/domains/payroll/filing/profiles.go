@@ -14,7 +14,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/governance/legal"
+	"github.com/monstercameron/human-capital-management-suite/internal/governance/legal"
 )
 
 // ExchangeKind is the closed set of state workforce filings owned here.

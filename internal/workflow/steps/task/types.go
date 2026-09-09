@@ -3,9 +3,9 @@ package task
 import (
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/humanwork"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
-	"github.com/monstercameron/hcm-next/internal/workflow"
+	"github.com/monstercameron/human-capital-management-suite/internal/humanwork"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow"
 )
 
 // VersionedRef identifies an immutable form or policy artifact.

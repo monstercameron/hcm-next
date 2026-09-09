@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/internal/authn/issuerregistry"
-	"github.com/monstercameron/hcm-next/internal/trust"
+	"github.com/monstercameron/human-capital-management-suite/internal/authn/issuerregistry"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust"
 )
 
 // parseSubjectKind maps the wire spelling of a subject kind to

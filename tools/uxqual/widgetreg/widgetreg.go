@@ -13,7 +13,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/tools/uxqual/pagedef"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/pagedef"
 )
 
 var (

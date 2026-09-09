@@ -6,8 +6,8 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/data/bitemporal"
-	datalogger "github.com/monstercameron/hcm-next/internal/data/ledger"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/bitemporal"
+	datalogger "github.com/monstercameron/human-capital-management-suite/internal/data/ledger"
 )
 
 // Querier is the minimal database capability a temporal read needs. It is

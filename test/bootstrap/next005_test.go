@@ -9,10 +9,10 @@ import (
 	"sync"
 	"testing"
 
-	intentsv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/intents/v1"
-	"github.com/monstercameron/hcm-next/internal/domains/promotion"
-	"github.com/monstercameron/hcm-next/internal/intent/app/pgstore"
-	"github.com/monstercameron/hcm-next/internal/transport/envelope"
+	intentsv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/intents/v1"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/promotion"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/app/pgstore"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/envelope"
 )
 
 // chronologyTables are the tables a P1A intent is allowed to write.

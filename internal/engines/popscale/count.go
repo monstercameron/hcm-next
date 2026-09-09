@@ -3,8 +3,8 @@ package popscale
 import (
 	"fmt"
 
-	"github.com/monstercameron/hcm-next/internal/engines/population"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/population"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // CountView is the shape of the count an observer receives.

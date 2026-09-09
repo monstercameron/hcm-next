@@ -20,7 +20,7 @@ package workflow
 // ObligationState=PENDING, not executed by an APPROVAL node that does not
 // exist yet.
 
-import "github.com/monstercameron/hcm-next/internal/capability"
+import "github.com/monstercameron/human-capital-management-suite/internal/capability"
 
 // Reference workflow identity.
 const (

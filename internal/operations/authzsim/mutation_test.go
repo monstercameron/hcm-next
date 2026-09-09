@@ -3,8 +3,8 @@ package authzsim_test
 import (
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/operations/authzsim"
-	"github.com/monstercameron/hcm-next/internal/trust/authz"
+	"github.com/monstercameron/human-capital-management-suite/internal/operations/authzsim"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/authz"
 )
 
 // TestTodo_ADMIN_003_Mutation proves two boundary properties: perturbing

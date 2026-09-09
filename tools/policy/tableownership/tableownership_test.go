@@ -5,8 +5,8 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/policy/tableinventory"
-	"github.com/monstercameron/hcm-next/tools/policy/tableownership"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/tableinventory"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/tableownership"
 )
 
 func repoRoot(t *testing.T) string {

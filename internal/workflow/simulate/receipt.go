@@ -6,10 +6,10 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/capability"
-	"github.com/monstercameron/hcm-next/internal/domains/evidence"
-	"github.com/monstercameron/hcm-next/internal/intent/lifecycle"
-	"github.com/monstercameron/hcm-next/internal/workflow"
+	"github.com/monstercameron/human-capital-management-suite/internal/capability"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/evidence"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/lifecycle"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow"
 )
 
 // receiptDigestProfile is the canonicalization profile of a simulation

@@ -5,11 +5,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/data/dbport"
-	"github.com/monstercameron/hcm-next/internal/data/pgtest"
-	"github.com/monstercameron/hcm-next/internal/humanwork/workitem"
-	"github.com/monstercameron/hcm-next/internal/workflow/frontier"
-	"github.com/monstercameron/hcm-next/internal/workflow/runtime"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/pgtest"
+	"github.com/monstercameron/human-capital-management-suite/internal/humanwork/workitem"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/frontier"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/runtime"
 )
 
 // TestTodo_DB_012_Mutation asserts that an invalid state transition, a

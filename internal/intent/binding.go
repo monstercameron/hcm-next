@@ -6,7 +6,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/internal/intent/lifecycle"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/lifecycle"
 )
 
 // CoveredEntities is the entity set the data model declares covered: the

@@ -5,7 +5,7 @@ import (
 	"crypto/ed25519"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/connectivity"
+	"github.com/monstercameron/human-capital-management-suite/internal/connectivity"
 )
 
 // PreflightResult is the outcome of one [Preflight.Run] call.

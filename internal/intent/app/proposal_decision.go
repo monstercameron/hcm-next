@@ -8,17 +8,17 @@ import (
 	"strings"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/capability"
-	"github.com/monstercameron/hcm-next/internal/engines/wire/digest"
-	"github.com/monstercameron/hcm-next/internal/humanwork"
-	"github.com/monstercameron/hcm-next/internal/humanwork/workitem"
-	"github.com/monstercameron/hcm-next/internal/humanwork/workspace"
-	"github.com/monstercameron/hcm-next/internal/intent"
-	intentapproval "github.com/monstercameron/hcm-next/internal/intent/approval"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
-	"github.com/monstercameron/hcm-next/internal/transport/envelope"
-	"github.com/monstercameron/hcm-next/internal/trust"
-	"github.com/monstercameron/hcm-next/internal/workflow/runtime"
+	"github.com/monstercameron/human-capital-management-suite/internal/capability"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/wire/digest"
+	"github.com/monstercameron/human-capital-management-suite/internal/humanwork"
+	"github.com/monstercameron/human-capital-management-suite/internal/humanwork/workitem"
+	"github.com/monstercameron/human-capital-management-suite/internal/humanwork/workspace"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent"
+	intentapproval "github.com/monstercameron/human-capital-management-suite/internal/intent/approval"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/envelope"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/runtime"
 )
 
 // ProposalDecisionRequest is the caller's assertion of the proposal page it

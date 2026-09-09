@@ -12,7 +12,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/monstercameron/hcm-next/tools/quality/covergate"
+	"github.com/monstercameron/human-capital-management-suite/tools/quality/covergate"
 )
 
 type options struct {

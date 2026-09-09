@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/internal/engines/canonicalbytes"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/canonicalbytes"
 )
 
 // EffectStatus is the execution status every [SideEffect] in a simulation
@@ -33,7 +33,7 @@ func (s EffectStatus) String() string { return string(s) }
 // never executed.
 //
 // Its vocabulary mirrors PROMO-002/003's own
-// [github.com/monstercameron/hcm-next/internal/domains/promotion/simassign.ProposedEffect]:
+// [github.com/monstercameron/human-capital-management-suite/internal/domains/promotion/simassign.ProposedEffect]:
 // a contract composes what simassign and simcomp already decided, it does not
 // invent a second effect shape for the same fact.
 type SideEffect struct {

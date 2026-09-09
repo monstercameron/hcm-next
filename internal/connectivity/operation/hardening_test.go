@@ -8,7 +8,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/connectivity/operation"
+	"github.com/monstercameron/human-capital-management-suite/internal/connectivity/operation"
 )
 
 func TestOperation_PublicErrorValuesRemainUnambiguous(t *testing.T) {

@@ -16,12 +16,12 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/data/dbport"
-	"github.com/monstercameron/hcm-next/internal/data/runtimestate"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
-	"github.com/monstercameron/hcm-next/internal/workflow/frontier"
-	"github.com/monstercameron/hcm-next/internal/workflow/runtime"
-	stepSignal "github.com/monstercameron/hcm-next/internal/workflow/steps/signal"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/runtimestate"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/frontier"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/runtime"
+	stepSignal "github.com/monstercameron/human-capital-management-suite/internal/workflow/steps/signal"
 )
 
 var signalNamespace = uuid.MustParse("a1b2c3d4-e5f6-4789-8012-3456789abcde")

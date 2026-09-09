@@ -18,7 +18,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/migrations"
+	"github.com/monstercameron/human-capital-management-suite/migrations"
 )
 
 // Journal statuses, mirroring the CHECK constraint in 00001_platform_control.sql.

@@ -33,8 +33,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/connectivity"
-	"github.com/monstercameron/hcm-next/internal/engines/canonicalbytes"
+	"github.com/monstercameron/human-capital-management-suite/internal/connectivity"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/canonicalbytes"
 )
 
 //go:embed testdata/workers.json
@@ -157,7 +157,7 @@ func DefaultBounds() connectivity.Bounds {
 func DefaultDefinition() connectivity.ConnectorDefinition {
 	return connectivity.ConnectorDefinition{
 		ConnectorID:  DefaultDescriptor().ConnectorID,
-		Vendor:       "HCM Next",
+		Vendor:       "Human Capital Management Suite",
 		Product:      "Fake Incumbent HRIS",
 		Version:      DefaultDescriptor().Version,
 		Maturity:     connectivity.MaturityPreview,

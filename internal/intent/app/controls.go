@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"slices"
 
-	"github.com/monstercameron/hcm-next/internal/capability"
-	"github.com/monstercameron/hcm-next/internal/intent"
+	"github.com/monstercameron/human-capital-management-suite/internal/capability"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent"
 )
 
 // Controls is the pinned control context this cell creates and simulates

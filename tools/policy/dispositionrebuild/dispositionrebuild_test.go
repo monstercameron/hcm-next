@@ -5,9 +5,9 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/data/tenancy/storagedisposition"
-	"github.com/monstercameron/hcm-next/tools/policy/dispositionrebuild"
-	"github.com/monstercameron/hcm-next/tools/policy/tableinventory"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/tenancy/storagedisposition"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/dispositionrebuild"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/tableinventory"
 )
 
 func repoRoot(t *testing.T) string {

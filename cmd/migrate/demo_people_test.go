@@ -10,8 +10,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/data/demoworkforce"
-	"github.com/monstercameron/hcm-next/internal/data/workforce"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/demoworkforce"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/workforce"
 )
 
 func TestIngestDemoPhotosUsesPrivateOriginalsAndPublicProxies(t *testing.T) {

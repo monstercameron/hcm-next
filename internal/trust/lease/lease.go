@@ -31,7 +31,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/trust/custody"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/custody"
 )
 
 // Errors. All are matchable with errors.Is. ErrInvalidRequest and

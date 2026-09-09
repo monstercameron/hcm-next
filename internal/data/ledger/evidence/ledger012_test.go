@@ -16,11 +16,11 @@ import (
 
 	"github.com/google/uuid"
 
-	datalogger "github.com/monstercameron/hcm-next/internal/data/ledger"
-	"github.com/monstercameron/hcm-next/internal/data/ledger/checkpoint"
-	"github.com/monstercameron/hcm-next/internal/data/ledger/evidence"
-	"github.com/monstercameron/hcm-next/internal/data/ledger/hashchain"
-	"github.com/monstercameron/hcm-next/internal/data/pgxadapter"
+	datalogger "github.com/monstercameron/human-capital-management-suite/internal/data/ledger"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/ledger/checkpoint"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/ledger/evidence"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/ledger/hashchain"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/pgxadapter"
 )
 
 // TestTodo_LEDGER_012 is the primary acceptance test: an export over a real

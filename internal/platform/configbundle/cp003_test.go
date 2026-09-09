@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	platformconfig "github.com/monstercameron/hcm-next/internal/platform/configregistry"
+	platformconfig "github.com/monstercameron/human-capital-management-suite/internal/platform/configregistry"
 )
 
 func cp003Keys(t *testing.T) (ed25519.PrivateKey, ed25519.PublicKey, ed25519.PrivateKey, ed25519.PublicKey) {

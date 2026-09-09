@@ -12,9 +12,9 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/data/dbport"
-	"github.com/monstercameron/hcm-next/internal/data/tenancy"
-	dataref "github.com/monstercameron/hcm-next/internal/domains/refdata"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/tenancy"
+	dataref "github.com/monstercameron/human-capital-management-suite/internal/domains/refdata"
 )
 
 // DB is the driver-free transaction capability required by Store.

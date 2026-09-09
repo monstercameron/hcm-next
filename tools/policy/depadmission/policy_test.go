@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/policy/depadmission"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/depadmission"
 )
 
 // moduleB and moduleA build the two fixture modules TestTodo_TOOL_019_Golden

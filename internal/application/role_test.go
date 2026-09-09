@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/platform/bootstrap"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/bootstrap"
 )
 
 // TestRolesAreAClosedSetNotARegistry is the role half of ARCH-GO-020's RED

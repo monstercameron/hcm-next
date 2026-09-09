@@ -48,7 +48,7 @@
 // enforced structurally rather than left to caller discipline.
 //
 // [AuthorityDecision] is deliberately shaped like
-// [github.com/monstercameron/hcm-next/internal/trust/authz.Decision]: an
+// [github.com/monstercameron/human-capital-management-suite/internal/trust/authz.Decision]: an
 // explainable yes/no with a uniform reason code, the obligations it
 // attaches, and a canonical digest and evidence id over every input it was
 // computed from. It is not that type reused verbatim -- authz's Decision

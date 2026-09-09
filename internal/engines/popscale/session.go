@@ -1,6 +1,6 @@
 package popscale
 
-import "github.com/monstercameron/hcm-next/internal/engines/population"
+import "github.com/monstercameron/human-capital-management-suite/internal/engines/population"
 
 // Session pins one frozen snapshot for one caller and one page size. It
 // validates the membership exactly once at construction; every Page call after

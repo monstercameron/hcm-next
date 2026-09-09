@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/humanwork/workitem"
-	intentapproval "github.com/monstercameron/hcm-next/internal/intent/approval"
+	"github.com/monstercameron/human-capital-management-suite/internal/humanwork/workitem"
+	intentapproval "github.com/monstercameron/human-capital-management-suite/internal/intent/approval"
 )
 
 // Complete records decision.Digest() as the immutable completed output of the

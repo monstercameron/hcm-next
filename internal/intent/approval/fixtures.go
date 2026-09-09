@@ -4,13 +4,13 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/engines/canonicalbytes"
-	"github.com/monstercameron/hcm-next/internal/engines/rules"
-	"github.com/monstercameron/hcm-next/internal/humanwork"
-	"github.com/monstercameron/hcm-next/internal/intent"
-	"github.com/monstercameron/hcm-next/internal/intent/definitions"
-	"github.com/monstercameron/hcm-next/internal/intent/protomap"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/canonicalbytes"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/rules"
+	"github.com/monstercameron/human-capital-management-suite/internal/humanwork"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/definitions"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/protomap"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // The promotion fixture's identifiers.

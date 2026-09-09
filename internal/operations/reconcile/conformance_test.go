@@ -32,11 +32,11 @@ var allowedReconcileImports = map[string]bool{
 
 	"github.com/google/uuid": true,
 
-	"github.com/monstercameron/hcm-next/internal/connectivity/observe": true,
-	"github.com/monstercameron/hcm-next/internal/data/dbport":          true,
-	"github.com/monstercameron/hcm-next/internal/data/runtimestate":    true,
-	"github.com/monstercameron/hcm-next/internal/effectgraph":          true,
-	"github.com/monstercameron/hcm-next/internal/workflow/lease":       true,
+	"github.com/monstercameron/human-capital-management-suite/internal/connectivity/observe": true,
+	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport":          true,
+	"github.com/monstercameron/human-capital-management-suite/internal/data/runtimestate":    true,
+	"github.com/monstercameron/human-capital-management-suite/internal/effectgraph":          true,
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/lease":       true,
 }
 
 // TestTodo_RECON_001_Conformance scans every non-test .go file in this

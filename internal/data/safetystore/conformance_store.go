@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/google/uuid"
-	"github.com/monstercameron/hcm-next/internal/domains/safety"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/safety"
 	"time"
 )
 

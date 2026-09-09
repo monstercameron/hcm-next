@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/uxqual/journeyclient"
-	"github.com/monstercameron/hcm-next/tools/uxqual/render/journey"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/journeyclient"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/render/journey"
 )
 
 // These tests carry the same build tag as main_wasm.go so that

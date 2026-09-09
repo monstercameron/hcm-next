@@ -4,8 +4,8 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/intent"
-	"github.com/monstercameron/hcm-next/internal/intent/definitions"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/definitions"
 )
 
 func TestBusinessIntentUserFlowDispositionIsCompleteUniqueAndExposureSafe(t *testing.T) {

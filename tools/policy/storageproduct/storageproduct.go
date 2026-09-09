@@ -13,9 +13,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/tools/planning/productslice"
-	"github.com/monstercameron/hcm-next/tools/policy/tableinventory"
-	"github.com/monstercameron/hcm-next/tools/policy/tableownership"
+	"github.com/monstercameron/human-capital-management-suite/tools/planning/productslice"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/tableinventory"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/tableownership"
 )
 
 const schemaVersion = 1
@@ -218,7 +218,7 @@ func matchingSlices(owner string, consumers []string, slices []productslice.Prod
 
 func normalizePackage(pkg string) string {
 	pkg = strings.TrimSpace(pkg)
-	const module = "github.com/monstercameron/hcm-next/"
+	const module = "github.com/monstercameron/human-capital-management-suite/"
 	return strings.TrimPrefix(pkg, module)
 }
 

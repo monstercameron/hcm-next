@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/monstercameron/hcm-next/internal/engines/canonicalbytes"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/canonicalbytes"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // EvidenceQuery is the bounded read request for worker skill evidence.

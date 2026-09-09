@@ -6,8 +6,8 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/monstercameron/hcm-next/internal/data/dbport"
-	"github.com/monstercameron/hcm-next/internal/domains/merit"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/merit"
 )
 
 type compensationIntentPayload struct {

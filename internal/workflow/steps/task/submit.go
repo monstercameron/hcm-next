@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/humanwork/workitem"
+	"github.com/monstercameron/human-capital-management-suite/internal/humanwork/workitem"
 )
 
 // SubmitInput is [Submit]'s request: the compiled node the submission must

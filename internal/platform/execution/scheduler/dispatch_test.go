@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/data/runtimestate"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/runtimestate"
 )
 
 func TestDispositionValid(t *testing.T) {

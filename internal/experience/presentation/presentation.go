@@ -3,7 +3,7 @@
 package presentation
 
 import (
-	"github.com/monstercameron/hcm-next/internal/intent/lifecycle"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/lifecycle"
 	"slices"
 )
 

@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/trust/stepup"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/stepup"
 )
 
 var assuranceTestAt = time.Date(2026, 9, 6, 12, 0, 0, 0, time.UTC)

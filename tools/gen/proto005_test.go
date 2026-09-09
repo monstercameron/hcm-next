@@ -12,8 +12,8 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/descriptorpb"
 
-	commonv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/common/v1"
-	registryv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/registry/v1"
+	commonv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/common/v1"
+	registryv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/registry/v1"
 )
 
 // buildDescriptorSet invokes `buf build --as-file-descriptor-set` into a

@@ -4,7 +4,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/internal/capability"
+	"github.com/monstercameron/human-capital-management-suite/internal/capability"
 )
 
 // requiredGovernanceDecisions are the subdecisions every capability-invoking

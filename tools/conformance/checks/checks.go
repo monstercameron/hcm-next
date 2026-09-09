@@ -17,8 +17,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/tools/conformance/model"
-	"github.com/monstercameron/hcm-next/tools/conformance/vocab"
+	"github.com/monstercameron/human-capital-management-suite/tools/conformance/model"
+	"github.com/monstercameron/human-capital-management-suite/tools/conformance/vocab"
 )
 
 // Status is one of the three deterministic check outcomes.

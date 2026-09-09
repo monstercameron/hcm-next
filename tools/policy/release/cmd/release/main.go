@@ -17,7 +17,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/tools/policy/release"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/release"
 )
 
 func main() { os.Exit(run(os.Args[1:], os.Stdout, os.Stderr)) }

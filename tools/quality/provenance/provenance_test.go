@@ -6,7 +6,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/quality/provenance"
+	"github.com/monstercameron/human-capital-management-suite/tools/quality/provenance"
 )
 
 func statement() provenance.Statement {

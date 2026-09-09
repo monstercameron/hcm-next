@@ -12,13 +12,13 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/data/dbport"
-	"github.com/monstercameron/hcm-next/internal/data/pgtest"
-	"github.com/monstercameron/hcm-next/internal/data/pgxadapter"
-	"github.com/monstercameron/hcm-next/internal/data/tenancy"
-	legal "github.com/monstercameron/hcm-next/internal/governance/legal"
-	legalpipeline "github.com/monstercameron/hcm-next/internal/governance/legal/pipeline"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/pgtest"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/pgxadapter"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/tenancy"
+	legal "github.com/monstercameron/human-capital-management-suite/internal/governance/legal"
+	legalpipeline "github.com/monstercameron/human-capital-management-suite/internal/governance/legal/pipeline"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 func TestMain(m *testing.M) { pgtest.RunMain(m) }

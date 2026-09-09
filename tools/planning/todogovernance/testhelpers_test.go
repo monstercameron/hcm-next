@@ -3,7 +3,7 @@ package todogovernance
 import (
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/planning/todoregistry"
+	"github.com/monstercameron/human-capital-management-suite/tools/planning/todoregistry"
 )
 
 // Paths to the real, checked-in corpus, relative to this package directory.

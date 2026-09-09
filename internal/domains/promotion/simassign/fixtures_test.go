@@ -5,16 +5,16 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/domains/budget"
-	"github.com/monstercameron/hcm-next/internal/domains/evidence"
-	"github.com/monstercameron/hcm-next/internal/domains/fixtures"
-	"github.com/monstercameron/hcm-next/internal/domains/org"
-	"github.com/monstercameron/hcm-next/internal/domains/people"
-	"github.com/monstercameron/hcm-next/internal/domains/position"
-	"github.com/monstercameron/hcm-next/internal/domains/promotion/simassign"
-	promosnapshot "github.com/monstercameron/hcm-next/internal/domains/promotion/snapshot"
-	"github.com/monstercameron/hcm-next/internal/domains/rewards"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/budget"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/evidence"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/fixtures"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/org"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/people"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/position"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/promotion/simassign"
+	promosnapshot "github.com/monstercameron/human-capital-management-suite/internal/domains/promotion/snapshot"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/rewards"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // The harborcare-demo Promotion fixture, as

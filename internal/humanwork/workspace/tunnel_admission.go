@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/internal/transport"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport"
 )
 
 // This file exports the one credential-reading rule the workspace has always

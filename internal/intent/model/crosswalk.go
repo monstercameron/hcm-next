@@ -4,7 +4,7 @@ import (
 	"errors"
 	"sort"
 
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // Sentinel causes for external-code crosswalks (MODEL-019). Classify with

@@ -20,10 +20,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/data/pgtest"
-	"github.com/monstercameron/hcm-next/internal/data/tenancy"
-	"github.com/monstercameron/hcm-next/internal/domains/tenant"
-	"github.com/monstercameron/hcm-next/internal/intent/app/pgstore"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/pgtest"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/tenancy"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/tenant"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/app/pgstore"
 )
 
 func TestMain(m *testing.M) {

@@ -8,9 +8,9 @@ import (
 	"sort"
 	"strings"
 
-	enginesnapshot "github.com/monstercameron/hcm-next/internal/engines/snapshot"
-	"github.com/monstercameron/hcm-next/internal/intent"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	enginesnapshot "github.com/monstercameron/human-capital-management-suite/internal/engines/snapshot"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // Build errors. All are matchable with errors.Is; each names the exact

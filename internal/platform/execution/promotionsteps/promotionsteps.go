@@ -13,16 +13,16 @@ import (
 	"sync"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/domains/promotion/localcommit"
-	"github.com/monstercameron/hcm-next/internal/engines/rules"
-	"github.com/monstercameron/hcm-next/internal/governance/revalidate"
-	"github.com/monstercameron/hcm-next/internal/humanwork"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
-	"github.com/monstercameron/hcm-next/internal/workflow"
-	"github.com/monstercameron/hcm-next/internal/workflow/execute"
-	"github.com/monstercameron/hcm-next/internal/workflow/frontier"
-	"github.com/monstercameron/hcm-next/internal/workflow/promotionexec"
-	"github.com/monstercameron/hcm-next/internal/workflow/runtime"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/promotion/localcommit"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/rules"
+	"github.com/monstercameron/human-capital-management-suite/internal/governance/revalidate"
+	"github.com/monstercameron/human-capital-management-suite/internal/humanwork"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/execute"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/frontier"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/promotionexec"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/runtime"
 )
 
 // Failure classes are stable runtime classifications, not Go error text.

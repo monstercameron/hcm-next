@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/trust"
-	"github.com/monstercameron/hcm-next/internal/trust/session"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/session"
 )
 
 // fakeStore is a small, independent [session.Store] implementation over

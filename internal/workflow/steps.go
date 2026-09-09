@@ -3,8 +3,8 @@ package workflow
 import (
 	"sort"
 
-	"github.com/monstercameron/hcm-next/internal/capability"
-	"github.com/monstercameron/hcm-next/internal/intent/lifecycle"
+	"github.com/monstercameron/human-capital-management-suite/internal/capability"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/lifecycle"
 )
 
 // StepReport is the conformance verdict for one node.

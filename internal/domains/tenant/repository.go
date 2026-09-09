@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/monstercameron/hcm-next/internal/domains/tenant/govauth"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/tenant/govauth"
 )
 
 // StoreCode is the stable classification of a tenant persistence result.

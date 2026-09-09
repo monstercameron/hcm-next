@@ -3,7 +3,7 @@ package dsr
 import (
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/governance/legal"
+	"github.com/monstercameron/human-capital-management-suite/internal/governance/legal"
 )
 
 // TestTodo_PRIV_005_Golden is the GOLDEN matrix test for PRIV-005: fixed

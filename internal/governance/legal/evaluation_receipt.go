@@ -9,7 +9,7 @@ import (
 	"slices"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 var ErrReceiptInvalid = errors.New("legal: evaluation receipt is invalid")

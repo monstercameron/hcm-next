@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/intent/app"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/app"
 )
 
 // The correlation reader is an additive port the timer-resume path type-asserts

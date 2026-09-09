@@ -6,12 +6,12 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/humanwork/workitem"
-	"github.com/monstercameron/hcm-next/internal/humanwork/workspace"
-	"github.com/monstercameron/hcm-next/internal/workflow"
-	"github.com/monstercameron/hcm-next/internal/workflow/promotionexec"
-	"github.com/monstercameron/hcm-next/internal/workflow/prototype"
-	"github.com/monstercameron/hcm-next/internal/workflow/runtime"
+	"github.com/monstercameron/human-capital-management-suite/internal/humanwork/workitem"
+	"github.com/monstercameron/human-capital-management-suite/internal/humanwork/workspace"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/promotionexec"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/prototype"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/runtime"
 )
 
 // journeyInstanceAt returns a durable instance row in the given runtime state.

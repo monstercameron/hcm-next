@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/policy/racepolicy"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/racepolicy"
 )
 
 func writeFile(t *testing.T, dir, name, content string) {

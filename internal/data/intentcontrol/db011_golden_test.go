@@ -6,7 +6,7 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/data/pgtest"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/pgtest"
 )
 
 // TestTodo_DB_011_Golden pins the closed vocabularies migration 00024 declares

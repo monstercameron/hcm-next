@@ -7,9 +7,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/humanwork/workspace"
-	"github.com/monstercameron/hcm-next/tools/uxqual/contract"
-	"github.com/monstercameron/hcm-next/tools/uxqual/qual"
+	"github.com/monstercameron/human-capital-management-suite/internal/humanwork/workspace"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/contract"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/qual"
 )
 
 // TestTodo_UX_002_Integration is the integration-level evidence for

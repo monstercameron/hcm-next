@@ -10,8 +10,8 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/capability"
-	"github.com/monstercameron/hcm-next/tools/gen/deferredschema"
+	"github.com/monstercameron/human-capital-management-suite/internal/capability"
+	"github.com/monstercameron/human-capital-management-suite/tools/gen/deferredschema"
 )
 
 func TestTodo_MSRC_006(t *testing.T) {

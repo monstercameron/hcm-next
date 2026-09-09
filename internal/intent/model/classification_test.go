@@ -5,7 +5,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/intent/model"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/model"
 )
 
 // TestTodo_MODEL_023 is the PRIMARY test for data-classification propagation.

@@ -3,7 +3,7 @@ package definitions
 import (
 	"strings"
 
-	"github.com/monstercameron/hcm-next/internal/intent"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent"
 )
 
 // schema builds a schema reference from the canonical "<full name>/v<version>"

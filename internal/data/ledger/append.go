@@ -24,7 +24,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgconn"
 
-	"github.com/monstercameron/hcm-next/internal/data/dbport"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
 )
 
 // MaxInlinePayloadBytes matches the CHECK constraint on ledger_event. Anything
@@ -36,10 +36,10 @@ type AssertionClass string
 
 // The five assertion classes. There is no sixth.
 const (
-	// TransactionFact records HCM Next's own proposal, decision, plan, attempt
+	// TransactionFact records Human Capital Management Suite's own proposal, decision, plan, attempt
 	// or transaction result.
 	TransactionFact AssertionClass = "TRANSACTION_FACT"
-	// DomainFact records a fact HCM Next is the configured authority for.
+	// DomainFact records a fact Human Capital Management Suite is the configured authority for.
 	DomainFact AssertionClass = "DOMAIN_FACT"
 	// ExternalObservation records what another configured authority reported.
 	ExternalObservation AssertionClass = "EXTERNAL_OBSERVATION"

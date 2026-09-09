@@ -6,7 +6,7 @@ import (
 	"github.com/monstercameron/GoWebComponents/v5/html"
 	"github.com/monstercameron/GoWebComponents/v5/ui"
 
-	"github.com/monstercameron/hcm-next/tools/uxqual/render/journey"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/render/journey"
 )
 
 // PromotionWidgetRegistry returns the in-memory [Registry] that resolves

@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/planning/productslice"
+	"github.com/monstercameron/human-capital-management-suite/tools/planning/productslice"
 )
 
 func TestRunWritesValidatedRegistry(t *testing.T) {

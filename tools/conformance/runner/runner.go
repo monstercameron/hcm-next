@@ -11,9 +11,9 @@ package runner
 import (
 	"time"
 
-	"github.com/monstercameron/hcm-next/tools/conformance/checks"
-	"github.com/monstercameron/hcm-next/tools/conformance/model"
-	"github.com/monstercameron/hcm-next/tools/conformance/vocab"
+	"github.com/monstercameron/human-capital-management-suite/tools/conformance/checks"
+	"github.com/monstercameron/human-capital-management-suite/tools/conformance/model"
+	"github.com/monstercameron/human-capital-management-suite/tools/conformance/vocab"
 )
 
 // Clock supplies the current instant. Production SIMULATE runs use a fixed

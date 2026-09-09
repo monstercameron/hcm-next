@@ -10,15 +10,15 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/data/pgxadapter"
-	"github.com/monstercameron/hcm-next/internal/intent/app"
-	"github.com/monstercameron/hcm-next/internal/intent/app/pgstore"
-	kernelvalues "github.com/monstercameron/hcm-next/internal/kernel/values"
-	ledgerport "github.com/monstercameron/hcm-next/internal/ledger"
-	platformexecution "github.com/monstercameron/hcm-next/internal/platform/execution"
-	transactioncommit "github.com/monstercameron/hcm-next/internal/transaction/commit"
-	"github.com/monstercameron/hcm-next/internal/workflow/execute"
-	"github.com/monstercameron/hcm-next/internal/workflow/execute/effects"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/pgxadapter"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/app"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/app/pgstore"
+	kernelvalues "github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
+	ledgerport "github.com/monstercameron/human-capital-management-suite/internal/ledger"
+	platformexecution "github.com/monstercameron/human-capital-management-suite/internal/platform/execution"
+	transactioncommit "github.com/monstercameron/human-capital-management-suite/internal/transaction/commit"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/execute"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/execute/effects"
 )
 
 // ComposeExecutionAuthority builds the P1B execution-authority wiring

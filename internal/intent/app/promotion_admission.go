@@ -6,9 +6,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/internal/transport/envelope"
-	"github.com/monstercameron/hcm-next/internal/trust/stepup"
-	"github.com/monstercameron/hcm-next/internal/workflow/runtime"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/envelope"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/stepup"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/runtime"
 )
 
 // Stable reason references for the two promotion admission boundaries owned

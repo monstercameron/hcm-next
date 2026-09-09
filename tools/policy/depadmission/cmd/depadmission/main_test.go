@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/tools/policy/depadmission"
-	"github.com/monstercameron/hcm-next/tools/policy/internal/repopath"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/depadmission"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/internal/repopath"
 )
 
 // TestRunAgainstRealRepository exercises the full CLI pipeline (go.mod's

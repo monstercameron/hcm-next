@@ -13,7 +13,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/data/outbox"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/outbox"
 )
 
 func breakEnqueue(t *testing.T, f event001Fixture, effect string, causal *outbox.CausalMetadata) outbox.Record {

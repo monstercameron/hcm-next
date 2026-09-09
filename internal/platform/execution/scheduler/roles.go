@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/workflow/lease"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/lease"
 )
 
 // RoleConfig is the independently deployable role split hosted by the

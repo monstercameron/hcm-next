@@ -7,9 +7,9 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/data/runtimestate"
-	"github.com/monstercameron/hcm-next/internal/workflow/lease"
-	"github.com/monstercameron/hcm-next/internal/workflow/runtime"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/runtimestate"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/lease"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/runtime"
 )
 
 // TestAdmissibleAdmitsOnlyAdvanceableStatuses is the admission rule as a

@@ -1,5 +1,5 @@
 // Package connectivity is the read-only connectivity plane: the ports through
-// which HCM Next observes an incumbent HRIS without changing it.
+// which Human Capital Management Suite observes an incumbent HRIS without changing it.
 //
 // Semantic owner: connectivity. Phase: P1A.
 //

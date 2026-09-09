@@ -10,7 +10,7 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/monstercameron/hcm-next/tools/gen/schemaflux/sources"
+	"github.com/monstercameron/human-capital-management-suite/tools/gen/schemaflux/sources"
 )
 
 // Artifact is one reproducible model-generation result. SourceDigest is the
@@ -194,7 +194,7 @@ func render(m *sources.Manifest, packageName, sourceDigest, generatedDigest stri
 	fmt.Fprintf(&b, "// Source digest: %s\n", sourceDigest)
 	fmt.Fprintf(&b, "// Generated digest: %s (canonical template digest)\n\n", generatedDigest)
 	fmt.Fprintf(&b, "package %s\n\n", packageName)
-	b.WriteString("import (\n\t\"crypto/sha256\"\n\t\"encoding/binary\"\n\t\"encoding/hex\"\n\t\"fmt\"\n\n\t\"github.com/monstercameron/hcm-next/internal/intent/lifecycle\"\n\t\"github.com/monstercameron/hcm-next/internal/kernel/values\"\n)\n\n")
+	b.WriteString("import (\n\t\"crypto/sha256\"\n\t\"encoding/binary\"\n\t\"encoding/hex\"\n\t\"fmt\"\n\n\t\"github.com/monstercameron/human-capital-management-suite/internal/intent/lifecycle\"\n\t\"github.com/monstercameron/human-capital-management-suite/internal/kernel/values\"\n)\n\n")
 	b.WriteString("// SourceDigest identifies the exact SchemaFlux source projection used to build this package.\n")
 	fmt.Fprintf(&b, "const SourceDigest = %q\n", sourceDigest)
 	fmt.Fprintf(&b, "const GeneratedDigest = %q\n\n", generatedDigest)

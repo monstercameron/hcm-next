@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/monstercameron/hcm-next/internal/capability"
+	"github.com/monstercameron/human-capital-management-suite/internal/capability"
 )
 
 // ProbeResult is what one in-memory invocation of one published capability

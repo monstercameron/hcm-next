@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/conformance/internal/reporoot"
+	"github.com/monstercameron/human-capital-management-suite/tools/conformance/internal/reporoot"
 )
 
 func runtimeSpecPath(t *testing.T) string {

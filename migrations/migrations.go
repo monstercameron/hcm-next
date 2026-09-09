@@ -1,4 +1,4 @@
-// Package migrations owns the authoritative SQL-first schema of the HCM Next
+// Package migrations owns the authoritative SQL-first schema of the Human Capital Management Suite
 // data plane (owner: data plane; phase: P1A).
 //
 // The SQL files in this directory are the only place the physical schema is

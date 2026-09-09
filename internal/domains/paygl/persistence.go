@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/monstercameron/hcm-next/internal/domains/labor"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/labor"
 )
 
 var (

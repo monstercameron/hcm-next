@@ -6,7 +6,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/internal/engines/canonicalbytes"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/canonicalbytes"
 )
 
 var ErrInvalidFollowUp = errors.New("readiness: invalid follow-up compilation")

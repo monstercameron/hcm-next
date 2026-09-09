@@ -4,10 +4,10 @@ import (
 	"context"
 	"testing"
 
-	journeyv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/journey/v1"
-	"github.com/monstercameron/hcm-next/internal/experience/roleaccess"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
-	"github.com/monstercameron/hcm-next/internal/transport/journey"
+	journeyv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/journey/v1"
+	"github.com/monstercameron/human-capital-management-suite/internal/experience/roleaccess"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/journey"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

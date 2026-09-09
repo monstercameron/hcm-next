@@ -5,8 +5,8 @@ import (
 	"errors"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/data/dbport"
-	platformconfig "github.com/monstercameron/hcm-next/internal/platform/configregistry"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
+	platformconfig "github.com/monstercameron/human-capital-management-suite/internal/platform/configregistry"
 )
 
 // PutObject implements [platformconfig.Store]. It inserts o as a new,

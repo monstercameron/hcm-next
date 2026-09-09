@@ -3,7 +3,7 @@ package anomaly002_test
 import (
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/engines/abuse/anomaly002"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/abuse/anomaly002"
 )
 
 func TestVersionAndExplain(t *testing.T) {

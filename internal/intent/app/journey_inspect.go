@@ -10,17 +10,17 @@ import (
 
 	"github.com/google/uuid"
 
-	intentsv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/intents/v1"
-	"github.com/monstercameron/hcm-next/internal/data/dbport"
-	"github.com/monstercameron/hcm-next/internal/data/tenancy"
-	"github.com/monstercameron/hcm-next/internal/domains/promotion"
-	"github.com/monstercameron/hcm-next/internal/humanwork/workitem"
-	"github.com/monstercameron/hcm-next/internal/humanwork/workspace"
-	"github.com/monstercameron/hcm-next/internal/trust"
-	"github.com/monstercameron/hcm-next/internal/workflow/execute/effects"
-	"github.com/monstercameron/hcm-next/internal/workflow/promotionexec"
-	"github.com/monstercameron/hcm-next/internal/workflow/prototype"
-	"github.com/monstercameron/hcm-next/internal/workflow/runtime"
+	intentsv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/intents/v1"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/tenancy"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/promotion"
+	"github.com/monstercameron/human-capital-management-suite/internal/humanwork/workitem"
+	"github.com/monstercameron/human-capital-management-suite/internal/humanwork/workspace"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/execute/effects"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/promotionexec"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/prototype"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/runtime"
 )
 
 // The read half of the journey engine: how one promotion's durable execution

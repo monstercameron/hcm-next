@@ -7,12 +7,12 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/data/dbport"
-	"github.com/monstercameron/hcm-next/internal/data/tenancy/storagedisposition"
-	tenant "github.com/monstercameron/hcm-next/internal/domains/tenant"
-	platformconfig "github.com/monstercameron/hcm-next/internal/platform/configregistry"
-	"github.com/monstercameron/hcm-next/internal/trust/custody"
-	"github.com/monstercameron/hcm-next/internal/trust/envelope"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/tenancy/storagedisposition"
+	tenant "github.com/monstercameron/human-capital-management-suite/internal/domains/tenant"
+	platformconfig "github.com/monstercameron/human-capital-management-suite/internal/platform/configregistry"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/custody"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/envelope"
 )
 
 // This file composes tenant.PlaneVerifier implementations backed by what

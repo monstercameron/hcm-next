@@ -3,9 +3,9 @@ package capability
 import (
 	"sync"
 
-	capabilitiesv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/capabilities/v1"
-	"github.com/monstercameron/hcm-next/internal/engines/wire/canonical"
-	"github.com/monstercameron/hcm-next/internal/engines/wire/digest"
+	capabilitiesv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/capabilities/v1"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/wire/canonical"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/wire/digest"
 )
 
 // A suitable canonical profile exists for a Definition's digest:

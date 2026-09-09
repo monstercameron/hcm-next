@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/engines/abuse"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/abuse"
 )
 
 func riskTable(t *testing.T) abuse.WeightingTable {

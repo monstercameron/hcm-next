@@ -8,11 +8,11 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/transport/manifest"
-	"github.com/monstercameron/hcm-next/tools/policy/internal/repopath"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/manifest"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/internal/repopath"
 )
 
-const testModule = "github.com/monstercameron/hcm-next"
+const testModule = "github.com/monstercameron/human-capital-management-suite"
 
 // TestMaterialFeatureCannotBypassIntentGateway is INTENT-013's primary
 // denial test. Each direct effect edge is typed and the exact existing
@@ -21,11 +21,11 @@ func TestMaterialFeatureCannotBypassIntentGateway(t *testing.T) {
 	sources := []Source{
 		{Package: "internal/transport/fixture", Filename: "transport.go", Content: `package fixture
 import (
-  "github.com/monstercameron/hcm-next/internal/domains/people/store"
-  "github.com/monstercameron/hcm-next/internal/connectivity/observe/adapters/postgres"
-  "github.com/monstercameron/hcm-next/internal/data/outbox"
-  "github.com/monstercameron/hcm-next/internal/workflow/runtime"
-  "github.com/monstercameron/hcm-next/internal/messaging"
+  "github.com/monstercameron/human-capital-management-suite/internal/domains/people/store"
+  "github.com/monstercameron/human-capital-management-suite/internal/connectivity/observe/adapters/postgres"
+  "github.com/monstercameron/human-capital-management-suite/internal/data/outbox"
+  "github.com/monstercameron/human-capital-management-suite/internal/workflow/runtime"
+  "github.com/monstercameron/human-capital-management-suite/internal/messaging"
 )
 var _ = store.ErrNotFound
 var _ = postgres.New
@@ -34,7 +34,7 @@ var _ runtime.WorkflowResolver
 var _ messaging.Sink
 `},
 		{Package: "internal/transport/admin", Filename: "server.go", Content: `package admin
-import "github.com/monstercameron/hcm-next/internal/domains/people"
+import "github.com/monstercameron/human-capital-management-suite/internal/domains/people"
 var _ people.WorkerFacts
 `},
 	}
@@ -89,7 +89,7 @@ func TestTodo_INTENT_013_Golden(t *testing.T) {
 // mutable route or finding state.
 func TestTodo_INTENT_013_Race(t *testing.T) {
 	source := Source{Package: "internal/transport/fixture", Filename: "fixture.go", Content: `package fixture
-import "github.com/monstercameron/hcm-next/internal/data/outbox"
+import "github.com/monstercameron/human-capital-management-suite/internal/data/outbox"
 var _ = outbox.Commit
 `}
 	var wg sync.WaitGroup
@@ -149,7 +149,7 @@ func TestTodo_INTENT_013_Mutation(t *testing.T) {
 		Package:  "internal/transport/mutant",
 		Filename: "handler.go",
 		Content: `package mutant
-import "github.com/monstercameron/hcm-next/internal/data/outbox"
+import "github.com/monstercameron/human-capital-management-suite/internal/data/outbox"
 func Handle() { _ = outbox.Commit }
 `,
 	})

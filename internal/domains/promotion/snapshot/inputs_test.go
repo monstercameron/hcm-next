@@ -5,9 +5,9 @@ import (
 	"strings"
 	"testing"
 
-	promosnapshot "github.com/monstercameron/hcm-next/internal/domains/promotion/snapshot"
-	enginesnapshot "github.com/monstercameron/hcm-next/internal/engines/snapshot"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	promosnapshot "github.com/monstercameron/human-capital-management-suite/internal/domains/promotion/snapshot"
+	enginesnapshot "github.com/monstercameron/human-capital-management-suite/internal/engines/snapshot"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // TestSpecificationDeclaresEveryInputExactlyOnce proves the declared input

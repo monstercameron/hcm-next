@@ -6,10 +6,10 @@ import (
 	"reflect"
 	"testing"
 
-	journeyv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/journey/v1"
-	"github.com/monstercameron/hcm-next/internal/humanwork/workspace"
-	"github.com/monstercameron/hcm-next/internal/transport/envelope"
-	"github.com/monstercameron/hcm-next/internal/transport/journey"
+	journeyv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/journey/v1"
+	"github.com/monstercameron/human-capital-management-suite/internal/humanwork/workspace"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/envelope"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/journey"
 )
 
 // TestListWorkersForwardsBothPopulationsAndTheOptions drives the read half of

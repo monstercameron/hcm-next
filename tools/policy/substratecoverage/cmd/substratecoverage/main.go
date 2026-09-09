@@ -8,7 +8,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/monstercameron/hcm-next/tools/policy/substratecoverage"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/substratecoverage"
 )
 
 func main() { os.Exit(run(os.Args[1:], os.Stdout, os.Stderr)) }

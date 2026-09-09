@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/monstercameron/hcm-next/tools/policy/depmanifest"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/depmanifest"
 )
 
 // Overall report verdicts.

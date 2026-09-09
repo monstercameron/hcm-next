@@ -1,6 +1,6 @@
 // Package edge captures concrete, qualified ingress and egress controls.
 // Products and providers are adapters to this manifest; they do not define
-// HCM Next authorization semantics.
+// Human Capital Management Suite authorization semantics.
 package edge
 
 import (

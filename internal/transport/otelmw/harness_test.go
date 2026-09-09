@@ -17,16 +17,16 @@ import (
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/sdk/trace/tracetest"
 
-	intentsv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/intents/v1"
-	registryv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/registry/v1"
-	"github.com/monstercameron/hcm-next/internal/platform/buildinfo"
-	"github.com/monstercameron/hcm-next/internal/platform/telemetry"
-	hcmotel "github.com/monstercameron/hcm-next/internal/platform/telemetry/otel"
-	"github.com/monstercameron/hcm-next/internal/transport"
-	"github.com/monstercameron/hcm-next/internal/transport/edge"
-	"github.com/monstercameron/hcm-next/internal/transport/grpcserver"
-	"github.com/monstercameron/hcm-next/internal/transport/otelmw"
-	"github.com/monstercameron/hcm-next/internal/transport/transporttest"
+	intentsv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/intents/v1"
+	registryv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/registry/v1"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/buildinfo"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/telemetry"
+	hcmotel "github.com/monstercameron/human-capital-management-suite/internal/platform/telemetry/otel"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/edge"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/grpcserver"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/otelmw"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/transporttest"
 )
 
 // fixedRequestID is the correlation identifier every fixture request is told

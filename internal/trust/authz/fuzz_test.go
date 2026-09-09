@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
-	"github.com/monstercameron/hcm-next/internal/trust/authz"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/authz"
 )
 
 // fuzzTenants and fuzzOrgs bound the fuzz targets to a small, fixed universe

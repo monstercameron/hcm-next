@@ -5,8 +5,8 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/data/ledger"
-	"github.com/monstercameron/hcm-next/internal/trust/authz"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/ledger"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/authz"
 )
 
 // Gated field identifiers for one ledger event. A caller's authz.Decision

@@ -5,7 +5,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/tools/planning/todoregistry"
+	"github.com/monstercameron/human-capital-management-suite/tools/planning/todoregistry"
 )
 
 // phaseRank orders the phases that participate in real delivery sequencing.

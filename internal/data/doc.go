@@ -1,4 +1,4 @@
-// Package data is the boundary marker of the HCM Next data plane (owner: data
+// Package data is the boundary marker of the Human Capital Management Suite data plane (owner: data
 // plane; phase: P1A). It holds no code of its own; it states the contract that
 // its subpackages implement.
 //
@@ -57,6 +57,6 @@
 //
 // Three times are distinct and all three are recorded: occurred_at is when the
 // originating activity happened, effective_at is when the business fact applies,
-// and recorded_at is when HCM Next durably wrote it down. Business time is never
+// and recorded_at is when Human Capital Management Suite durably wrote it down. Business time is never
 // inferred from created_at, and intervals are half-open [from, to).
 package data

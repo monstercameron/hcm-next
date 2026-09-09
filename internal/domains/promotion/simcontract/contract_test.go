@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/domains/promotion/simcontract"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/promotion/simcontract"
 )
 
 // TestTodo_PROMO_004 is the PROMO-004 primary test. It assembles the full

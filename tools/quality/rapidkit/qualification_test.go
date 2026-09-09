@@ -79,7 +79,7 @@ func seededFailure(d defect) []operation {
 }
 
 // findDefect is the owned state-machine oracle. It intentionally models only
-// semantic invariants owned by HCM Next: balances cannot underflow, workflow
+// semantic invariants owned by Human Capital Management Suite: balances cannot underflow, workflow
 // transitions follow the lifecycle, and reservations cannot overlap.
 func findDefect(ops []operation, wanted defect) bool {
 	balance := 0

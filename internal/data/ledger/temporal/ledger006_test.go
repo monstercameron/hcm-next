@@ -11,8 +11,8 @@ import (
 
 	"github.com/google/uuid"
 
-	datalogger "github.com/monstercameron/hcm-next/internal/data/ledger"
-	"github.com/monstercameron/hcm-next/internal/data/ledger/temporal"
+	datalogger "github.com/monstercameron/human-capital-management-suite/internal/data/ledger"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/ledger/temporal"
 )
 
 // TestTodo_LEDGER_006 proves the bitemporal query and state reconstruction

@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	commonv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/common/v1"
-	"github.com/monstercameron/hcm-next/internal/capability"
+	commonv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/common/v1"
+	"github.com/monstercameron/human-capital-management-suite/internal/capability"
 )
 
 // fixtureDescriptor returns a syntactically valid RPCDescriptor for a

@@ -3,7 +3,7 @@ package pipeline
 import (
 	"testing"
 
-	legal "github.com/monstercameron/hcm-next/internal/governance/legal"
+	legal "github.com/monstercameron/human-capital-management-suite/internal/governance/legal"
 )
 
 // TestTodo_LEGAL_015_Golden pins the exact digests LEGAL-015 requires for a

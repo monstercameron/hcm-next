@@ -7,7 +7,7 @@
 package integrationv1
 
 import (
-	v1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/common/v1"
+	v1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/common/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
@@ -1023,7 +1023,7 @@ const file_hcmnext_integration_v1_integration_service_proto_rawDesc = "" +
 	"\x16GetConnectorConnection\x125.hcmnext.integration.v1.GetConnectorConnectionRequest\x1a6.hcmnext.integration.v1.GetConnectorConnectionResponse\x12\x8a\x01\n" +
 	"\x17TestConnectorConnection\x126.hcmnext.integration.v1.TestConnectorConnectionRequest\x1a7.hcmnext.integration.v1.TestConnectorConnectionResponse\x12\x8d\x01\n" +
 	"\x18ListExternalObservations\x127.hcmnext.integration.v1.ListExternalObservationsRequest\x1a8.hcmnext.integration.v1.ListExternalObservationsResponse\x12\x87\x01\n" +
-	"\x16GetExternalObservation\x125.hcmnext.integration.v1.GetExternalObservationRequest\x1a6.hcmnext.integration.v1.GetExternalObservationResponseBPZNgithub.com/monstercameron/hcm-next/gen/go/hcmnext/integration/v1;integrationv1b\x06proto3"
+	"\x16GetExternalObservation\x125.hcmnext.integration.v1.GetExternalObservationRequest\x1a6.hcmnext.integration.v1.GetExternalObservationResponseBfZdgithub.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/integration/v1;integrationv1b\x06proto3"
 
 var (
 	file_hcmnext_integration_v1_integration_service_proto_rawDescOnce sync.Once

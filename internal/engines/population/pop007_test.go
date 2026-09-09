@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/engines/population"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/population"
 )
 
 // TestTodo_POP_007 proves the RED and GREEN clauses of planning/todos.md

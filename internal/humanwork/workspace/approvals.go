@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
-	"github.com/monstercameron/hcm-next/internal/workflow/simulate"
-	"github.com/monstercameron/hcm-next/tools/uxqual/contract"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/simulate"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/contract"
 )
 
 // ApprovalTimeline is the approval half of the workspace: the chronology one

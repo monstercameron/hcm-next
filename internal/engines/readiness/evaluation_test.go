@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/engines/readiness"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/readiness"
 )
 
 func resolveForEvaluation(t *testing.T, r readiness.ReadinessRequirement, d readiness.EvidenceDescriptor) readiness.Resolution {

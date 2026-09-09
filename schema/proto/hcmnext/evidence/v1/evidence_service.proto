@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package hcmnext.evidence.v1;
 
-option go_package = "github.com/monstercameron/hcm-next/gen/go/hcmnext/evidence/v1;evidencev1";
+option go_package = "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/evidence/v1;evidencev1";
 
 import "google/protobuf/timestamp.proto";
 import "hcmnext/common/v1/common.proto";

@@ -20,7 +20,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/monstercameron/hcm-next/tools/quality/cicd"
+	"github.com/monstercameron/human-capital-management-suite/tools/quality/cicd"
 )
 
 // Artifact describes output that is intentionally absent from a clean
@@ -286,7 +286,7 @@ func Evaluate(root string) (Report, error) {
 	if err != nil {
 		return Report{}, fmt.Errorf("resolve root: %w", err)
 	}
-	tempDir, err := os.MkdirTemp("", "hcm-next-cleancheckout-")
+	tempDir, err := os.MkdirTemp("", "human-capital-management-suite-cleancheckout-")
 	if err != nil {
 		return Report{}, fmt.Errorf("create temporary checkout: %w", err)
 	}

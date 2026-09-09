@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/engines/snapshot"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/snapshot"
 )
 
 // TestTodo_SNAPSHOT_002 proves that required, optional, and conditional

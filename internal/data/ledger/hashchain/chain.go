@@ -4,9 +4,9 @@ import (
 	"encoding/binary"
 	"fmt"
 
-	intentsv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/intents/v1"
-	"github.com/monstercameron/hcm-next/internal/engines/wire/canonical"
-	"github.com/monstercameron/hcm-next/internal/engines/wire/digest"
+	intentsv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/intents/v1"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/wire/canonical"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/wire/digest"
 )
 
 // GenesisHash is the prev_hash of a stream's first chain link (sequence 1).

@@ -3,8 +3,8 @@ package frontier
 import (
 	"sort"
 
-	"github.com/monstercameron/hcm-next/internal/intent/lifecycle"
-	"github.com/monstercameron/hcm-next/internal/workflow"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/lifecycle"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow"
 )
 
 // NodeState is the durable state of one node execution. The vocabulary is the

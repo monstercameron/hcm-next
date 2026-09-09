@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/domains/labor"
-	"github.com/monstercameron/hcm-next/internal/domains/payroll"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/labor"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/payroll"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 func glDecimal(t *testing.T, text string) values.Decimal {

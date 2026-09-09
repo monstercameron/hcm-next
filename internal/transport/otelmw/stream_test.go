@@ -14,13 +14,13 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/test/bufconn"
 
-	journeyv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/journey/v1"
-	"github.com/monstercameron/hcm-next/internal/humanwork/workspace"
-	hcmotel "github.com/monstercameron/hcm-next/internal/platform/telemetry/otel"
-	"github.com/monstercameron/hcm-next/internal/transport/grpcserver"
-	transportjourney "github.com/monstercameron/hcm-next/internal/transport/journey"
-	"github.com/monstercameron/hcm-next/internal/transport/otelmw"
-	"github.com/monstercameron/hcm-next/internal/transport/transporttest"
+	journeyv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/journey/v1"
+	"github.com/monstercameron/human-capital-management-suite/internal/humanwork/workspace"
+	hcmotel "github.com/monstercameron/human-capital-management-suite/internal/platform/telemetry/otel"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/grpcserver"
+	transportjourney "github.com/monstercameron/human-capital-management-suite/internal/transport/journey"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/otelmw"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/transporttest"
 )
 
 // The streaming half of this package's claim. harness_test.go proves one

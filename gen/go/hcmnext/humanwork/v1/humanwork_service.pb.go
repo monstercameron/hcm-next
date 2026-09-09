@@ -7,8 +7,8 @@
 package humanworkv1
 
 import (
-	v1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/common/v1"
-	v11 "github.com/monstercameron/hcm-next/gen/go/hcmnext/intents/v1"
+	v1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/common/v1"
+	v11 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/intents/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -895,7 +895,7 @@ const file_hcmnext_humanwork_v1_humanwork_service_proto_rawDesc = "" +
 	"\x0fReleaseWorkItem\x12,.hcmnext.humanwork.v1.ReleaseWorkItemRequest\x1a-.hcmnext.humanwork.v1.ReleaseWorkItemResponse\x12q\n" +
 	"\x10CompleteWorkItem\x12-.hcmnext.humanwork.v1.CompleteWorkItemRequest\x1a..hcmnext.humanwork.v1.CompleteWorkItemResponse\x12k\n" +
 	"\x0eDecideApproval\x12+.hcmnext.humanwork.v1.DecideApprovalRequest\x1a,.hcmnext.humanwork.v1.DecideApprovalResponse\x12t\n" +
-	"\x11GetThresholdTable\x12..hcmnext.humanwork.v1.GetThresholdTableRequest\x1a/.hcmnext.humanwork.v1.GetThresholdTableResponseBLZJgithub.com/monstercameron/hcm-next/gen/go/hcmnext/humanwork/v1;humanworkv1b\x06proto3"
+	"\x11GetThresholdTable\x12..hcmnext.humanwork.v1.GetThresholdTableRequest\x1a/.hcmnext.humanwork.v1.GetThresholdTableResponseBbZ`github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/humanwork/v1;humanworkv1b\x06proto3"
 
 var (
 	file_hcmnext_humanwork_v1_humanwork_service_proto_rawDescOnce sync.Once

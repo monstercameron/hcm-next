@@ -20,11 +20,11 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/tools/planning/todoregistry"
-	"github.com/monstercameron/hcm-next/tools/policy/mutationpolicy"
+	"github.com/monstercameron/human-capital-management-suite/tools/planning/todoregistry"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/mutationpolicy"
 )
 
-const modulePath = "github.com/monstercameron/hcm-next"
+const modulePath = "github.com/monstercameron/human-capital-management-suite"
 
 // Strength is the classification assigned to one top-level Go test function.
 type Strength string

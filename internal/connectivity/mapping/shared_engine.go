@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/monstercameron/hcm-next/internal/engines/transformation/adapters"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/transformation/adapters"
 )
 
 // Normalize applies the mapping IR's documented default policy to a deep

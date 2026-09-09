@@ -11,9 +11,9 @@ import (
 	"github.com/monstercameron/GoWebComponents/v5/ui"
 	xhtml "golang.org/x/net/html"
 
-	"github.com/monstercameron/hcm-next/tools/uxqual/floorplan"
-	"github.com/monstercameron/hcm-next/tools/uxqual/pagedef"
-	"github.com/monstercameron/hcm-next/tools/uxqual/tokens"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/floorplan"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/pagedef"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/tokens"
 )
 
 func responsiveResolution(t testing.TB) floorplan.Resolution {

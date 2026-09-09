@@ -8,9 +8,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/data/dbport"
-	"github.com/monstercameron/hcm-next/internal/data/ledger/evidence"
-	"github.com/monstercameron/hcm-next/internal/domains/payroll/auditpack"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/ledger/evidence"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/payroll/auditpack"
 )
 
 // TestTodo_DB_024 is the primary acceptance test: a payroll run's four

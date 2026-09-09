@@ -7,11 +7,11 @@ import (
 
 	"github.com/google/uuid"
 
-	datalogger "github.com/monstercameron/hcm-next/internal/data/ledger"
-	"github.com/monstercameron/hcm-next/internal/data/outbox"
-	"github.com/monstercameron/hcm-next/internal/data/pgtest"
-	"github.com/monstercameron/hcm-next/internal/data/projection"
-	ledgerport "github.com/monstercameron/hcm-next/internal/ledger"
+	datalogger "github.com/monstercameron/human-capital-management-suite/internal/data/ledger"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/outbox"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/pgtest"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/projection"
+	ledgerport "github.com/monstercameron/human-capital-management-suite/internal/ledger"
 )
 
 func TestMain(m *testing.M) {

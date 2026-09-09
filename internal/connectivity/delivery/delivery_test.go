@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/connectivity/delivery"
+	"github.com/monstercameron/human-capital-management-suite/internal/connectivity/delivery"
 )
 
 var deliveryAt = time.Date(2026, 9, 3, 12, 0, 0, 0, time.UTC)

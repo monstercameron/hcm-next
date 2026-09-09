@@ -6,9 +6,9 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/platform/bootstrap"
-	"github.com/monstercameron/hcm-next/internal/platform/execution/scheduler"
-	"github.com/monstercameron/hcm-next/internal/workflow/lease"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/bootstrap"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/execution/scheduler"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/lease"
 )
 
 // This command owns nothing but its flag set and its role. Everything below

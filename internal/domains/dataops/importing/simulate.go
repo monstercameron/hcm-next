@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/monstercameron/hcm-next/internal/intent/model"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/model"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // Simulation errors are deliberately small and matchable by callers.

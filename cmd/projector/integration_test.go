@@ -8,11 +8,11 @@ import (
 
 	"github.com/google/uuid"
 
-	datalogger "github.com/monstercameron/hcm-next/internal/data/ledger"
-	"github.com/monstercameron/hcm-next/internal/data/pgtest"
-	"github.com/monstercameron/hcm-next/internal/data/pgxadapter"
-	"github.com/monstercameron/hcm-next/internal/data/projection"
-	"github.com/monstercameron/hcm-next/internal/platform/bootstrap"
+	datalogger "github.com/monstercameron/human-capital-management-suite/internal/data/ledger"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/pgtest"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/pgxadapter"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/projection"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/bootstrap"
 )
 
 func TestMain(m *testing.M) {

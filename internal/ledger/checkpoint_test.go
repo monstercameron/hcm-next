@@ -9,7 +9,7 @@ import (
 
 	"github.com/google/uuid"
 
-	checkpointadapter "github.com/monstercameron/hcm-next/internal/data/ledger/checkpoint"
+	checkpointadapter "github.com/monstercameron/human-capital-management-suite/internal/data/ledger/checkpoint"
 )
 
 // testSigner builds a throwaway signer. The port's own tests generate a key

@@ -128,7 +128,7 @@ func Load(path string) (*Config, error) {
 	return &c, nil
 }
 
-// TrimModule strips the HCM Next module prefix from a full import path,
+// TrimModule strips the Human Capital Management Suite module prefix from a full import path,
 // returning (relative path, true), or ("", false) when importPath is not
 // part of module.
 func TrimModule(module, importPath string) (string, bool) {
@@ -344,7 +344,7 @@ func CheckConflictImportsCoordinator(tc TransactionConflict, importerRel, import
 
 // isStdlib is a conservative heuristic: a standard-library import path's
 // first segment never contains a "." (every third-party module path does,
-// being a domain name), and it never starts with the HCM Next module's own
+// being a domain name), and it never starts with the Human Capital Management Suite module's own
 // host segment. It intentionally does not attempt to be a complete stdlib
 // registry; ARCH-GO-004's allowlist is additive over "always allow
 // standard library", so a false negative here (treating some obscure path

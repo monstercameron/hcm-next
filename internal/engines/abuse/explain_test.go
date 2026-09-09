@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/engines/abuse"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/abuse"
 )
 
 func TestExplainMatchesDeclaredInput(t *testing.T) {

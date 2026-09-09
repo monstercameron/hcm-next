@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/transport/manifest"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/manifest"
 )
 
 func TestGRPCRetryPolicyCannotReplayNonIdempotentCapabilityEffect(t *testing.T) {

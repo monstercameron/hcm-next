@@ -13,8 +13,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/workflow"
-	"github.com/monstercameron/hcm-next/internal/workflow/migrationpreview"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/migrationpreview"
 )
 
 const (

@@ -6,7 +6,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/data/dbport"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
 )
 
 // VersionMigration is the one additive write internal/workflow/migrate needs

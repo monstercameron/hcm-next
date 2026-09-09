@@ -9,8 +9,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 
-	"github.com/monstercameron/hcm-next/internal/data/dbport"
-	legal "github.com/monstercameron/hcm-next/internal/governance/legal"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
+	legal "github.com/monstercameron/human-capital-management-suite/internal/governance/legal"
 )
 
 // EvaluationReceiptEntry is the durable envelope for an offline-verifiable

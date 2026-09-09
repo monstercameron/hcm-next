@@ -7,13 +7,13 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/policy/internal/repopath"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/internal/repopath"
 )
 
 func testPolicy() Policy {
 	return Policy{
 		Version:      1,
-		Module:       "github.com/monstercameron/hcm-next",
+		Module:       "github.com/monstercameron/human-capital-management-suite",
 		PolicyDate:   "2026-09-03",
 		RuntimeRoots: []string{"cmd", "internal", "gen/go", "migrations"},
 		SemanticRoots: []string{

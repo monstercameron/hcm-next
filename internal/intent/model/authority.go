@@ -1,6 +1,6 @@
 package model
 
-import "github.com/monstercameron/hcm-next/internal/kernel/values"
+import "github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 
 // AuthorityKind classifies who asserts a fact. Values match the
 // authority_assignment_kind_allowed CHECK constraint in

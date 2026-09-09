@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/quality/buildverify"
+	"github.com/monstercameron/human-capital-management-suite/tools/quality/buildverify"
 )
 
 // repoRoot walks up from this test file's own location to find go.mod.

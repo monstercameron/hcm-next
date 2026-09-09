@@ -4,9 +4,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/domains/promotion/simcomp"
-	promosnapshot "github.com/monstercameron/hcm-next/internal/domains/promotion/snapshot"
-	"github.com/monstercameron/hcm-next/internal/domains/rewards"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/promotion/simcomp"
+	promosnapshot "github.com/monstercameron/human-capital-management-suite/internal/domains/promotion/snapshot"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/rewards"
 )
 
 // TestBandFindingTriggersTheRightApproval proves the three placement classes

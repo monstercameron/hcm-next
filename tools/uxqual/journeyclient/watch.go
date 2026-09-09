@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	journeyv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/journey/v1"
-	"github.com/monstercameron/hcm-next/tools/uxqual/render/journey"
+	journeyv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/journey/v1"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/render/journey"
 )
 
 // This file is the whole of the client's live behaviour, and it is one

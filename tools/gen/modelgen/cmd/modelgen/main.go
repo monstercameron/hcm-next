@@ -16,7 +16,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/monstercameron/hcm-next/tools/gen/modelgen"
+	"github.com/monstercameron/human-capital-management-suite/tools/gen/modelgen"
 )
 
 func main() {

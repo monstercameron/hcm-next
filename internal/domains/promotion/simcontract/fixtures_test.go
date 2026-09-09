@@ -4,18 +4,18 @@ import (
 	"context"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/domains/evidence"
-	"github.com/monstercameron/hcm-next/internal/domains/fixtures"
-	"github.com/monstercameron/hcm-next/internal/domains/promotion"
-	"github.com/monstercameron/hcm-next/internal/domains/promotion/simassign"
-	"github.com/monstercameron/hcm-next/internal/domains/promotion/simcomp"
-	"github.com/monstercameron/hcm-next/internal/domains/promotion/simcontract"
-	"github.com/monstercameron/hcm-next/internal/governance/decision"
-	"github.com/monstercameron/hcm-next/internal/humanwork/workitem"
-	"github.com/monstercameron/hcm-next/internal/intent"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
-	"github.com/monstercameron/hcm-next/internal/messaging"
-	"github.com/monstercameron/hcm-next/internal/transaction/conflict"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/evidence"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/fixtures"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/promotion"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/promotion/simassign"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/promotion/simcomp"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/promotion/simcontract"
+	"github.com/monstercameron/human-capital-management-suite/internal/governance/decision"
+	"github.com/monstercameron/human-capital-management-suite/internal/humanwork/workitem"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/messaging"
+	"github.com/monstercameron/human-capital-management-suite/internal/transaction/conflict"
 )
 
 // ---------------------------------------------------------------------------
@@ -42,7 +42,7 @@ type revisionStorePort interface {
 // externalOperationPort is what INTG-001's external-operation boundary looks
 // like from the outside: invoke a write-capable operation against a
 // connected incumbent system. It is a write shape, not
-// [github.com/monstercameron/hcm-next/internal/connectivity/spi.Adapter],
+// [github.com/monstercameron/human-capital-management-suite/internal/connectivity/spi.Adapter],
 // which is read-only by contract in this release.
 type externalOperationPort interface {
 	InvokeExternalOperation(ctx context.Context, destinationRef string, payload []byte) (observationRef string, err error)

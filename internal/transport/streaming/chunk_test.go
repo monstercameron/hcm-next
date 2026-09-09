@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/transport/streaming"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/streaming"
 )
 
 func TestOrderTrackerAcceptsTheFirstSequenceUnconditionally(t *testing.T) {

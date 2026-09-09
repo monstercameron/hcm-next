@@ -9,8 +9,8 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
-	commonv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/common/v1"
-	"github.com/monstercameron/hcm-next/internal/transport/envelope"
+	commonv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/common/v1"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/envelope"
 )
 
 // allowDiagnostics is an access grant that permits reading an error's nested

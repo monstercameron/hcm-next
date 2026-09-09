@@ -8,18 +8,18 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/data/aggregates"
-	"github.com/monstercameron/hcm-next/internal/data/dbport"
-	"github.com/monstercameron/hcm-next/internal/data/pgtest"
-	datacommit "github.com/monstercameron/hcm-next/internal/data/promotioncommit"
-	domaincommit "github.com/monstercameron/hcm-next/internal/domains/promotion/commit"
-	"github.com/monstercameron/hcm-next/internal/intent"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
-	"github.com/monstercameron/hcm-next/internal/platform/execution/promotionterminal"
-	"github.com/monstercameron/hcm-next/internal/transaction"
-	"github.com/monstercameron/hcm-next/internal/workflow"
-	"github.com/monstercameron/hcm-next/internal/workflow/execute"
-	"github.com/monstercameron/hcm-next/internal/workflow/execute/effects"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/aggregates"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/pgtest"
+	datacommit "github.com/monstercameron/human-capital-management-suite/internal/data/promotioncommit"
+	domaincommit "github.com/monstercameron/human-capital-management-suite/internal/domains/promotion/commit"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/execution/promotionterminal"
+	"github.com/monstercameron/human-capital-management-suite/internal/transaction"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/execute"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/execute/effects"
 )
 
 type atomicPromotionFixture struct {

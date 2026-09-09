@@ -13,9 +13,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/tools/policy/depedge"
-	"github.com/monstercameron/hcm-next/tools/policy/importgraph"
-	"github.com/monstercameron/hcm-next/tools/policy/layout"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/depedge"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/importgraph"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/layout"
 	"gopkg.in/yaml.v3"
 )
 
@@ -140,7 +140,7 @@ func formatPolicyViolations(violations []depedge.Violation) string {
 
 func render(layoutDoc layoutDocument, policy *depedge.Policy, roles roleDocument, graph graphInfo) []byte {
 	var b strings.Builder
-	b.WriteString("# HCM Next Repository Architecture\n\n")
+	b.WriteString("# Human Capital Management Suite Repository Architecture\n\n")
 	b.WriteString("Generated from the checked-in architecture manifests and the current Go package tree.\n\n")
 	b.WriteString("- Module: `" + layoutDoc.Module + "`\n")
 	b.WriteString("- Source graph: " + graph.Digest + "\n")
@@ -262,7 +262,7 @@ func buildGraph(root string, layoutManifest *layout.Manifest, policy *depedge.Po
 }
 
 func fallbackGraph(root string, policy *depedge.Policy) (graphInfo, error) {
-	module := "github.com/monstercameron/hcm-next"
+	module := "github.com/monstercameron/human-capital-management-suite"
 	byDir := map[string]*packageInfo{}
 	err := filepath.WalkDir(root, func(path string, entry os.DirEntry, walkErr error) error {
 		if walkErr != nil {

@@ -1,6 +1,6 @@
 // Package modelgen implements MSRC-007: it reads the compiled
-// [github.com/monstercameron/hcm-next/internal/intent/model] registry — the
-// same registry [github.com/monstercameron/hcm-next/tools/gen/storagemanifest]
+// [github.com/monstercameron/human-capital-management-suite/internal/intent/model] registry — the
+// same registry [github.com/monstercameron/human-capital-management-suite/tools/gen/storagemanifest]
 // reads for DB-002/003/004 — and deterministically generates typed Go model
 // values, per-entity validators and a generated registry into
 // gen/go/hcmnext/model.

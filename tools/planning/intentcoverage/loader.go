@@ -8,10 +8,10 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/tools/planning/corpus"
-	"github.com/monstercameron/hcm-next/tools/planning/intentmanifests"
-	"github.com/monstercameron/hcm-next/tools/planning/todogovernance"
-	"github.com/monstercameron/hcm-next/tools/planning/traceability"
+	"github.com/monstercameron/human-capital-management-suite/tools/planning/corpus"
+	"github.com/monstercameron/human-capital-management-suite/tools/planning/intentmanifests"
+	"github.com/monstercameron/human-capital-management-suite/tools/planning/todogovernance"
+	"github.com/monstercameron/human-capital-management-suite/tools/planning/traceability"
 )
 
 // LoadRepository reads the live accepted-intent catalog

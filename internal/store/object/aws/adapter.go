@@ -19,7 +19,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/store/object"
+	"github.com/monstercameron/human-capital-management-suite/internal/store/object"
 )
 
 const (

@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/planning/todoregistry"
+	"github.com/monstercameron/human-capital-management-suite/tools/planning/todoregistry"
 )
 
 func TestTodo_GOV_016(t *testing.T) {

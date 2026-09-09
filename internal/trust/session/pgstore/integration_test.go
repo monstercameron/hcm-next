@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/data/pgtest"
-	"github.com/monstercameron/hcm-next/internal/trust"
-	"github.com/monstercameron/hcm-next/internal/trust/session"
-	"github.com/monstercameron/hcm-next/internal/trust/session/pgstore"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/pgtest"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/session"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/session/pgstore"
 )
 
 // TestTodo_SECARCH_002_Integration is the two-replica proof SECARCH-002's

@@ -13,7 +13,7 @@ package libfirewall
 import (
 	"strings"
 
-	"github.com/monstercameron/hcm-next/tools/policy/depmanifest"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/depmanifest"
 )
 
 // Violation names one forbidden import: importer (a module-relative HCM
@@ -77,7 +77,7 @@ func classify(manifest *depmanifest.Manifest, importedPath string) depmanifest.C
 // when: importer is not part of manifest's module (nothing for this
 // firewall to say), importedPath is not classified by the manifest at all
 // (LIB-001's job, not this firewall's), the row is PROJECT_CORE (no
-// third-party boundary applies to HCM Next's own reserved core), or
+// third-party boundary applies to Human Capital Management Suite's own reserved core), or
 // importer's root is inside the classification's allowed_import_roots.
 // Otherwise it names the exact forbidden edge.
 func CheckImport(manifest *depmanifest.Manifest, importerImportPath, importedPath string) *Violation {

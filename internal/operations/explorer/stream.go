@@ -7,10 +7,10 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/data/ledger"
-	"github.com/monstercameron/hcm-next/internal/data/ledger/hashchain"
-	"github.com/monstercameron/hcm-next/internal/operations/internal/viewdigest"
-	"github.com/monstercameron/hcm-next/internal/trust/authz"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/ledger"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/ledger/hashchain"
+	"github.com/monstercameron/human-capital-management-suite/internal/operations/internal/viewdigest"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/authz"
 )
 
 // StreamListingView is one stream's events, redacted per-event by the

@@ -8,7 +8,7 @@
 //
 // # Scope
 //
-// HCM Next does not pin an OAuth/OIDC client library or a JOSE library
+// Human Capital Management Suite does not pin an OAuth/OIDC client library or a JOSE library
 // (LIB-010 and LIB-011 are not yet qualified, and this package may not add
 // one: go.mod is frozen for this work). What this package implements is the
 // part of enterprise federation that is pure verification of an

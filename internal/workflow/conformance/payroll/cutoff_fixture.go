@@ -7,9 +7,9 @@ import (
 	"fmt"
 	"time"
 
-	domainpayroll "github.com/monstercameron/hcm-next/internal/domains/payroll"
-	"github.com/monstercameron/hcm-next/internal/engines/cycle"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	domainpayroll "github.com/monstercameron/human-capital-management-suite/internal/domains/payroll"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/cycle"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // EffectiveDateStatus is the payroll consequence of comparing a requested

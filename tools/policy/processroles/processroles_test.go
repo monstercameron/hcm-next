@@ -5,9 +5,9 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/policy/internal/repopath"
-	"github.com/monstercameron/hcm-next/tools/policy/layout"
-	"github.com/monstercameron/hcm-next/tools/policy/processroles"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/internal/repopath"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/layout"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/processroles"
 )
 
 // TestTodo_SVC_001 is the SVC-001 primary test: every cmd/* directory has

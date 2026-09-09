@@ -13,7 +13,7 @@ import (
 	"os"
 	"reflect"
 
-	"github.com/monstercameron/hcm-next/internal/transport/manifest"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/manifest"
 )
 
 // DefaultPath is the checked-in generated manifest this checker validates,

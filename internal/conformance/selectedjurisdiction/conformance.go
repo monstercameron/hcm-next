@@ -11,7 +11,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/internal/governance/legal"
+	"github.com/monstercameron/human-capital-management-suite/internal/governance/legal"
 )
 
 // Slice identifies a product slice covered by this conformance contract.

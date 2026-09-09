@@ -9,8 +9,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/engines/canonicalbytes"
-	"github.com/monstercameron/hcm-next/internal/i18n"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/canonicalbytes"
+	"github.com/monstercameron/human-capital-management-suite/internal/i18n"
 )
 
 const lifecycleSchema = "hcmnext.domains.knowledge.KnowledgeLifecycle"

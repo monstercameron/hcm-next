@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/data/bitemporal"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/bitemporal"
 )
 
 // TestTodo_DATA_005_Mutation perturbs inputs by the smallest possible amount

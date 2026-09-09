@@ -4,10 +4,10 @@ import (
 	"context"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/data/dbport"
-	"github.com/monstercameron/hcm-next/internal/workflow/prototype"
-	"github.com/monstercameron/hcm-next/internal/workflow/runtime"
-	"github.com/monstercameron/hcm-next/internal/workflow/version"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/prototype"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/runtime"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/version"
 )
 
 type inertTx struct{}

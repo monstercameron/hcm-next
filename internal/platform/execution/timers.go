@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
-	"github.com/monstercameron/hcm-next/internal/workflow"
-	"github.com/monstercameron/hcm-next/internal/workflow/execute"
-	"github.com/monstercameron/hcm-next/internal/workflow/runtime"
-	stepswait "github.com/monstercameron/hcm-next/internal/workflow/steps/wait"
-	"github.com/monstercameron/hcm-next/internal/workflow/timer"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/execute"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/runtime"
+	stepswait "github.com/monstercameron/human-capital-management-suite/internal/workflow/steps/wait"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/timer"
 )
 
 // The production adapter between internal/workflow/execute's TIMER_REQUIRED

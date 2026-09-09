@@ -9,8 +9,8 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/policy/layout"
-	"github.com/monstercameron/hcm-next/tools/policy/phaseone"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/layout"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/phaseone"
 )
 
 func repoRoot(t *testing.T) string {
@@ -47,22 +47,22 @@ func TestPhaseOnePackageAllowlist(t *testing.T) {
 		t.Fatal("no deferred roots")
 	}
 	edges := [][2]string{
-		{"github.com/monstercameron/hcm-next/internal/transport/edge", "github.com/monstercameron/hcm-next/internal/humanwork/messaging"},
-		{"github.com/monstercameron/hcm-next/internal/capability/registry", "github.com/monstercameron/hcm-next/internal/humanwork/forms"},
+		{"github.com/monstercameron/human-capital-management-suite/internal/transport/edge", "github.com/monstercameron/human-capital-management-suite/internal/humanwork/messaging"},
+		{"github.com/monstercameron/human-capital-management-suite/internal/capability/registry", "github.com/monstercameron/human-capital-management-suite/internal/humanwork/forms"},
 	}
 	violations := phaseone.CheckGraph(m, edges)
 	if len(violations) != 2 {
 		t.Fatalf("want 2 deferred violations got %d %+v", len(violations), violations)
 	}
 	ok := [][2]string{
-		{"github.com/monstercameron/hcm-next/internal/transport/edge", "github.com/monstercameron/hcm-next/internal/kernel/temporal"},
-		{"github.com/monstercameron/hcm-next/internal/capability/registry", "github.com/monstercameron/hcm-next/internal/domains/people"},
+		{"github.com/monstercameron/human-capital-management-suite/internal/transport/edge", "github.com/monstercameron/human-capital-management-suite/internal/kernel/temporal"},
+		{"github.com/monstercameron/human-capital-management-suite/internal/capability/registry", "github.com/monstercameron/human-capital-management-suite/internal/domains/people"},
 	}
 	if v := phaseone.CheckGraph(m, ok); len(v) != 0 {
 		t.Fatalf("allowed edge rejected %+v", v)
 	}
 	golden := [][2]string{
-		{"github.com/monstercameron/hcm-next/cmd/hcmnext", "github.com/monstercameron/hcm-next/internal/humanwork/inbox"},
+		{"github.com/monstercameron/human-capital-management-suite/cmd/hcmnext", "github.com/monstercameron/human-capital-management-suite/internal/humanwork/inbox"},
 	}
 	if v := phaseone.CheckGraph(m, golden); len(v) == 0 {
 		t.Fatal("deferred humanwork must be rejected")
@@ -84,8 +84,8 @@ func TestTodo_ARCH_GO_018_Property(t *testing.T) {
 		}
 	}
 	for _, tc := range []struct{ imp, wantRoot string }{
-		{"github.com/monstercameron/hcm-next/internal/humanwork/messaging/sender", "internal/humanwork"},
-		{"github.com/monstercameron/hcm-next/internal/domains/people/store", "internal/domains"},
+		{"github.com/monstercameron/human-capital-management-suite/internal/humanwork/messaging/sender", "internal/humanwork"},
+		{"github.com/monstercameron/human-capital-management-suite/internal/domains/people/store", "internal/domains"},
 	} {
 		if !phaseone.IsDeferredImport(m, tc.imp) && tc.wantRoot == "internal/humanwork" {
 			t.Fatalf("expected deferred %q", tc.imp)
@@ -129,10 +129,10 @@ func TestTodo_ARCH_GO_018_Integration(t *testing.T) {
 
 func TestTodo_ARCH_GO_018_Security(t *testing.T) {
 	m := loadManifest(t)
-	if phaseone.IsDeferredImport(m, "github.com/monstercameron/hcm-next/internal/kernel/money") {
+	if phaseone.IsDeferredImport(m, "github.com/monstercameron/human-capital-management-suite/internal/kernel/money") {
 		t.Fatal("kernel must not be deferred")
 	}
-	if !phaseone.IsDeferredImport(m, "github.com/monstercameron/hcm-next/internal/humanwork") {
+	if !phaseone.IsDeferredImport(m, "github.com/monstercameron/human-capital-management-suite/internal/humanwork") {
 		t.Fatal("humanwork must be deferred")
 	}
 }
@@ -159,7 +159,7 @@ func TestTodo_ARCH_GO_018_Mutation(t *testing.T) {
 	if err := phaseone.ValidateManifest(&m2); err == nil {
 		t.Log("mutated phase still maybe valid but deferred check should catch")
 	}
-	if !phaseone.IsDeferredImport(m, "github.com/monstercameron/hcm-next/internal/humanwork/messaging") {
+	if !phaseone.IsDeferredImport(m, "github.com/monstercameron/human-capital-management-suite/internal/humanwork/messaging") {
 		t.Fatal("mutation did not affect deferred detection")
 	}
 }

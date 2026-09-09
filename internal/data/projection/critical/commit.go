@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/monstercameron/hcm-next/internal/data/dbport"
-	"github.com/monstercameron/hcm-next/internal/data/outbox"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/outbox"
 )
 
 // CommitResult is everything one Commit call produced: the ledger/outbox

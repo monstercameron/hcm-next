@@ -11,10 +11,10 @@ import (
 	"strings"
 	"time"
 
-	datalogger "github.com/monstercameron/hcm-next/internal/data/ledger"
-	"github.com/monstercameron/hcm-next/internal/data/ledger/checkpoint"
-	"github.com/monstercameron/hcm-next/internal/data/ledger/evidence"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	datalogger "github.com/monstercameron/human-capital-management-suite/internal/data/ledger"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/ledger/checkpoint"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/ledger/evidence"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // SchemaVersion is the version of this package's own manifest and summary

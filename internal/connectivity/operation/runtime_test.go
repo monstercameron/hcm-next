@@ -11,9 +11,9 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/connectivity/operation"
-	"github.com/monstercameron/hcm-next/internal/trust/custody"
-	"github.com/monstercameron/hcm-next/internal/trust/lease"
+	"github.com/monstercameron/human-capital-management-suite/internal/connectivity/operation"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/custody"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/lease"
 )
 
 func TestTodo_CONN_RT_003(t *testing.T) {

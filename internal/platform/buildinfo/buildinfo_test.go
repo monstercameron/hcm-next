@@ -4,7 +4,7 @@ import "testing"
 
 func TestCurrent(t *testing.T) {
 	info := Current()
-	if info.Module != "github.com/monstercameron/hcm-next" {
+	if info.Module != "github.com/monstercameron/human-capital-management-suite" {
 		t.Fatalf("module %q", info.Module)
 	}
 	if info.GoVersion == "" {

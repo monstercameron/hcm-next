@@ -11,7 +11,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/documentsecurity"
+	"github.com/monstercameron/human-capital-management-suite/internal/documentsecurity"
 )
 
 const MedicalSensitive = "MEDICAL_SENSITIVE"

@@ -10,7 +10,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/trust/workload"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/workload"
 )
 
 func eastwestPeer(t *testing.T, service, cell string, now time.Time) workload.MTLSIdentity {

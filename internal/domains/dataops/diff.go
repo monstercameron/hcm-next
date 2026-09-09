@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/monstercameron/hcm-next/internal/domains/evidence"
-	"github.com/monstercameron/hcm-next/internal/engines/canonicalbytes"
-	"github.com/monstercameron/hcm-next/internal/engines/fielddiff"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/evidence"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/canonicalbytes"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/fielddiff"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // Rule pack identity for DATAOPS-008. The comparison rules and the repair-safe
@@ -267,7 +267,7 @@ func (p FreshnessPolicy) fresh(retrieved values.RecordedAt, evaluated values.Ins
 	return evaluatedSec-retrievedSec <= p.MaxAgeSeconds, nil
 }
 
-// CanonicalField is one field of the HCM Next side of a comparison, carrying
+// CanonicalField is one field of the Human Capital Management Suite side of a comparison, carrying
 // the evidence that makes it citable: which authority owns it, where it came
 // from, and which revision it was read at.
 type CanonicalField struct {
@@ -357,7 +357,7 @@ func (f CanonicalField) Canonical() []byte {
 	return raw
 }
 
-// CanonicalRecord is the HCM Next side of a comparison for one subject at one
+// CanonicalRecord is the Human Capital Management Suite side of a comparison for one subject at one
 // bitemporal coordinate.
 type CanonicalRecord struct {
 	Subject values.EntityRef

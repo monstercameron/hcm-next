@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/transport/manifest"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/manifest"
 )
 
 const ContractVersion = "hcmnext.grpc-replay-policy/v1"

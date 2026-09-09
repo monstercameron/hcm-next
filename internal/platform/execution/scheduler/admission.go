@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/data/dbport"
-	"github.com/monstercameron/hcm-next/internal/data/runtimestate"
-	"github.com/monstercameron/hcm-next/internal/workflow/lease"
-	"github.com/monstercameron/hcm-next/internal/workflow/runtime"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/runtimestate"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/lease"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/runtime"
 )
 
 // admissibleStatuses is the declared admission rule: the instance runtime

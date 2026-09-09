@@ -86,7 +86,7 @@ type dispositionPreviewDoc struct {
 func RenderDispositionPreviewYAML(domains []Domain) (string, error) {
 	doc := dispositionPreviewDoc{
 		Version: 1,
-		Module:  "github.com/monstercameron/hcm-next",
+		Module:  "github.com/monstercameron/human-capital-management-suite",
 		Source:  "planning/data/models (payroll, benefits, time, leave, recruiting, talent, learning, case, access, regulatory)",
 		Tables:  DispositionRows(domains),
 	}

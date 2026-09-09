@@ -8,8 +8,8 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/monstercameron/hcm-next/internal/transport"
-	"github.com/monstercameron/hcm-next/internal/transport/envelope"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/envelope"
 )
 
 // call is one admitted gRPC call, whatever its cardinality: the enriched

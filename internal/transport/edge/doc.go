@@ -1,4 +1,4 @@
-// Package edge is the HTTP projection of the canonical HCM Next gRPC surface.
+// Package edge is the HTTP projection of the canonical Human Capital Management Suite gRPC surface.
 //
 // Semantic owner: experience-and-transport. Phase: P1A. Todos: TOOL-008,
 // ENDPOINT-002, ENDPOINT-003, CAP-003.
@@ -49,7 +49,7 @@
 // HTTP status from envelope.Code.HTTPStatus and rewrites the response status
 // accordingly; see statusOverrideMiddleware. That is the only place this
 // package disagrees with its transport library, and it disagrees in favor of
-// the HCM Next contract.
+// the Human Capital Management Suite contract.
 //
 // # What this package is not
 //

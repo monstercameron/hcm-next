@@ -12,7 +12,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/platform/buildinfo"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/buildinfo"
 )
 
 // Deps bundles the platform plumbing Run resolves before invoking

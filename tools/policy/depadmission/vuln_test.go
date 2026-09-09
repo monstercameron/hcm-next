@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/tools/policy/depadmission"
-	"github.com/monstercameron/hcm-next/tools/policy/internal/repopath"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/depadmission"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/internal/repopath"
 )
 
 func parseFixture(t *testing.T, name string) depadmission.ScanResult {

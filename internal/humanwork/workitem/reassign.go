@@ -11,7 +11,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/humanwork"
+	"github.com/monstercameron/human-capital-management-suite/internal/humanwork"
 )
 
 // ReassignInput is [Store.Reassign]'s request: the routed work item to

@@ -1,8 +1,8 @@
 package forms
 
 import (
-	"github.com/monstercameron/hcm-next/tools/uxqual/contract"
-	"github.com/monstercameron/hcm-next/tools/uxqual/testdata"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/contract"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/testdata"
 )
 
 // RequiredFieldIDs are the tools/uxqual/testdata.PromotionFixture's

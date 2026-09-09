@@ -8,8 +8,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/monstercameron/hcm-next/tools/gen/schemaflux/modelgen"
-	"github.com/monstercameron/hcm-next/tools/gen/schemaflux/sources"
+	"github.com/monstercameron/human-capital-management-suite/tools/gen/schemaflux/modelgen"
+	"github.com/monstercameron/human-capital-management-suite/tools/gen/schemaflux/sources"
 )
 
 func main() {

@@ -1,6 +1,6 @@
 package dsr
 
-import "github.com/monstercameron/hcm-next/internal/kernel/values"
+import "github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 
 // EventKind is the closed vocabulary of events [Evidence] records.
 type EventKind string

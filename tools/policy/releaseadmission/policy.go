@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/monstercameron/hcm-next/tools/policy/provenance"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/provenance"
 )
 
 // Version is the release-admission policy contract revision.

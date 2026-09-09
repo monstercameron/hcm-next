@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/domains/skill"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/skill"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 func careerRef(kind values.Kind, id string) values.EntityRef {

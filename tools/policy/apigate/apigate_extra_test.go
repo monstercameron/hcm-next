@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/gen/compatibility"
+	"github.com/monstercameron/human-capital-management-suite/tools/gen/compatibility"
 )
 
 func TestAPIGate_ReportAndRegisterValidation(t *testing.T) {

@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/platform/telemetry"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/telemetry"
 )
 
 // TestTodo_OBS_005 proves the RED and GREEN clauses of planning/todos.md

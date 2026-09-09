@@ -6,8 +6,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/data/dbport"
-	"github.com/monstercameron/hcm-next/internal/data/queryplans"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/queryplans"
 )
 
 const seqScanPlanJSON = `[

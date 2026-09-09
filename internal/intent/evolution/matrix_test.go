@@ -11,7 +11,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/intent"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent"
 )
 
 var updateGolden = flag.Bool("update", false, "rewrite the checked-in golden verdict table")

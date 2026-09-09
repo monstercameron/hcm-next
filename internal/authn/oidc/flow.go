@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/authn/issuerregistry"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
-	trustfederation "github.com/monstercameron/hcm-next/internal/trust/federation"
+	"github.com/monstercameron/human-capital-management-suite/internal/authn/issuerregistry"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
+	trustfederation "github.com/monstercameron/human-capital-management-suite/internal/trust/federation"
 )
 
 // defaultPendingTTL bounds how long a [PendingAuthorization] -- and the

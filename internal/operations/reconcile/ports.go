@@ -4,9 +4,9 @@ import (
 	"context"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/connectivity/observe"
-	"github.com/monstercameron/hcm-next/internal/data/runtimestate"
-	"github.com/monstercameron/hcm-next/internal/workflow/lease"
+	"github.com/monstercameron/human-capital-management-suite/internal/connectivity/observe"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/runtimestate"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/lease"
 )
 
 // Executor is the database capability this package needs: a transaction the

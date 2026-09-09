@@ -7,8 +7,8 @@
 package dataopsv1
 
 import (
-	v1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/common/v1"
-	v11 "github.com/monstercameron/hcm-next/gen/go/hcmnext/evidence/v1"
+	v1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/common/v1"
+	v11 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/evidence/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -1913,7 +1913,7 @@ const file_hcmnext_dataops_v1_repair_proto_rawDesc = "" +
 	"(REPAIR_SIMULATION_STATUS_REPLAN_REQUIRED\x10\x02\x12/\n" +
 	"+REPAIR_SIMULATION_STATUS_NO_LONGER_REQUIRED\x10\x03\x12$\n" +
 	" REPAIR_SIMULATION_STATUS_BLOCKED\x10\x04\x12$\n" +
-	" REPAIR_SIMULATION_STATUS_UNKNOWN\x10\x05BHZFgithub.com/monstercameron/hcm-next/gen/go/hcmnext/dataops/v1;dataopsv1b\x06proto3"
+	" REPAIR_SIMULATION_STATUS_UNKNOWN\x10\x05B^Z\\github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/dataops/v1;dataopsv1b\x06proto3"
 
 var (
 	file_hcmnext_dataops_v1_repair_proto_rawDescOnce sync.Once

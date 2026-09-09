@@ -6,10 +6,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/domains/fixtures"
-	"github.com/monstercameron/hcm-next/internal/domains/people"
-	promosnapshot "github.com/monstercameron/hcm-next/internal/domains/promotion/snapshot"
-	enginesnapshot "github.com/monstercameron/hcm-next/internal/engines/snapshot"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/fixtures"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/people"
+	promosnapshot "github.com/monstercameron/human-capital-management-suite/internal/domains/promotion/snapshot"
+	enginesnapshot "github.com/monstercameron/human-capital-management-suite/internal/engines/snapshot"
 )
 
 // TestTodo_PROMO_001 is the primary contract: one Build over the

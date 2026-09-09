@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/operations/incidentstate"
+	"github.com/monstercameron/human-capital-management-suite/internal/operations/incidentstate"
 )
 
 func advisoryIncident(t *testing.T, state incidentstate.State) incidentstate.Incident {

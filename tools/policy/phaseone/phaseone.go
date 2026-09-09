@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/tools/policy/layout"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/layout"
 )
 
 var allowedPhaseOneLayers = map[string]bool{

@@ -102,7 +102,7 @@ var colorModePresets = []appearancePreset{
 // understandable even when additional presets are introduced later.
 func DefaultCustomerTheme() CustomerTheme {
 	return CustomerTheme{
-		BrandName: "HCM Next", BrandMark: "H", Palette: "evergreen", Shape: "balanced",
+		BrandName: "Human Capital Management Suite", BrandMark: "H", Palette: "evergreen", Shape: "balanced",
 		ColorMode: "system", Density: "comfortable", Glyphs: "rounded-line", Typeface: "humanist", Navigation: "light", Motion: "calm",
 	}
 }

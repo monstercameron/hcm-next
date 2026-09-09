@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/data/ledger/evidence"
-	"github.com/monstercameron/hcm-next/internal/domains/payroll/auditpack"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/ledger/evidence"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/payroll/auditpack"
 )
 
 // TestExportRefusesAWindowNoSignedEpochCovers proves the export path never

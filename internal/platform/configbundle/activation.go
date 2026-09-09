@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/engines/canonicalbytes"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/canonicalbytes"
 )
 
 // ActivationPolicy is the verifier's trusted binding context. Empty policy

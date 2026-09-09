@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/authn/issuerregistry"
+	"github.com/monstercameron/human-capital-management-suite/internal/authn/issuerregistry"
 )
 
 // TestTodo_AUTHN_001_Mutation is this todo's MUTATION matrix test: it pins

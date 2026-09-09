@@ -7,8 +7,8 @@
 package adminv1
 
 import (
-	v1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/common/v1"
-	v11 "github.com/monstercameron/hcm-next/gen/go/hcmnext/intents/v1"
+	v1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/common/v1"
+	v11 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/intents/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
@@ -3156,7 +3156,7 @@ const file_hcmnext_admin_v1_admin_service_proto_rawDesc = "" +
 	"\x16ListCapabilityProfiles\x12/.hcmnext.admin.v1.ListCapabilityProfilesRequest\x1a0.hcmnext.admin.v1.ListCapabilityProfilesResponse\x12o\n" +
 	"\x12ExplainTransaction\x12+.hcmnext.admin.v1.ExplainTransactionRequest\x1a,.hcmnext.admin.v1.ExplainTransactionResponse\x12c\n" +
 	"\x0eGetWorkerState\x12'.hcmnext.admin.v1.GetWorkerStateRequest\x1a(.hcmnext.admin.v1.GetWorkerStateResponse\x12r\n" +
-	"\x13GetWorkflowInstance\x12,.hcmnext.admin.v1.GetWorkflowInstanceRequest\x1a-.hcmnext.admin.v1.GetWorkflowInstanceResponseBDZBgithub.com/monstercameron/hcm-next/gen/go/hcmnext/admin/v1;adminv1b\x06proto3"
+	"\x13GetWorkflowInstance\x12,.hcmnext.admin.v1.GetWorkflowInstanceRequest\x1a-.hcmnext.admin.v1.GetWorkflowInstanceResponseBZZXgithub.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/admin/v1;adminv1b\x06proto3"
 
 var (
 	file_hcmnext_admin_v1_admin_service_proto_rawDescOnce sync.Once

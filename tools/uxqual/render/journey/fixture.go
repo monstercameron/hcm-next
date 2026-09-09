@@ -46,7 +46,7 @@ func fixtureFooter() Footer {
 	return Footer{
 		PolicyVersion: "policy@2026.05.3",
 		CellID:        "cell-us-east-1a",
-		BuildRef:      "hcm-next 0.9.4+1faafb5",
+		BuildRef:      "human-capital-management-suite 0.9.4+1faafb5",
 		Lines: []string{
 			"Every figure here was read through the governed worker read under the purpose above; nothing is cached in the browser.",
 		},

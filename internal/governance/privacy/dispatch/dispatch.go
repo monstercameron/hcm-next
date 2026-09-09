@@ -13,7 +13,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/internal/trust/dlp"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/dlp"
 )
 
 const contractVersion = 1

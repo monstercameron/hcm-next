@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/connectivity/adapter"
+	"github.com/monstercameron/human-capital-management-suite/internal/connectivity/adapter"
 )
 
 type record struct {

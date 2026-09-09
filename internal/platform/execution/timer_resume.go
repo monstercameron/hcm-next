@@ -3,8 +3,8 @@ package execution
 import (
 	"context"
 
-	"github.com/monstercameron/hcm-next/internal/intent/app"
-	"github.com/monstercameron/hcm-next/internal/workflow/execute"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/app"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/execute"
 )
 
 func (a executeDriverAdapter) ResumeTimer(ctx context.Context, req app.ExecutionTimerResumeRequest) (app.ExecutionResult, error) {

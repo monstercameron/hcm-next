@@ -11,7 +11,7 @@ import (
 	"reflect"
 	"sort"
 
-	"github.com/monstercameron/hcm-next/internal/workflow"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow"
 )
 
 // Outcome is the compatibility classification for one live instance.

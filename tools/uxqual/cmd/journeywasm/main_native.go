@@ -31,13 +31,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/humanwork/workspace"
+	"github.com/monstercameron/human-capital-management-suite/internal/humanwork/workspace"
 )
 
 // wasmPackage is what gets built. It is the module-absolute import path
 // rather than "./tools/..." so the command works from any directory inside
 // the module, including the package's own directory under `go test`.
-const wasmPackage = "github.com/monstercameron/hcm-next/tools/uxqual/cmd/journeywasm"
+const wasmPackage = "github.com/monstercameron/human-capital-management-suite/tools/uxqual/cmd/journeywasm"
 
 // Output file names. They are the names internal/humanwork/workspace's
 // embedded asset directory serves (assets.go's assetJourneyWasm and

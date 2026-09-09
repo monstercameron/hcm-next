@@ -4,7 +4,7 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // TestTodo_PRIV_002 is the PRIMARY test for planning/todos.md PRIV-002:

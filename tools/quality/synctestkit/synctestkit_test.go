@@ -10,7 +10,7 @@ import (
 	"testing/synctest"
 	"time"
 
-	"github.com/monstercameron/hcm-next/tools/quality/synctestkit"
+	"github.com/monstercameron/human-capital-management-suite/tools/quality/synctestkit"
 )
 
 // TestSynctestQualificationAdvancesTimersAndDetectsQuiescenceWithoutSleep

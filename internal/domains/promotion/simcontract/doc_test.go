@@ -3,7 +3,7 @@ package simcontract_test
 import (
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/domains/promotion/simcontract"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/promotion/simcontract"
 )
 
 // TestSectionsAreTwelveAndDistinct pins doc.go's "twelve declared sections"

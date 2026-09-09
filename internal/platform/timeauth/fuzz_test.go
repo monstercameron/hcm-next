@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/platform/timeauth"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/timeauth"
 )
 
 // clampNanos folds an arbitrary int64 into a bounded, sane nanosecond range

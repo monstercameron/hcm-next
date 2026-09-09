@@ -3,7 +3,7 @@ package population_test
 import (
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/engines/population"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/population"
 )
 
 func restrictedForSnapshot(t *testing.T) population.RestrictedResult {

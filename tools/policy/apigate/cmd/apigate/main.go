@@ -8,7 +8,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/monstercameron/hcm-next/tools/policy/apigate"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/apigate"
 )
 
 func main() { os.Exit(run(os.Args[1:], os.Stdout, os.Stderr)) }

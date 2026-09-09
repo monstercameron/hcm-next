@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/monstercameron/hcm-next/internal/intent/model"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/model"
 )
 
 // Validation rule identities. Every [ValidationError] carries exactly one of

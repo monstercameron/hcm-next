@@ -3,8 +3,8 @@ package evolution
 import (
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/intent"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // The fixtures below are modelled on the catalog's PromoteWorker definition

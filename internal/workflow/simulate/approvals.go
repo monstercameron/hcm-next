@@ -4,8 +4,8 @@ import (
 	"context"
 	"sort"
 
-	"github.com/monstercameron/hcm-next/internal/engines/rules"
-	"github.com/monstercameron/hcm-next/internal/humanwork"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/rules"
+	"github.com/monstercameron/human-capital-management-suite/internal/humanwork"
 )
 
 // TierBlocked is the work-item outcome recorded when the approval tier itself

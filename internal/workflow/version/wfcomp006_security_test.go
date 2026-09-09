@@ -3,7 +3,7 @@ package version_test
 import (
 	"testing"
 
-	version "github.com/monstercameron/hcm-next/internal/workflow/version"
+	version "github.com/monstercameron/human-capital-management-suite/internal/workflow/version"
 )
 
 // TestTodo_WF_COMP_006_Security proves the activation boundary cannot be

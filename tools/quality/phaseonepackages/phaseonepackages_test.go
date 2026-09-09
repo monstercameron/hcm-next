@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/quality/phaseonepackages"
+	"github.com/monstercameron/human-capital-management-suite/tools/quality/phaseonepackages"
 )
 
 func TestPhaseOnePackageAllowlist(t *testing.T) {

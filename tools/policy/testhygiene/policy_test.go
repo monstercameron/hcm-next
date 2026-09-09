@@ -124,7 +124,7 @@ func TestSkippedTestsHaveQuarantineRecords(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	report, err := Scan(root, "github.com/monstercameron/hcm-next")
+	report, err := Scan(root, "github.com/monstercameron/human-capital-management-suite")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -132,7 +132,7 @@ func TestSkippedTestsHaveQuarantineRecords(t *testing.T) {
 	if len(missing) > 0 {
 		t.Fatalf("unquarantined skips: %+v", missing)
 	}
-	if err := ValidateQuarantine(root, "github.com/monstercameron/hcm-next", filepath.Join(root, "tools", "policy", "testhygiene", "quarantine.json"), time.Date(2026, 9, 5, 0, 0, 0, 0, time.UTC)); err != nil {
+	if err := ValidateQuarantine(root, "github.com/monstercameron/human-capital-management-suite", filepath.Join(root, "tools", "policy", "testhygiene", "quarantine.json"), time.Date(2026, 9, 5, 0, 0, 0, 0, time.UTC)); err != nil {
 		t.Fatal(err)
 	}
 }

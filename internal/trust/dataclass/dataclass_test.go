@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/trust"
-	"github.com/monstercameron/hcm-next/internal/trust/authz"
-	"github.com/monstercameron/hcm-next/internal/trust/custody"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/authz"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/custody"
 )
 
 func testCustody(t *testing.T) (*Transformer, custody.Context, custody.Handle) {

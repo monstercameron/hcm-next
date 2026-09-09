@@ -21,7 +21,7 @@ func baseManifest() P1AManifest {
 		TodoID:                  "NEXT-002",
 		SignedDate:              "2026-09-03",
 		FreshnessWindowDays:     14,
-		ForbiddenImportPrefixes: []string{"github.com/monstercameron/hcm-next/internal/connectivity/writeadapters"},
+		ForbiddenImportPrefixes: []string{"github.com/monstercameron/human-capital-management-suite/internal/connectivity/writeadapters"},
 	}
 }
 

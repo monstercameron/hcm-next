@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/data/pgtest"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/pgtest"
 )
 
 // Every parallel test on one embedded server migrates its own schema from

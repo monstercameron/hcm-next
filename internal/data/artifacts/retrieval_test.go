@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/data/artifacts"
-	"github.com/monstercameron/hcm-next/internal/intent/model"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/artifacts"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/model"
 )
 
 // TestTodo_DATA_016 proves the two halves of DATA-016 together: reference

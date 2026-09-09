@@ -5,7 +5,7 @@ import (
 
 	"google.golang.org/grpc"
 
-	hcmotel "github.com/monstercameron/hcm-next/internal/platform/telemetry/otel"
+	hcmotel "github.com/monstercameron/human-capital-management-suite/internal/platform/telemetry/otel"
 )
 
 // StreamServerInterceptor returns a grpc.StreamServerInterceptor that starts

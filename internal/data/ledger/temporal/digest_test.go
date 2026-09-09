@@ -5,7 +5,7 @@ import (
 
 	"github.com/google/uuid"
 
-	datalogger "github.com/monstercameron/hcm-next/internal/data/ledger"
+	datalogger "github.com/monstercameron/human-capital-management-suite/internal/data/ledger"
 )
 
 func sampleState() State {

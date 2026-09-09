@@ -5,7 +5,7 @@ import (
 
 	"google.golang.org/grpc"
 
-	hcmotel "github.com/monstercameron/hcm-next/internal/platform/telemetry/otel"
+	hcmotel "github.com/monstercameron/human-capital-management-suite/internal/platform/telemetry/otel"
 )
 
 // UnaryServerInterceptor returns a grpc.UnaryServerInterceptor that starts

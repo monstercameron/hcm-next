@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/humanwork"
+	"github.com/monstercameron/human-capital-management-suite/internal/humanwork"
 )
 
 var requirementAt = time.Date(2026, 9, 3, 12, 0, 0, 0, time.UTC)

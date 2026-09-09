@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/transport"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport"
 )
 
 func TestBearerFromRequestPrefersTheHeader(t *testing.T) {

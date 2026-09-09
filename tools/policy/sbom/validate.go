@@ -8,7 +8,7 @@ import (
 
 // RootModulePath is the module path this repository's root component must
 // resolve to (TOOL-017's GREEN clause names it explicitly).
-const RootModulePath = "github.com/monstercameron/hcm-next"
+const RootModulePath = "github.com/monstercameron/human-capital-management-suite"
 
 // Completeness reports every way a generated Document fails TOOL-017's
 // completeness contract. An empty result means the document is complete.

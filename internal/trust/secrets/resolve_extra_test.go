@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/trust/custody"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/custody"
 )
 
 func TestAccessPolicy_OrdersGrantsAndAuthorizeChecksExactDimensions(t *testing.T) {

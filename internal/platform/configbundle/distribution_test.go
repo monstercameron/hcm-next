@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/domains/tenant"
-	platformconfig "github.com/monstercameron/hcm-next/internal/platform/configregistry"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/tenant"
+	platformconfig "github.com/monstercameron/human-capital-management-suite/internal/platform/configregistry"
 )
 
 func cp004Keys(t *testing.T) (ed25519.PrivateKey, *InMemoryKeyring) {

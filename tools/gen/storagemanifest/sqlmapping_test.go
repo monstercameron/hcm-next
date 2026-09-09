@@ -5,9 +5,9 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/data/pgtest"
-	"github.com/monstercameron/hcm-next/internal/intent/model"
-	"github.com/monstercameron/hcm-next/tools/gen/storagemanifest"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/pgtest"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/model"
+	"github.com/monstercameron/human-capital-management-suite/tools/gen/storagemanifest"
 )
 
 // TestTodo_DB_003 is the PRIMARY test for property-level SQL mappings

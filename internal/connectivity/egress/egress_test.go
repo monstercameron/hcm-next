@@ -11,8 +11,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/trust/dlp"
-	"github.com/monstercameron/hcm-next/internal/trust/outbound"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/dlp"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/outbound"
 )
 
 type egressResolver map[string][]netip.Addr

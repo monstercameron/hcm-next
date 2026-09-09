@@ -4,7 +4,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/domains/dataops/importing"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/dataops/importing"
 )
 
 func stageFixtureBatch(t *testing.T) importing.Batch {

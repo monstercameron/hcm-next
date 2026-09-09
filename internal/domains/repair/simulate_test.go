@@ -4,9 +4,9 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/domains/dataops"
-	"github.com/monstercameron/hcm-next/internal/domains/repair"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/dataops"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/repair"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // TestSimulateRepairReturnsBoundImpactAndZeroCorrectiveEffects is the

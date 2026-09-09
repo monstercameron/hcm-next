@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	hcmotel "github.com/monstercameron/hcm-next/internal/platform/telemetry/otel"
+	hcmotel "github.com/monstercameron/human-capital-management-suite/internal/platform/telemetry/otel"
 	"go.opentelemetry.io/otel/sdk/metric/metricdata"
 	"go.opentelemetry.io/otel/trace"
 )

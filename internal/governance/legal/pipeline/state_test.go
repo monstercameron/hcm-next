@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	legal "github.com/monstercameron/hcm-next/internal/governance/legal"
-	"github.com/monstercameron/hcm-next/internal/trust/sod"
+	legal "github.com/monstercameron/human-capital-management-suite/internal/governance/legal"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/sod"
 )
 
 // --- TestTodo_LEGAL_015 ------------------------------------------------------

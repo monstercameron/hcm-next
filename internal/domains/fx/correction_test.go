@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 func correctionQuote(t *testing.T, id string, rev uint64, parent, digest string, rate string) FXQuoteRevision {

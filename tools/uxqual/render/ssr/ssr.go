@@ -15,8 +15,8 @@ import (
 	"bytes"
 	"html/template"
 
-	"github.com/monstercameron/hcm-next/tools/uxqual/contract"
-	"github.com/monstercameron/hcm-next/tools/uxqual/tokens"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/contract"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/tokens"
 )
 
 // Render produces the full HTML document for the given workspace contract.

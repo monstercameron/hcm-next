@@ -7,7 +7,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/workflow/timer"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/timer"
 )
 
 // stopAt is a [Barrier] that refuses to enter one named kind. It is the seam

@@ -9,10 +9,10 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/monstercameron/hcm-next/internal/platform/bootstrap"
-	"github.com/monstercameron/hcm-next/internal/platform/buildinfo"
-	"github.com/monstercameron/hcm-next/internal/platform/telemetry"
-	hcmotel "github.com/monstercameron/hcm-next/internal/platform/telemetry/otel"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/bootstrap"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/buildinfo"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/telemetry"
+	hcmotel "github.com/monstercameron/human-capital-management-suite/internal/platform/telemetry/otel"
 )
 
 // NewTelemetryProvider constructs the bounded, policy-enforced provider for

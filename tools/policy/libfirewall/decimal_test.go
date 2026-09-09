@@ -3,9 +3,9 @@ package libfirewall_test
 import (
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/policy/depmanifest"
-	"github.com/monstercameron/hcm-next/tools/policy/internal/repopath"
-	"github.com/monstercameron/hcm-next/tools/policy/libfirewall"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/depmanifest"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/internal/repopath"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/libfirewall"
 )
 
 const apdImportPath = "github.com/cockroachdb/apd/v3"
@@ -57,7 +57,7 @@ func Add(a, b Money) Money { return Money{} }
 // importable from dependency-roles.yaml's own allowed_import_roots for it
 // (internal/kernel); (2) even inside that root, an exported alias, field or
 // function signature naming apd.Decimal directly is a leak -- callers must
-// receive HCM Next's own Money/Rate/Percentage/Quantity kernel value types,
+// receive Human Capital Management Suite's own Money/Rate/Percentage/Quantity kernel value types,
 // never a bare apd.Decimal.
 func TestDecimalBackendQualification(t *testing.T) {
 	_, roles := loadFirewallConfigAndRoles(t)

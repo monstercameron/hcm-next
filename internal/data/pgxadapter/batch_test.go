@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/data/dbport"
-	"github.com/monstercameron/hcm-next/internal/data/pgtest"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/pgtest"
 )
 
 func TestTodo_PERFOPT_004_AdapterBatchIntegration(t *testing.T) {

@@ -10,9 +10,9 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/connectivity/delivery"
-	"github.com/monstercameron/hcm-next/internal/data/outbox"
-	"github.com/monstercameron/hcm-next/internal/data/pgtest"
+	"github.com/monstercameron/human-capital-management-suite/internal/connectivity/delivery"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/outbox"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/pgtest"
 )
 
 type recordingMessagingDeliverer struct {

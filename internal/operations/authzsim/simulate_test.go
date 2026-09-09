@@ -4,8 +4,8 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/operations/authzsim"
-	"github.com/monstercameron/hcm-next/internal/trust/authz"
+	"github.com/monstercameron/human-capital-management-suite/internal/operations/authzsim"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/authz"
 )
 
 // TestTodo_ADMIN_003 is the ADMIN-003 primary test for the AuthZ simulator

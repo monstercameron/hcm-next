@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/quality/synctestkit"
+	"github.com/monstercameron/human-capital-management-suite/tools/quality/synctestkit"
 )
 
 // TestTodo_TOOL_021_Conformance proves the recorded qualification verdict

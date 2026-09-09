@@ -5,7 +5,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/gen/schemaflux/sources"
+	"github.com/monstercameron/human-capital-management-suite/tools/gen/schemaflux/sources"
 )
 
 // TestTodo_MSRC_004 is the MSRC-004 primary test: it compiles the checked-in

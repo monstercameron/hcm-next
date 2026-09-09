@@ -10,11 +10,11 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/data/dbport"
-	"github.com/monstercameron/hcm-next/internal/data/jobs"
-	"github.com/monstercameron/hcm-next/internal/data/pgtest"
-	"github.com/monstercameron/hcm-next/internal/data/pgxadapter"
-	"github.com/monstercameron/hcm-next/internal/data/tenancy"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/jobs"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/pgtest"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/pgxadapter"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/tenancy"
 )
 
 func TestMain(m *testing.M) { pgtest.RunMain(m) }
@@ -420,14 +420,20 @@ func TestPartitionStore_ClaimOnAlreadyClaimedIsRefused(t *testing.T) {
 		return err
 	})
 
-	// The partition is already CLAIMED: PENDING -> CLAIMED is no longer a
-	// transition this row can make, refused before any statement runs.
+	// The partition is already CLAIMED at a newer version: the caller is
+	// stale, so the compare-and-swap reports ErrVersionConflict
+	// deterministically. (ClaimPartition's contract promises concurrent
+	// losers exactly this error; diagnosing off a pre-read row instead
+	// would make the error depend on read timing, which
+	// TestTodo_OBS_013_Race pins down.) A claimant presenting the CURRENT
+	// version against a non-PENDING row still receives ErrIllegalTransition
+	// — see TestPartitionStore_ClaimAtCurrentVersionOnTerminalRowIsRefused.
 	err := inTenantTxErr(conn, tenant, func(tx dbport.Tx) error {
 		_, err := (jobs.PartitionStore{}).ClaimPartition(ctx, tx, tenant, partitionID, created.Version, "worker:2", fixedInstant)
 		return err
 	})
-	if !errors.Is(err, jobs.ErrIllegalTransition) {
-		t.Fatalf("reclaim an already-claimed partition: err = %v, want ErrIllegalTransition", err)
+	if !errors.Is(err, jobs.ErrVersionConflict) {
+		t.Fatalf("reclaim an already-claimed partition: err = %v, want ErrVersionConflict", err)
 	}
 }
 
@@ -509,5 +515,50 @@ func TestCheckpointStore_IsAppendOnlyAndNumbered(t *testing.T) {
 	})
 	if err == nil {
 		t.Fatal("direct UPDATE on job_checkpoint succeeded, want the forbid_mutation trigger to refuse it")
+	}
+}
+
+// TestPartitionStore_ClaimAtCurrentVersionOnTerminalRowIsRefused pins the
+// second branch of the unmatched-CAS classifier: when the presented version
+// is current but the row state disallows the step, the refusal is
+// ErrIllegalTransition (a retry with a fresh version could never succeed),
+// not ErrVersionConflict.
+func TestPartitionStore_ClaimAtCurrentVersionOnTerminalRowIsRefused(t *testing.T) {
+	t.Parallel()
+	ctx := context.Background()
+	db := pgtest.New(t)
+	tenant := insertTenant(t, db, "partition-terminal-claim")
+	conn := appConn(t, db)
+	def := publish(t, ctx, conn, tenant, newDefinition(tenant, "job.partition.terminal-claim", 1))
+	runID := uuid.New()
+	declareRun(t, ctx, conn, tenant, def, runID)
+	partitionID := uuid.New()
+	var created jobs.JobPartition
+	inTenantTx(t, conn, tenant, func(tx dbport.Tx) error {
+		var err error
+		created, err = (jobs.PartitionStore{}).Create(ctx, tx, jobs.JobPartition{
+			TenantID: tenant, PartitionID: partitionID, RunID: runID,
+			PartitionKey: "shard-0001", CreatedAt: fixedInstant,
+		})
+		return err
+	})
+	var claimed jobs.JobPartition
+	inTenantTx(t, conn, tenant, func(tx dbport.Tx) error {
+		var err error
+		claimed, err = (jobs.PartitionStore{}).ClaimPartition(ctx, tx, tenant, partitionID, created.Version, "worker:1", fixedInstant)
+		return err
+	})
+	inTenantTx(t, conn, tenant, func(tx dbport.Tx) error {
+		return (func() error {
+			_, err := (jobs.PartitionStore{}).Complete(ctx, tx, tenant, partitionID, claimed.Version, fixedInstant)
+			return err
+		})()
+	})
+	err := inTenantTxErr(conn, tenant, func(tx dbport.Tx) error {
+		_, err := (jobs.PartitionStore{}).ClaimPartition(ctx, tx, tenant, partitionID, claimed.Version+1, "worker:2", fixedInstant)
+		return err
+	})
+	if !errors.Is(err, jobs.ErrIllegalTransition) {
+		t.Fatalf("claim current version on COMPLETED row: err = %v, want ErrIllegalTransition", err)
 	}
 }

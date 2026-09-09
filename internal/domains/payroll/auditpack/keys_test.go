@@ -5,7 +5,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/domains/payroll/auditpack"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/payroll/auditpack"
 )
 
 // TestIdempotencyKeyIsAPureFunctionOfTenantAndRun proves the doc's central

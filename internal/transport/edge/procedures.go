@@ -5,14 +5,14 @@ import (
 
 	"google.golang.org/protobuf/proto"
 
-	evidencev1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/evidence/v1"
-	intentsv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/intents/v1"
-	journeyv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/journey/v1"
-	registryv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/registry/v1"
-	workflowv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/workflow/v1"
-	transportjourney "github.com/monstercameron/hcm-next/internal/transport/journey"
-	transportoperations "github.com/monstercameron/hcm-next/internal/transport/operations"
-	transportworkflow "github.com/monstercameron/hcm-next/internal/transport/workflow"
+	evidencev1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/evidence/v1"
+	intentsv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/intents/v1"
+	journeyv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/journey/v1"
+	registryv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/registry/v1"
+	workflowv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/workflow/v1"
+	transportjourney "github.com/monstercameron/human-capital-management-suite/internal/transport/journey"
+	transportoperations "github.com/monstercameron/human-capital-management-suite/internal/transport/operations"
+	transportworkflow "github.com/monstercameron/human-capital-management-suite/internal/transport/workflow"
 )
 
 // Procedure paths. They are the gRPC method names verbatim, so one method

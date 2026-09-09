@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package hcmnext.dataops.v1;
 
-option go_package = "github.com/monstercameron/hcm-next/gen/go/hcmnext/dataops/v1;dataopsv1";
+option go_package = "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/dataops/v1;dataopsv1";
 
 import "google/protobuf/timestamp.proto";
 import "hcmnext/common/v1/common.proto";
@@ -85,7 +85,7 @@ message ObservationWatermark {
   int32 records = 6;
 }
 
-// CanonicalField is one field of the HCM Next side of a comparison, carrying
+// CanonicalField is one field of the Human Capital Management Suite side of a comparison, carrying
 // the authority and provenance that make it citable
 // (internal/domains/dataops CanonicalField).
 message CanonicalField {
@@ -100,7 +100,7 @@ message CanonicalField {
   hcmnext.evidence.v1.Provenance provenance = 9;
 }
 
-// CanonicalRecord is the HCM Next side of a comparison for one subject at one
+// CanonicalRecord is the Human Capital Management Suite side of a comparison for one subject at one
 // bitemporal coordinate (internal/domains/dataops CanonicalRecord).
 message CanonicalRecord {
   hcmnext.common.v1.EntityRef subject = 1;

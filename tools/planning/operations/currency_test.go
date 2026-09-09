@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/tools/planning/operations"
+	"github.com/monstercameron/human-capital-management-suite/tools/planning/operations"
 )
 
 var ops010Now = time.Date(2026, 9, 3, 12, 0, 0, 0, time.UTC)

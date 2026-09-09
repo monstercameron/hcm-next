@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/tools/uxqual/contract"
-	"github.com/monstercameron/hcm-next/tools/uxqual/qual"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/contract"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/qual"
 )
 
 // TestTodo_UX_002 is the unit-level evidence for planning/todos.md's UX-002

@@ -3,12 +3,12 @@ package admin
 import (
 	"context"
 
-	adminv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/admin/v1"
-	commonv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/common/v1"
-	"github.com/monstercameron/hcm-next/internal/domains/people"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
-	adminpolicy "github.com/monstercameron/hcm-next/internal/operations/admin"
-	"github.com/monstercameron/hcm-next/internal/transport/envelope"
+	adminv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/admin/v1"
+	commonv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/common/v1"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/people"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
+	adminpolicy "github.com/monstercameron/human-capital-management-suite/internal/operations/admin"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/envelope"
 )
 
 // GetWorkerState is a governed, read-only passthrough to

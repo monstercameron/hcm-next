@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/intent/analysis"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/analysis"
 )
 
 func fixture(now time.Time) (analysis.AnalyticalRequest, analysis.AnalyticalResult, analysis.RecommendationRequest) {

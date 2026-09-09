@@ -7,7 +7,7 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/policy/tableinventory"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/tableinventory"
 )
 
 func repoRoot(t *testing.T) string {

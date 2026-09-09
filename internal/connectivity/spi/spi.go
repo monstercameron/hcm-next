@@ -5,8 +5,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/connectivity"
-	"github.com/monstercameron/hcm-next/internal/engines/canonicalbytes"
+	"github.com/monstercameron/human-capital-management-suite/internal/connectivity"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/canonicalbytes"
 )
 
 // Adapter is the whole external surface a connector implementation compiles

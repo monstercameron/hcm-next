@@ -10,15 +10,15 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/data/dbport"
-	datalogger "github.com/monstercameron/hcm-next/internal/data/ledger"
-	"github.com/monstercameron/hcm-next/internal/data/outbox"
-	"github.com/monstercameron/hcm-next/internal/data/projection"
-	"github.com/monstercameron/hcm-next/internal/humanwork/workitem"
-	"github.com/monstercameron/hcm-next/internal/intent"
-	ledgerport "github.com/monstercameron/hcm-next/internal/ledger"
-	"github.com/monstercameron/hcm-next/internal/transaction/idempotency"
-	"github.com/monstercameron/hcm-next/internal/workflow/execute"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
+	datalogger "github.com/monstercameron/human-capital-management-suite/internal/data/ledger"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/outbox"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/projection"
+	"github.com/monstercameron/human-capital-management-suite/internal/humanwork/workitem"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent"
+	ledgerport "github.com/monstercameron/human-capital-management-suite/internal/ledger"
+	"github.com/monstercameron/human-capital-management-suite/internal/transaction/idempotency"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/execute"
 )
 
 // PromotionOutcomeSchema names the payload schema [LedgerTerminalWriter]

@@ -6,8 +6,8 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/internal/engines/canonicalbytes"
-	"github.com/monstercameron/hcm-next/internal/trust/sod"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/canonicalbytes"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/sod"
 )
 
 const payrollApprovalSchema = "hcmnext.domains.payroll.PayrollApproval"

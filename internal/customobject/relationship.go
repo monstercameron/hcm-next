@@ -7,8 +7,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
-	"github.com/monstercameron/hcm-next/tools/gen/schemaflux"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/tools/gen/schemaflux"
 )
 
 // CompiledRelationship is the immutable, digest-bearing relationship

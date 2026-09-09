@@ -1,6 +1,6 @@
 package popscale
 
-import "github.com/monstercameron/hcm-next/internal/engines/population"
+import "github.com/monstercameron/human-capital-management-suite/internal/engines/population"
 
 // Caller is the already-decided authorization of the observer requesting a
 // page: whether the restriction decision (POP-004) discloses raw membership,

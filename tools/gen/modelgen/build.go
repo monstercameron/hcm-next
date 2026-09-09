@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/monstercameron/hcm-next/internal/intent/model"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/model"
 )
 
 // FieldModel is one generated struct field: the property it comes from, the
@@ -133,7 +133,7 @@ func entityTypeName(ref model.EntityRef) string {
 //
 // EVIDENCE-class entities (ApprovalBinding, ExecutionBinding, EvidenceRecord,
 // Observation) are exactly the append-only records a CHANGE_REQUEST's
-// EffectRefs create: [github.com/monstercameron/hcm-next/internal/intent/definitions.Bindings]'s
+// EffectRefs create: [github.com/monstercameron/human-capital-management-suite/internal/intent/definitions.Bindings]'s
 // approveProposalBinding and rejectProposalBinding legitimately declare
 // WriteProperties on approval_binding.decision et al., which is
 // IMMUTABLE_NO_CORRECTION/IMMUTABLE on ApprovalBinding — that single

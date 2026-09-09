@@ -7,7 +7,7 @@
 package evidencev1
 
 import (
-	v1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/common/v1"
+	v1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/common/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
@@ -2259,7 +2259,7 @@ const file_hcmnext_evidence_v1_explanation_proto_rawDesc = "" +
 	"\x11EPISTEMIC_DERIVED\x10\x03\x12\x15\n" +
 	"\x11EPISTEMIC_UNKNOWN\x10\x04\x12\x16\n" +
 	"\x12EPISTEMIC_REDACTED\x10\x05\x12\x14\n" +
-	"\x10EPISTEMIC_ABSENT\x10\x06BJZHgithub.com/monstercameron/hcm-next/gen/go/hcmnext/evidence/v1;evidencev1b\x06proto3"
+	"\x10EPISTEMIC_ABSENT\x10\x06B`Z^github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/evidence/v1;evidencev1b\x06proto3"
 
 var (
 	file_hcmnext_evidence_v1_explanation_proto_rawDescOnce sync.Once

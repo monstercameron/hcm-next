@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
-	"github.com/monstercameron/hcm-next/internal/trust/federation"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/federation"
 )
 
 func TestNewValidator_RejectsIncompleteConfigurationAndCopiesInputs(t *testing.T) {

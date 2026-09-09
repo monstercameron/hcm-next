@@ -6,7 +6,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/workflow/runtime"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/runtime"
 )
 
 func TestRepairRequest_ValidateRefusesMalformedMarkers(t *testing.T) {

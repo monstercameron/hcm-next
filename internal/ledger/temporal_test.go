@@ -3,7 +3,7 @@ package ledger
 import (
 	"testing"
 
-	temporaladapter "github.com/monstercameron/hcm-next/internal/data/ledger/temporal"
+	temporaladapter "github.com/monstercameron/human-capital-management-suite/internal/data/ledger/temporal"
 )
 
 // TestTemporalAdapterSatisfiesThePort proves the adapter this package hands

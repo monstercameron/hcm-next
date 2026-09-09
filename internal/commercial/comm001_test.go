@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/commercial"
+	"github.com/monstercameron/human-capital-management-suite/internal/commercial"
 )
 
 var pilotAt = time.Date(2026, 9, 1, 0, 0, 0, 0, time.UTC)

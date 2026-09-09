@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/domains/matching"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/matching"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 const schedoptUUIDBase = "00000000-0000-4000-8000-000000000"

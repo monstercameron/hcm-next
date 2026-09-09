@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/trust/workload"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/workload"
 )
 
 // FuzzTodo_TRUST_006 is the TRUST-006 fuzz target.

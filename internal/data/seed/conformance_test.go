@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/data/aggregates"
-	"github.com/monstercameron/hcm-next/internal/data/pgtest"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/aggregates"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/pgtest"
 )
 
 // TestTodo_DB_019_Conformance proves the re-point actually landed: the

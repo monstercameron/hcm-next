@@ -9,10 +9,10 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
-	"github.com/monstercameron/hcm-next/internal/data/dbport"
-	"github.com/monstercameron/hcm-next/internal/data/tenancy"
-	"github.com/monstercameron/hcm-next/internal/experience/workerids"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/tenancy"
+	"github.com/monstercameron/human-capital-management-suite/internal/experience/workerids"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 type Store struct {

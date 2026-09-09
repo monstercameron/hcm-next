@@ -650,7 +650,7 @@ func ValidatePaidUseEvent(e PaidUseEvent) []ContractViolation {
 		out = append(out, violation("INELIGIBLE_ACTOR", "actor", "paid use requires an authorized licensed customer actor"))
 	}
 	if e.ActorClass == PaidUseDemoActor || e.ActorClass == PaidUseInternalActor {
-		out = append(out, violation("INELIGIBLE_ACTOR", "actor_class", "demo and HCM Next internal actors never count as paid use"))
+		out = append(out, violation("INELIGIBLE_ACTOR", "actor_class", "demo and Human Capital Management Suite internal actors never count as paid use"))
 	}
 	for _, fieldValue := range []struct{ field, value string }{
 		{"tenant_ref_hash", e.TenantRefHash}, {"actor_ref_hash", e.ActorRefHash}, {"transaction_ref", e.TransactionRef},

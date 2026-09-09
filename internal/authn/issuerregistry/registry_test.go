@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/authn/issuerregistry"
+	"github.com/monstercameron/human-capital-management-suite/internal/authn/issuerregistry"
 )
 
 func evidence(actor string, at time.Time) issuerregistry.Evidence {

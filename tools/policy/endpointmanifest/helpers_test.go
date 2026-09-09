@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/transport/manifest"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/manifest"
 )
 
 func writeManifest(t *testing.T, path string, m *manifest.EndpointManifest) {

@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/trust/authz"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/authz"
 )
 
 func TestDiff_Smoke(t *testing.T) {

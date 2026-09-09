@@ -5,10 +5,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/connectivity"
-	"github.com/monstercameron/hcm-next/internal/connectivity/fakeincumbent"
-	"github.com/monstercameron/hcm-next/internal/connectivity/observe"
-	"github.com/monstercameron/hcm-next/internal/connectivity/onboarding"
+	"github.com/monstercameron/human-capital-management-suite/internal/connectivity"
+	"github.com/monstercameron/human-capital-management-suite/internal/connectivity/fakeincumbent"
+	"github.com/monstercameron/human-capital-management-suite/internal/connectivity/observe"
+	"github.com/monstercameron/human-capital-management-suite/internal/connectivity/onboarding"
 )
 
 const testTenant = "5e3f1c2b-0000-4000-8000-000000000001"

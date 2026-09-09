@@ -5,7 +5,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/internal/capability"
+	"github.com/monstercameron/human-capital-management-suite/internal/capability"
 )
 
 // WireMethod is one method of one generated service descriptor: the exact

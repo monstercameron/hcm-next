@@ -7,10 +7,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/data/pgtest"
-	"github.com/monstercameron/hcm-next/internal/transaction/idempotency"
-	wfrecover "github.com/monstercameron/hcm-next/internal/workflow/recover"
-	"github.com/monstercameron/hcm-next/internal/workflow/runtime"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/pgtest"
+	"github.com/monstercameron/human-capital-management-suite/internal/transaction/idempotency"
+	wfrecover "github.com/monstercameron/human-capital-management-suite/internal/workflow/recover"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/runtime"
 )
 
 // TestTodo_WF_RUN_003_Fault walks every declared persistence boundary. For

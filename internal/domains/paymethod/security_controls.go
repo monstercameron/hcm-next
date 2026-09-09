@@ -7,11 +7,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/domains/contact"
-	"github.com/monstercameron/hcm-next/internal/engines/canonicalbytes"
-	"github.com/monstercameron/hcm-next/internal/trust"
-	"github.com/monstercameron/hcm-next/internal/trust/dlp"
-	"github.com/monstercameron/hcm-next/internal/trust/sod"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/contact"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/canonicalbytes"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/dlp"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/sod"
 )
 
 var rawBankDetailRE = regexp.MustCompile(`^\d{8,17}$`)

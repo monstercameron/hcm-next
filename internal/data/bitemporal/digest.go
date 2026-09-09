@@ -3,7 +3,7 @@ package bitemporal
 import (
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/engines/canonicalbytes"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/canonicalbytes"
 )
 
 // evidenceSchema names the canonical stream Evidence writes through

@@ -9,7 +9,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/internal/customobject"
+	"github.com/monstercameron/human-capital-management-suite/internal/customobject"
 )
 
 // Capability is the governed contract for one operation on one custom type.

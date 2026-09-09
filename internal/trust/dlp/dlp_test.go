@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/trust/dlp"
-	"github.com/monstercameron/hcm-next/internal/trust/outbound"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/dlp"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/outbound"
 )
 
 func dlpOutbound(t *testing.T) *outbound.Policy {

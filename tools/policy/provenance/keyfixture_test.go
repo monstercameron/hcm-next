@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/policy/provenance"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/provenance"
 )
 
 func TestLoadSigningKeyFixtureLoadsTheCheckedInDevKey(t *testing.T) {

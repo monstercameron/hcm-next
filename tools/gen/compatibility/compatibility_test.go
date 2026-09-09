@@ -9,10 +9,10 @@ import (
 	"google.golang.org/protobuf/reflect/protoreflect"
 	"google.golang.org/protobuf/types/descriptorpb"
 
-	commonv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/common/v1"
-	evidencev1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/evidence/v1"
-	integrationv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/integration/v1"
-	intentsv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/intents/v1"
+	commonv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/common/v1"
+	evidencev1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/evidence/v1"
+	integrationv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/integration/v1"
+	intentsv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/intents/v1"
 )
 
 func TestContractCompatibility(t *testing.T) {

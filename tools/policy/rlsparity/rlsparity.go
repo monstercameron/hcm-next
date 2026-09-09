@@ -17,8 +17,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/tools/policy/storeboundaries"
-	"github.com/monstercameron/hcm-next/tools/policy/tableinventory"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/storeboundaries"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/tableinventory"
 )
 
 const schemaVersion = 1

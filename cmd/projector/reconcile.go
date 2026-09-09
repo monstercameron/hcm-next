@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/data/projection"
-	"github.com/monstercameron/hcm-next/internal/platform/bootstrap"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/projection"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/bootstrap"
 )
 
 // dueLister lists the (tenant, projection, stream) checkpoints one sweep

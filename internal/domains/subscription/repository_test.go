@@ -3,7 +3,7 @@ package subscription_test
 import (
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/domains/subscription"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/subscription"
 )
 
 func TestRevisionRepositoryPortIncludesMemoryRegistry(t *testing.T) {

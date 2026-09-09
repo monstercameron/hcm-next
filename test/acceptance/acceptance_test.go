@@ -18,7 +18,7 @@ import (
 	"testing"
 )
 
-const modulePath = "github.com/monstercameron/hcm-next"
+const modulePath = "github.com/monstercameron/human-capital-management-suite"
 
 type acceptanceItem struct {
 	ID     string

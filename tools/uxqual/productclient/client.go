@@ -16,10 +16,10 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	journeyv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/journey/v1"
-	"github.com/monstercameron/hcm-next/internal/humanwork/productui"
-	"github.com/monstercameron/hcm-next/internal/humanwork/uicomponents"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	journeyv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/journey/v1"
+	"github.com/monstercameron/human-capital-management-suite/internal/humanwork/productui"
+	"github.com/monstercameron/human-capital-management-suite/internal/humanwork/uicomponents"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 

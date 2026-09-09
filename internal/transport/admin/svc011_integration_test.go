@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	adminv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/admin/v1"
-	admin "github.com/monstercameron/hcm-next/internal/transport/admin"
+	adminv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/admin/v1"
+	admin "github.com/monstercameron/human-capital-management-suite/internal/transport/admin"
 )
 
 // TestTodo_SVC_011_Integration starts the admin server on a loopback

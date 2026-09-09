@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/documentsecurity"
+	"github.com/monstercameron/human-capital-management-suite/internal/documentsecurity"
 )
 
 type scanner struct{ state documentsecurity.State }

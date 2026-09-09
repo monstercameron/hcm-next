@@ -14,8 +14,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/experience/i18n"
-	"github.com/monstercameron/hcm-next/internal/experience/i18nparity"
+	"github.com/monstercameron/human-capital-management-suite/internal/experience/i18n"
+	"github.com/monstercameron/human-capital-management-suite/internal/experience/i18nparity"
 )
 
 type catalogFixture struct {

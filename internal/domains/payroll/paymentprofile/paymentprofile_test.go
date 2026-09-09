@@ -5,12 +5,12 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/connectivity"
-	"github.com/monstercameron/hcm-next/internal/domains/paymethod"
-	"github.com/monstercameron/hcm-next/internal/domains/payroll"
-	"github.com/monstercameron/hcm-next/internal/domains/tenant"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
-	"github.com/monstercameron/hcm-next/internal/trust/dlp"
+	"github.com/monstercameron/human-capital-management-suite/internal/connectivity"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/paymethod"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/payroll"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/tenant"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/dlp"
 )
 
 func profileInstant(t *testing.T, seconds int64) values.Instant {

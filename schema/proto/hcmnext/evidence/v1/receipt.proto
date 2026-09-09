@@ -2,11 +2,11 @@ syntax = "proto3";
 
 package hcmnext.evidence.v1;
 
-option go_package = "github.com/monstercameron/hcm-next/gen/go/hcmnext/evidence/v1;evidencev1";
+option go_package = "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/evidence/v1;evidencev1";
 
 import "google/protobuf/timestamp.proto";
 
-// AuthorityKind says whether HCM Next owns a fact or is merely reporting one
+// AuthorityKind says whether Human Capital Management Suite owns a fact or is merely reporting one
 // it observed somewhere else. The distinction is the whole point of the
 // source-authority contract: an observed incumbent value must never be
 // published as a local domain fact (internal/domains/evidence AuthorityKind).

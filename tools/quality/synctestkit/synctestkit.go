@@ -3,7 +3,7 @@
 // It is a pure fixture package: every type here is a minimal, in-memory
 // stand-in shaped like the outbox consumer's lease-acquire/renew/release
 // loop, built only from the standard library. It never imports any real
-// HCM Next package, so its tests prove testing/synctest's own behavior
+// Human Capital Management Suite package, so its tests prove testing/synctest's own behavior
 // (deterministic virtual-time timer advancement, goroutine-quiescence
 // detection, and race-free concurrent access) rather than exercising any
 // production code.

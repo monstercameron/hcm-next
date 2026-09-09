@@ -6,12 +6,12 @@ import (
 
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	adminv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/admin/v1"
-	commonv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/common/v1"
-	adminpolicy "github.com/monstercameron/hcm-next/internal/operations/admin"
-	"github.com/monstercameron/hcm-next/internal/transport/envelope"
-	"github.com/monstercameron/hcm-next/internal/workflow/inspect"
-	"github.com/monstercameron/hcm-next/internal/workflow/runtime"
+	adminv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/admin/v1"
+	commonv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/common/v1"
+	adminpolicy "github.com/monstercameron/human-capital-management-suite/internal/operations/admin"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/envelope"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/inspect"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/runtime"
 )
 
 // GetWorkflowInstance is ADMIN-008's governed, read-only execution inspector:

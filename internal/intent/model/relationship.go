@@ -3,7 +3,7 @@ package model
 import (
 	"sort"
 
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // Cardinality declares how many active target endpoints a source may carry.

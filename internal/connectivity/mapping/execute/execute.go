@@ -10,13 +10,13 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/internal/connectivity/mapping"
-	"github.com/monstercameron/hcm-next/internal/engines/transformation"
-	"github.com/monstercameron/hcm-next/internal/engines/transformation/exec"
-	"github.com/monstercameron/hcm-next/internal/engines/transformation/ir"
-	"github.com/monstercameron/hcm-next/internal/engines/transformation/lineage"
-	"github.com/monstercameron/hcm-next/internal/engines/transformation/taint"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/connectivity/mapping"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/transformation"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/transformation/exec"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/transformation/ir"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/transformation/lineage"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/transformation/taint"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 const contractVersion = 1

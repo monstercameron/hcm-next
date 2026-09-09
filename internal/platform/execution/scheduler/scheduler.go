@@ -6,12 +6,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/data/dbport"
-	"github.com/monstercameron/hcm-next/internal/data/runtimestate"
-	"github.com/monstercameron/hcm-next/internal/data/tenancy"
-	"github.com/monstercameron/hcm-next/internal/engines/schedule"
-	"github.com/monstercameron/hcm-next/internal/workflow/lease"
-	"github.com/monstercameron/hcm-next/internal/workflow/timer"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/runtimestate"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/tenancy"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/schedule"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/lease"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/timer"
 )
 
 // ErrConfig reports a Scheduler that cannot be built from the supplied
@@ -555,12 +555,12 @@ func (s *Scheduler) claim(ctx context.Context, claim lease.AcquireRequest, now t
 			if err != nil {
 				return err
 			}
-			if err := (runtimestate.ReadyWorkStore{}).Transition(ctx, tx,
-				row.TenantID, row.ReadyWorkID, row.Version, runtimestate.ReadyDispatched, time.Time{}); err != nil {
+			claimedRow, err := (runtimestate.ReadyWorkStore{}).Claim(ctx, tx,
+				row.TenantID, row.ReadyWorkID, row.Version)
+			if err != nil {
 				return err
 			}
-			row.State = runtimestate.ReadyDispatched
-			row.Version++
+			row = claimedRow
 			out.work = append(out.work, Work{Row: row, Fence: grant.Fence})
 			s.cfg.Logger.Info("scheduler.ready_work_claimed",
 				"instance", row.InstanceID.String(), "node", row.NodeID, "attempt", row.Attempt,

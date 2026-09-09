@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	intentsv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/intents/v1"
+	intentsv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/intents/v1"
 )
 
 func TestProfile_Smoke(t *testing.T) {

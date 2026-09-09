@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/authn/issuerregistry"
+	"github.com/monstercameron/human-capital-management-suite/internal/authn/issuerregistry"
 )
 
 // TestPackageDocCompiles is a placeholder proving the package (and its

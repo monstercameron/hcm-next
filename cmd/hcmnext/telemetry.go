@@ -12,8 +12,8 @@ package main
 import (
 	"context"
 
-	"github.com/monstercameron/hcm-next/internal/application"
-	hcmotel "github.com/monstercameron/hcm-next/internal/platform/telemetry/otel"
+	"github.com/monstercameron/human-capital-management-suite/internal/application"
+	hcmotel "github.com/monstercameron/human-capital-management-suite/internal/platform/telemetry/otel"
 )
 
 // otelExporterNone, otelExporterStdout and otelExporterOTLPHTTP are the

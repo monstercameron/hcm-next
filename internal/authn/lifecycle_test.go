@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/authn"
-	"github.com/monstercameron/hcm-next/internal/trust"
-	"github.com/monstercameron/hcm-next/internal/trust/session"
+	"github.com/monstercameron/human-capital-management-suite/internal/authn"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/session"
 )
 
 var lifecycleAt = time.Date(2026, 9, 6, 12, 0, 0, 0, time.UTC)

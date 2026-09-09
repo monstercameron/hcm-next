@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/monstercameron/hcm-next/internal/capability"
-	"github.com/monstercameron/hcm-next/tools/planning/intentmanifests"
-	"github.com/monstercameron/hcm-next/tools/planning/todogovernance"
-	"github.com/monstercameron/hcm-next/tools/policy/phaseonegate"
-	"github.com/monstercameron/hcm-next/tools/uxqual/pagedef"
-	"github.com/monstercameron/hcm-next/tools/uxqual/widgetreg"
+	"github.com/monstercameron/human-capital-management-suite/internal/capability"
+	"github.com/monstercameron/human-capital-management-suite/tools/planning/intentmanifests"
+	"github.com/monstercameron/human-capital-management-suite/tools/planning/todogovernance"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/phaseonegate"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/pagedef"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/widgetreg"
 )
 
 // Registries is the resolved set of every reference vocabulary a

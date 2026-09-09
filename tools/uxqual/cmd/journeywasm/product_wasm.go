@@ -12,12 +12,12 @@ import (
 
 	"github.com/monstercameron/GoWebComponents/v5/router"
 	"github.com/monstercameron/GoWebComponents/v5/ui"
-	journeyv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/journey/v1"
-	"github.com/monstercameron/hcm-next/internal/humanwork/productui"
-	"github.com/monstercameron/hcm-next/tools/uxqual/journeyclient"
-	"github.com/monstercameron/hcm-next/tools/uxqual/productclient"
-	"github.com/monstercameron/hcm-next/tools/uxqual/render/journey"
-	"github.com/monstercameron/hcm-next/tools/uxqual/taskmux"
+	journeyv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/journey/v1"
+	"github.com/monstercameron/human-capital-management-suite/internal/humanwork/productui"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/journeyclient"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/productclient"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/render/journey"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/taskmux"
 	"google.golang.org/grpc/status"
 )
 
@@ -110,7 +110,7 @@ func startProduct(ctx context.Context, cfg journeyclient.Config, service journey
 		}
 		definition := definition
 		productRouter.Register(definition.Route, productRouteComponent, router.Options{
-			Title: definition.Title + " · HCM Next",
+			Title: definition.Title + " · Human Capital Management Suite",
 			Loader: func(loadCtx context.Context, routeContext router.RouteContext) (router.Attrs, error) {
 				navigationDebounce.Cancel()
 				persistPresentation := productHistory != nil && productHistory.ClaimSoftwareNavigation(routeContext.Path, routeContext.Query.Encode())

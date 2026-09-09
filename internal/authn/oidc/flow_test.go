@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/authn/issuerregistry"
-	"github.com/monstercameron/hcm-next/internal/authn/oidc"
-	"github.com/monstercameron/hcm-next/internal/trust"
-	trustfederation "github.com/monstercameron/hcm-next/internal/trust/federation"
+	"github.com/monstercameron/human-capital-management-suite/internal/authn/issuerregistry"
+	"github.com/monstercameron/human-capital-management-suite/internal/authn/oidc"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust"
+	trustfederation "github.com/monstercameron/human-capital-management-suite/internal/trust/federation"
 )
 
 // beginAndIssueCode drives BeginAuthorization, extracts the code_challenge

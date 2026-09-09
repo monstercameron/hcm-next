@@ -1,11 +1,11 @@
 // Package modelbinding implements MSRC-009: it binds each drafted definition
-// in [github.com/monstercameron/hcm-next/internal/intent/definitions] to the
+// in [github.com/monstercameron/human-capital-management-suite/internal/intent/definitions] to the
 // exact generated model behavior its
-// [github.com/monstercameron/hcm-next/internal/intent.Binding] names — the
+// [github.com/monstercameron/human-capital-management-suite/internal/intent.Binding] names — the
 // aggregate roots its subjects resolve to, and the properties it reads and
 // writes — by resolving every one of those bare strings against the
 // generated registry
-// [github.com/monstercameron/hcm-next/gen/go/hcmnext/model.Registry] (MSRC-007).
+// [github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/model.Registry] (MSRC-007).
 //
 // This is a second, independent binding layer, not a replacement for
 // [intent.CheckCoverage]: that checker proves a definition declares every

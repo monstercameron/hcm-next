@@ -18,17 +18,17 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/authn/issuerregistry"
-	"github.com/monstercameron/hcm-next/internal/authn/oidc"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
-	trustfederation "github.com/monstercameron/hcm-next/internal/trust/federation"
+	"github.com/monstercameron/human-capital-management-suite/internal/authn/issuerregistry"
+	"github.com/monstercameron/human-capital-management-suite/internal/authn/oidc"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
+	trustfederation "github.com/monstercameron/human-capital-management-suite/internal/trust/federation"
 )
 
 // Fixture identifiers shared across this package's test files.
 const (
 	tenantAcme    = values.TenantId("acme-corp")
 	issuerAcme    = "https://login.acme.invalid/"
-	audienceAcme  = "hcm-next-oidc-web"
+	audienceAcme  = "human-capital-management-suite-oidc-web"
 	clientIDAcme  = "hcmnext-web"
 	redirectURI   = "https://app.hcm-next.invalid/oidc/callback"
 	authEndpoint  = "https://login.acme.invalid/authorize"

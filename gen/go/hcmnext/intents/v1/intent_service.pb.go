@@ -7,7 +7,7 @@
 package intentsv1
 
 import (
-	v1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/common/v1"
+	v1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/common/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
@@ -2434,7 +2434,7 @@ const file_hcmnext_intents_v1_intent_service_proto_rawDesc = "" +
 	"\fCancelIntent\x12'.hcmnext.intents.v1.CancelIntentRequest\x1a(.hcmnext.intents.v1.CancelIntentResponse\x12j\n" +
 	"\x0fSupersedeIntent\x12*.hcmnext.intents.v1.SupersedeIntentRequest\x1a+.hcmnext.intents.v1.SupersedeIntentResponse\x12d\n" +
 	"\rExplainIntent\x12(.hcmnext.intents.v1.ExplainIntentRequest\x1a).hcmnext.intents.v1.ExplainIntentResponse\x12s\n" +
-	"\x12ListIntentTimeline\x12-.hcmnext.intents.v1.ListIntentTimelineRequest\x1a..hcmnext.intents.v1.ListIntentTimelineResponseBHZFgithub.com/monstercameron/hcm-next/gen/go/hcmnext/intents/v1;intentsv1b\x06proto3"
+	"\x12ListIntentTimeline\x12-.hcmnext.intents.v1.ListIntentTimelineRequest\x1a..hcmnext.intents.v1.ListIntentTimelineResponseB^Z\\github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/intents/v1;intentsv1b\x06proto3"
 
 var (
 	file_hcmnext_intents_v1_intent_service_proto_rawDescOnce sync.Once

@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/monstercameron/GoWebComponents/v5/ui"
-	intentsv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/intents/v1"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	intentsv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/intents/v1"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 func canonicalStatusFixture() StatusProjection {

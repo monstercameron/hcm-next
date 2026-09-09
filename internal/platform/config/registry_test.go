@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/platform/config"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/config"
 )
 
 func registryObject(t *testing.T, version string) config.ConfigObject {

@@ -3,7 +3,7 @@ package temporal
 import (
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/data/bitemporal"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/bitemporal"
 )
 
 // TestDocDelegatedModesAreBitemporalModes proves the claim the package doc

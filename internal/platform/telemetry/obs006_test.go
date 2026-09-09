@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/platform/telemetry"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/telemetry"
 )
 
 // businessSideEffectSpy is a test double standing in for every authority

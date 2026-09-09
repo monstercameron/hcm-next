@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/data/ledger/lineage"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/ledger/lineage"
 )
 
 // TestTodo_LEDGER_005 proves append-only correction and supersession

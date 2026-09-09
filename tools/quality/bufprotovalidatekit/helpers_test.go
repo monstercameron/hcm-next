@@ -7,7 +7,7 @@ import (
 	"runtime"
 	"testing"
 
-	kit "github.com/monstercameron/hcm-next/tools/quality/bufprotovalidatekit"
+	kit "github.com/monstercameron/human-capital-management-suite/tools/quality/bufprotovalidatekit"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/reflect/protodesc"
 	"google.golang.org/protobuf/reflect/protoreflect"

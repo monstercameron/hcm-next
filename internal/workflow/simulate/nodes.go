@@ -5,8 +5,8 @@ import (
 	"sort"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/capability"
-	"github.com/monstercameron/hcm-next/internal/workflow"
+	"github.com/monstercameron/human-capital-management-suite/internal/capability"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow"
 )
 
 // Evidence reference names the compiler declares per step type. The

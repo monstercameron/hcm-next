@@ -8,10 +8,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/connectivity"
-	"github.com/monstercameron/hcm-next/internal/connectivity/fakeincumbent"
-	"github.com/monstercameron/hcm-next/internal/connectivity/observe"
-	"github.com/monstercameron/hcm-next/internal/connectivity/onboarding"
+	"github.com/monstercameron/human-capital-management-suite/internal/connectivity"
+	"github.com/monstercameron/human-capital-management-suite/internal/connectivity/fakeincumbent"
+	"github.com/monstercameron/human-capital-management-suite/internal/connectivity/observe"
+	"github.com/monstercameron/human-capital-management-suite/internal/connectivity/onboarding"
 )
 
 // TestTodo_ONBOARD_002 proves extraction is resumable across an interruption

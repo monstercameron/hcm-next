@@ -8,9 +8,9 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/data/pgtest"
-	"github.com/monstercameron/hcm-next/internal/data/schema"
-	"github.com/monstercameron/hcm-next/migrations"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/pgtest"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/schema"
+	"github.com/monstercameron/human-capital-management-suite/migrations"
 )
 
 func testRelease(t *testing.T) schema.Release {

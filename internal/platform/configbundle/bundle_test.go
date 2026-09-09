@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	platformconfig "github.com/monstercameron/hcm-next/internal/platform/configregistry"
+	platformconfig "github.com/monstercameron/human-capital-management-suite/internal/platform/configregistry"
 )
 
 func publishObject(t *testing.T, store *platformconfig.Registry, scope Scope, kind Kind, id string, revision uint32, body string) platformconfig.ConfigurationObject {

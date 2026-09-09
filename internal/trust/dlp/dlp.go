@@ -18,7 +18,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/monstercameron/hcm-next/internal/trust/outbound"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/outbound"
 )
 
 // DataClass is the closed vocabulary understood by this package. A caller

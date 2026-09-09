@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/domains/tenant"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/tenant"
 )
 
 var placementKey = [32]byte{1, 2, 3, 4, 5}

@@ -7,9 +7,9 @@
 package registryv1
 
 import (
-	v12 "github.com/monstercameron/hcm-next/gen/go/hcmnext/capabilities/v1"
-	v1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/common/v1"
-	v11 "github.com/monstercameron/hcm-next/gen/go/hcmnext/intents/v1"
+	v12 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/capabilities/v1"
+	v1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/common/v1"
+	v11 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/intents/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -468,7 +468,7 @@ const file_hcmnext_registry_v1_registry_service_proto_rawDesc = "" +
 	"\x15ListIntentDefinitions\x121.hcmnext.registry.v1.ListIntentDefinitionsRequest\x1a2.hcmnext.registry.v1.ListIntentDefinitionsResponse\x12x\n" +
 	"\x13GetIntentDefinition\x12/.hcmnext.registry.v1.GetIntentDefinitionRequest\x1a0.hcmnext.registry.v1.GetIntentDefinitionResponse\x12o\n" +
 	"\x10ListCapabilities\x12,.hcmnext.registry.v1.ListCapabilitiesRequest\x1a-.hcmnext.registry.v1.ListCapabilitiesResponse\x12f\n" +
-	"\rGetCapability\x12).hcmnext.registry.v1.GetCapabilityRequest\x1a*.hcmnext.registry.v1.GetCapabilityResponseBJZHgithub.com/monstercameron/hcm-next/gen/go/hcmnext/registry/v1;registryv1b\x06proto3"
+	"\rGetCapability\x12).hcmnext.registry.v1.GetCapabilityRequest\x1a*.hcmnext.registry.v1.GetCapabilityResponseB`Z^github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/registry/v1;registryv1b\x06proto3"
 
 var (
 	file_hcmnext_registry_v1_registry_service_proto_rawDescOnce sync.Once

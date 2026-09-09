@@ -1,4 +1,4 @@
-// Package values holds the canonical kernel value types that every HCM Next
+// Package values holds the canonical kernel value types that every Human Capital Management Suite
 // domain shares: entity identifiers and references, explicit property presence,
 // fixed-precision decimals and money, business-time primitives, and the
 // timezone/business-calendar dataset versioning that future timers carry.

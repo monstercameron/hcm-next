@@ -8,8 +8,8 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/data/dbport"
-	"github.com/monstercameron/hcm-next/internal/data/tenancy"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/tenancy"
 )
 
 // Version is a 1-based count of the revisions an aggregate has ever had; zero
@@ -22,7 +22,7 @@ type Version uint64
 // load the revision current at a business instant together with the version
 // it was read at, append a new revision under compare-and-swap, and list
 // every revision ever recorded. T is the aggregate's own Go shape (for
-// example [github.com/monstercameron/hcm-next/internal/data/aggregates.Worker]);
+// example [github.com/monstercameron/human-capital-management-suite/internal/data/aggregates.Worker]);
 // this package never inspects T's fields, so a repository over any other
 // DB-008/009/010 table can implement the same contract.
 //

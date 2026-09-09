@@ -5,7 +5,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/connectivity/observe"
+	"github.com/monstercameron/human-capital-management-suite/internal/connectivity/observe"
 )
 
 // Status is a reconciliation job's own lifecycle state. It is a closed set of

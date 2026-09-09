@@ -6,9 +6,9 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/domains/dataops"
-	"github.com/monstercameron/hcm-next/internal/engines/fielddiff"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/dataops"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/fielddiff"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // diffFields is the projection the cross-system diff is exercised over.

@@ -5,10 +5,10 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/monstercameron/hcm-next/internal/engines/wire/digest"
-	"github.com/monstercameron/hcm-next/internal/humanwork/workitem"
-	"github.com/monstercameron/hcm-next/internal/intent"
-	intentapproval "github.com/monstercameron/hcm-next/internal/intent/approval"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/wire/digest"
+	"github.com/monstercameron/human-capital-management-suite/internal/humanwork/workitem"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent"
+	intentapproval "github.com/monstercameron/human-capital-management-suite/internal/intent/approval"
 )
 
 // decisionBindingWire and decisionWire are WORK-010's JSON encoding of one

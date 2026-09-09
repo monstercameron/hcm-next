@@ -3,8 +3,8 @@ package snapshot_test
 import (
 	"testing"
 
-	promosnapshot "github.com/monstercameron/hcm-next/internal/domains/promotion/snapshot"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	promosnapshot "github.com/monstercameron/human-capital-management-suite/internal/domains/promotion/snapshot"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // TestTodo_PROMO_001_Mutation is the digest's whole claim, stated as a table:

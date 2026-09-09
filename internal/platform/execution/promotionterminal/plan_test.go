@@ -4,11 +4,11 @@ import (
 	"errors"
 	"testing"
 
-	domaincommit "github.com/monstercameron/hcm-next/internal/domains/promotion/commit"
-	"github.com/monstercameron/hcm-next/internal/intent"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
-	"github.com/monstercameron/hcm-next/internal/platform/execution/promotionterminal"
-	"github.com/monstercameron/hcm-next/internal/transaction"
+	domaincommit "github.com/monstercameron/human-capital-management-suite/internal/domains/promotion/commit"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/execution/promotionterminal"
+	"github.com/monstercameron/human-capital-management-suite/internal/transaction"
 )
 
 func domainEffect(id string) domaincommit.ExternalEffect {

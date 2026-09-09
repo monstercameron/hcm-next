@@ -7,11 +7,11 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/monstercameron/hcm-next/internal/data/dbport"
-	transactioncommit "github.com/monstercameron/hcm-next/internal/transaction/commit"
-	transactioncoordinator "github.com/monstercameron/hcm-next/internal/transaction/coordinator"
-	"github.com/monstercameron/hcm-next/internal/workflow/frontier"
-	"github.com/monstercameron/hcm-next/internal/workflow/runtime"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
+	transactioncommit "github.com/monstercameron/human-capital-management-suite/internal/transaction/commit"
+	transactioncoordinator "github.com/monstercameron/human-capital-management-suite/internal/transaction/coordinator"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/frontier"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/runtime"
 )
 
 type startRetryBindingBeginner struct{ began bool }

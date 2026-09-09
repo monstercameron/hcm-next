@@ -11,7 +11,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/tools/policy/provenance"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/provenance"
 )
 
 func provenanceRepoRoot(t *testing.T) string {

@@ -4,7 +4,7 @@ import (
 	"sort"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/humanwork/workitem"
+	"github.com/monstercameron/human-capital-management-suite/internal/humanwork/workitem"
 )
 
 // WorkItemAuthorization is the already-evaluated authorization decision the

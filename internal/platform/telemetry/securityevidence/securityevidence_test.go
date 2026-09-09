@@ -6,13 +6,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/governance/legalhold"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
-	"github.com/monstercameron/hcm-next/internal/platform/telemetry"
-	"github.com/monstercameron/hcm-next/internal/platform/telemetry/securityevidence"
-	"github.com/monstercameron/hcm-next/internal/trust/breakglass"
-	"github.com/monstercameron/hcm-next/internal/trust/dlp"
-	"github.com/monstercameron/hcm-next/internal/trust/jit"
+	"github.com/monstercameron/human-capital-management-suite/internal/governance/legalhold"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/telemetry"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/telemetry/securityevidence"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/breakglass"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/dlp"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/jit"
 )
 
 var evidenceBaseTime = time.Date(2026, time.September, 5, 12, 0, 0, 0, time.UTC)

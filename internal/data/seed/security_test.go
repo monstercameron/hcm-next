@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/data/pgtest"
-	"github.com/monstercameron/hcm-next/internal/data/seed"
-	"github.com/monstercameron/hcm-next/internal/data/tenancy"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/pgtest"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/seed"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/tenancy"
 )
 
 // TestTodo_DB_019_Security proves seeded rows are ordinary tenant-scoped data,

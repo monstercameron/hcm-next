@@ -1,7 +1,7 @@
 // Package cosignkit owns the provider-neutral admission contract for release
 // signatures and attestations. Cosign/Sigstore is an implementation detail:
 // callers supply a Verifier and this package decides whether evidence satisfies
-// the HCM Next release policy.
+// the Human Capital Management Suite release policy.
 package cosignkit
 
 import (

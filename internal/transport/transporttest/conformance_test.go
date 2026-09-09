@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	intentsv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/intents/v1"
-	"github.com/monstercameron/hcm-next/internal/transport/envelope"
+	intentsv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/intents/v1"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/envelope"
 )
 
 // fakeReporter is a minimal [Reporter] that records failures instead of

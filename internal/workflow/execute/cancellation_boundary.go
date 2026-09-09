@@ -3,9 +3,9 @@ package execute
 import (
 	"context"
 
-	transactioncancel "github.com/monstercameron/hcm-next/internal/transaction/cancel"
-	transactioncommit "github.com/monstercameron/hcm-next/internal/transaction/commit"
-	"github.com/monstercameron/hcm-next/internal/transaction/plan"
+	transactioncancel "github.com/monstercameron/human-capital-management-suite/internal/transaction/cancel"
+	transactioncommit "github.com/monstercameron/human-capital-management-suite/internal/transaction/commit"
+	"github.com/monstercameron/human-capital-management-suite/internal/transaction/plan"
 )
 
 // GovernedCommitResult is the execute-layer handoff for a terminal governed

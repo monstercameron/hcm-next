@@ -9,9 +9,9 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/engines/schedule"
-	"github.com/monstercameron/hcm-next/internal/platform/bootstrap"
-	"github.com/monstercameron/hcm-next/internal/workflow/lease"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/schedule"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/bootstrap"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/lease"
 )
 
 // noEnv isolates every configuration test from the real process environment.

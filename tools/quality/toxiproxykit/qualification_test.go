@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/quality/toxiproxykit"
+	"github.com/monstercameron/human-capital-management-suite/tools/quality/toxiproxykit"
 )
 
 func schedule() toxiproxykit.Schedule {

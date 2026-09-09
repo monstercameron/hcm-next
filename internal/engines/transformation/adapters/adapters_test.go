@@ -7,13 +7,13 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/connectivity/mapping"
-	"github.com/monstercameron/hcm-next/internal/domains/dataops/importing"
-	"github.com/monstercameron/hcm-next/internal/engines/transformation"
-	"github.com/monstercameron/hcm-next/internal/engines/transformation/adapters"
-	"github.com/monstercameron/hcm-next/internal/engines/transformation/conformance"
-	"github.com/monstercameron/hcm-next/internal/engines/transformation/exec"
-	"github.com/monstercameron/hcm-next/internal/engines/transformation/ir"
+	"github.com/monstercameron/human-capital-management-suite/internal/connectivity/mapping"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/dataops/importing"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/transformation"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/transformation/adapters"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/transformation/conformance"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/transformation/exec"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/transformation/ir"
 )
 
 // loweredFixtures returns one lowered artifact per declared site, built from

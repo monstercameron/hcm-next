@@ -4,10 +4,10 @@ import (
 	"context"
 	"strconv"
 
-	"github.com/monstercameron/hcm-next/internal/intent/app"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
-	"github.com/monstercameron/hcm-next/internal/transport/workflow"
-	"github.com/monstercameron/hcm-next/internal/workflow/runtime"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/app"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/workflow"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/runtime"
 )
 
 // workflowReader adapts the application-owned durable workflow reader to the

@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/workflow/simulate"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/simulate"
 )
 
 // TestSmoke_Scenarios is a fast sanity check across every scenario variant,

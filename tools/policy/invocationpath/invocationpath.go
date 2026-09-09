@@ -20,8 +20,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/internal/transport/manifest"
-	"github.com/monstercameron/hcm-next/tools/policy/internal/repopath"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/manifest"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/internal/repopath"
 )
 
 // FindingKind is the stable class of an INTENT-013 finding.

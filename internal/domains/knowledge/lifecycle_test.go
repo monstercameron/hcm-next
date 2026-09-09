@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/domains/knowledge"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/knowledge"
 )
 
 type testActivationReceipt struct {

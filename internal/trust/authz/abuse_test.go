@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
-	"github.com/monstercameron/hcm-next/internal/trust/authz"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/authz"
 )
 
 // TestTodo_TRUST_025 is the TRUST-025 primary cross-tenant abuse suite. It

@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/data/pgtest"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/pgtest"
 )
 
 func TestConnIsClosedTracksTheUnderlyingConnection(t *testing.T) {

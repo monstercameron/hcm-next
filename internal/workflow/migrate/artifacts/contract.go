@@ -6,8 +6,8 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/workflow/lease"
-	"github.com/monstercameron/hcm-next/internal/workflow/steps/wait"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/lease"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/steps/wait"
 )
 
 // ContractVersion is the identity of the artifact-migration contract every

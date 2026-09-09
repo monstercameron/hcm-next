@@ -3,8 +3,8 @@ package health_test
 import (
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/data/health"
-	"github.com/monstercameron/hcm-next/internal/platform/telemetry"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/health"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/telemetry"
 )
 
 // TestSnapshotTelemetrySamples_CompatibleWithCatalog proves the package

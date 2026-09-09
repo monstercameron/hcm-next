@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/engines/cycle"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/cycle"
 )
 
 func futureEvidenceFixture(t *testing.T) (FuturePublicationEvidence, cycle.PublicationVerification, *InMemoryKeyring) {

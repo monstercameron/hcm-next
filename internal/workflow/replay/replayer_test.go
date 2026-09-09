@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/workflow/frontier"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/frontier"
 )
 
 // TestNew_RefusesUnusableWiring covers the two options a replayer cannot be

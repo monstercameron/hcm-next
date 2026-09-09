@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/transport/streaming"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/streaming"
 )
 
 func TestOperationStateTerminal(t *testing.T) {

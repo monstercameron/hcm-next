@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	sfx "github.com/monstercameron/hcm-next/tools/gen/schemaflux"
+	sfx "github.com/monstercameron/human-capital-management-suite/tools/gen/schemaflux"
 )
 
 // mutateOne returns a copy of defs with fn applied to the single definition

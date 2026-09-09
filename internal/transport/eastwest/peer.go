@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/trust/workload"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/workload"
 )
 
 var (
@@ -18,7 +18,7 @@ var (
 	ErrDuplicatePath   = errors.New("eastwest: service dependency manifest contains a duplicate path")
 )
 
-const modulePath = "github.com/monstercameron/hcm-next"
+const modulePath = "github.com/monstercameron/human-capital-management-suite"
 
 // CompileManifest is the strict publication entry point. It retains the
 // existing pure Compile implementation but rejects a manifest that is not

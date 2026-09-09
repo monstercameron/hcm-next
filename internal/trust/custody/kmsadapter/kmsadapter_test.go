@@ -18,10 +18,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/trust/bundle"
-	"github.com/monstercameron/hcm-next/internal/trust/custody"
-	"github.com/monstercameron/hcm-next/internal/trust/envelope"
-	"github.com/monstercameron/hcm-next/internal/trust/lease"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/bundle"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/custody"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/envelope"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/lease"
 )
 
 var adapterNow = time.Date(2026, 9, 5, 12, 0, 0, 0, time.UTC)

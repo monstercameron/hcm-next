@@ -6,17 +6,17 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	"github.com/monstercameron/hcm-next/internal/capability"
-	"github.com/monstercameron/hcm-next/internal/domains/evidence"
-	"github.com/monstercameron/hcm-next/internal/domains/fixtures"
-	"github.com/monstercameron/hcm-next/internal/domains/promotion/simassign"
-	"github.com/monstercameron/hcm-next/internal/domains/promotion/simcontract"
-	"github.com/monstercameron/hcm-next/internal/governance/decision"
-	"github.com/monstercameron/hcm-next/internal/intent"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
-	"github.com/monstercameron/hcm-next/internal/transaction/conflict"
-	"github.com/monstercameron/hcm-next/internal/workflow"
-	"github.com/monstercameron/hcm-next/internal/workflow/simulate"
+	"github.com/monstercameron/human-capital-management-suite/internal/capability"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/evidence"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/fixtures"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/promotion/simassign"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/promotion/simcontract"
+	"github.com/monstercameron/human-capital-management-suite/internal/governance/decision"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/transaction/conflict"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/simulate"
 )
 
 // Environment is the fixed, in-memory read projection used by the simulation.

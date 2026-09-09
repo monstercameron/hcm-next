@@ -3,7 +3,7 @@ package definitions
 import (
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/intent"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent"
 )
 
 func TestAllCount(t *testing.T) {

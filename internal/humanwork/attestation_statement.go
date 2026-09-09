@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/trust"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust"
 )
 
 // AttestationStatus is the lifecycle state of a statement version.

@@ -3,7 +3,7 @@ package simcontract_test
 import (
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/domains/promotion/simcontract"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/promotion/simcontract"
 )
 
 // TestTodo_PROMO_004_Golden is PROMO-004's GOLDEN matrix test. It pins the

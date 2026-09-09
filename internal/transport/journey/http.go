@@ -6,7 +6,7 @@ import (
 
 	"connectrpc.com/connect"
 
-	journeyv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/journey/v1"
+	journeyv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/journey/v1"
 )
 
 // ProposePromotionProcedure is the canonical procedure name shared by the

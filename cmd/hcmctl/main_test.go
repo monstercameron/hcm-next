@@ -8,11 +8,11 @@ import (
 
 	"google.golang.org/grpc"
 
-	"github.com/monstercameron/hcm-next/internal/transport"
-	"github.com/monstercameron/hcm-next/internal/transport/admin"
-	"github.com/monstercameron/hcm-next/internal/transport/admin/hcmctl"
-	"github.com/monstercameron/hcm-next/internal/transport/grpcserver"
-	"github.com/monstercameron/hcm-next/internal/trust"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/admin"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/admin/hcmctl"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/grpcserver"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust"
 )
 
 // startCommandFixtureServer boots a real AdminService - the same

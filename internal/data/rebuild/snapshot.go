@@ -12,7 +12,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/data/dbport"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
 )
 
 // SnapshotStream binds one accelerated replay input to the exact ledger head

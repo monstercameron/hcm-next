@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/platform/bootstrap"
-	"github.com/monstercameron/hcm-next/internal/platform/buildinfo"
-	"github.com/monstercameron/hcm-next/internal/platform/telemetry"
-	hcmotel "github.com/monstercameron/hcm-next/internal/platform/telemetry/otel"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/bootstrap"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/buildinfo"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/telemetry"
+	hcmotel "github.com/monstercameron/human-capital-management-suite/internal/platform/telemetry/otel"
 )
 
 const workerTelemetryShutdownGrace = 5 * time.Second

@@ -3,8 +3,8 @@ package storagemanifest
 import (
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/intent/model"
-	"github.com/monstercameron/hcm-next/tools/gen/schemaflux/sources"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/model"
+	"github.com/monstercameron/human-capital-management-suite/tools/gen/schemaflux/sources"
 )
 
 func TestCanonicalPropertyMappingStorageAndLineageClosureRejectsSemanticDrift(t *testing.T) {

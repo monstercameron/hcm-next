@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/planning/securebydesign"
+	"github.com/monstercameron/human-capital-management-suite/tools/planning/securebydesign"
 )
 
 func TestScanTestNamesSkipsDotDirectories(t *testing.T) {

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/internal/engines/canonicalbytes"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/canonicalbytes"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 const (
@@ -23,7 +23,7 @@ const (
 // version. It is matchable with errors.Is.
 var ErrEntryIncomplete = errors.New("snapshot: entry is missing a required descriptor")
 
-// AuthorityClass says who may assert an input entry's value: HCM Next's own
+// AuthorityClass says who may assert an input entry's value: Human Capital Management Suite's own
 // state, another system's reported observation, or a versioned reference or
 // configuration artifact neither system owns as live business state.
 //

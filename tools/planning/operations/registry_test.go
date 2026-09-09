@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/tools/planning/operations"
-	"github.com/monstercameron/hcm-next/tools/policy/processroles"
+	"github.com/monstercameron/human-capital-management-suite/tools/planning/operations"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/processroles"
 )
 
 func repoRoot(t *testing.T) string {

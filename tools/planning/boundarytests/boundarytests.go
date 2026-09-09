@@ -12,8 +12,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/tools/policy/depedge"
-	"github.com/monstercameron/hcm-next/tools/policy/importgraph"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/depedge"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/importgraph"
 )
 
 // ClassifyRel resolves a module-relative package path to the name of the

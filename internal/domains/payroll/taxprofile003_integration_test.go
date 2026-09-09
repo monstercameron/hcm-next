@@ -5,9 +5,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/domains/payroll/calcpolicy"
-	"github.com/monstercameron/hcm-next/internal/domains/taxprofile"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/payroll/calcpolicy"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/taxprofile"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 func taxProfile003Instant(t *testing.T, text string) values.Instant {

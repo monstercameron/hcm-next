@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/tools/uxqual/latencygate"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/latencygate"
 )
 
 func TestTodo_WEB_031(t *testing.T) {

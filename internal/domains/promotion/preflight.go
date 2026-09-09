@@ -23,11 +23,11 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/monstercameron/hcm-next/internal/domains/evidence"
-	"github.com/monstercameron/hcm-next/internal/domains/people"
-	"github.com/monstercameron/hcm-next/internal/domains/rewards"
-	"github.com/monstercameron/hcm-next/internal/engines/canonicalbytes"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/evidence"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/people"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/rewards"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/canonicalbytes"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // Intent identity for the promotion slice.
@@ -235,7 +235,7 @@ func (t TargetPlacement) Canonical() []byte {
 
 // BudgetAuthorityRef is the workforce-budget observation a promotion cites.
 //
-// In P1A this is an observation, never a reservation: HCM Next reads the
+// In P1A this is an observation, never a reservation: Human Capital Management Suite reads the
 // incumbent finance authority and reports what it saw. AvailableAmount is
 // Presence-wrapped so that "the pool has 40,000 left" and "we could not read
 // the pool" stay different answers, and neither can be presented as a

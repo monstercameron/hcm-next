@@ -7,9 +7,9 @@ import (
 	"github.com/monstercameron/GoWebComponents/v5/html"
 	"github.com/monstercameron/GoWebComponents/v5/ui"
 
-	"github.com/monstercameron/hcm-next/tools/uxqual/floorplan"
-	"github.com/monstercameron/hcm-next/tools/uxqual/pagedef"
-	"github.com/monstercameron/hcm-next/tools/uxqual/ssrshell"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/floorplan"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/pagedef"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/ssrshell"
 )
 
 // RootElementIDPrefix names the root node's id: "page-" + PageID. It is

@@ -5,8 +5,8 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/domains/dataops"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/dataops"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // driftRequest is the fixture detect_drift request over a two-worker

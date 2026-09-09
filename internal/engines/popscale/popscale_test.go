@@ -11,9 +11,9 @@ import (
 	"testing"
 	"time"
 
-	popscale "github.com/monstercameron/hcm-next/internal/engines/popscale"
-	"github.com/monstercameron/hcm-next/internal/engines/population"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	popscale "github.com/monstercameron/human-capital-management-suite/internal/engines/popscale"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/population"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 var baseTime = time.Date(2026, 9, 3, 12, 0, 0, 0, time.UTC)

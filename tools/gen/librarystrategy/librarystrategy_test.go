@@ -48,7 +48,7 @@ func TestTodo_LIB_015_Golden(t *testing.T) {
 		"Go", "GWC / GoWebComponents", "grpcbridge", "SchemaFlux",
 		"PROJECT CORE; product language/toolchain",
 		"replaceable mechanics", "Prohibited semantic frameworks",
-		"github.com/monstercameron/hcm-next",
+		"github.com/monstercameron/human-capital-management-suite",
 	} {
 		if !strings.Contains(got, want) {
 			t.Errorf("generated README inventory does not contain %q", want)

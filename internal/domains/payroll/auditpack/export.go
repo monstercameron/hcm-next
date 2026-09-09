@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/data/ledger/evidence"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/ledger/evidence"
 )
 
 // Querier is the minimal database capability an export needs. It is

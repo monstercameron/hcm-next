@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/trust/workload"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/workload"
 )
 
 // TestTodo_TRUST_006_Integration is the TRUST-006 integration test. It wires

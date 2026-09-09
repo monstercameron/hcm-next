@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	schemaflux "github.com/monstercameron/hcm-next/tools/gen/schemaflux"
+	schemaflux "github.com/monstercameron/human-capital-management-suite/tools/gen/schemaflux"
 )
 
 // entityDigest hashes exactly the fields a manifest attests for one entity —

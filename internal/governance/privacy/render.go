@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"html/template"
 
-	"github.com/monstercameron/hcm-next/tools/uxqual/tokens"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/tokens"
 )
 
 // RenderNoticeDocument renders a minimal, standalone HTML document

@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package hcmnext.workflow.v1;
 
-option go_package = "github.com/monstercameron/hcm-next/gen/go/hcmnext/workflow/v1;workflowv1";
+option go_package = "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/workflow/v1;workflowv1";
 
 import "hcmnext/common/v1/common.proto";
 import "hcmnext/workflow/v1/workflow.proto";

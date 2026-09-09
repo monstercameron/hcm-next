@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/monstercameron/GoWebComponents/v5/ui"
-	"github.com/monstercameron/hcm-next/tools/uxqual/latencygate"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/latencygate"
 )
 
 // TestTodo_WEB_039_InteractionP95 is the navigation interaction gate. It

@@ -31,8 +31,8 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/monstercameron/hcm-next/tools/policy/depadmission"
-	"github.com/monstercameron/hcm-next/tools/policy/depmanifest"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/depadmission"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/depmanifest"
 )
 
 func main() {

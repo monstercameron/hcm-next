@@ -4,7 +4,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // TestTodo_BAL_009 is the PRIMARY test for decimal and concurrent-posting

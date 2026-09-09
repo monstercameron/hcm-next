@@ -5,7 +5,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/intent/model"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/model"
 )
 
 func mutateAggregate(aggs []model.AggregateDefinition, root model.EntityRef, f func(*model.AggregateDefinition)) []model.AggregateDefinition {

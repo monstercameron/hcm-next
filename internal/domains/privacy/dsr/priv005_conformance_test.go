@@ -3,8 +3,8 @@ package dsr
 import (
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/governance/legal"
-	"github.com/monstercameron/hcm-next/internal/trust"
+	"github.com/monstercameron/human-capital-management-suite/internal/governance/legal"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust"
 )
 
 // TestTodo_PRIV_005_Conformance is the CONFORMANCE matrix test for

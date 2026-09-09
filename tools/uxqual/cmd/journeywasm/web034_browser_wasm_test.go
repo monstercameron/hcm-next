@@ -6,8 +6,8 @@ import (
 	"context"
 	"testing"
 
-	journeyv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/journey/v1"
-	"github.com/monstercameron/hcm-next/tools/uxqual/journeyclient"
+	journeyv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/journey/v1"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/journeyclient"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 )

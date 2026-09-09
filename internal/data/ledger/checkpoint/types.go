@@ -7,7 +7,7 @@ import (
 
 	"github.com/google/uuid"
 
-	datalogger "github.com/monstercameron/hcm-next/internal/data/ledger"
+	datalogger "github.com/monstercameron/human-capital-management-suite/internal/data/ledger"
 )
 
 // Querier is the minimal database capability a checkpoint read needs. It is

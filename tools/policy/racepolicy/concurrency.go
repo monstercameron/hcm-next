@@ -21,7 +21,7 @@ import (
 // concurrency primitive this policy tracks.
 type ConcurrentPackage struct {
 	// ImportPath is the package's full import path, e.g.
-	// "github.com/monstercameron/hcm-next/internal/domains/workflow".
+	// "github.com/monstercameron/human-capital-management-suite/internal/domains/workflow".
 	ImportPath string
 	// Dir is the package's directory, relative to the scan root, with
 	// forward slashes (e.g. "internal/domains/workflow").

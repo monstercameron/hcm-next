@@ -8,11 +8,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/transport"
-	"github.com/monstercameron/hcm-next/internal/trust"
-	"github.com/monstercameron/hcm-next/tools/uxqual/latencygate"
-	"github.com/monstercameron/hcm-next/tools/uxqual/render/journey"
-	"github.com/monstercameron/hcm-next/tools/uxqual/tokens"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/latencygate"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/render/journey"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/tokens"
 )
 
 func TestTodo_WEB_033(t *testing.T) {

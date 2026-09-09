@@ -8,15 +8,15 @@ import (
 	"time"
 )
 
-const sampleOutput = `ok  	github.com/monstercameron/hcm-next/internal/trust/sod	0.412s	coverage: 81.3% of statements
-ok  	github.com/monstercameron/hcm-next/internal/trust/jit	(cached)	coverage: 64.0% of statements
-?   	github.com/monstercameron/hcm-next/cmd/frontenddev	[no test files]
+const sampleOutput = `ok  	github.com/monstercameron/human-capital-management-suite/internal/trust/sod	0.412s	coverage: 81.3% of statements
+ok  	github.com/monstercameron/human-capital-management-suite/internal/trust/jit	(cached)	coverage: 64.0% of statements
+?   	github.com/monstercameron/human-capital-management-suite/cmd/frontenddev	[no test files]
 --- FAIL: TestSomething (0.00s)
     thing_test.go:12: boom
 FAIL
-FAIL	github.com/monstercameron/hcm-next/internal/domains/access	1.203s
-FAIL	github.com/monstercameron/hcm-next/internal/broken	[build failed]
-ok  	github.com/monstercameron/hcm-next/internal/engines/canonicalbytes	0.100s	coverage: [no statements]
+FAIL	github.com/monstercameron/human-capital-management-suite/internal/domains/access	1.203s
+FAIL	github.com/monstercameron/human-capital-management-suite/internal/broken	[build failed]
+ok  	github.com/monstercameron/human-capital-management-suite/internal/engines/canonicalbytes	0.100s	coverage: [no statements]
 go: unlinkat C:\Users\x\AppData\Local\Temp\go-build1\b001\sod.test.exe: Access is denied.
 FAIL
 `

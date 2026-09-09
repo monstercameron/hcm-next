@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"slices"
 
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // AuthorityCode is a stable, uniform reason token an [AuthorityDecision]
@@ -49,7 +49,7 @@ const (
 // at one instant. Nothing is fetched by this package; the caller resolves
 // the current Notice, Presentation and OptionalProcessing records and hands
 // them in, exactly as
-// [github.com/monstercameron/hcm-next/internal/trust/authz.Request] hands
+// [github.com/monstercameron/human-capital-management-suite/internal/trust/authz.Request] hands
 // its own pre-resolved projections to authz.Evaluate.
 type AuthorityInput struct {
 	// Purpose is the optional-processing purpose being requested, e.g.

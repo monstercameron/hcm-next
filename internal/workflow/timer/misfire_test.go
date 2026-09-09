@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/engines/schedule"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/schedule"
 )
 
 var misfireBase = time.Date(2026, 9, 5, 12, 0, 0, 0, time.UTC)

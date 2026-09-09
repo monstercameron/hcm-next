@@ -9,7 +9,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // CriterionStatus is one leaf predicate's contribution to a subject's result.

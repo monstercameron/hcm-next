@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/transport/streaming"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/streaming"
 )
 
 // testKey is 32 bytes, the floor [streaming.NewSigner] accepts. It never

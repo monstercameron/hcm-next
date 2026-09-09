@@ -18,17 +18,17 @@ import (
 	"google.golang.org/grpc/test/bufconn"
 	"google.golang.org/protobuf/proto"
 
-	commonv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/common/v1"
-	intentsv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/intents/v1"
-	registryv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/registry/v1"
-	"github.com/monstercameron/hcm-next/internal/transport"
-	"github.com/monstercameron/hcm-next/internal/transport/clients"
-	"github.com/monstercameron/hcm-next/internal/transport/edge"
-	"github.com/monstercameron/hcm-next/internal/transport/envelope"
-	"github.com/monstercameron/hcm-next/internal/transport/grpcserver"
-	"github.com/monstercameron/hcm-next/internal/transport/manifest"
-	"github.com/monstercameron/hcm-next/internal/transport/transporttest"
-	"github.com/monstercameron/hcm-next/internal/trust"
+	commonv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/common/v1"
+	intentsv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/intents/v1"
+	registryv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/registry/v1"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/clients"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/edge"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/envelope"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/grpcserver"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/manifest"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/transporttest"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust"
 )
 
 // fixedRequestID is the correlation identifier both backends are told to

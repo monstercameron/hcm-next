@@ -10,7 +10,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/connectivity/operation"
+	"github.com/monstercameron/human-capital-management-suite/internal/connectivity/operation"
 )
 
 var testNow = time.Date(2026, 9, 5, 12, 0, 0, 0, time.UTC)

@@ -10,12 +10,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/data/ledger/evidence"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
-	"github.com/monstercameron/hcm-next/internal/trust"
-	"github.com/monstercameron/hcm-next/internal/trust/authz"
-	"github.com/monstercameron/hcm-next/internal/trust/stepup"
-	"github.com/monstercameron/hcm-next/tools/planning/securebydesign"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/ledger/evidence"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/authz"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/stepup"
+	"github.com/monstercameron/human-capital-management-suite/tools/planning/securebydesign"
 )
 
 func repoRoot(t testing.TB) string {

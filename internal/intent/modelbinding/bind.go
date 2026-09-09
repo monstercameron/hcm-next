@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"sort"
 
-	model "github.com/monstercameron/hcm-next/gen/go/hcmnext/model"
-	"github.com/monstercameron/hcm-next/internal/intent"
+	model "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/model"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent"
 )
 
 // Gap is one binding element [Bind] could not resolve against the generated

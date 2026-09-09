@@ -5,11 +5,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/domains/budget"
-	"github.com/monstercameron/hcm-next/internal/domains/promotion/simassign"
-	"github.com/monstercameron/hcm-next/internal/domains/rewards"
-	"github.com/monstercameron/hcm-next/internal/engines/canonicalbytes"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/budget"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/promotion/simassign"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/rewards"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/canonicalbytes"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // schemaVersion pins the canonical encoding this package digests under.

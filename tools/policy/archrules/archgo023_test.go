@@ -10,8 +10,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/policy/archrules"
-	"github.com/monstercameron/hcm-next/tools/policy/internal/repopath"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/archrules"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/internal/repopath"
 )
 
 // transportHandlerStatementBudget is the ARCH-GO-023 statement budget: an RPC
@@ -58,7 +58,7 @@ func TestTransportRejectsBusinessAndPersistenceImports(t *testing.T) {
 import (
 	"context"
 
-	"github.com/monstercameron/hcm-next/internal/domains/people"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/people"
 )
 
 func (s *server) GetWorker(ctx context.Context, req *WidgetRequest) (*WidgetResponse, error) {
@@ -87,8 +87,8 @@ func (s *server) GetWorker(ctx context.Context, req *WidgetRequest) (*WidgetResp
 import (
 	"context"
 
-	widgetv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/widget/v1"
-	"github.com/monstercameron/hcm-next/internal/transport"
+	widgetv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/widget/v1"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport"
 )
 
 func (s *server) GetWidget(ctx context.Context, req *widgetv1.GetWidgetRequest) (*widgetv1.GetWidgetResponse, error) {
@@ -302,7 +302,7 @@ func TestTodo_ARCH_GO_023_Golden(t *testing.T) {
 // pool/connection references and oversized RPC handler bodies.
 func TestTodo_ARCH_GO_023_Integration(t *testing.T) {
 	const (
-		module        = "github.com/monstercameron/hcm-next"
+		module        = "github.com/monstercameron/human-capital-management-suite"
 		transportRoot = "internal/transport"
 	)
 
@@ -445,7 +445,7 @@ func TestTodo_ARCH_GO_023_Conformance(t *testing.T) {
 // without duplicating repopath's real `go list` graph.
 func parseImports(t *testing.T, filename, src string) ([]string, error) {
 	t.Helper()
-	const module = "github.com/monstercameron/hcm-next/"
+	const module = "github.com/monstercameron/human-capital-management-suite/"
 
 	fset := token.NewFileSet()
 	file, err := parser.ParseFile(fset, filename, src, parser.ImportsOnly)

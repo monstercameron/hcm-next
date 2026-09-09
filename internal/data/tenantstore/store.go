@@ -15,9 +15,9 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/data/dbport"
-	"github.com/monstercameron/hcm-next/internal/domains/tenant"
-	"github.com/monstercameron/hcm-next/internal/domains/tenant/govauth"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/tenant"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/tenant/govauth"
 )
 
 type Executor interface {

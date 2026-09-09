@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/commercial"
-	"github.com/monstercameron/hcm-next/internal/transport/envelope"
+	"github.com/monstercameron/human-capital-management-suite/internal/commercial"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/envelope"
 )
 
 func promotionGateSnapshot(t *testing.T, status commercial.ContractStatus) commercial.EntitlementSnapshot {

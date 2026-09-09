@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/quality/thintransport"
+	"github.com/monstercameron/human-capital-management-suite/tools/quality/thintransport"
 )
 
 func writeSource(t *testing.T, root, rel, source string) {
@@ -27,8 +27,8 @@ func TestTransportRejectsBusinessAndPersistenceImports(t *testing.T) {
 	root := t.TempDir()
 	writeSource(t, root, "internal/transport/grpc/handler.go", `package grpc
 import (
-  "github.com/monstercameron/hcm-next/internal/domains/leave"
-  "github.com/monstercameron/hcm-next/internal/data/postgres"
+  "github.com/monstercameron/human-capital-management-suite/internal/domains/leave"
+  "github.com/monstercameron/human-capital-management-suite/internal/data/postgres"
   "github.com/jackc/pgx/v5"
 )
 var _ = leave.Request{}
@@ -36,7 +36,7 @@ var _ postgres.Store
 var _ pgx.Tx
 `)
 	writeSource(t, root, "internal/transport/middleware/identity.go", `package middleware
-import "github.com/monstercameron/hcm-next/internal/intent"
+import "github.com/monstercameron/human-capital-management-suite/internal/intent"
 var _ intent.Type
 `)
 	findings := thintransport.Check(root)
@@ -53,8 +53,8 @@ func TestThinTransportAllowsApplicationAndGeneratedContracts(t *testing.T) {
 	writeSource(t, root, "internal/transport/grpcbridge/handler.go", `package grpcbridge
 import (
   "context"
-  intents "github.com/monstercameron/hcm-next/internal/intent/app"
-  "github.com/monstercameron/hcm-next/gen/go/hcmnext/intents/v1"
+  intents "github.com/monstercameron/human-capital-management-suite/internal/intent/app"
+  "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/intents/v1"
 )
 var _ context.Context
 var _ intents.Service
@@ -83,7 +83,7 @@ var _ *sql.DB
 func TestTodo_ARCH_GO_023_Golden(t *testing.T) {
 	root := t.TempDir()
 	writeSource(t, root, "internal/transport/grpcserver/server.go", `package grpcserver
-import "github.com/monstercameron/hcm-next/internal/data/store"
+import "github.com/monstercameron/human-capital-management-suite/internal/data/store"
 `)
 	got := thintransport.Check(root)
 	if len(got) != 1 || got[0].Code != "persistence-import" || got[0].Line != 2 {

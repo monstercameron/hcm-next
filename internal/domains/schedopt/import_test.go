@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/domains/demand"
-	"github.com/monstercameron/hcm-next/internal/domains/matching"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/demand"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/matching"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 func importedAggregation(t *testing.T, windows ...DemandWindow) demand.DemandAggregation {

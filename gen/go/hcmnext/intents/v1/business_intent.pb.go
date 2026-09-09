@@ -3315,7 +3315,7 @@ const file_hcmnext_intents_v1_business_intent_proto_rawDesc = "" +
 	"#INTENT_RELATIONSHIP_KIND_SUPERSEDES\x10\x02\x12%\n" +
 	"!INTENT_RELATIONSHIP_KIND_CORRECTS\x10\x03\x12$\n" +
 	" INTENT_RELATIONSHIP_KIND_REPAIRS\x10\x04\x12)\n" +
-	"%INTENT_RELATIONSHIP_KIND_DERIVED_FROM\x10\x05BHZFgithub.com/monstercameron/hcm-next/gen/go/hcmnext/intents/v1;intentsv1b\x06proto3"
+	"%INTENT_RELATIONSHIP_KIND_DERIVED_FROM\x10\x05B^Z\\github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/intents/v1;intentsv1b\x06proto3"
 
 var (
 	file_hcmnext_intents_v1_business_intent_proto_rawDescOnce sync.Once

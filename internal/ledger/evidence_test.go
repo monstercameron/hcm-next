@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	checkpointadapter "github.com/monstercameron/hcm-next/internal/data/ledger/checkpoint"
-	evidenceadapter "github.com/monstercameron/hcm-next/internal/data/ledger/evidence"
+	checkpointadapter "github.com/monstercameron/human-capital-management-suite/internal/data/ledger/checkpoint"
+	evidenceadapter "github.com/monstercameron/human-capital-management-suite/internal/data/ledger/evidence"
 )
 
 // TestEvidenceExporterSatisfiesThePort proves the adapter this package hands

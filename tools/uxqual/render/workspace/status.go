@@ -3,8 +3,8 @@ package workspace
 import (
 	"github.com/monstercameron/GoWebComponents/v5/ui"
 
-	"github.com/monstercameron/hcm-next/tools/uxqual/pagedef"
-	"github.com/monstercameron/hcm-next/tools/uxqual/render/page"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/pagedef"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/render/page"
 )
 
 // StatusElementID is the id of the governed page's canonical live region.

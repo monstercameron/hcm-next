@@ -7,10 +7,10 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
-	"github.com/monstercameron/hcm-next/internal/workflow/lease"
-	"github.com/monstercameron/hcm-next/internal/workflow/steps/wait"
-	"github.com/monstercameron/hcm-next/internal/workflow/timer"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/lease"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/steps/wait"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/timer"
 )
 
 func runHandler(t *testing.T, h Handler, s *scenario) ([]Entry, error) {

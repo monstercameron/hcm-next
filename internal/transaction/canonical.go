@@ -6,7 +6,7 @@ import (
 	"encoding/hex"
 	"sort"
 
-	"github.com/monstercameron/hcm-next/internal/intent"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent"
 )
 
 // resolutionMagic prefixes every canonical byte stream this file produces.

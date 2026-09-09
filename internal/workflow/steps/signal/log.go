@@ -3,7 +3,7 @@ package signal
 import (
 	"sync"
 
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // LogEntry is one immutable, inspectable record of an Accept evaluation. It

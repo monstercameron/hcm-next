@@ -9,7 +9,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/monstercameron/hcm-next/internal/trust"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust"
 )
 
 // EvidenceKind is the closed vocabulary of credential evidence understood by

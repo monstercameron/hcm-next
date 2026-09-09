@@ -40,7 +40,7 @@ type Subject struct {
 // Builder identifies the process that produced Subjects.
 type Builder struct {
 	// ID names the builder, e.g.
-	// "github.com/monstercameron/hcm-next/tools/policy/provenance/cmd/provgen".
+	// "github.com/monstercameron/human-capital-management-suite/tools/policy/provenance/cmd/provgen".
 	ID string `json:"id"`
 	// Version is that builder's own version/revision, when known; empty is
 	// valid (this generator is not itself released/tagged - see doc.go).

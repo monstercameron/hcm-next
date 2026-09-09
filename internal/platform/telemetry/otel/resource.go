@@ -4,7 +4,7 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	sdkresource "go.opentelemetry.io/otel/sdk/resource"
 
-	"github.com/monstercameron/hcm-next/internal/platform/telemetry"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/telemetry"
 )
 
 // Resource attribute keys. These mirror the exact field names

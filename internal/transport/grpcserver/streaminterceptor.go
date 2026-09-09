@@ -5,7 +5,7 @@ import (
 
 	"google.golang.org/grpc"
 
-	"github.com/monstercameron/hcm-next/internal/transport"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport"
 )
 
 // StreamInterceptor is the trusted request boundary for native gRPC

@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/domains/promotion/commit"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/promotion/commit"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 func validCommand(t *testing.T) commit.Command {

@@ -10,7 +10,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/domains/tenant/govauth"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/tenant/govauth"
 )
 
 func TestTodo_PERSIST_TENANT_001_DomainPort(t *testing.T) {

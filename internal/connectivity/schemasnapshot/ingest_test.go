@@ -10,8 +10,8 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/connectivity/schemasnapshot"
-	"github.com/monstercameron/hcm-next/internal/intent/model"
+	"github.com/monstercameron/human-capital-management-suite/internal/connectivity/schemasnapshot"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/model"
 )
 
 const testTenant = "5e3f1c2b-0000-4000-8000-000000000001"

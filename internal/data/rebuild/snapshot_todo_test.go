@@ -7,7 +7,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/data/rebuild"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/rebuild"
 )
 
 func snapshotFixture(t *testing.T) rebuild.SnapshotManifest {

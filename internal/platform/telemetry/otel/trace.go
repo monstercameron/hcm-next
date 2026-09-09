@@ -8,8 +8,8 @@ import (
 	"go.opentelemetry.io/otel/trace"
 	"go.opentelemetry.io/otel/trace/embedded"
 
-	"github.com/monstercameron/hcm-next/internal/platform/logging"
-	"github.com/monstercameron/hcm-next/internal/platform/telemetry"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/logging"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/telemetry"
 )
 
 // Context-propagation attribute keys this package attempts to attach to

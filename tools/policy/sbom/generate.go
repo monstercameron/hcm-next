@@ -16,8 +16,8 @@ const DefaultRootVersion = "0.0.0-devel"
 
 // GeneratorName/GeneratorVendor identify this tool in Metadata.Tools.
 const (
-	GeneratorName   = "hcm-next-sbomgen"
-	GeneratorVendor = "github.com/monstercameron/hcm-next"
+	GeneratorName   = "human-capital-management-suite-sbomgen"
+	GeneratorVendor = "github.com/monstercameron/human-capital-management-suite"
 )
 
 // Options configures Generate. All fields are optional.

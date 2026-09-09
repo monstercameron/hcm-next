@@ -7,8 +7,8 @@
 package workflowv1
 
 import (
-	v11 "github.com/monstercameron/hcm-next/gen/go/hcmnext/common/v1"
-	v1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/intents/v1"
+	v11 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/common/v1"
+	v1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/intents/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
@@ -1322,7 +1322,7 @@ const file_hcmnext_workflow_v1_workflow_proto_rawDesc = "" +
 	" NODE_EXECUTION_STATUS_OVERRIDDEN\x10\b\x12%\n" +
 	"!NODE_EXECUTION_STATUS_COMPENSATED\x10\t\x12#\n" +
 	"\x1fNODE_EXECUTION_STATUS_CANCELLED\x10\n" +
-	"BJZHgithub.com/monstercameron/hcm-next/gen/go/hcmnext/workflow/v1;workflowv1b\x06proto3"
+	"B`Z^github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/workflow/v1;workflowv1b\x06proto3"
 
 var (
 	file_hcmnext_workflow_v1_workflow_proto_rawDescOnce sync.Once

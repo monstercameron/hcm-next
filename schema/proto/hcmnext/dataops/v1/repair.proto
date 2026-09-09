@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package hcmnext.dataops.v1;
 
-option go_package = "github.com/monstercameron/hcm-next/gen/go/hcmnext/dataops/v1;dataopsv1";
+option go_package = "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/dataops/v1;dataopsv1";
 
 import "hcmnext/common/v1/common.proto";
 import "hcmnext/dataops/v1/dataops.proto";

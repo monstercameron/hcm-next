@@ -2,7 +2,7 @@ package schema_test
 
 import (
 	"context"
-	"github.com/monstercameron/hcm-next/internal/data/tenancy/storagedisposition"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/tenancy/storagedisposition"
 	"go/parser"
 	"go/token"
 	"os"
@@ -15,7 +15,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/data/pgtest"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/pgtest"
 )
 
 func TestMain(m *testing.M) {

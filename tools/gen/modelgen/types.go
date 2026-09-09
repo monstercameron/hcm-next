@@ -9,8 +9,8 @@ import (
 // Import paths the generated package may need, named once so every emitter
 // spells them identically.
 const (
-	valuesImportPath    = "github.com/monstercameron/hcm-next/internal/kernel/values"
-	lifecycleImportPath = "github.com/monstercameron/hcm-next/internal/intent/lifecycle"
+	valuesImportPath    = "github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
+	lifecycleImportPath = "github.com/monstercameron/human-capital-management-suite/internal/intent/lifecycle"
 )
 
 // fieldKind classifies how a generated struct field is declared and
@@ -51,7 +51,7 @@ type typeInfo struct {
 // type is a source change to this table, never an inferred fallback.
 //
 // values.KnownAt and values.RecordedAt are listed even though no property in
-// [github.com/monstercameron/hcm-next/internal/intent/model.Catalog] uses
+// [github.com/monstercameron/human-capital-management-suite/internal/intent/model.Catalog] uses
 // them yet: MSRC-007's GREEN clause names "known-at invariants through
 // internal/kernel/values" as a validator this generator must support, and
 // [TestBuildSyntheticKnownAtAndRecordedAt] exercises both against a synthetic

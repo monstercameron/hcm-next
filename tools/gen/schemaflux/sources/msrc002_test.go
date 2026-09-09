@@ -6,7 +6,7 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/gen/schemaflux/sources"
+	"github.com/monstercameron/human-capital-management-suite/tools/gen/schemaflux/sources"
 )
 
 // TestTodo_MSRC_002 is the MSRC-002 primary test: it loads

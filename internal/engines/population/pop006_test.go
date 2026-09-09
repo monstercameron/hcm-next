@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/engines/population"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/population"
 )
 
 func snapshotWithMembers(t *testing.T, memberCount int) population.Snapshot {

@@ -14,10 +14,10 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/data/dbport"
-	"github.com/monstercameron/hcm-next/internal/domains/paymethod"
-	"github.com/monstercameron/hcm-next/internal/domains/settlement"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/paymethod"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/settlement"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // Executor is the driver-free capability required by this store.

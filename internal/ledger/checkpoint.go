@@ -5,8 +5,8 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/data/dbport"
-	checkpointadapter "github.com/monstercameron/hcm-next/internal/data/ledger/checkpoint"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
+	checkpointadapter "github.com/monstercameron/human-capital-management-suite/internal/data/ledger/checkpoint"
 )
 
 // Checkpoint value types, re-exported so a business package needs only this

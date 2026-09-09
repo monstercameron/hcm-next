@@ -18,7 +18,7 @@ var ErrClaimsInvalid = errors.New("dsr: subject identity claims are incomplete")
 type SubjectClaims struct {
 	// ExternalRef is an opaque reference to an existing identity record the
 	// requester claims to be (e.g. a canonical
-	// [github.com/monstercameron/hcm-next/internal/kernel/values.EntityRef]
+	// [github.com/monstercameron/human-capital-management-suite/internal/kernel/values.EntityRef]
 	// string), when the requester names one. Preferred as the duplicate
 	// matching key when present, since it is the least ambiguous claim.
 	ExternalRef string

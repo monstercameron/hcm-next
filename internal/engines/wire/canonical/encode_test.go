@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	integrationv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/integration/v1"
+	integrationv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/integration/v1"
 	"google.golang.org/protobuf/types/known/durationpb"
 	"google.golang.org/protobuf/types/known/structpb"
 )

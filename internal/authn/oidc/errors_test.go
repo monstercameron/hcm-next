@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/authn/oidc"
+	"github.com/monstercameron/human-capital-management-suite/internal/authn/oidc"
 )
 
 // TestSentinelErrorsAreDistinct proves every exported sentinel is non-nil

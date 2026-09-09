@@ -15,7 +15,7 @@ import (
 	"github.com/monstercameron/GoWebComponents/v5/router"
 	renderfixture "github.com/monstercameron/GoWebComponents/v5/testkit/render"
 	"github.com/monstercameron/GoWebComponents/v5/ui"
-	"github.com/monstercameron/hcm-next/internal/humanwork/productui"
+	"github.com/monstercameron/human-capital-management-suite/internal/humanwork/productui"
 )
 
 // TestTodo_WEB_037_Browser runs in Go's js/wasm runtime and uses GWC's
@@ -104,7 +104,7 @@ func TestTodo_WEB_037_Browser(t *testing.T) {
 		productRouter.Register(productui.Path(page), func(attrs router.Attrs) *router.Element {
 			return html.Section(html.Props{ID: "web037-router-leaf-" + string(page)})
 		}, router.Options{
-			Title: web037BrowserView(page).Title + " · HCM Next",
+			Title: web037BrowserView(page).Title + " · Human Capital Management Suite",
 		})
 	}
 	registerWEB037Route(productui.PageHome)

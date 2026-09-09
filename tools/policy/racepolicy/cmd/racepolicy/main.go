@@ -17,7 +17,7 @@ import (
 
 	"golang.org/x/mod/modfile"
 
-	"github.com/monstercameron/hcm-next/tools/policy/racepolicy"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/racepolicy"
 )
 
 func main() {

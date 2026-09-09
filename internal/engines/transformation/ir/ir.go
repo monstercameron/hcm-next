@@ -25,7 +25,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/internal/engines/transformation"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/transformation"
 )
 
 // IRVersion is this package's own contract version, independent of the

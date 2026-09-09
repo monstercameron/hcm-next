@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/trust/stepup"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/stepup"
 )
 
 // AssuranceContract is the immutable assurance floor attached to one Issuer

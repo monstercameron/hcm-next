@@ -1,8 +1,8 @@
 package execute_test
 
 import (
-	"github.com/monstercameron/hcm-next/internal/intent"
-	"github.com/monstercameron/hcm-next/internal/workflow/runtime"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/runtime"
 )
 
 func approvedStartFacts(rev intent.ProposalRevision) runtime.ApprovalFacts {

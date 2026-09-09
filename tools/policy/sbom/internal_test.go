@@ -21,8 +21,8 @@ func TestSplitModAt(t *testing.T) {
 }
 
 func TestPurl(t *testing.T) {
-	got := purl("github.com/monstercameron/hcm-next", "v1.0.0")
-	want := "pkg:golang/github.com/monstercameron/hcm-next@v1.0.0"
+	got := purl("github.com/monstercameron/human-capital-management-suite", "v1.0.0")
+	want := "pkg:golang/github.com/monstercameron/human-capital-management-suite@v1.0.0"
 	if got != want {
 		t.Errorf("purl = %q, want %q", got, want)
 	}

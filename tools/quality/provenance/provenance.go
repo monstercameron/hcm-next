@@ -14,7 +14,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/monstercameron/hcm-next/tools/quality/sbom"
+	"github.com/monstercameron/human-capital-management-suite/tools/quality/sbom"
 )
 
 const Schema = "hcmnext.provenance.v1"

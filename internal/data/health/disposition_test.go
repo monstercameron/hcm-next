@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/data/health"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/health"
 )
 
 // repoRoot locates definitions/storage/storage-disposition.yaml relative to

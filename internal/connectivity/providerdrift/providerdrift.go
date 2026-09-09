@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/connectivity/providercontract"
+	"github.com/monstercameron/human-capital-management-suite/internal/connectivity/providercontract"
 )
 
 const contractVersion = 1

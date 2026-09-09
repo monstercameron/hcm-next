@@ -3,7 +3,7 @@ package artifacts
 import (
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/data/runtimestate"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/runtimestate"
 )
 
 // The child completion modes this package reasons about, re-exported from the

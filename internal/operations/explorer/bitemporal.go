@@ -7,8 +7,8 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/data/bitemporal"
-	"github.com/monstercameron/hcm-next/internal/operations/internal/viewdigest"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/bitemporal"
+	"github.com/monstercameron/human-capital-management-suite/internal/operations/internal/viewdigest"
 )
 
 // BitemporalView is one page of authorized bitemporal facts

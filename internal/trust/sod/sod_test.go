@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/trust/sod"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/sod"
 )
 
 func fullConstraints(ruleID string) sod.Constraints {

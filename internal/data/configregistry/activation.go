@@ -7,8 +7,8 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/data/dbport"
-	platformconfig "github.com/monstercameron/hcm-next/internal/platform/configregistry"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
+	platformconfig "github.com/monstercameron/human-capital-management-suite/internal/platform/configregistry"
 )
 
 // PutActivation implements [platformconfig.Store]. It appends rec as a new

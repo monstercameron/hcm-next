@@ -24,9 +24,9 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/connectivity/schemasnapshot"
-	"github.com/monstercameron/hcm-next/internal/data/artifacts"
-	"github.com/monstercameron/hcm-next/internal/data/dbport"
+	"github.com/monstercameron/human-capital-management-suite/internal/connectivity/schemasnapshot"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/artifacts"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
 )
 
 // ArtifactStore adapts internal/data/artifacts.Put to

@@ -5,8 +5,8 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/data/dbport"
-	datalogger "github.com/monstercameron/hcm-next/internal/data/ledger"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
+	datalogger "github.com/monstercameron/human-capital-management-suite/internal/data/ledger"
 )
 
 // Append validates a CORRECTION request's target - refusing a dangling or

@@ -24,12 +24,12 @@ func TestPhaseOneImportsRejectDeferredSubsystems(t *testing.T) {
 
 	t.Run("ClickHouse, OpenSearch and vector fragments are individually recognized", func(t *testing.T) {
 		cases := map[string]string{
-			"github.com/ClickHouse/clickhouse-go/v2":        "ClickHouse",
-			"github.com/opensearch-project/opensearch-go":   "OpenSearch",
-			"github.com/milvus-io/milvus-sdk-go":            "Vector infrastructure",
-			"hcm-next/internal/billing/full":                "Full billing",
-			"hcm-next/internal/domains/payroll/calculation": "Payroll calculation",
-			"hcm-next/internal/omnichannel/inbox":           "Omnichannel",
+			"github.com/ClickHouse/clickhouse-go/v2":                              "ClickHouse",
+			"github.com/opensearch-project/opensearch-go":                         "OpenSearch",
+			"github.com/milvus-io/milvus-sdk-go":                                  "Vector infrastructure",
+			"human-capital-management-suite/internal/billing/full":                "Full billing",
+			"human-capital-management-suite/internal/domains/payroll/calculation": "Payroll calculation",
+			"human-capital-management-suite/internal/omnichannel/inbox":           "Omnichannel",
 		}
 		for importPath, wantSubsystem := range cases {
 			f, ok := MatchForbidden(importPath)

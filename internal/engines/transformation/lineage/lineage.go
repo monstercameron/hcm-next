@@ -13,9 +13,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/internal/engines/transformation"
-	"github.com/monstercameron/hcm-next/internal/engines/transformation/ir"
-	"github.com/monstercameron/hcm-next/internal/engines/transformation/taint"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/transformation"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/transformation/ir"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/transformation/taint"
 )
 
 const contractVersion = 1

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/monstercameron/hcm-next/internal/data/tenancy/storagedisposition"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/tenancy/storagedisposition"
 )
 
 // DefaultRegistryPath is where STORE-001's published physical

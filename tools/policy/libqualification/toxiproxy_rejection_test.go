@@ -7,7 +7,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/policy/internal/repopath"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/internal/repopath"
 )
 
 const toxiproxyModuleFamily = "github.com/shopify/toxiproxy"
@@ -56,7 +56,7 @@ func TestToxiproxyQualificationReproducesDeclaredTransportFaultSchedule(t *testi
 // Docker is unavailable, in-process injection is the alternative.
 func TestTodo_TOOL_022_Golden(t *testing.T) {
 	// The rationale: Toxiproxy is a Docker-based network failure injector that
-	// cannot run on the ARM64 X2 host (no Docker Desktop). HCM Next injects
+	// cannot run on the ARM64 X2 host (no Docker Desktop). Human Capital Management Suite injects
 	// transport faults in-process at the database, transaction, and RPC adapter
 	// boundaries using owned helpers in internal/data/pgtest and related packages.
 	//

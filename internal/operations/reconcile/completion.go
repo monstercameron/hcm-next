@@ -6,7 +6,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/connectivity/observe"
+	"github.com/monstercameron/human-capital-management-suite/internal/connectivity/observe"
 )
 
 // CompletionStatus is RECON-002's policy result. It is separate from the

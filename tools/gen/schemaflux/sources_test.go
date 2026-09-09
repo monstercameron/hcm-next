@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	sfx "github.com/monstercameron/hcm-next/tools/gen/schemaflux"
+	sfx "github.com/monstercameron/human-capital-management-suite/tools/gen/schemaflux"
 )
 
 // TestTodo_MSRC_001 is the MSRC-001 primary test: it builds the definition

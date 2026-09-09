@@ -1205,7 +1205,7 @@ const file_hcmnext_integration_v1_connector_proto_rawDesc = "" +
 	"\x14MATURITY_UNSPECIFIED\x10\x00\x12\x19\n" +
 	"\x15MATURITY_EXPERIMENTAL\x10\x01\x12\x14\n" +
 	"\x10MATURITY_PREVIEW\x10\x02\x12\x16\n" +
-	"\x12MATURITY_CERTIFIED\x10\x03BPZNgithub.com/monstercameron/hcm-next/gen/go/hcmnext/integration/v1;integrationv1b\x06proto3"
+	"\x12MATURITY_CERTIFIED\x10\x03BfZdgithub.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/integration/v1;integrationv1b\x06proto3"
 
 var (
 	file_hcmnext_integration_v1_connector_proto_rawDescOnce sync.Once

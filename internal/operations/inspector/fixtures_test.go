@@ -3,10 +3,10 @@ package inspector_test
 import (
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/intent/lifecycle"
-	"github.com/monstercameron/hcm-next/internal/operations/inspector"
-	"github.com/monstercameron/hcm-next/internal/trust/authz"
-	"github.com/monstercameron/hcm-next/internal/workflow"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/lifecycle"
+	"github.com/monstercameron/human-capital-management-suite/internal/operations/inspector"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/authz"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow"
 )
 
 // A small three-node plan: a CAPABILITY node feeding an END node, with a

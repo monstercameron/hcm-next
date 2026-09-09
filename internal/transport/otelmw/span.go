@@ -7,14 +7,14 @@ import (
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 
-	hcmotel "github.com/monstercameron/hcm-next/internal/platform/telemetry/otel"
-	"github.com/monstercameron/hcm-next/internal/transport"
+	hcmotel "github.com/monstercameron/human-capital-management-suite/internal/platform/telemetry/otel"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport"
 )
 
 // tracerName identifies this package's own instrumentation library, per
 // trace.TracerProvider's documented convention (see
 // internal/platform/telemetry/otel/provider.go's Tracer method).
-const tracerName = "github.com/monstercameron/hcm-next/internal/transport/otelmw"
+const tracerName = "github.com/monstercameron/human-capital-management-suite/internal/transport/otelmw"
 
 // attrOutcome and attrErrorType are the two span attributes this package
 // attaches directly. Both are registered in

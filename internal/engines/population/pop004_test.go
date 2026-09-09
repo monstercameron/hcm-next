@@ -5,8 +5,8 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/engines/population"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/population"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 func resolvedResult(t *testing.T) population.Result {

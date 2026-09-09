@@ -12,7 +12,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/monstercameron/hcm-next/tools/planning/todogovernance"
+	"github.com/monstercameron/human-capital-management-suite/tools/planning/todogovernance"
 )
 
 func main() {

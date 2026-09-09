@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/data/ledger/checkpoint"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/ledger/checkpoint"
 )
 
 // TestDocAnchoringIsOptionalAndChangesNothing proves the claim the package

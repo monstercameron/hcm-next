@@ -6,7 +6,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/domains/location"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/location"
 )
 
 // CorrectWorkLocation plans a governed successor against the durable current

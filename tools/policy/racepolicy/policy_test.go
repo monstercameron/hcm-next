@@ -3,8 +3,8 @@ package racepolicy_test
 import (
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/policy/internal/repopath"
-	"github.com/monstercameron/hcm-next/tools/policy/racepolicy"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/internal/repopath"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/racepolicy"
 )
 
 const concurrentSource = `package pkga

@@ -65,7 +65,7 @@ const (
 
 const (
 	compositionRootPackage  = "internal/application"
-	compositionRootModule   = "github.com/monstercameron/hcm-next"
+	compositionRootModule   = "github.com/monstercameron/human-capital-management-suite"
 	compositionRootCmdRoot  = "cmd"
 	compositionRootIntRoot  = "internal"
 	compositionRootTestData = "testdata"
@@ -639,7 +639,7 @@ func TestCompositionRootScanDetectsEachViolation(t *testing.T) {
 		{
 			name: "a command importing the application cell",
 			dir:  "cmd/hcmnext", file: "cmd/hcmnext/main.go",
-			source:   "package main\n\nimport \"github.com/monstercameron/hcm-next/internal/intent/app\"\n\nvar _ = app.DiscoveryPath\n",
+			source:   "package main\n\nimport \"github.com/monstercameron/human-capital-management-suite/internal/intent/app\"\n\nvar _ = app.DiscoveryPath\n",
 			wantRule: ruleCommandBusinessSem,
 		},
 		{
@@ -684,7 +684,7 @@ func TestCompositionRootScanDetectsEachViolation(t *testing.T) {
 		},
 		{
 			"a command composing a concrete store", "cmd/migrate", "cmd/migrate/main.go",
-			"package main\n\nimport \"github.com/monstercameron/hcm-next/internal/intent/app/pgstore\"\n\nvar _ = pgstore.TenantID\n",
+			"package main\n\nimport \"github.com/monstercameron/human-capital-management-suite/internal/intent/app/pgstore\"\n\nvar _ = pgstore.TenantID\n",
 		},
 	}
 	for _, tc := range clean {

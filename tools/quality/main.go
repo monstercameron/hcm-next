@@ -13,7 +13,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/tools/quality/decomposition"
+	"github.com/monstercameron/human-capital-management-suite/tools/quality/decomposition"
 	"gopkg.in/yaml.v3"
 )
 

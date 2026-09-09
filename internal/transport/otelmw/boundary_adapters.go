@@ -4,9 +4,9 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/monstercameron/hcm-next/internal/platform/telemetry"
-	"github.com/monstercameron/hcm-next/internal/platform/telemetry/boundary"
-	hcmotel "github.com/monstercameron/hcm-next/internal/platform/telemetry/otel"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/telemetry"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/telemetry/boundary"
+	hcmotel "github.com/monstercameron/human-capital-management-suite/internal/platform/telemetry/otel"
 )
 
 // ProviderBoundarySink adapts the policy-owning provider to the generic

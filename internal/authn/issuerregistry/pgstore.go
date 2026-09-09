@@ -9,11 +9,11 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/data/dbport"
-	"github.com/monstercameron/hcm-next/internal/data/tenancy"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
-	trustfederation "github.com/monstercameron/hcm-next/internal/trust/federation"
-	"github.com/monstercameron/hcm-next/internal/trust/stepup"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/tenancy"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
+	trustfederation "github.com/monstercameron/human-capital-management-suite/internal/trust/federation"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/stepup"
 )
 
 // canonicalUUID matches a canonical, lowercase, hyphenated uuid string

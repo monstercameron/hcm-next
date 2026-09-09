@@ -9,10 +9,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/policy/crosscut"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/crosscut"
 )
 
-func module() string { return "github.com/monstercameron/hcm-next" }
+func module() string { return "github.com/monstercameron/human-capital-management-suite" }
 
 func TestCrossCuttingPackagesRejectOmniscientImports(t *testing.T) {
 	edges := [][2]string{
@@ -162,14 +162,14 @@ func TestScanDirChecksProductionImportsAndSkipsTests(t *testing.T) {
 		}
 	}
 	write("internal/trust/authz/policy.go", `package authz
-import _ "github.com/monstercameron/hcm-next/internal/domains/people/store"
+import _ "github.com/monstercameron/human-capital-management-suite/internal/domains/people/store"
 `)
 	write("internal/operations/reconciler.go", `package operations
-import _ "github.com/monstercameron/hcm-next/internal/agent/runtime"
+import _ "github.com/monstercameron/human-capital-management-suite/internal/agent/runtime"
 `)
 	// Test-only adapter usage must not create a production boundary finding.
 	write("internal/trust/authz/policy_test.go", `package authz
-import _ "github.com/monstercameron/hcm-next/internal/data/postgres"
+import _ "github.com/monstercameron/human-capital-management-suite/internal/data/postgres"
 `)
 	got, err := crosscut.ScanDir(root, module())
 	if err != nil {

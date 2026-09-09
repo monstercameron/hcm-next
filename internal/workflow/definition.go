@@ -3,7 +3,7 @@ package workflow
 import (
 	"fmt"
 
-	"github.com/monstercameron/hcm-next/internal/capability"
+	"github.com/monstercameron/human-capital-management-suite/internal/capability"
 )
 
 // SchemaRef names one versioned schema by descriptor identity. It mirrors

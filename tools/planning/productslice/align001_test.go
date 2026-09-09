@@ -19,7 +19,7 @@ func goldenFixtureSlice() ProductSliceDefinition {
 		Pages:           []string{"promotion.journeys.list"},
 		Widgets:         []string{"widget.table.workforce@1"},
 		Capabilities:    []string{"hcmnext.people.promote_worker"},
-		Packages:        []string{"github.com/monstercameron/hcm-next/cmd/hcmnext"},
+		Packages:        []string{"github.com/monstercameron/human-capital-management-suite/cmd/hcmnext"},
 		Todos:           []string{"PROMO-001"},
 		Jurisdictions:   []string{"US-ALL"},
 		Personas:        []string{"manager"},

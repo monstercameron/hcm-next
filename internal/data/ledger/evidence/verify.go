@@ -6,8 +6,8 @@ import (
 	"sort"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/data/ledger/checkpoint"
-	"github.com/monstercameron/hcm-next/internal/data/ledger/hashchain"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/ledger/checkpoint"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/ledger/hashchain"
 )
 
 // FindingKind classifies one way an evidence package failed to verify. A

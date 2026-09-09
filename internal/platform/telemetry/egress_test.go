@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/platform/telemetry"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/telemetry"
 )
 
 func testEgressSanitizer(t *testing.T) *telemetry.BaggageSanitizer {

@@ -54,11 +54,11 @@ func TestNoGarbageDrawerPackages(t *testing.T) {
 // TestTodo_ARCH_GO_017_Golden pins the diagnostic's stable rendering for one
 // representative garbage-drawer package.
 func TestTodo_ARCH_GO_017_Golden(t *testing.T) {
-	got := CheckPackage(Package{ImportPath: "github.com/monstercameron/hcm-next/internal/utils", Name: "utils"})
+	got := CheckPackage(Package{ImportPath: "github.com/monstercameron/human-capital-management-suite/internal/utils", Name: "utils"})
 	if len(got) != 1 {
 		t.Fatalf("got %d findings, want 1: %v", len(got), got)
 	}
-	const want = "github.com/monstercameron/hcm-next/internal/utils: package path segment \"utils\" is a garbage-drawer name without a single semantic owner (garbage_drawer_name)"
+	const want = "github.com/monstercameron/human-capital-management-suite/internal/utils: package path segment \"utils\" is a garbage-drawer name without a single semantic owner (garbage_drawer_name)"
 	if got[0].String() != want {
 		t.Fatalf("String() = %q, want %q", got[0].String(), want)
 	}

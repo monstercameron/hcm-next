@@ -9,9 +9,9 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/data/pgtest"
-	transactioncommit "github.com/monstercameron/hcm-next/internal/transaction/commit"
-	"github.com/monstercameron/hcm-next/internal/workflow/execute"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/pgtest"
+	transactioncommit "github.com/monstercameron/human-capital-management-suite/internal/transaction/commit"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/execute"
 )
 
 func TestNewPromotionExecutionRejectsStaticAndFactoryRetryPolicies(t *testing.T) {

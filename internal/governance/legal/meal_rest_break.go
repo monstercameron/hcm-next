@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // Meal-and-rest breaks are an additive vocabulary extension. The existing

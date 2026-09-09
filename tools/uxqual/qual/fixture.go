@@ -19,7 +19,7 @@ import (
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
 
-	"github.com/monstercameron/hcm-next/tools/uxqual/tokens"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/tokens"
 )
 
 // CriterionResult is one criterion's pass/fail plus the evidence that

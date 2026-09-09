@@ -5,9 +5,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/engines/transformation"
-	"github.com/monstercameron/hcm-next/internal/engines/transformation/ir"
-	"github.com/monstercameron/hcm-next/internal/engines/transformation/taint"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/transformation"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/transformation/ir"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/transformation/taint"
 )
 
 func lineageProgram(t *testing.T) ir.Program {

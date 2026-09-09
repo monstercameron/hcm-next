@@ -7,12 +7,12 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/data/dbport"
-	"github.com/monstercameron/hcm-next/internal/data/promotioncommit"
-	domaincommit "github.com/monstercameron/hcm-next/internal/domains/promotion/commit"
-	"github.com/monstercameron/hcm-next/internal/platform/execution/promotionterminal"
-	"github.com/monstercameron/hcm-next/internal/transaction/idempotency"
-	"github.com/monstercameron/hcm-next/internal/workflow/execute"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/promotioncommit"
+	domaincommit "github.com/monstercameron/human-capital-management-suite/internal/domains/promotion/commit"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/execution/promotionterminal"
+	"github.com/monstercameron/human-capital-management-suite/internal/transaction/idempotency"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/execute"
 )
 
 type mutatorFunc func(context.Context, dbport.Tx, domaincommit.Command) (promotioncommit.Receipt, error)

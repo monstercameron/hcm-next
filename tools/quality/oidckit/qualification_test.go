@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/quality/oidckit"
+	"github.com/monstercameron/human-capital-management-suite/tools/quality/oidckit"
 )
 
 func root(t *testing.T) string {

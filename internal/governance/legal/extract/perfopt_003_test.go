@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/governance/legal"
+	"github.com/monstercameron/human-capital-management-suite/internal/governance/legal"
 )
 
 func TestTodo_PERFOPT_003_Golden(t *testing.T) {

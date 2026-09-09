@@ -7,11 +7,11 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/intent/app"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
-	transportworkflow "github.com/monstercameron/hcm-next/internal/transport/workflow"
-	kernelworkflow "github.com/monstercameron/hcm-next/internal/workflow"
-	"github.com/monstercameron/hcm-next/internal/workflow/runtime"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/app"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
+	transportworkflow "github.com/monstercameron/human-capital-management-suite/internal/transport/workflow"
+	kernelworkflow "github.com/monstercameron/human-capital-management-suite/internal/workflow"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/runtime"
 )
 
 type fakeWorkflowReader struct {

@@ -13,7 +13,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/monstercameron/hcm-next/tools/planning/productslice"
+	"github.com/monstercameron/human-capital-management-suite/tools/planning/productslice"
 )
 
 func main() {

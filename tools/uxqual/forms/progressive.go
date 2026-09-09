@@ -29,7 +29,7 @@ import (
 
 	"golang.org/x/text/language"
 
-	"github.com/monstercameron/hcm-next/tools/uxqual/contract"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/contract"
 )
 
 // Stable form-control names shared with the normal workspace POST. These are

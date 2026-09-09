@@ -3,7 +3,7 @@ package authzsim
 import (
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/trust/authz"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/authz"
 )
 
 func TestDoc_Smoke(t *testing.T) {

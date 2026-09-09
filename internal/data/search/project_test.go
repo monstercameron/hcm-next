@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/data/search"
-	"github.com/monstercameron/hcm-next/internal/domains/people"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/search"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/people"
 )
 
 // TestBuildSearchTextIncludesOnlyClassificationClearedFields is the unit-level

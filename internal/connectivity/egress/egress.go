@@ -17,9 +17,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/trust/dlp"
-	"github.com/monstercameron/hcm-next/internal/trust/lease"
-	"github.com/monstercameron/hcm-next/internal/trust/outbound"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/dlp"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/lease"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/outbound"
 )
 
 var (

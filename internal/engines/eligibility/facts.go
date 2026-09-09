@@ -7,7 +7,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // ErrPortFailed wraps every error a FactReader or RuleReader implementation

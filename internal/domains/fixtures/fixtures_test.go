@@ -3,7 +3,7 @@ package fixtures
 import (
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/domains/people"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/people"
 )
 
 func TestCalendar(t *testing.T) {

@@ -3,7 +3,7 @@ package snapshot_test
 import (
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/engines/snapshot"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/snapshot"
 )
 
 // TestPackageSurfaceIsTheDocumentedOne holds doc.go's structural claim to

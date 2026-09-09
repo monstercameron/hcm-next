@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/monstercameron/hcm-next/tools/planning/threatmodel"
+	"github.com/monstercameron/human-capital-management-suite/tools/planning/threatmodel"
 )
 
 func main() {

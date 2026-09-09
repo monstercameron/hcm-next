@@ -57,8 +57,8 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 
-	adminv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/admin/v1"
-	"github.com/monstercameron/hcm-next/internal/transport"
+	adminv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/admin/v1"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport"
 )
 
 // Dialer opens the client connection [Main] issues every call on. It exists

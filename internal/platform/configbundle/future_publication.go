@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/engines/canonicalbytes"
-	"github.com/monstercameron/hcm-next/internal/engines/cycle"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/canonicalbytes"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/cycle"
 )
 
 // ImpactAnalysis is the signed control-plane record for one exact candidate

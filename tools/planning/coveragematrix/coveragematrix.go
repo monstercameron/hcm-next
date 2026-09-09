@@ -25,10 +25,10 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/internal/capability"
-	intentdefs "github.com/monstercameron/hcm-next/internal/intent/definitions"
-	"github.com/monstercameron/hcm-next/tools/planning/todoregistry"
-	"github.com/monstercameron/hcm-next/tools/planning/traceability"
+	"github.com/monstercameron/human-capital-management-suite/internal/capability"
+	intentdefs "github.com/monstercameron/human-capital-management-suite/internal/intent/definitions"
+	"github.com/monstercameron/human-capital-management-suite/tools/planning/todoregistry"
+	"github.com/monstercameron/human-capital-management-suite/tools/planning/traceability"
 	"gopkg.in/yaml.v3"
 )
 

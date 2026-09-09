@@ -7,9 +7,9 @@ import (
 	"sort"
 	"strings"
 
-	model "github.com/monstercameron/hcm-next/gen/go/hcmnext/model"
-	"github.com/monstercameron/hcm-next/internal/capability"
-	"github.com/monstercameron/hcm-next/internal/intent/modelbinding"
+	model "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/model"
+	"github.com/monstercameron/human-capital-management-suite/internal/capability"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/modelbinding"
 )
 
 // Build computes the live binding table: the BOOTSTRAP capability table

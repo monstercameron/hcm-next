@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	promosnapshot "github.com/monstercameron/hcm-next/internal/domains/promotion/snapshot"
-	enginesnapshot "github.com/monstercameron/hcm-next/internal/engines/snapshot"
+	promosnapshot "github.com/monstercameron/human-capital-management-suite/internal/domains/promotion/snapshot"
+	enginesnapshot "github.com/monstercameron/human-capital-management-suite/internal/engines/snapshot"
 )
 
 // update rewrites the golden verdict table instead of comparing against it.

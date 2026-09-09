@@ -22,7 +22,7 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// AuthorityKind says whether HCM Next owns a fact or is merely reporting one
+// AuthorityKind says whether Human Capital Management Suite owns a fact or is merely reporting one
 // it observed somewhere else. The distinction is the whole point of the
 // source-authority contract: an observed incumbent value must never be
 // published as a local domain fact (internal/domains/evidence AuthorityKind).
@@ -577,7 +577,7 @@ const file_hcmnext_evidence_v1_receipt_proto_rawDesc = "" +
 	"\vReceiptMode\x12\x1c\n" +
 	"\x18RECEIPT_MODE_UNSPECIFIED\x10\x00\x12\x1a\n" +
 	"\x16RECEIPT_MODE_PREFLIGHT\x10\x01\x12\x19\n" +
-	"\x15RECEIPT_MODE_SIMULATE\x10\x02BJZHgithub.com/monstercameron/hcm-next/gen/go/hcmnext/evidence/v1;evidencev1b\x06proto3"
+	"\x15RECEIPT_MODE_SIMULATE\x10\x02B`Z^github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/evidence/v1;evidencev1b\x06proto3"
 
 var (
 	file_hcmnext_evidence_v1_receipt_proto_rawDescOnce sync.Once

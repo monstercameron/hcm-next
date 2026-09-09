@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/monstercameron/hcm-next/tools/quality/buildverify"
+	"github.com/monstercameron/human-capital-management-suite/tools/quality/buildverify"
 )
 
 // RootModulePath is this repository's module path, recorded as
@@ -18,11 +18,11 @@ import (
 // tools/policy/sbom.RootModulePath) rather than an import of that package,
 // so this package's own logic pulls in nothing beyond buildverify's tested
 // build mechanics (TOOL-016) and the Go standard library.
-const RootModulePath = "github.com/monstercameron/hcm-next"
+const RootModulePath = "github.com/monstercameron/human-capital-management-suite"
 
 // BuilderID identifies cmd/provgen as the builder that produced a
 // Statement's subjects.
-const BuilderID = "github.com/monstercameron/hcm-next/tools/policy/provenance/cmd/provgen"
+const BuilderID = "github.com/monstercameron/human-capital-management-suite/tools/policy/provenance/cmd/provgen"
 
 // DefaultSBOMPath is where TOOL-017 publishes the checked-in CycloneDX SBOM
 // this package's SBOMReference points at by default.

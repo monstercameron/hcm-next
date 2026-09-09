@@ -9,8 +9,8 @@ import (
 	"github.com/monstercameron/GoWebComponents/v5/html"
 	"github.com/monstercameron/GoWebComponents/v5/router"
 	"github.com/monstercameron/GoWebComponents/v5/ui"
-	"github.com/monstercameron/hcm-next/internal/humanwork/productui"
-	"github.com/monstercameron/hcm-next/tools/uxqual/productclient"
+	"github.com/monstercameron/human-capital-management-suite/internal/humanwork/productui"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/productclient"
 )
 
 // TestTodo_WEB_031_Browser runs in the real Go js/wasm runtime under Node and

@@ -16,7 +16,7 @@ import (
 	"sync"
 	"time"
 
-	domainrepair "github.com/monstercameron/hcm-next/internal/domains/repair"
+	domainrepair "github.com/monstercameron/human-capital-management-suite/internal/domains/repair"
 )
 
 // Version is the REPAIR-002 contract version.

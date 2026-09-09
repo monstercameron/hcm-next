@@ -13,7 +13,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/tools/quality/testcontainerskit"
+	"github.com/monstercameron/human-capital-management-suite/tools/quality/testcontainerskit"
 )
 
 const qualificationFile = "testcontainers-go-qualification.yaml"

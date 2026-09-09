@@ -1,6 +1,6 @@
 package task
 
-import "github.com/monstercameron/hcm-next/internal/engines/canonicalbytes"
+import "github.com/monstercameron/human-capital-management-suite/internal/engines/canonicalbytes"
 
 const (
 	continuationSchema = "hcmnext.workflow.steps.task.Continuation"

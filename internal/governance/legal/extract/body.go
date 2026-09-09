@@ -4,7 +4,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/internal/governance/legal"
+	"github.com/monstercameron/human-capital-management-suite/internal/governance/legal"
 )
 
 // buildBody fills one typed body from the matched research item and the

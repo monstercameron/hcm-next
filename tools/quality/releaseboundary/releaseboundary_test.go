@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/quality/releaseboundary"
-	"github.com/monstercameron/hcm-next/tools/quality/sbom"
+	"github.com/monstercameron/human-capital-management-suite/tools/quality/releaseboundary"
+	"github.com/monstercameron/human-capital-management-suite/tools/quality/sbom"
 )
 
 func document(component string) sbom.Document {

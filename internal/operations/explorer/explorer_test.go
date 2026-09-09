@@ -5,10 +5,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/data/bitemporal"
-	"github.com/monstercameron/hcm-next/internal/data/ledger"
-	"github.com/monstercameron/hcm-next/internal/operations/explorer"
-	"github.com/monstercameron/hcm-next/internal/trust/authz"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/bitemporal"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/ledger"
+	"github.com/monstercameron/human-capital-management-suite/internal/operations/explorer"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/authz"
 )
 
 // TestTodo_ADMIN_003 is the ADMIN-003 primary test for the ledger/provenance

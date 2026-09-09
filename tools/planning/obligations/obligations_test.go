@@ -7,7 +7,7 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/planning/obligations"
+	"github.com/monstercameron/human-capital-management-suite/tools/planning/obligations"
 )
 
 func TestPlanningRequirementRegistryRejectsUntrackedNormativeObligations(t *testing.T) {

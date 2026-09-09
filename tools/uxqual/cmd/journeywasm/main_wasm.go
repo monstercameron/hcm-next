@@ -20,8 +20,8 @@ import (
 	"time"
 
 	"github.com/monstercameron/GoGRPCBridge/pkg/wasm/dialer"
-	"github.com/monstercameron/hcm-next/tools/uxqual/journeyclient"
-	"github.com/monstercameron/hcm-next/tools/uxqual/render/journey"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/journeyclient"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/render/journey"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )

@@ -7,8 +7,8 @@
 package dataopsv1
 
 import (
-	v1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/common/v1"
-	v11 "github.com/monstercameron/hcm-next/gen/go/hcmnext/evidence/v1"
+	v1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/common/v1"
+	v11 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/evidence/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
@@ -737,7 +737,7 @@ const file_hcmnext_dataops_v1_history_proto_rawDesc = "" +
 	"\x13CHANGE_KIND_INITIAL\x10\x01\x12\x1c\n" +
 	"\x18CHANGE_KIND_SUPERSESSION\x10\x02\x12\x1a\n" +
 	"\x16CHANGE_KIND_CORRECTION\x10\x03\x12\x1a\n" +
-	"\x16CHANGE_KIND_RETRACTION\x10\x04BHZFgithub.com/monstercameron/hcm-next/gen/go/hcmnext/dataops/v1;dataopsv1b\x06proto3"
+	"\x16CHANGE_KIND_RETRACTION\x10\x04B^Z\\github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/dataops/v1;dataopsv1b\x06proto3"
 
 var (
 	file_hcmnext_dataops_v1_history_proto_rawDescOnce sync.Once

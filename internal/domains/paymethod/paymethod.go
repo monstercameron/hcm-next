@@ -10,9 +10,9 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/monstercameron/hcm-next/internal/domains/settlement"
-	"github.com/monstercameron/hcm-next/internal/engines/canonicalbytes"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/settlement"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/canonicalbytes"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 const schemaVersion = 1

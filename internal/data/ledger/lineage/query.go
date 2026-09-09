@@ -7,8 +7,8 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/data/dbport"
-	datalogger "github.com/monstercameron/hcm-next/internal/data/ledger"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
+	datalogger "github.com/monstercameron/human-capital-management-suite/internal/data/ledger"
 )
 
 // Querier is the minimal database capability a lineage read needs. It is

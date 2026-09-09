@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/engines/readiness"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/readiness"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 type fakeReader struct {

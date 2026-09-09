@@ -5,11 +5,11 @@ import (
 	"errors"
 	"strings"
 
-	journeyv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/journey/v1"
-	"github.com/monstercameron/hcm-next/internal/experience/preferences"
-	"github.com/monstercameron/hcm-next/internal/experience/roleaccess"
-	"github.com/monstercameron/hcm-next/internal/transport/envelope"
-	"github.com/monstercameron/hcm-next/internal/trust"
+	journeyv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/journey/v1"
+	"github.com/monstercameron/human-capital-management-suite/internal/experience/preferences"
+	"github.com/monstercameron/human-capital-management-suite/internal/experience/roleaccess"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/envelope"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust"
 )
 
 func (s *server) preferenceStore(principal *trust.Principal, requestID string) (preferences.Store, *envelope.Error) {

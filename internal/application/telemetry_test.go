@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	hcmotel "github.com/monstercameron/hcm-next/internal/platform/telemetry/otel"
+	hcmotel "github.com/monstercameron/human-capital-management-suite/internal/platform/telemetry/otel"
 )
 
 // TestNewTelemetryProviderOwnsTheAPIResource proves the composition root

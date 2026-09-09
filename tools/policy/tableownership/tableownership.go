@@ -10,13 +10,13 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/tools/policy/tableinventory"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/tableinventory"
 )
 
 const schemaVersion = 1
 
 // ModulePath is the repository module path used in consumer evidence.
-const ModulePath = "github.com/monstercameron/hcm-next"
+const ModulePath = "github.com/monstercameron/human-capital-management-suite"
 
 // Version identifies this policy contract.
 func Version() int { return schemaVersion }

@@ -9,15 +9,15 @@ import (
 	"connectrpc.com/connect"
 	"github.com/google/uuid"
 
-	evidencev1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/evidence/v1"
-	workflowv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/workflow/v1"
-	"github.com/monstercameron/hcm-next/internal/intent/app"
-	"github.com/monstercameron/hcm-next/internal/transport"
-	"github.com/monstercameron/hcm-next/internal/transport/manifest"
-	transportoperations "github.com/monstercameron/hcm-next/internal/transport/operations"
-	"github.com/monstercameron/hcm-next/internal/transport/streaming"
-	"github.com/monstercameron/hcm-next/internal/transport/transporttest"
-	"github.com/monstercameron/hcm-next/internal/workflow/runtime"
+	evidencev1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/evidence/v1"
+	workflowv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/workflow/v1"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/app"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/manifest"
+	transportoperations "github.com/monstercameron/human-capital-management-suite/internal/transport/operations"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/streaming"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/transporttest"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/runtime"
 )
 
 func TestComposedHTTPHandlerUsesOperationStore(t *testing.T) {

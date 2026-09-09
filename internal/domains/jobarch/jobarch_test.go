@@ -8,9 +8,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/domains/position"
-	"github.com/monstercameron/hcm-next/internal/engines/payband"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/position"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/payband"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 func archAt(day int) time.Time { return time.Date(2026, time.January, day, 0, 0, 0, 0, time.UTC) }

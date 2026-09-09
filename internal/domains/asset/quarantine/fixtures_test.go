@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/domains/asset/quarantine"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/asset/quarantine"
 )
 
 // testNow is the fixed instant tests hand [quarantine.Upload] wherever the

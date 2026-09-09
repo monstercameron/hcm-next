@@ -8,10 +8,10 @@ import (
 
 	"golang.org/x/net/html"
 
-	"github.com/monstercameron/hcm-next/tools/uxqual/render/gwc"
-	"github.com/monstercameron/hcm-next/tools/uxqual/render/ssr"
-	"github.com/monstercameron/hcm-next/tools/uxqual/testdata"
-	"github.com/monstercameron/hcm-next/tools/uxqual/tokens"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/render/gwc"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/render/ssr"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/testdata"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/tokens"
 )
 
 func TestTokensSmoke(t *testing.T) {

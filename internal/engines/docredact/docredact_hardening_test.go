@@ -4,8 +4,8 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/engines/docextract"
-	"github.com/monstercameron/hcm-next/internal/trust/dlp"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/docextract"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/dlp"
 )
 
 func manualExtraction() docextract.Result {

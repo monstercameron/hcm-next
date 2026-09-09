@@ -3,7 +3,7 @@ package legal
 import (
 	"fmt"
 
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // This file carries the twelve obligation kinds LEGAL-011 adds, from the
@@ -361,7 +361,7 @@ func (o JobSecurityRule) canonicalBody(dst []byte) []byte {
 // research files name a form and a deadline.
 //
 // The obligation produces a deadline, an owner and content — never a
-// transmission. Non-goal 2 in the contract's section 10 forbids HCM Next from
+// transmission. Non-goal 2 in the contract's section 10 forbids Human Capital Management Suite from
 // filing with any state agency, and no rule pack may declare a transmitting
 // effect.
 //

@@ -24,7 +24,7 @@ func TestPlanningContradictions(t *testing.T) {
 
 	t.Run("the correct authoritative prose is not rejected", func(t *testing.T) {
 		correct := []string{
-			"Prove that HCM Next improves one Promotion + Compensation Change workflow for paid design partners.",
+			"Prove that Human Capital Management Suite improves one Promotion + Compensation Change workflow for paid design partners.",
 			"The five lifecycle workflows and payroll-correction stress test remain architecture conformance tests, not a Phase 1 feature roadmap.",
 			"The Messaging and Notification Plane will turn workflow communication intent into policy-governed human delivery.",
 		}

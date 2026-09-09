@@ -14,7 +14,7 @@ import (
 	"strconv"
 	"strings"
 
-	platformconfig "github.com/monstercameron/hcm-next/internal/platform/configregistry"
+	platformconfig "github.com/monstercameron/human-capital-management-suite/internal/platform/configregistry"
 )
 
 // Version is the configuration-bundle manifest contract version.

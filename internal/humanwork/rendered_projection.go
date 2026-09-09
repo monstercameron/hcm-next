@@ -6,7 +6,7 @@ import (
 	"sort"
 	"sync"
 
-	"github.com/monstercameron/hcm-next/internal/engines/canonicalbytes"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/canonicalbytes"
 )
 
 // ProjectionSafety is the server's decision about whether the rendered view

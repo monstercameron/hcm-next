@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/trust/custody"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/custody"
 )
 
 var custodyNow = time.Date(2026, 9, 5, 12, 0, 0, 0, time.UTC)

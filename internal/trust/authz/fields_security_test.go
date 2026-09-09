@@ -3,7 +3,7 @@ package authz_test
 import (
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/trust/authz"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/authz"
 )
 
 // TestTodo_TRUST_010_Security is the TRUST-010 security test. A restricted

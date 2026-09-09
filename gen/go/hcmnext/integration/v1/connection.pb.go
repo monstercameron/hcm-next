@@ -588,7 +588,7 @@ const file_hcmnext_integration_v1_connection_proto_rawDesc = "" +
 	"\vEnvironment\x12\x1b\n" +
 	"\x17ENVIRONMENT_UNSPECIFIED\x10\x00\x12\x17\n" +
 	"\x13ENVIRONMENT_SANDBOX\x10\x01\x12\x1a\n" +
-	"\x16ENVIRONMENT_PRODUCTION\x10\x02BPZNgithub.com/monstercameron/hcm-next/gen/go/hcmnext/integration/v1;integrationv1b\x06proto3"
+	"\x16ENVIRONMENT_PRODUCTION\x10\x02BfZdgithub.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/integration/v1;integrationv1b\x06proto3"
 
 var (
 	file_hcmnext_integration_v1_connection_proto_rawDescOnce sync.Once

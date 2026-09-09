@@ -5,7 +5,7 @@ package main
 import (
 	"syscall/js"
 
-	"github.com/monstercameron/hcm-next/internal/humanwork/productui"
+	"github.com/monstercameron/human-capital-management-suite/internal/humanwork/productui"
 )
 
 type browserAccessibilityController struct {

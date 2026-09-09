@@ -10,9 +10,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/connectivity"
-	"github.com/monstercameron/hcm-next/internal/connectivity/fakeincumbent"
-	"github.com/monstercameron/hcm-next/internal/connectivity/observe"
+	"github.com/monstercameron/human-capital-management-suite/internal/connectivity"
+	"github.com/monstercameron/human-capital-management-suite/internal/connectivity/fakeincumbent"
+	"github.com/monstercameron/human-capital-management-suite/internal/connectivity/observe"
 )
 
 // firstPage reads page one of an object straight from the connector, so the

@@ -3,8 +3,8 @@ package intent
 import (
 	"slices"
 
-	"github.com/monstercameron/hcm-next/internal/engines/wire/digest"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/wire/digest"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // StateAssertion is one field's value before or after the proposed change. The

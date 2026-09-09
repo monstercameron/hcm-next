@@ -15,7 +15,7 @@ package scopeexchange
 import (
 	"fmt"
 
-	"github.com/monstercameron/hcm-next/tools/planning/manifest"
+	"github.com/monstercameron/human-capital-management-suite/tools/planning/manifest"
 )
 
 // gatedGates are the only gates the Scope-Exchange Rule applies to. Gate C

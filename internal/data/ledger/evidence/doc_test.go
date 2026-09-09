@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/data/ledger/evidence"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/ledger/evidence"
 )
 
 // TestDocThereIsNoArchiveDependency proves the claim the package doc makes

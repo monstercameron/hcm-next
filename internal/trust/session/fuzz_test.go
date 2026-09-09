@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/trust/session"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/session"
 )
 
 // FuzzTodo_TRUST_003 is the TRUST-003 fuzz target.

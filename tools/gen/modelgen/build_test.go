@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/intent/model"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/model"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 func mustOpenInterval(t *testing.T) values.EffectiveInterval {
@@ -120,7 +120,7 @@ func TestBuildRealCatalog(t *testing.T) {
 // isImmutableWrite rule does not flag ApprovalBinding's own IMMUTABLE,
 // IMMUTABLE_NO_CORRECTION properties: approveProposalBinding and
 // rejectProposalBinding in
-// [github.com/monstercameron/hcm-next/internal/intent/definitions] legitimately
+// [github.com/monstercameron/human-capital-management-suite/internal/intent/definitions] legitimately
 // write approval_binding.decision et al., and a false positive here would
 // break MSRC-009's "exercise the real fourteen definitions" integration.
 func TestBuildRealCatalogApprovalBindingWritesNotImmutable(t *testing.T) {

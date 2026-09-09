@@ -9,9 +9,9 @@ import (
 	"crypto/x509"
 	"fmt"
 
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
-	"github.com/monstercameron/hcm-next/internal/trust/bundle"
-	trustfederation "github.com/monstercameron/hcm-next/internal/trust/federation"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/bundle"
+	trustfederation "github.com/monstercameron/human-capital-management-suite/internal/trust/federation"
 )
 
 // BundleSource resolves a pinned internal/trust/bundle.Bundle version by

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"slices"
 
-	domaincommit "github.com/monstercameron/hcm-next/internal/domains/promotion/commit"
-	"github.com/monstercameron/hcm-next/internal/transaction"
+	domaincommit "github.com/monstercameron/human-capital-management-suite/internal/domains/promotion/commit"
+	"github.com/monstercameron/human-capital-management-suite/internal/transaction"
 )
 
 var ErrPlanBinding = errors.New("promotion terminal: transaction plan binding is invalid")

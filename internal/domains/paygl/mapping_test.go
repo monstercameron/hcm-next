@@ -5,9 +5,9 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/domains/labor"
-	"github.com/monstercameron/hcm-next/internal/domains/payroll"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/labor"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/payroll"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 func mappingRule(t *testing.T, id, code, debit, credit string, dimension labor.Dimension) AccountingRule {

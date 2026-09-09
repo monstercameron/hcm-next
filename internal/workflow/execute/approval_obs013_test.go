@@ -9,13 +9,13 @@ import (
 
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 
-	"github.com/monstercameron/hcm-next/internal/data/dbport"
-	"github.com/monstercameron/hcm-next/internal/platform/buildinfo"
-	"github.com/monstercameron/hcm-next/internal/platform/telemetry"
-	hcmotel "github.com/monstercameron/hcm-next/internal/platform/telemetry/otel"
-	oteltest "github.com/monstercameron/hcm-next/internal/platform/telemetry/otel/testexport"
-	"github.com/monstercameron/hcm-next/internal/transaction/idempotency"
-	"github.com/monstercameron/hcm-next/internal/workflow/runtime"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/buildinfo"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/telemetry"
+	hcmotel "github.com/monstercameron/human-capital-management-suite/internal/platform/telemetry/otel"
+	oteltest "github.com/monstercameron/human-capital-management-suite/internal/platform/telemetry/otel/testexport"
+	"github.com/monstercameron/human-capital-management-suite/internal/transaction/idempotency"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/runtime"
 )
 
 type approvalExportInstrumentation struct {

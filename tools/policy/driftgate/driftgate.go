@@ -13,15 +13,15 @@ import (
 	"path/filepath"
 	"sort"
 
-	"github.com/monstercameron/hcm-next/internal/intent/modelbinding"
-	"github.com/monstercameron/hcm-next/tools/gen/archdoc"
-	"github.com/monstercameron/hcm-next/tools/gen/librarystrategy"
-	"github.com/monstercameron/hcm-next/tools/gen/modelgen"
-	"github.com/monstercameron/hcm-next/tools/gen/storagemanifest"
-	"github.com/monstercameron/hcm-next/tools/planning/intentmanifests"
-	"github.com/monstercameron/hcm-next/tools/planning/obligations"
-	"github.com/monstercameron/hcm-next/tools/policy/provenance"
-	"github.com/monstercameron/hcm-next/tools/policy/sbom"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/modelbinding"
+	"github.com/monstercameron/human-capital-management-suite/tools/gen/archdoc"
+	"github.com/monstercameron/human-capital-management-suite/tools/gen/librarystrategy"
+	"github.com/monstercameron/human-capital-management-suite/tools/gen/modelgen"
+	"github.com/monstercameron/human-capital-management-suite/tools/gen/storagemanifest"
+	"github.com/monstercameron/human-capital-management-suite/tools/planning/intentmanifests"
+	"github.com/monstercameron/human-capital-management-suite/tools/planning/obligations"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/provenance"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/sbom"
 )
 
 // CheckResult is one named drift check and its regeneration instruction.

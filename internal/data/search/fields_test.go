@@ -3,8 +3,8 @@ package search_test
 import (
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/data/search"
-	"github.com/monstercameron/hcm-next/internal/domains/people"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/search"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/people"
 )
 
 // TestClassificationClearedIsTheDeclaredAllowlist proves the allowlist is

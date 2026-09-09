@@ -1,7 +1,7 @@
 package replay
 
 import (
-	"github.com/monstercameron/hcm-next/internal/intent"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent"
 )
 
 // Admit checks that a run may proceed under the contract, definition and

@@ -7,9 +7,9 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/monstercameron/hcm-next/internal/engines/canonicalbytes"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
-	transactionplan "github.com/monstercameron/hcm-next/internal/transaction/plan"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/canonicalbytes"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
+	transactionplan "github.com/monstercameron/human-capital-management-suite/internal/transaction/plan"
 )
 
 // ApprovalState is the lifecycle state read by the execution boundary. A

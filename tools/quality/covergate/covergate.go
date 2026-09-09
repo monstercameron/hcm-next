@@ -29,7 +29,7 @@ import (
 )
 
 // Module is the root module path every package result is reported under.
-const Module = "github.com/monstercameron/hcm-next"
+const Module = "github.com/monstercameron/human-capital-management-suite"
 
 // DefaultConfigPath is the gate's configuration, relative to the repo root.
 const DefaultConfigPath = "definitions/toolchain/coverage-gate.yaml"

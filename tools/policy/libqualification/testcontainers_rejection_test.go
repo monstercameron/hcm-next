@@ -7,7 +7,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/policy/internal/repopath"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/internal/repopath"
 )
 
 const testcontainersModuleFamily = "github.com/testcontainers"
@@ -124,7 +124,7 @@ func TestTodo_LIB_009_Integration(t *testing.T) {
 	}
 
 	// Verify the project uses pgtest as the test environment alternative
-	pgtestImportPath := "github.com/monstercameron/hcm-next/internal/data/pgtest"
+	pgtestImportPath := "github.com/monstercameron/human-capital-management-suite/internal/data/pgtest"
 	pkgs, err := repopath.ListPackages(root)
 	if err != nil {
 		t.Fatalf("listing packages: %v", err)

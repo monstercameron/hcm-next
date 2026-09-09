@@ -8,8 +8,8 @@
 package main
 
 import (
-	"github.com/monstercameron/hcm-next/tools/uxqual/render/gwc"
-	"github.com/monstercameron/hcm-next/tools/uxqual/testdata"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/render/gwc"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/testdata"
 )
 
 func main() {

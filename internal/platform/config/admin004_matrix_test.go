@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/platform/config"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/config"
 )
 
 // TestTodo_ADMIN_004 pins the center's immutable, scoped evidence boundary:

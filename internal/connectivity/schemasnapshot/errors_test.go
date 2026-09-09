@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/connectivity/schemasnapshot"
+	"github.com/monstercameron/human-capital-management-suite/internal/connectivity/schemasnapshot"
 )
 
 // TestErrorFormatting proves schemasnapshot.Error renders "op: cause: detail"

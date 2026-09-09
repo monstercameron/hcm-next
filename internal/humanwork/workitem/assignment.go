@@ -10,8 +10,8 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/humanwork"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/humanwork"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // ReResolutionTrigger names why a resolution ran. It is part of the recorded

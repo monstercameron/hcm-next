@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/commercial"
-	app "github.com/monstercameron/hcm-next/internal/intent/app"
+	"github.com/monstercameron/human-capital-management-suite/internal/commercial"
+	app "github.com/monstercameron/human-capital-management-suite/internal/intent/app"
 )
 
 var conformanceAt = time.Date(2026, 9, 1, 0, 0, 0, 0, time.UTC)

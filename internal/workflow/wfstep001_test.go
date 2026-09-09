@@ -3,8 +3,8 @@ package workflow_test
 import (
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/capability"
-	"github.com/monstercameron/hcm-next/internal/workflow"
+	"github.com/monstercameron/human-capital-management-suite/internal/capability"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow"
 )
 
 // record resolves one capability version out of a registry for the direct

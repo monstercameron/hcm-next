@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	promosnapshot "github.com/monstercameron/hcm-next/internal/domains/promotion/snapshot"
+	promosnapshot "github.com/monstercameron/human-capital-management-suite/internal/domains/promotion/snapshot"
 )
 
 // TestPackageHasNoConstructorThatAcceptsAValue holds doc.go's first claim to

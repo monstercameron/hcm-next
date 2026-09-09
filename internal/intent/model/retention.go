@@ -3,7 +3,7 @@ package model
 import (
 	"fmt"
 
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // RetentionClass declares how long evidence of one record class is kept,

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/platform/telemetry"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/telemetry"
 )
 
 func testEvaluator(t *testing.T) *telemetry.Evaluator {

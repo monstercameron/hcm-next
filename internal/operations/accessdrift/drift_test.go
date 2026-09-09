@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/connectivity/observe"
+	"github.com/monstercameron/human-capital-management-suite/internal/connectivity/observe"
 )
 
 func resource(kind ResourceKind, id, subject, value, state string, risk Risk) Resource {

@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/quality/integrationboundaries"
+	"github.com/monstercameron/human-capital-management-suite/tools/quality/integrationboundaries"
 )
 
 func fixture(t *testing.T, files map[string]string) string {

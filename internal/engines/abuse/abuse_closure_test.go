@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/engines/abuse"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/abuse"
 )
 
 // TestABUSE001ClosureTypedRejectionAndZeroEffect closes the registry red

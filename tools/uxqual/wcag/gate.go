@@ -8,9 +8,9 @@ import (
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
 
-	"github.com/monstercameron/hcm-next/tools/uxqual/forms"
-	"github.com/monstercameron/hcm-next/tools/uxqual/qual"
-	"github.com/monstercameron/hcm-next/tools/uxqual/tokens"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/forms"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/qual"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/tokens"
 )
 
 // CheckFocusAndNames verifies the WCAG 2.4.3/2.4.7 and 4.1.2 structural

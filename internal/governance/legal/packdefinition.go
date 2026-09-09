@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // This file implements the contract's section 3 release family:

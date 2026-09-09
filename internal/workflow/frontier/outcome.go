@@ -1,8 +1,8 @@
 package frontier
 
 import (
-	"github.com/monstercameron/hcm-next/internal/intent/lifecycle"
-	"github.com/monstercameron/hcm-next/internal/workflow"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/lifecycle"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow"
 )
 
 // AwaitKind names what a step handler is waiting for when it returns without

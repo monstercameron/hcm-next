@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/tools/quality/buildverify"
+	"github.com/monstercameron/human-capital-management-suite/tools/quality/buildverify"
 )
 
 // TestTodo_TOOL_018_Golden note: the byte-exact golden coverage for signed

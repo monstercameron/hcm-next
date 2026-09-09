@@ -13,8 +13,8 @@ import (
 	"strings"
 	"time"
 
-	incidentstate "github.com/monstercameron/hcm-next/internal/operations/incidentstate"
-	trustoutage "github.com/monstercameron/hcm-next/internal/trust/outage"
+	incidentstate "github.com/monstercameron/human-capital-management-suite/internal/operations/incidentstate"
+	trustoutage "github.com/monstercameron/human-capital-management-suite/internal/trust/outage"
 )
 
 const contractVersion = 1

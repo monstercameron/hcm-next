@@ -16,16 +16,16 @@ import (
 	"strings"
 	"time"
 
-	"github.com/monstercameron/hcm-next/tools/conformance/checks"
-	"github.com/monstercameron/hcm-next/tools/conformance/discover"
-	"github.com/monstercameron/hcm-next/tools/conformance/model"
-	"github.com/monstercameron/hcm-next/tools/conformance/runner"
-	"github.com/monstercameron/hcm-next/tools/conformance/vocab"
+	"github.com/monstercameron/human-capital-management-suite/tools/conformance/checks"
+	"github.com/monstercameron/human-capital-management-suite/tools/conformance/discover"
+	"github.com/monstercameron/human-capital-management-suite/tools/conformance/model"
+	"github.com/monstercameron/human-capital-management-suite/tools/conformance/runner"
+	"github.com/monstercameron/human-capital-management-suite/tools/conformance/vocab"
 )
 
 // ToolVersion identifies the report format/generator. It is a constant,
 // not a build timestamp, so it never breaks determinism.
-const ToolVersion = "hcm-next/tools/conformance (CONF-001) v1"
+const ToolVersion = "human-capital-management-suite/tools/conformance (CONF-001) v1"
 
 // Report is the top-level, deterministically ordered conformance report for
 // one run over one directory of reference workflow documents.
@@ -231,7 +231,7 @@ func (r Report) JSON() ([]byte, error) {
 // same sorted fields as JSON so it is equally deterministic.
 func (r Report) Markdown() []byte {
 	var b strings.Builder
-	fmt.Fprintf(&b, "# HCM Next Reference-Workflow Conformance Report\n\n")
+	fmt.Fprintf(&b, "# Human Capital Management Suite Reference-Workflow Conformance Report\n\n")
 	fmt.Fprintf(&b, "- Tool version: %s\n", r.ToolVersion)
 	fmt.Fprintf(&b, "- Execution mode: %s\n", r.ExecutionMode)
 	fmt.Fprintf(&b, "- Fixed clock: %s\n", r.FixedClock)

@@ -2,7 +2,7 @@ package diagnosticsession_test
 
 import (
 	"errors"
-	ds "github.com/monstercameron/hcm-next/internal/operations/admincenter/diagnosticsession"
+	ds "github.com/monstercameron/human-capital-management-suite/internal/operations/admincenter/diagnosticsession"
 	"testing"
 	"time"
 )

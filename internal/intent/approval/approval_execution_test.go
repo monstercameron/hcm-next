@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/humanwork"
-	"github.com/monstercameron/hcm-next/internal/intent/approval"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
-	transactionplan "github.com/monstercameron/hcm-next/internal/transaction/plan"
+	"github.com/monstercameron/human-capital-management-suite/internal/humanwork"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/approval"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
+	transactionplan "github.com/monstercameron/human-capital-management-suite/internal/transaction/plan"
 )
 
 type executionHeads struct{}

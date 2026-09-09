@@ -4,9 +4,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/policy/internal/repopath"
-	"github.com/monstercameron/hcm-next/tools/policy/layout"
-	"github.com/monstercameron/hcm-next/tools/policy/workspace"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/internal/repopath"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/layout"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/workspace"
 )
 
 // TestGoWorkspacePolicy is the TOOL-001 primary test.
@@ -60,7 +60,7 @@ func TestGoWorkspacePolicy(t *testing.T) {
 		ignore := map[string]bool{
 			".git":         true,
 			"node_modules": true,
-			"src":          true, // legacy module hcm-next-executor: a separate go.mod, out of scope
+			"src":          true, // legacy module human-capital-management-suite-executor: a separate go.mod, out of scope
 			"testdata":     true,
 			"dist":         true,
 			"tmp":          true,

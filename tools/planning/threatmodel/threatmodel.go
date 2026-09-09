@@ -17,8 +17,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/monstercameron/hcm-next/tools/planning/riskbinding"
-	"github.com/monstercameron/hcm-next/tools/policy/layout"
+	"github.com/monstercameron/human-capital-management-suite/tools/planning/riskbinding"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/layout"
 	"gopkg.in/yaml.v3"
 )
 

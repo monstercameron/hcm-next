@@ -6,14 +6,14 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"github.com/monstercameron/hcm-next/internal/application"
+	"github.com/monstercameron/human-capital-management-suite/internal/application"
 	"sort"
 	"strings"
 	"time"
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/platform/bootstrap"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/bootstrap"
 )
 
 // WorkerRole is a role inside the shared worker binary. These are narrower

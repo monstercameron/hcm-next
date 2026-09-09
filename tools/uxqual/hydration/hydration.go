@@ -27,8 +27,8 @@ import (
 
 	"golang.org/x/net/html"
 
-	"github.com/monstercameron/hcm-next/tools/uxqual/pagedef"
-	"github.com/monstercameron/hcm-next/tools/uxqual/ssrshell"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/pagedef"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/ssrshell"
 )
 
 // ErrorCode identifies a stable refusal class. Error messages intentionally

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sort"
 
-	model "github.com/monstercameron/hcm-next/internal/intent/model"
+	model "github.com/monstercameron/human-capital-management-suite/internal/intent/model"
 )
 
 // CrossCheckModel compares every covered:true entity, relationship,

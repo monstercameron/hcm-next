@@ -8,7 +8,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/monstercameron/hcm-next/tools/policy/docintegrity"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/docintegrity"
 )
 
 func main() {

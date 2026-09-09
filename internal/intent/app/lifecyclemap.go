@@ -3,7 +3,7 @@ package app
 import (
 	"fmt"
 
-	"github.com/monstercameron/hcm-next/internal/intent/lifecycle"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/lifecycle"
 )
 
 // LifecycleColumns projects the five lifecycle dimensions onto the five

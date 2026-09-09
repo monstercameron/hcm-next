@@ -6,9 +6,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/engines/schedule"
-	"github.com/monstercameron/hcm-next/internal/platform/bootstrap"
-	"github.com/monstercameron/hcm-next/internal/workflow/lease"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/schedule"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/bootstrap"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/lease"
 )
 
 // The environment variables this role's configuration is sourced from. They

@@ -3,9 +3,9 @@ package journey
 import (
 	"context"
 
-	journeyv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/journey/v1"
-	"github.com/monstercameron/hcm-next/internal/experience/roleaccess"
-	"github.com/monstercameron/hcm-next/internal/transport/envelope"
+	journeyv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/journey/v1"
+	"github.com/monstercameron/human-capital-management-suite/internal/experience/roleaccess"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/envelope"
 )
 
 // The wire half of the intent-only `promotion.propose` contract (PROMO-007).

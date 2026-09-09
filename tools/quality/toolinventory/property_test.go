@@ -6,7 +6,7 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/quality/toolinventory"
+	"github.com/monstercameron/human-capital-management-suite/tools/quality/toolinventory"
 )
 
 // TestTodo_TOOL_025_Property proves Entry.MissingFields() is precise -

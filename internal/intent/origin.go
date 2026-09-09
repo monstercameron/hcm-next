@@ -4,7 +4,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // OriginKind is the trusted source an intent came from. It is derived from the

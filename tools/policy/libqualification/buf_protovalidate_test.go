@@ -9,7 +9,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/policy/internal/repopath"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/internal/repopath"
 )
 
 // TestBufProtovalidateQualificationCannotBecomeBusinessAuthority is LIB-019's
@@ -86,11 +86,11 @@ func TestTodo_LIB_019_Property(t *testing.T) {
 func TestTodo_LIB_019_Golden(t *testing.T) {
 	// Buf is pinned as the developer-only schema linter applying STANDARD
 	// and FILE compatibility rules.
-	// Protovalidate is rejected because HCM Next must own all business,
+	// Protovalidate is rejected because Human Capital Management Suite must own all business,
 	// authorization, legal, eligibility and mutation logic through owned
 	// descriptor-based validation that fails closed on out-of-scope uses.
 
-	t.Logf("LIB-019: buf pinned as schema linter; protovalidate rejected; validation owned by HCM Next")
+	t.Logf("LIB-019: buf pinned as schema linter; protovalidate rejected; validation owned by Human Capital Management Suite")
 }
 
 // TestTodo_LIB_019_Integration runs buf lint against the real schema
@@ -150,7 +150,7 @@ func TestTodo_LIB_019_Security(t *testing.T) {
 		}
 	}
 
-	t.Logf("LIB-019 SECURITY: no Protovalidate imports detected; validation owned by HCM Next")
+	t.Logf("LIB-019 SECURITY: no Protovalidate imports detected; validation owned by Human Capital Management Suite")
 }
 
 // TestTodo_LIB_019_Conformance ensures the qualification record is complete:
@@ -199,7 +199,7 @@ func TestTodo_LIB_019_Conformance(t *testing.T) {
 		}
 	}
 
-	t.Logf("LIB-019 CONFORMANCE: buf pinned and used; protovalidate rejected; validation owned by HCM Next")
+	t.Logf("LIB-019 CONFORMANCE: buf pinned and used; protovalidate rejected; validation owned by Human Capital Management Suite")
 }
 
 // TestTodo_LIB_019_Race exercises buf.yaml parsing and proto linting from

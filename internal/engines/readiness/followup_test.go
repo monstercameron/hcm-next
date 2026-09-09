@@ -5,7 +5,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/engines/readiness"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/readiness"
 )
 
 func followupFixture(t *testing.T) (readiness.ReadinessRequirement, readiness.Evaluation, readiness.FollowUpPolicy) {

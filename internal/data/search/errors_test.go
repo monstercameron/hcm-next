@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/data/search"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/search"
 )
 
 // TestInvalidKindErrorNamesTheOffendingKind proves the error message carries

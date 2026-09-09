@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package hcmnext.humanwork.v1;
 
-option go_package = "github.com/monstercameron/hcm-next/gen/go/hcmnext/humanwork/v1;humanworkv1";
+option go_package = "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/humanwork/v1;humanworkv1";
 
 import "hcmnext/common/v1/common.proto";
 import "hcmnext/humanwork/v1/humanwork.proto";

@@ -1,8 +1,8 @@
 package signal
 
 import (
-	"github.com/monstercameron/hcm-next/internal/workflow"
-	"github.com/monstercameron/hcm-next/internal/workflow/frontier"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/frontier"
 )
 
 // ToNodeOutcome maps an Accept Result onto frontier.NodeOutcome, the shape

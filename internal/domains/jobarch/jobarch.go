@@ -11,9 +11,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/domains/position"
-	"github.com/monstercameron/hcm-next/internal/engines/canonicalbytes"
-	"github.com/monstercameron/hcm-next/internal/engines/payband"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/position"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/canonicalbytes"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/payband"
 )
 
 const schemaVersion = 1

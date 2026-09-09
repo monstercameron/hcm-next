@@ -3,10 +3,10 @@ package commit
 import (
 	"context"
 
-	"github.com/monstercameron/hcm-next/internal/data/dbport"
-	transactioncancel "github.com/monstercameron/hcm-next/internal/transaction/cancel"
-	transactioncoordinator "github.com/monstercameron/hcm-next/internal/transaction/coordinator"
-	"github.com/monstercameron/hcm-next/internal/transaction/plan"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
+	transactioncancel "github.com/monstercameron/human-capital-management-suite/internal/transaction/cancel"
+	transactioncoordinator "github.com/monstercameron/human-capital-management-suite/internal/transaction/coordinator"
+	"github.com/monstercameron/human-capital-management-suite/internal/transaction/plan"
 )
 
 // RetryOptions and RetryClosure expose the shared bounded retry mechanics at

@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/humanwork/workspace"
+	"github.com/monstercameron/human-capital-management-suite/internal/humanwork/workspace"
 )
 
 // TestParseConfigReadsTheShellIsland is the contract test between this

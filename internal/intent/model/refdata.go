@@ -3,8 +3,8 @@ package model
 import (
 	"errors"
 
-	"github.com/monstercameron/hcm-next/internal/intent/lifecycle"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/lifecycle"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // Sentinel causes for governed reference-data releases (MODEL-018). Classify

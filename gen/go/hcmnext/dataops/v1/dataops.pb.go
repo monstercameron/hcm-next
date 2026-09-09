@@ -7,8 +7,8 @@
 package dataopsv1
 
 import (
-	v1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/common/v1"
-	v11 "github.com/monstercameron/hcm-next/gen/go/hcmnext/evidence/v1"
+	v1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/common/v1"
+	v11 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/evidence/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
@@ -460,7 +460,7 @@ func (x *ObservationWatermark) GetRecords() int32 {
 	return 0
 }
 
-// CanonicalField is one field of the HCM Next side of a comparison, carrying
+// CanonicalField is one field of the Human Capital Management Suite side of a comparison, carrying
 // the authority and provenance that make it citable
 // (internal/domains/dataops CanonicalField).
 type CanonicalField struct {
@@ -571,7 +571,7 @@ func (x *CanonicalField) GetProvenance() *v11.Provenance {
 	return nil
 }
 
-// CanonicalRecord is the HCM Next side of a comparison for one subject at one
+// CanonicalRecord is the Human Capital Management Suite side of a comparison for one subject at one
 // bitemporal coordinate (internal/domains/dataops CanonicalRecord).
 type CanonicalRecord struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
@@ -1319,7 +1319,7 @@ const file_hcmnext_dataops_v1_dataops_proto_rawDesc = "" +
 	"\x1aREPAIR_SAFETY_NOT_REQUIRED\x10\x01\x12\x16\n" +
 	"\x12REPAIR_SAFETY_SAFE\x10\x02\x12\x18\n" +
 	"\x14REPAIR_SAFETY_UNSAFE\x10\x03\x12\x1d\n" +
-	"\x19REPAIR_SAFETY_UNDECIDABLE\x10\x04BHZFgithub.com/monstercameron/hcm-next/gen/go/hcmnext/dataops/v1;dataopsv1b\x06proto3"
+	"\x19REPAIR_SAFETY_UNDECIDABLE\x10\x04B^Z\\github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/dataops/v1;dataopsv1b\x06proto3"
 
 var (
 	file_hcmnext_dataops_v1_dataops_proto_rawDescOnce sync.Once

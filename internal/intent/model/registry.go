@@ -7,7 +7,7 @@ import (
 // Registry is the compiled-in, immutable publication of every entity,
 // property, aggregate, relationship, source-authority assignment and
 // retention class this package registers. Like
-// [github.com/monstercameron/hcm-next/internal/intent.Registry], it exposes
+// [github.com/monstercameron/human-capital-management-suite/internal/intent.Registry], it exposes
 // no Add, Remove or setter: publishing a new item is a source change to
 // [Catalog], never a runtime call.
 type Registry struct {

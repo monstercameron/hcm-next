@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/data/partition"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/partition"
 )
 
 func TestPartitionPlan_Validate_Hash(t *testing.T) {

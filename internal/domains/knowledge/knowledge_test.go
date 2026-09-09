@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/domains/knowledge"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/knowledge"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // helper to create a valid Instant for testing

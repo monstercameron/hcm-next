@@ -3,7 +3,7 @@ package abuse_test
 import (
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/engines/abuse"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/abuse"
 )
 
 // TestTodo_ABUSE_001_Golden pins the package's ARCH-GO-009 engine contract

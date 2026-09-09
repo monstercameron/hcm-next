@@ -7,9 +7,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/operations/reconcile"
-	operationrepair "github.com/monstercameron/hcm-next/internal/operations/repair"
-	"github.com/monstercameron/hcm-next/internal/workflow"
+	"github.com/monstercameron/human-capital-management-suite/internal/operations/reconcile"
+	operationrepair "github.com/monstercameron/human-capital-management-suite/internal/operations/repair"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow"
 )
 
 // RepairExecutionMode is the workflow mode used by a RepairPlan. It is kept

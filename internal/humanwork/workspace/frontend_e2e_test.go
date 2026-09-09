@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/humanwork/productui"
-	"github.com/monstercameron/hcm-next/internal/trust"
+	"github.com/monstercameron/human-capital-management-suite/internal/humanwork/productui"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust"
 )
 
 // TestFrontendE2EPersonaLoginAndEveryProductRoute drives the production HTTP

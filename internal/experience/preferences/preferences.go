@@ -8,7 +8,7 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 var (
@@ -186,7 +186,7 @@ func NormalizeUser(value User) User {
 
 func DefaultSnapshot() Snapshot {
 	return Snapshot{User: NormalizeUser(User{}), Theme: TenantTheme{Theme: Theme{
-		BrandName: "HCM Next", BrandMark: "H", ColorMode: "system", Palette: "evergreen",
+		BrandName: "Human Capital Management Suite", BrandMark: "H", ColorMode: "system", Palette: "evergreen",
 		Shape: "balanced", Density: "comfortable", Glyphs: "rounded-line", Typeface: "humanist",
 		Navigation: "light", Motion: "calm",
 	}}, OrganizationVisibility: OrganizationVisibility{Mode: OrganizationVisibilityAll}}

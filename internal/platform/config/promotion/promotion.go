@@ -16,7 +16,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/platform/config"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/config"
 )
 
 type Status string

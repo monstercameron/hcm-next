@@ -4,9 +4,9 @@ import (
 	"context"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/internal/platform/logging"
-	"github.com/monstercameron/hcm-next/internal/transport"
-	"github.com/monstercameron/hcm-next/internal/trust"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/logging"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust"
 )
 
 // deriveLoggingContext copies the trusted values transport.Admit already

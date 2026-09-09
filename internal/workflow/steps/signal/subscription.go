@@ -3,7 +3,7 @@ package signal
 import (
 	"sort"
 
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // OrderingExpectation names how a subscription expects successive signals on

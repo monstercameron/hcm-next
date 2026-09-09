@@ -5,11 +5,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/domains/budget"
-	"github.com/monstercameron/hcm-next/internal/domains/promotion/simassign"
-	"github.com/monstercameron/hcm-next/internal/domains/promotion/simcomp"
-	promosnapshot "github.com/monstercameron/hcm-next/internal/domains/promotion/snapshot"
-	"github.com/monstercameron/hcm-next/internal/domains/rewards"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/budget"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/promotion/simassign"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/promotion/simcomp"
+	promosnapshot "github.com/monstercameron/human-capital-management-suite/internal/domains/promotion/snapshot"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/rewards"
 )
 
 // TestTodo_PROMO_003 is the primary: over the harborcare-demo Promotion

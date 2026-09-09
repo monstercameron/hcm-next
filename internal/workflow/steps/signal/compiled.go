@@ -3,8 +3,8 @@ package signal
 import (
 	"fmt"
 
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
-	"github.com/monstercameron/hcm-next/internal/workflow"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow"
 )
 
 // InstanceContext carries the per-workflow-instance values a compiled SIGNAL

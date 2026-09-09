@@ -3,7 +3,7 @@ package scopeexchange
 import (
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/planning/manifest"
+	"github.com/monstercameron/human-capital-management-suite/tools/planning/manifest"
 )
 
 func fundedManifest() manifest.Manifest {

@@ -10,7 +10,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/quality/decomposition"
+	"github.com/monstercameron/human-capital-management-suite/tools/quality/decomposition"
 )
 
 func TestMainSmoke(t *testing.T) {

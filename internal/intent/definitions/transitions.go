@@ -1,6 +1,6 @@
 package definitions
 
-import "github.com/monstercameron/hcm-next/internal/intent/lifecycle"
+import "github.com/monstercameron/human-capital-management-suite/internal/intent/lifecycle"
 
 // The transition sets below narrow the shared kernel lifecycle profiles. A
 // definition may forbid what the kernel allows; it may never allow what the

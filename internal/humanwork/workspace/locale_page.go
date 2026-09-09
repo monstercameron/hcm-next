@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/monstercameron/hcm-next/tools/uxqual/contract"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/contract"
 )
 
 // localizeSourceRecord transforms only presentation strings before the

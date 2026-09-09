@@ -3,7 +3,7 @@ package search
 import (
 	"sort"
 
-	"github.com/monstercameron/hcm-next/internal/domains/people"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/people"
 )
 
 // EntityKind names what kind of subject one search_projection row indexes.

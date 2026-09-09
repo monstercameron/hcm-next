@@ -10,13 +10,13 @@ import (
 	sdkmetric "go.opentelemetry.io/otel/sdk/metric"
 	"go.opentelemetry.io/otel/trace"
 
-	"github.com/monstercameron/hcm-next/internal/platform/buildinfo"
-	"github.com/monstercameron/hcm-next/internal/platform/logging"
-	"github.com/monstercameron/hcm-next/internal/platform/telemetry"
-	hcmotel "github.com/monstercameron/hcm-next/internal/platform/telemetry/otel"
-	otelExport "github.com/monstercameron/hcm-next/internal/platform/telemetry/otel/testexport"
-	"github.com/monstercameron/hcm-next/internal/platform/telemetry/testexport"
-	"github.com/monstercameron/hcm-next/internal/workflow/execute"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/buildinfo"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/logging"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/telemetry"
+	hcmotel "github.com/monstercameron/human-capital-management-suite/internal/platform/telemetry/otel"
+	otelExport "github.com/monstercameron/human-capital-management-suite/internal/platform/telemetry/otel/testexport"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/telemetry/testexport"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/execute"
 )
 
 // fixedTraceID/fixedSpanID pin the parent span context every test below

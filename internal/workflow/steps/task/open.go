@@ -7,7 +7,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/humanwork/workitem"
+	"github.com/monstercameron/human-capital-management-suite/internal/humanwork/workitem"
 )
 
 // OpenInput is [Open]'s request: the compiled TASK node a WORK_ITEM_REQUIRED

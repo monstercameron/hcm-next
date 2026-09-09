@@ -4,9 +4,9 @@ import (
 	"testing"
 	"time"
 
-	dataconfigregistry "github.com/monstercameron/hcm-next/internal/data/configregistry"
-	"github.com/monstercameron/hcm-next/internal/data/pgtest"
-	platformconfig "github.com/monstercameron/hcm-next/internal/platform/configregistry"
+	dataconfigregistry "github.com/monstercameron/human-capital-management-suite/internal/data/configregistry"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/pgtest"
+	platformconfig "github.com/monstercameron/human-capital-management-suite/internal/platform/configregistry"
 )
 
 func TestMain(m *testing.M) { pgtest.RunMain(m) }

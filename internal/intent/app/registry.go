@@ -4,13 +4,13 @@ import (
 	"context"
 	"sort"
 
-	capabilitiesv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/capabilities/v1"
-	commonv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/common/v1"
-	intentsv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/intents/v1"
-	registryv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/registry/v1"
-	"github.com/monstercameron/hcm-next/internal/capability"
-	"github.com/monstercameron/hcm-next/internal/intent/protomap"
-	"github.com/monstercameron/hcm-next/internal/transport/envelope"
+	capabilitiesv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/capabilities/v1"
+	commonv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/common/v1"
+	intentsv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/intents/v1"
+	registryv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/registry/v1"
+	"github.com/monstercameron/human-capital-management-suite/internal/capability"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/protomap"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/envelope"
 )
 
 // ListIntentDefinitions publishes the compiled-in definition catalog.

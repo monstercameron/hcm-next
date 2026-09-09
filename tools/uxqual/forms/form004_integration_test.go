@@ -3,9 +3,9 @@ package forms
 import (
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/uxqual/render/gwc"
-	"github.com/monstercameron/hcm-next/tools/uxqual/render/ssr"
-	"github.com/monstercameron/hcm-next/tools/uxqual/testdata"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/render/gwc"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/render/ssr"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/testdata"
 )
 
 // TestTodo_FORM_004_Integration is the INTEGRATION matrix test for

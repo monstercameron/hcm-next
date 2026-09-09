@@ -1,4 +1,4 @@
-// Package cryptoagile proves that HCM Next can rotate a signing or MAC
+// Package cryptoagile proves that Human Capital Management Suite can rotate a signing or MAC
 // algorithm across its ledger, document, token and connector evidence
 // without a flag day and without making history unverifiable.
 //

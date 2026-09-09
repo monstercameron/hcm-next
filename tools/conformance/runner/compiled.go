@@ -16,11 +16,11 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/internal/platform/timeauth"
-	"github.com/monstercameron/hcm-next/internal/workflow/simulate"
-	"github.com/monstercameron/hcm-next/tools/conformance/checks"
-	"github.com/monstercameron/hcm-next/tools/conformance/model"
-	"github.com/monstercameron/hcm-next/tools/conformance/vocab"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/timeauth"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/simulate"
+	"github.com/monstercameron/human-capital-management-suite/tools/conformance/checks"
+	"github.com/monstercameron/human-capital-management-suite/tools/conformance/model"
+	"github.com/monstercameron/human-capital-management-suite/tools/conformance/vocab"
 )
 
 // PromotionDocumentID is the parsed workflow id of

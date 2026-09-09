@@ -9,9 +9,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/policy/internal/repopath"
-	"github.com/monstercameron/hcm-next/tools/policy/layout"
-	"github.com/monstercameron/hcm-next/tools/policy/phaseonegate"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/internal/repopath"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/layout"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/phaseonegate"
 )
 
 func liveInputs(t *testing.T) (string, *layout.Manifest, *phaseonegate.Graph, phaseonegate.Manifest) {
@@ -69,15 +69,15 @@ func TestPhaseOnePackageAllowlist(t *testing.T) {
 
 func TestTodo_ARCH_GO_018_Property(t *testing.T) {
 	graph := &phaseonegate.Graph{
-		Module: "github.com/monstercameron/hcm-next",
+		Module: "github.com/monstercameron/human-capital-management-suite",
 		Entry:  phaseonegate.EntryPoint,
 		Packages: []phaseonegate.Package{
-			{Path: "github.com/monstercameron/hcm-next/cmd/hcmnext"},
-			{Path: "github.com/monstercameron/hcm-next/internal/kernel"},
+			{Path: "github.com/monstercameron/human-capital-management-suite/cmd/hcmnext"},
+			{Path: "github.com/monstercameron/human-capital-management-suite/internal/kernel"},
 		},
 		Edges: []phaseonegate.Edge{{
-			Importer: "github.com/monstercameron/hcm-next/cmd/hcmnext",
-			Imported: "github.com/monstercameron/hcm-next/internal/kernel",
+			Importer: "github.com/monstercameron/human-capital-management-suite/cmd/hcmnext",
+			Imported: "github.com/monstercameron/human-capital-management-suite/internal/kernel",
 		}},
 	}
 	manifest := phaseonegate.Manifest{
@@ -152,7 +152,7 @@ func TestTodo_ARCH_GO_018_Integration(t *testing.T) {
 }
 
 func TestTodo_ARCH_GO_018_Security(t *testing.T) {
-	module := "github.com/monstercameron/hcm-next"
+	module := "github.com/monstercameron/human-capital-management-suite"
 	manifest := phaseonegate.Manifest{
 		Module: module,
 		Allowlist: []phaseonegate.Inclusion{
@@ -204,7 +204,7 @@ func TestTodo_ARCH_GO_018_Conformance(t *testing.T) {
 }
 
 func TestTodo_ARCH_GO_018_Mutation(t *testing.T) {
-	module := "github.com/monstercameron/hcm-next"
+	module := "github.com/monstercameron/human-capital-management-suite"
 	manifest := phaseonegate.Manifest{
 		Module: module,
 		Allowlist: []phaseonegate.Inclusion{

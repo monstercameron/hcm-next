@@ -1,5 +1,5 @@
 // Package quarantine implements DOC-MAL-001: every artifact uploaded into
-// HCM Next is untrusted until a declared [Scanner] and a declared allowlist
+// Human Capital Management Suite is untrusted until a declared [Scanner] and a declared allowlist
 // have both cleared it, and nothing may read it for use before that happens.
 //
 // Semantic owner: domains (asset). Phase: P1B.

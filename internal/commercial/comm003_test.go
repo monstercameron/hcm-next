@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/commercial"
+	"github.com/monstercameron/human-capital-management-suite/internal/commercial"
 )
 
 // placeholderEconomicThresholds is a test fixture only. A human must supply

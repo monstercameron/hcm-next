@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/internal/governance/revalidate"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
-	transactionplan "github.com/monstercameron/hcm-next/internal/transaction/plan"
+	"github.com/monstercameron/human-capital-management-suite/internal/governance/revalidate"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
+	transactionplan "github.com/monstercameron/human-capital-management-suite/internal/transaction/plan"
 )
 
 // AuthorityRequest is the exact immutable decision context an authority port

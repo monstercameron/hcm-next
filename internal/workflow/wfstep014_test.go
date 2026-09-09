@@ -3,7 +3,7 @@ package workflow_test
 import (
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/workflow"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow"
 )
 
 func observeNode(t *testing.T) workflow.Node {

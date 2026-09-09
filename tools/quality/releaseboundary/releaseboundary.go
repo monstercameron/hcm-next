@@ -13,7 +13,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/tools/quality/sbom"
+	"github.com/monstercameron/human-capital-management-suite/tools/quality/sbom"
 )
 
 // forbiddenMarkers identify runtime/package names excluded by the Go-only

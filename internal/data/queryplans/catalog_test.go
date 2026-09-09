@@ -3,7 +3,7 @@ package queryplans_test
 import (
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/data/queryplans"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/queryplans"
 )
 
 // TestCatalog_EveryEntryIsWellFormed is a pure Go-level guard, run with no

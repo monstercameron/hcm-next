@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/capability"
+	"github.com/monstercameron/human-capital-management-suite/internal/capability"
 )
 
 func TestNewRegistryCapabilityResolver_ResolvesExactVersionsAndNothingFromNil(t *testing.T) {

@@ -6,9 +6,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/connectivity"
-	"github.com/monstercameron/hcm-next/internal/connectivity/spi"
-	"github.com/monstercameron/hcm-next/internal/connectivity/spi/spiconform"
+	"github.com/monstercameron/human-capital-management-suite/internal/connectivity"
+	"github.com/monstercameron/human-capital-management-suite/internal/connectivity/spi"
+	"github.com/monstercameron/human-capital-management-suite/internal/connectivity/spi/spiconform"
 )
 
 // fakeTB records every Fatalf call instead of unwinding the goroutine, so a

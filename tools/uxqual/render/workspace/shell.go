@@ -6,9 +6,9 @@ import (
 	"github.com/monstercameron/GoWebComponents/v5/html"
 	"github.com/monstercameron/GoWebComponents/v5/ui"
 
-	"github.com/monstercameron/hcm-next/tools/uxqual/floorplan"
-	"github.com/monstercameron/hcm-next/tools/uxqual/journeyclient"
-	"github.com/monstercameron/hcm-next/tools/uxqual/render/page"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/floorplan"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/journeyclient"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/render/page"
 )
 
 // RootElementID is the id of the shell's own root node.

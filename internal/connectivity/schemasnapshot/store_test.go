@@ -8,8 +8,8 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/connectivity/schemasnapshot"
-	"github.com/monstercameron/hcm-next/internal/intent/model"
+	"github.com/monstercameron/human-capital-management-suite/internal/connectivity/schemasnapshot"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/model"
 )
 
 func validArtifactRequest(raw []byte) schemasnapshot.ArtifactPutRequest {

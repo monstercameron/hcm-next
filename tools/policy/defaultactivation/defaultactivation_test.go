@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/policy/defaultactivation"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/defaultactivation"
 )
 
 func feature(disposition defaultactivation.Disposition) defaultactivation.Feature {

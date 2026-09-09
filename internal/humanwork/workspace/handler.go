@@ -12,11 +12,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/experience/roleaccess"
-	"github.com/monstercameron/hcm-next/internal/transport"
-	"github.com/monstercameron/hcm-next/internal/trust"
-	"github.com/monstercameron/hcm-next/tools/uxqual/forms"
-	"github.com/monstercameron/hcm-next/tools/uxqual/tokens"
+	"github.com/monstercameron/human-capital-management-suite/internal/experience/roleaccess"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/forms"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/tokens"
 )
 
 // sessionCookie carries the workspace session the CSRF token is bound to.
@@ -246,7 +246,7 @@ func (h *Handler) admit(w http.ResponseWriter, r *http.Request) (*http.Request, 
 			return nil, false
 		}
 		if status == http.StatusUnauthorized {
-			w.Header().Set("WWW-Authenticate", `Bearer realm="hcm-next"`)
+			w.Header().Set("WWW-Authenticate", `Bearer realm="human-capital-management-suite"`)
 		}
 		h.writeProblem(w, status, "Not authenticated",
 			"This workspace is served to an authenticated caller only. Present the same bearer credential the API accepts.")

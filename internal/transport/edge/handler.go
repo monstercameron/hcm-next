@@ -9,12 +9,12 @@ import (
 
 	"connectrpc.com/connect"
 
-	"github.com/monstercameron/hcm-next/internal/transport"
-	"github.com/monstercameron/hcm-next/internal/transport/envelope"
-	transporthealth "github.com/monstercameron/hcm-next/internal/transport/health"
-	transportjourney "github.com/monstercameron/hcm-next/internal/transport/journey"
-	transportoperations "github.com/monstercameron/hcm-next/internal/transport/operations"
-	transportworkflow "github.com/monstercameron/hcm-next/internal/transport/workflow"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/envelope"
+	transporthealth "github.com/monstercameron/human-capital-management-suite/internal/transport/health"
+	transportjourney "github.com/monstercameron/human-capital-management-suite/internal/transport/journey"
+	transportoperations "github.com/monstercameron/human-capital-management-suite/internal/transport/operations"
+	transportworkflow "github.com/monstercameron/human-capital-management-suite/internal/transport/workflow"
 )
 
 // defaultMaxBodyBytes bounds an inbound request body. Bounded decoding is part

@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/policy/tableinventory"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/tableinventory"
 )
 
 func ownershipRepoRoot(t *testing.T) string {
@@ -20,7 +20,7 @@ func ownershipRepoRoot(t *testing.T) string {
 }
 
 func TestTableOwnership_MetadataAndReportMethods(t *testing.T) {
-	if Version() != 1 || ModulePath != "github.com/monstercameron/hcm-next" {
+	if Version() != 1 || ModulePath != "github.com/monstercameron/human-capital-management-suite" {
 		t.Fatalf("metadata mismatch: version=%d module=%q", Version(), ModulePath)
 	}
 	finding := Finding{Table: "worker", Code: "OWNERLESS", Detail: "missing"}

@@ -6,7 +6,7 @@ import (
 	"go/format"
 	"sort"
 
-	"github.com/monstercameron/hcm-next/internal/intent/model"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/model"
 )
 
 // GeneratedHeader is the exact first line of every file this package writes,
@@ -35,7 +35,7 @@ func Render(ms *ModelSet) (map[string][]byte, error) {
 
 	renderImports(&b, ms)
 
-	fmt.Fprintf(&b, "// SourceRegistryDigest is %s\n", "the [github.com/monstercameron/hcm-next/internal/intent/model.Registry.Digest] this package was generated from.")
+	fmt.Fprintf(&b, "// SourceRegistryDigest is %s\n", "the [github.com/monstercameron/human-capital-management-suite/internal/intent/model.Registry.Digest] this package was generated from.")
 	b.WriteString("// New's caller can compare it against a freshly compiled catalog to detect drift at runtime, not only at generation time.\n")
 	fmt.Fprintf(&b, "const SourceRegistryDigest = %q\n\n", ms.SourceDigest)
 
@@ -140,11 +140,11 @@ func renderRequiredCheck(b *bytes.Buffer, typeName string, f FieldModel) {
 //
 // Descriptors are plain strings, not the internal/intent/model enum types,
 // deliberately: a Binding in
-// [github.com/monstercameron/hcm-next/internal/intent/definitions] already
+// [github.com/monstercameron/human-capital-management-suite/internal/intent/definitions] already
 // names an entity or property by bare string (e.g. "Person",
 // "employment.status"), so a caller can compare a binding against this
 // registry with no conversion step. It is also the descriptor shape
-// [github.com/monstercameron/hcm-next/tools/gen/schemaflux/modelgen] already
+// [github.com/monstercameron/human-capital-management-suite/tools/gen/schemaflux/modelgen] already
 // established for a generated registry in this repository.
 func renderRegistry(b *bytes.Buffer, ms *ModelSet) {
 	b.WriteString("// EntityMeta is one generated entity descriptor.\n")

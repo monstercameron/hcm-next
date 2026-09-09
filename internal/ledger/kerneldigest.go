@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"time"
 
-	intentsv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/intents/v1"
-	datalogger "github.com/monstercameron/hcm-next/internal/data/ledger"
-	"github.com/monstercameron/hcm-next/internal/engines/wire/canonical"
-	"github.com/monstercameron/hcm-next/internal/engines/wire/digest"
+	intentsv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/intents/v1"
+	datalogger "github.com/monstercameron/human-capital-management-suite/internal/data/ledger"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/wire/canonical"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/wire/digest"
 )
 
 // LedgerEventProfileV1 is the registered canonical profile for a ledger

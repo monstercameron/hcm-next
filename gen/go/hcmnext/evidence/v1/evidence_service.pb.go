@@ -7,8 +7,8 @@
 package evidencev1
 
 import (
-	v1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/common/v1"
-	v11 "github.com/monstercameron/hcm-next/gen/go/hcmnext/intents/v1"
+	v1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/common/v1"
+	v11 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/intents/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
@@ -845,7 +845,7 @@ const file_hcmnext_evidence_v1_evidence_service_proto_rawDesc = "" +
 	"\x14ExportIntentEvidence\x120.hcmnext.evidence.v1.ExportIntentEvidenceRequest\x1a1.hcmnext.evidence.v1.ExportIntentEvidenceResponse2\xe6\x01\n" +
 	"\x11OperationsService\x12c\n" +
 	"\fGetOperation\x12(.hcmnext.evidence.v1.GetOperationRequest\x1a).hcmnext.evidence.v1.GetOperationResponse\x12l\n" +
-	"\x0fCancelOperation\x12+.hcmnext.evidence.v1.CancelOperationRequest\x1a,.hcmnext.evidence.v1.CancelOperationResponseBJZHgithub.com/monstercameron/hcm-next/gen/go/hcmnext/evidence/v1;evidencev1b\x06proto3"
+	"\x0fCancelOperation\x12+.hcmnext.evidence.v1.CancelOperationRequest\x1a,.hcmnext.evidence.v1.CancelOperationResponseB`Z^github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/evidence/v1;evidencev1b\x06proto3"
 
 var (
 	file_hcmnext_evidence_v1_evidence_service_proto_rawDescOnce sync.Once

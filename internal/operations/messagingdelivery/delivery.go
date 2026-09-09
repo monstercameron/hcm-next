@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/platform/idempotency"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/idempotency"
 )
 
 // Version is the contract version of asynchronous delivery.

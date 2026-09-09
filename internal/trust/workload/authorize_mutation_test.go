@@ -3,7 +3,7 @@ package workload_test
 import (
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/trust/workload"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/workload"
 )
 
 // TestTodo_TRUST_007_Mutation is the TRUST-007 mutation test. It asserts

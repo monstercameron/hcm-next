@@ -4,8 +4,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/capability"
-	"github.com/monstercameron/hcm-next/internal/workflow"
+	"github.com/monstercameron/human-capital-management-suite/internal/capability"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow"
 )
 
 const fxAnalyze = "analyze_worker"

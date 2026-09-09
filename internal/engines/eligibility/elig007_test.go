@@ -5,8 +5,8 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/engines/eligibility"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/eligibility"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 func TestTodo_ELIG_007(t *testing.T) {

@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/migrations"
+	"github.com/monstercameron/human-capital-management-suite/migrations"
 )
 
 // repoRoot is the path from this package's directory to the repository

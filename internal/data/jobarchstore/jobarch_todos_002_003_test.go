@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/data/jobarchstore"
-	"github.com/monstercameron/hcm-next/internal/domains/jobarch"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/jobarchstore"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/jobarch"
 )
 
 func TestJobArchGovernedRequirementsPersistThroughMigration00048(t *testing.T) {

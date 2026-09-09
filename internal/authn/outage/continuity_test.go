@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/authn/outage"
-	"github.com/monstercameron/hcm-next/internal/operations/incidentstate"
-	trustoutage "github.com/monstercameron/hcm-next/internal/trust/outage"
+	"github.com/monstercameron/human-capital-management-suite/internal/authn/outage"
+	"github.com/monstercameron/human-capital-management-suite/internal/operations/incidentstate"
+	trustoutage "github.com/monstercameron/human-capital-management-suite/internal/trust/outage"
 )
 
 var continuityNow = time.Date(2026, 9, 6, 12, 0, 0, 0, time.UTC)

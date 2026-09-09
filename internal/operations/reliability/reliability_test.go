@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/operations/reliability"
+	"github.com/monstercameron/human-capital-management-suite/internal/operations/reliability"
 )
 
 func root(t *testing.T) string {

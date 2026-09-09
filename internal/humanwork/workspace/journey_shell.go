@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/internal/experience/roleaccess"
-	"github.com/monstercameron/hcm-next/internal/trust"
-	"github.com/monstercameron/hcm-next/tools/uxqual/render/journey"
+	"github.com/monstercameron/human-capital-management-suite/internal/experience/roleaccess"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/render/journey"
 )
 
 // The Promotion journey page is served as a shell, not as a rendered page.

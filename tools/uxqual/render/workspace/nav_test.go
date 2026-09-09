@@ -6,7 +6,7 @@ import (
 
 	"github.com/monstercameron/GoWebComponents/v5/ui"
 
-	"github.com/monstercameron/hcm-next/tools/uxqual/journeyclient"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/journeyclient"
 )
 
 func renderNode(t *testing.T, n ui.Node) string {

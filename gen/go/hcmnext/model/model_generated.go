@@ -8,11 +8,11 @@ import (
 	"encoding/hex"
 	"fmt"
 
-	"github.com/monstercameron/hcm-next/internal/intent/lifecycle"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/lifecycle"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
-// SourceRegistryDigest is the [github.com/monstercameron/hcm-next/internal/intent/model.Registry.Digest] this package was generated from.
+// SourceRegistryDigest is the [github.com/monstercameron/human-capital-management-suite/internal/intent/model.Registry.Digest] this package was generated from.
 // New's caller can compare it against a freshly compiled catalog to detect drift at runtime, not only at generation time.
 const SourceRegistryDigest = "sha256:549c7cb6693d0cfb6b0256920e198dcc339c408674d12e6ae5561b27c60bab74"
 

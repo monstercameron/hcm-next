@@ -5,9 +5,9 @@ import (
 
 	"github.com/google/uuid"
 
-	datalogger "github.com/monstercameron/hcm-next/internal/data/ledger"
-	"github.com/monstercameron/hcm-next/internal/domains/payroll/auditpack"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	datalogger "github.com/monstercameron/human-capital-management-suite/internal/data/ledger"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/payroll/auditpack"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 func TestTotalKindValid(t *testing.T) {

@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/engines/snapshot"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/snapshot"
 )
 
 func TestFakeSourceAnswersOnlySeededFixtures(t *testing.T) {

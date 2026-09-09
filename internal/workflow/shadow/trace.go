@@ -8,7 +8,7 @@ import (
 	"sort"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/workflow"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow"
 )
 
 const TerminalNotExecuted = "SHADOW_NOT_EXECUTED"

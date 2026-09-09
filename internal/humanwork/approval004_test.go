@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/humanwork"
+	"github.com/monstercameron/human-capital-management-suite/internal/humanwork"
 )
 
 // mustRequirement returns one compiled requirement from a scenario.

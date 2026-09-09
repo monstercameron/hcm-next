@@ -13,7 +13,7 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/monstercameron/hcm-next/internal/transport/envelope"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/envelope"
 )
 
 // Rule identifiers for the strict JSON admission screen. They are distinct
@@ -31,7 +31,7 @@ const (
 // maxSignificantDigits is the largest number of significant decimal digits a
 // JSON numeric literal may carry. Beyond it the value cannot round-trip
 // through the IEEE-754 double that JSON tooling uses, so its meaning depends
-// on which parser reads it. HCM Next does not accept a value whose meaning is
+// on which parser reads it. Human Capital Management Suite does not accept a value whose meaning is
 // parser-dependent; a caller that needs more precision sends a Decimal, which
 // is exactly why hcmnext.common.v1.Decimal exists.
 const maxSignificantDigits = 15

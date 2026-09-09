@@ -5,7 +5,7 @@ import (
 
 	"google.golang.org/grpc"
 
-	"github.com/monstercameron/hcm-next/internal/transport/journey"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/journey"
 )
 
 // TestRegisterInstallsNoInterceptorOfItsOwn is doc.go's central claim made

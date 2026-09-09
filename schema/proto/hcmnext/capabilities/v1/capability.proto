@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package hcmnext.capabilities.v1;
 
-option go_package = "github.com/monstercameron/hcm-next/gen/go/hcmnext/capabilities/v1;capabilitiesv1";
+option go_package = "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/capabilities/v1;capabilitiesv1";
 
 // CapabilitySideEffectProfile mirrors the kernel side-effect classification
 // at capability granularity: can invoking this capability cause a material

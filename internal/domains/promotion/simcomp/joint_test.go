@@ -7,9 +7,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/domains/promotion/simassign"
-	"github.com/monstercameron/hcm-next/internal/domains/promotion/simcomp"
-	"github.com/monstercameron/hcm-next/internal/workflow"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/promotion/simassign"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/promotion/simcomp"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow"
 )
 
 // referenceWorkflowDoc is the promote-into-management reference workflow, which

@@ -3,7 +3,7 @@ package fixtures
 import (
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/domains/jobarch"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/jobarch"
 )
 
 func TestPublishedPromotionPathsPinTheArchitectureAndExactRules(t *testing.T) {

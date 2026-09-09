@@ -1,4 +1,4 @@
-// Package transport owns protocol adaptation for HCM Next and nothing else.
+// Package transport owns protocol adaptation for Human Capital Management Suite and nothing else.
 //
 // Semantic owner: experience-and-transport. Phase: P1A. Todos: ENDPOINT-002,
 // ENDPOINT-003, CAP-003, TOOL-008.

@@ -7,7 +7,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/monstercameron/hcm-next/tools/planning/traceability"
+	"github.com/monstercameron/human-capital-management-suite/tools/planning/traceability"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/phaseone"
 )
 
 // Verdict is the exact, closed set of outcomes one EvidenceEntry compiles
@@ -125,6 +126,21 @@ func Compile(manifest P1AManifest, results []ResultRecord, opts CompileOptions) 
 		if finding.Verdict != VerdictOK {
 			report.Decision = GateDecisionBlocked
 		}
+	}
+
+	// Production callers historically invoked Compile directly. Keep the
+	// closure check on that path so graph policy cannot be bypassed by choosing
+	// the older entry point; CompileGateClosure exposes the detailed graph.
+	gate, err := gateForRelease(manifest.Release)
+	if err != nil {
+		return nil, err
+	}
+	graph, err := graphFromEvidence(manifest, gate)
+	if err != nil {
+		return nil, err
+	}
+	if closure := phaseone.CompileAssuranceClosure(graph, gate); len(closure.Violations) != 0 {
+		report.Decision = GateDecisionBlocked
 	}
 
 	return report, nil

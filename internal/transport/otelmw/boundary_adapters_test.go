@@ -5,8 +5,8 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/platform/telemetry"
-	"github.com/monstercameron/hcm-next/internal/platform/telemetry/boundary"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/telemetry"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/telemetry/boundary"
 )
 
 func TestTodo_OBS_014_Integration_AdapterPreservesBehavior(t *testing.T) {

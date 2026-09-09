@@ -8,7 +8,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/data/workforce"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/workforce"
 )
 
 // TestWorkerRowValidateAcceptsACompleteRow is the positive half of the row

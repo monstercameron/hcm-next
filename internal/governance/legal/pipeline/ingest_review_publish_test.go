@@ -8,8 +8,8 @@ import (
 	"testing"
 	"time"
 
-	legal "github.com/monstercameron/hcm-next/internal/governance/legal"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	legal "github.com/monstercameron/human-capital-management-suite/internal/governance/legal"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // publishFixture runs the Washington minimum-wage fixture through the whole

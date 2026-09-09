@@ -5,7 +5,7 @@ import (
 	"sort"
 	"strings"
 
-	datalogger "github.com/monstercameron/hcm-next/internal/data/ledger"
+	datalogger "github.com/monstercameron/human-capital-management-suite/internal/data/ledger"
 )
 
 // reconstructColumns is the projection [LedgerPlan] reads: the ledger

@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/authn/issuerregistry"
-	"github.com/monstercameron/hcm-next/internal/authn/oidc"
-	trustfederation "github.com/monstercameron/hcm-next/internal/trust/federation"
+	"github.com/monstercameron/human-capital-management-suite/internal/authn/issuerregistry"
+	"github.com/monstercameron/human-capital-management-suite/internal/authn/oidc"
+	trustfederation "github.com/monstercameron/human-capital-management-suite/internal/trust/federation"
 )
 
 func TestFlow_HandleCallback_EmitsEvidenceOnDenial(t *testing.T) {

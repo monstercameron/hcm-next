@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/domains/promotion/simcontract"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/promotion/simcontract"
 )
 
 // TestTodo_PROMO_004_Security is PROMO-004's SECURITY matrix test: it proves

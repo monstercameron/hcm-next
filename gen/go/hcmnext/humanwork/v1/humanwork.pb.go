@@ -7,8 +7,8 @@
 package humanworkv1
 
 import (
-	v1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/common/v1"
-	v11 "github.com/monstercameron/hcm-next/gen/go/hcmnext/intents/v1"
+	v1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/common/v1"
+	v11 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/intents/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
@@ -802,7 +802,7 @@ const file_hcmnext_humanwork_v1_humanwork_proto_rawDesc = "" +
 	" THRESHOLD_HIT_POLICY_UNSPECIFIED\x10\x00\x12\x1e\n" +
 	"\x1aTHRESHOLD_HIT_POLICY_FIRST\x10\x01\x12\x1f\n" +
 	"\x1bTHRESHOLD_HIT_POLICY_UNIQUE\x10\x02\x12 \n" +
-	"\x1cTHRESHOLD_HIT_POLICY_COLLECT\x10\x03BLZJgithub.com/monstercameron/hcm-next/gen/go/hcmnext/humanwork/v1;humanworkv1b\x06proto3"
+	"\x1cTHRESHOLD_HIT_POLICY_COLLECT\x10\x03BbZ`github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/humanwork/v1;humanworkv1b\x06proto3"
 
 var (
 	file_hcmnext_humanwork_v1_humanwork_proto_rawDescOnce sync.Once

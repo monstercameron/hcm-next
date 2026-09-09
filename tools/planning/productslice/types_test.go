@@ -17,7 +17,7 @@ func TestProductSliceDefinitionCloneDoesNotAlias(t *testing.T) {
 		Pages:           []string{"promotion.journeys.list"},
 		Widgets:         []string{"widget.table.workforce@1"},
 		Capabilities:    []string{"hcmnext.people.promote_worker"},
-		Packages:        []string{"github.com/monstercameron/hcm-next/cmd/hcmnext"},
+		Packages:        []string{"github.com/monstercameron/human-capital-management-suite/cmd/hcmnext"},
 		Todos:           []string{"PROMO-001"},
 		Jurisdictions:   []string{"US-ALL"},
 		Personas:        []string{"manager"},
@@ -51,7 +51,7 @@ func TestProductSliceDefinitionCloneDoesNotAlias(t *testing.T) {
 	if original.Capabilities[0] != "hcmnext.people.promote_worker" {
 		t.Errorf("Capabilities aliased: got %q", original.Capabilities[0])
 	}
-	if original.Packages[0] != "github.com/monstercameron/hcm-next/cmd/hcmnext" {
+	if original.Packages[0] != "github.com/monstercameron/human-capital-management-suite/cmd/hcmnext" {
 		t.Errorf("Packages aliased: got %q", original.Packages[0])
 	}
 	if original.Todos[0] != "PROMO-001" {

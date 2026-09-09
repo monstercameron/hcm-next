@@ -5,10 +5,10 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/data/runtimestate"
-	"github.com/monstercameron/hcm-next/internal/intent/app"
-	"github.com/monstercameron/hcm-next/internal/intent/app/pgstore"
-	executionscheduler "github.com/monstercameron/hcm-next/internal/platform/execution/scheduler"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/runtimestate"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/app"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/app/pgstore"
+	executionscheduler "github.com/monstercameron/human-capital-management-suite/internal/platform/execution/scheduler"
 )
 
 func TestTodo_PROMO_EXEC_TIMERDISPATCH_TimerDispatchDisposition(t *testing.T) {

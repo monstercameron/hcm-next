@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/policy/rlsparity"
-	"github.com/monstercameron/hcm-next/tools/policy/tableinventory"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/rlsparity"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/tableinventory"
 )
 
 func TestRLSParity_MetadataAndReportMethods(t *testing.T) {

@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/connectivity/transport"
+	"github.com/monstercameron/human-capital-management-suite/internal/connectivity/transport"
 )
 
 var emulatorNow = time.Date(2026, 9, 6, 12, 0, 0, 0, time.UTC)

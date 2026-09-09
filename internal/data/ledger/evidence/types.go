@@ -7,9 +7,9 @@ import (
 
 	"github.com/google/uuid"
 
-	datalogger "github.com/monstercameron/hcm-next/internal/data/ledger"
-	"github.com/monstercameron/hcm-next/internal/data/ledger/checkpoint"
-	"github.com/monstercameron/hcm-next/internal/data/ledger/hashchain"
+	datalogger "github.com/monstercameron/human-capital-management-suite/internal/data/ledger"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/ledger/checkpoint"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/ledger/hashchain"
 )
 
 // Querier is the minimal database capability an export needs. It is

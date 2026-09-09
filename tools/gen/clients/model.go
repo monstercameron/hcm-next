@@ -11,7 +11,7 @@ import (
 	"google.golang.org/protobuf/reflect/protoregistry"
 	"google.golang.org/protobuf/types/descriptorpb"
 
-	"github.com/monstercameron/hcm-next/internal/transport/manifest"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/manifest"
 
 	// Blank imports link every hcmnext Protobuf package's descriptors into
 	// protoregistry.GlobalFiles/GlobalTypes, which is how this generator
@@ -19,15 +19,15 @@ import (
 	// types without hard-coding either. Only intents/v1 and registry/v1
 	// currently publish a service the endpoint manifest names, but the
 	// generator does not assume that stays true.
-	_ "github.com/monstercameron/hcm-next/gen/go/hcmnext/capabilities/v1"
-	_ "github.com/monstercameron/hcm-next/gen/go/hcmnext/common/v1"
-	_ "github.com/monstercameron/hcm-next/gen/go/hcmnext/dataops/v1"
-	_ "github.com/monstercameron/hcm-next/gen/go/hcmnext/evidence/v1"
-	_ "github.com/monstercameron/hcm-next/gen/go/hcmnext/humanwork/v1"
-	_ "github.com/monstercameron/hcm-next/gen/go/hcmnext/integration/v1"
-	_ "github.com/monstercameron/hcm-next/gen/go/hcmnext/intents/v1"
-	_ "github.com/monstercameron/hcm-next/gen/go/hcmnext/registry/v1"
-	_ "github.com/monstercameron/hcm-next/gen/go/hcmnext/workflow/v1"
+	_ "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/capabilities/v1"
+	_ "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/common/v1"
+	_ "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/dataops/v1"
+	_ "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/evidence/v1"
+	_ "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/humanwork/v1"
+	_ "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/integration/v1"
+	_ "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/intents/v1"
+	_ "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/registry/v1"
+	_ "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/workflow/v1"
 )
 
 // DefaultManifestPath is the endpoint manifest [BuildModel] reads by

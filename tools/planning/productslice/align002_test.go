@@ -11,7 +11,7 @@ func dispositionFixture() (ProductSliceDefinition, []SliceElementDisposition) {
 		SliceID: "promotion", Version: 1,
 		BusinessIntents: []string{"intent.promotion"}, Features: []string{"feature.promotion"},
 		Pages: []string{"promotion.list"}, Widgets: []string{"promotion.card@1"},
-		Capabilities: []string{"promotion.read"}, Packages: []string{"github.com/monstercameron/hcm-next/internal/domains/promotion"},
+		Capabilities: []string{"promotion.read"}, Packages: []string{"github.com/monstercameron/human-capital-management-suite/internal/domains/promotion"},
 		Todos: []string{"ALIGN-002"},
 	}
 	var elements []SliceElementDisposition

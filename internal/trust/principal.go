@@ -10,14 +10,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // SubjectKind is the kind of authenticated actor a Principal describes. Zero
 // is reserved for "unspecified", which is never a valid authenticated result.
 type SubjectKind uint8
 
-// Authenticated actor kinds. HCM Next authenticates humans, first-party
+// Authenticated actor kinds. Human Capital Management Suite authenticates humans, first-party
 // services, autonomous agents and third-party integrations with the same
 // machinery; the kind changes what governance may authorize, never how the
 // principal is derived.

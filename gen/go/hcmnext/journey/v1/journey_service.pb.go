@@ -5535,7 +5535,7 @@ const file_hcmnext_journey_v1_journey_service_proto_rawDesc = "" +
 	"\x16SaveRolePagePermission\x121.hcmnext.journey.v1.SaveRolePagePermissionRequest\x1a2.hcmnext.journey.v1.SaveRolePagePermissionResponse\x12p\n" +
 	"\x11RecordWorkflowUse\x12,.hcmnext.journey.v1.RecordWorkflowUseRequest\x1a-.hcmnext.journey.v1.RecordWorkflowUseResponse\x12p\n" +
 	"\x11GetWorkerIDPolicy\x12,.hcmnext.journey.v1.GetWorkerIDPolicyRequest\x1a-.hcmnext.journey.v1.GetWorkerIDPolicyResponse\x12s\n" +
-	"\x12SaveWorkerIDPolicy\x12-.hcmnext.journey.v1.SaveWorkerIDPolicyRequest\x1a..hcmnext.journey.v1.SaveWorkerIDPolicyResponseBHZFgithub.com/monstercameron/hcm-next/gen/go/hcmnext/journey/v1;journeyv1b\x06proto3"
+	"\x12SaveWorkerIDPolicy\x12-.hcmnext.journey.v1.SaveWorkerIDPolicyRequest\x1a..hcmnext.journey.v1.SaveWorkerIDPolicyResponseB^Z\\github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/journey/v1;journeyv1b\x06proto3"
 
 var (
 	file_hcmnext_journey_v1_journey_service_proto_rawDescOnce sync.Once

@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/authn/issuerregistry"
-	trustfederation "github.com/monstercameron/hcm-next/internal/trust/federation"
+	"github.com/monstercameron/human-capital-management-suite/internal/authn/issuerregistry"
+	trustfederation "github.com/monstercameron/human-capital-management-suite/internal/trust/federation"
 )
 
 // TestFlow_BeginAuthorization_PKCEParameters exercises pkce.go's

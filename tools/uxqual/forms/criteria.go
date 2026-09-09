@@ -7,7 +7,7 @@ import (
 	"golang.org/x/net/html"
 	"golang.org/x/net/html/atom"
 
-	"github.com/monstercameron/hcm-next/tools/uxqual/qual"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/qual"
 )
 
 // fieldAttrs walks doc and returns the attribute map for every

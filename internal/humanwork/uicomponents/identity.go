@@ -1,4 +1,4 @@
-// Package uicomponents owns renderer-level primitives shared by HCM Next's
+// Package uicomponents owns renderer-level primitives shared by Human Capital Management Suite's
 // product pages and focused workflow pages. The primitives carry no routes,
 // business facts, or authorization decisions; feature packages supply those
 // through small props contracts.

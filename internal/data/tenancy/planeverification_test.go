@@ -10,13 +10,13 @@ import (
 
 	"github.com/google/uuid"
 
-	dataconfigregistry "github.com/monstercameron/hcm-next/internal/data/configregistry"
-	"github.com/monstercameron/hcm-next/internal/data/pgtest"
-	"github.com/monstercameron/hcm-next/internal/data/tenancy"
-	tenant "github.com/monstercameron/hcm-next/internal/domains/tenant"
-	platformconfig "github.com/monstercameron/hcm-next/internal/platform/configregistry"
-	"github.com/monstercameron/hcm-next/internal/trust/custody"
-	"github.com/monstercameron/hcm-next/internal/trust/envelope"
+	dataconfigregistry "github.com/monstercameron/human-capital-management-suite/internal/data/configregistry"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/pgtest"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/tenancy"
+	tenant "github.com/monstercameron/human-capital-management-suite/internal/domains/tenant"
+	platformconfig "github.com/monstercameron/human-capital-management-suite/internal/platform/configregistry"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/custody"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/envelope"
 )
 
 // storageDispositionPath is STORE-001's registry file, resolved relative to

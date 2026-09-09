@@ -5,9 +5,9 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/governance/decision"
-	"github.com/monstercameron/hcm-next/internal/governance/revalidate"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/governance/decision"
+	"github.com/monstercameron/human-capital-management-suite/internal/governance/revalidate"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // clockAt returns a [revalidate.Clock] fixed at a stable, non-zero instant.

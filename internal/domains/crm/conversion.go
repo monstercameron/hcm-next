@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 var ErrCRM005Rejected = errors.New("CRM_005_REJECTED")

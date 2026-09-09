@@ -3,7 +3,7 @@ package seed_test
 import (
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/data/seed"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/seed"
 )
 
 // TestTodo_DB_019_Golden pins the exact shape and digest of the Promotion

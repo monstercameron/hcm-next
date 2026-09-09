@@ -16,7 +16,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/tools/planning/todoregistry"
+	"github.com/monstercameron/human-capital-management-suite/tools/planning/todoregistry"
 )
 
 // Orphan names one evidence claim that does not resolve to a real test, or
@@ -154,8 +154,10 @@ func ScanTestNames(root string) (map[string]bool, error) {
 			return err
 		}
 		if info.IsDir() {
-			switch info.Name() {
-			case "testdata", ".git", "vendor":
+			// Dot-prefixed directories hold caches and embedded-server runtimes
+			// (.artifacts, .git, .gocache) whose files appear and vanish while a
+			// scan runs; they never hold repository tests.
+			if name := info.Name(); name == "testdata" || name == "vendor" || name == "node_modules" || (strings.HasPrefix(name, ".") && path != root) {
 				return filepath.SkipDir
 			}
 			return nil

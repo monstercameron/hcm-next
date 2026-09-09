@@ -7,9 +7,9 @@ import (
 
 	"github.com/google/uuid"
 
-	adminv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/admin/v1"
-	"github.com/monstercameron/hcm-next/internal/transport/admin"
-	"github.com/monstercameron/hcm-next/internal/transport/envelope"
+	adminv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/admin/v1"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/admin"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/envelope"
 )
 
 // TestTodo_ADMIN_008_Security proves GetWorkflowInstance inherits the exact

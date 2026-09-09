@@ -9,7 +9,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/monstercameron/hcm-next/tools/policy/cleancheckout"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/cleancheckout"
 )
 
 func main() { os.Exit(run(os.Args[1:], os.Stdout, os.Stderr)) }

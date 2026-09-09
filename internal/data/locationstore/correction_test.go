@@ -4,11 +4,11 @@ import (
 	"context"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/data/dbport"
-	"github.com/monstercameron/hcm-next/internal/data/locationstore"
-	"github.com/monstercameron/hcm-next/internal/data/pgtest"
-	"github.com/monstercameron/hcm-next/internal/domains/location"
-	"github.com/monstercameron/hcm-next/internal/governance/decision"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/locationstore"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/pgtest"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/location"
+	"github.com/monstercameron/human-capital-management-suite/internal/governance/decision"
 )
 
 func TestTodo_PERSIST_LOCATION_003(t *testing.T) {

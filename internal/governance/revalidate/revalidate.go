@@ -9,8 +9,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/internal/governance/decision"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/governance/decision"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // Source tokens the historical [decision.Inputs] must carry exactly one
@@ -95,7 +95,7 @@ func (f SessionFact) digest() string {
 
 // SourceAuthorityFact is the current per-field source-authority decision the
 // proposal's planned writes were authorized under (see
-// [github.com/monstercameron/hcm-next/internal/intent.PlannedWrite.SourceAuthorityDecision]).
+// [github.com/monstercameron/human-capital-management-suite/internal/intent.PlannedWrite.SourceAuthorityDecision]).
 type SourceAuthorityFact struct {
 	Decision string
 }

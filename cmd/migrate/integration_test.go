@@ -9,9 +9,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/data/pgtest"
-	fixtureseed "github.com/monstercameron/hcm-next/internal/data/seed"
-	"github.com/monstercameron/hcm-next/internal/intent/app/pgstore"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/pgtest"
+	fixtureseed "github.com/monstercameron/human-capital-management-suite/internal/data/seed"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/app/pgstore"
 )
 
 func TestMain(m *testing.M) {

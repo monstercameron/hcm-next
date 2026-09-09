@@ -67,7 +67,7 @@ func TestEverySectionRendersForEveryFixture(t *testing.T) {
 
 func TestFocusedProposalShowsOnlyItsSubject(t *testing.T) {
 	p := Page{
-		Title: "Promote Jane", Brand: "HCM Next",
+		Title: "Promote Jane", Brand: "Human Capital Management Suite",
 		Proposal: &ProposalView{
 			Subject: &PromotionSubject{
 				Ref: "jane-doe", Name: "Jane Doe", Number: "W-1001", Title: "Software Engineer III",

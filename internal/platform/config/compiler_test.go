@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/platform/config"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/config"
 )
 
 func compilerObject(t *testing.T, kind config.ObjectKind, id, version string, deps []config.Dependency) config.ConfigObject {

@@ -5,8 +5,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/workflow"
-	version "github.com/monstercameron/hcm-next/internal/workflow/version"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow"
+	version "github.com/monstercameron/human-capital-management-suite/internal/workflow/version"
 )
 
 // validMeta is a publish meta that Publish must accept outright.

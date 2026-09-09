@@ -6,7 +6,7 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/data/tenancy/storagedisposition"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/tenancy/storagedisposition"
 )
 
 func TestTableEntryTenantScoped_Boundaries(t *testing.T) {

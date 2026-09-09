@@ -1,6 +1,6 @@
 // Package dataops owns the HRIS administrator's read-only diagnostic
 // surfaces: the effective-date debugger that explains how a field's value came
-// to be what it is, and the cross-system diff that says where HCM Next and an
+// to be what it is, and the cross-system diff that says where Human Capital Management Suite and an
 // external system of record disagree.
 //
 // Semantic owner: DataOps and operations assurance. Phase: P1A.
@@ -25,7 +25,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/internal/engines/canonicalbytes"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/canonicalbytes"
 )
 
 const (
@@ -58,7 +58,7 @@ var (
 
 // FieldID names one field in a diagnostic. The vocabulary is open rather than
 // a closed enum: the diff and the debugger are pointed at whatever fields a
-// tenant's authority matrix covers, including fields no HCM Next domain owns.
+// tenant's authority matrix covers, including fields no Human Capital Management Suite domain owns.
 // The shape is still constrained, because a field identifier is part of an
 // authorization decision and must be comparable as an exact token.
 type FieldID string

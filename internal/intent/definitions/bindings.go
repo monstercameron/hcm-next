@@ -1,6 +1,6 @@
 package definitions
 
-import "github.com/monstercameron/hcm-next/internal/intent"
+import "github.com/monstercameron/human-capital-management-suite/internal/intent"
 
 // Bindings returns one IntentEntityBinding per catalog definition. A binding is
 // what turns "this definition exists" into "this definition is bound to exact

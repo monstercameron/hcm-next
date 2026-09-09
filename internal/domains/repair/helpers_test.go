@@ -4,12 +4,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/domains/dataops"
-	"github.com/monstercameron/hcm-next/internal/domains/evidence"
-	"github.com/monstercameron/hcm-next/internal/domains/fixtures"
-	"github.com/monstercameron/hcm-next/internal/domains/repair"
-	"github.com/monstercameron/hcm-next/internal/engines/fielddiff"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/dataops"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/evidence"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/fixtures"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/repair"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/fielddiff"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // Fields the repair fixtures compare.
@@ -119,7 +119,7 @@ func authority(kind evidence.AuthorityKind, system string) evidence.SourceAuthor
 	return evidence.SourceAuthority{Kind: kind, System: system, PolicyRef: authorityPol}
 }
 
-// canonicalField builds one field of the HCM Next side.
+// canonicalField builds one field of the Human Capital Management Suite side.
 func canonicalField(
 	t *testing.T,
 	field dataops.FieldID,
@@ -146,7 +146,7 @@ func canonicalField(
 	}
 }
 
-// canonicalRecord builds the HCM Next side of the fixture comparison.
+// canonicalRecord builds the Human Capital Management Suite side of the fixture comparison.
 func canonicalRecord(t *testing.T, fields ...dataops.FieldID) dataops.CanonicalRecord {
 	t.Helper()
 	all := map[dataops.FieldID]dataops.CanonicalField{

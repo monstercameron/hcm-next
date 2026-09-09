@@ -7,10 +7,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/humanwork/workspace"
-	"github.com/monstercameron/hcm-next/internal/intent/app"
-	"github.com/monstercameron/hcm-next/tools/uxqual/forms"
-	"github.com/monstercameron/hcm-next/tools/uxqual/qual"
+	"github.com/monstercameron/human-capital-management-suite/internal/humanwork/workspace"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/app"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/forms"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/qual"
 )
 
 // promotionURL is the workspace address for the corpus scenario worker.

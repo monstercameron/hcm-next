@@ -10,7 +10,7 @@ import (
 
 	"golang.org/x/mod/semver"
 
-	"github.com/monstercameron/hcm-next/tools/policy/sbom"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/sbom"
 )
 
 // Severity is the typed severity carried by a vulnerability finding.

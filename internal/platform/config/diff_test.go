@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/platform/config"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/config"
 )
 
 func mustEntry(t *testing.T, key string, kind config.ValueKind, value string, explicit bool, semantic config.SemanticClass, refs config.Refs) config.Entry {

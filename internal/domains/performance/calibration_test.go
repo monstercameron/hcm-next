@@ -4,8 +4,8 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/domains/performance"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/performance"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 func calibrationGraph(t *testing.T) (performance.FrozenParticipantReviewerGraph, performance.ProposedRating) {

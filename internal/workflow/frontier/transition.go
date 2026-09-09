@@ -3,7 +3,7 @@ package frontier
 import (
 	"sort"
 
-	"github.com/monstercameron/hcm-next/internal/workflow"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow"
 )
 
 // IntentKind names one thing a runtime must persist as a result of an

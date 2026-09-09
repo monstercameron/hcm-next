@@ -13,11 +13,11 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgconn"
 
-	"github.com/monstercameron/hcm-next/internal/data/dbport"
-	"github.com/monstercameron/hcm-next/internal/data/tenancy"
-	"github.com/monstercameron/hcm-next/internal/domains/labor"
-	paygldomain "github.com/monstercameron/hcm-next/internal/domains/paygl"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/tenancy"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/labor"
+	paygldomain "github.com/monstercameron/human-capital-management-suite/internal/domains/paygl"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // DB is the transaction-opening capability used by Store. The caller supplies

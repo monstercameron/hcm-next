@@ -30,7 +30,7 @@ func TestRepoRootMatchesModulePath(t *testing.T) {
 	if err != nil {
 		t.Fatalf("read go.mod: %v", err)
 	}
-	if want := "module github.com/monstercameron/hcm-next"; !strings.Contains(string(data), want) {
+	if want := "module github.com/monstercameron/human-capital-management-suite"; !strings.Contains(string(data), want) {
 		t.Fatalf("go.mod at detected root does not declare %q", want)
 	}
 }

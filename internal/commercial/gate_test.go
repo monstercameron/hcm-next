@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/commercial"
+	"github.com/monstercameron/human-capital-management-suite/internal/commercial"
 )
 
 func TestEntitlementGateReturnsTypedRefusalWithPinnedFingerprint(t *testing.T) {

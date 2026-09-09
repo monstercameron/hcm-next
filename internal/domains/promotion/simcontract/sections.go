@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/monstercameron/hcm-next/internal/engines/canonicalbytes"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/canonicalbytes"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // Errors. All are matchable with errors.Is; a business refusal is never one
@@ -230,7 +230,7 @@ func (c Completion) Canonical() []byte {
 // Revalidation is the contract's revalidation section: the rules a later
 // execution-time check would rerun, and the control-snapshot digest the
 // candidate was simulated under. It is material in the same sense
-// [github.com/monstercameron/hcm-next/internal/intent.ProposalRevision]'s own
+// [github.com/monstercameron/human-capital-management-suite/internal/intent.ProposalRevision]'s own
 // RevalidationPlan is: dropping a rule changes what would be checked before
 // anything runs.
 type Revalidation struct {

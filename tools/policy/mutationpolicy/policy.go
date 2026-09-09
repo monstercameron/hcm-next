@@ -24,7 +24,7 @@ import (
 	"strings"
 )
 
-const modulePath = "github.com/monstercameron/hcm-next"
+const modulePath = "github.com/monstercameron/human-capital-management-suite"
 
 // PackagePolicy is one declared authority- or correctness-bearing package.
 // Root is module-relative and Owner is constrained by OwnerAllowlist.

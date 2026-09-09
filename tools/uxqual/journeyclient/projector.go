@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
-	journeyv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/journey/v1"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
-	"github.com/monstercameron/hcm-next/tools/uxqual/render/journey"
+	journeyv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/journey/v1"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/render/journey"
 )
 
 // The projector is the whole of this client's judgment about what the
@@ -25,7 +25,7 @@ import (
 // value would double-escape it on screen.
 
 // Brand is the product name in the masthead.
-const Brand = "HCM Next"
+const Brand = "Human Capital Management Suite"
 
 // Stage tokens as the contract carries them: the enum's own name with the
 // generated prefix removed, so a page that shows a stage shows the engine's

@@ -8,9 +8,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/transport/edge"
-	transporthealth "github.com/monstercameron/hcm-next/internal/transport/health"
-	"github.com/monstercameron/hcm-next/internal/transport/transporttest"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/edge"
+	transporthealth "github.com/monstercameron/human-capital-management-suite/internal/transport/health"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/transporttest"
 )
 
 func TestHealthRoutesRemainDistinctThroughEdge(t *testing.T) {

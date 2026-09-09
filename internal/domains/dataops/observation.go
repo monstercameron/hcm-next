@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/monstercameron/hcm-next/internal/engines/canonicalbytes"
-	"github.com/monstercameron/hcm-next/internal/engines/fielddiff"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/canonicalbytes"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/fielddiff"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 const (
@@ -102,7 +102,7 @@ func (f ObservedField) Canonical() []byte {
 
 // ObservedRecord is one external system's view of one subject.
 type ObservedRecord struct {
-	// Subject is the HCM Next entity the external record was matched to.
+	// Subject is the Human Capital Management Suite entity the external record was matched to.
 	Subject values.EntityRef
 	// ExternalID is the identifier the source uses, retained so a mismatch can
 	// be traced back without re-running the match.

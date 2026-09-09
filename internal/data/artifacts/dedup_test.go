@@ -8,7 +8,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/data/artifacts"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/artifacts"
 )
 
 // DATA-019 rests on one physical fact migrations/00010_artifacts.sql already

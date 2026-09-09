@@ -6,7 +6,7 @@ package leave
 import (
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/commercial"
+	"github.com/monstercameron/human-capital-management-suite/internal/commercial"
 )
 
 // EntitlementRequest is metadata for one Leave initiation or resume route.

@@ -7,9 +7,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/data/tenancy/storagedisposition"
-	"github.com/monstercameron/hcm-next/tools/policy/internal/repopath"
-	"github.com/monstercameron/hcm-next/tools/policy/storeboundaries"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/tenancy/storagedisposition"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/internal/repopath"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/storeboundaries"
 )
 
 // --- shared fixture helpers --------------------------------------------------
@@ -65,12 +65,12 @@ func TestTodo_STORE_002(t *testing.T) {
 	// and explained in allowlist.yaml; see that file for why each is not a
 	// real cross-tenant boundary break.
 	wantTenant := map[string]bool{
-		"kit.go: INSERT Kit.Load touches tenant-scoped table(s) ledger_event with no explicit tenant predicate and no tenancy.WithTenant/dbport.Tx signal in package github.com/monstercameron/hcm-next/internal/data/partition":                                                                                                                                                                                                          true,
-		"kit.go: OTHER Kit.Build touches tenant-scoped table(s) ledger_event with no explicit tenant predicate and no tenancy.WithTenant/dbport.Tx signal in package github.com/monstercameron/hcm-next/internal/data/partition":                                                                                                                                                                                                          true,
-		"kit.go: SELECT Kit.fetchJSON touches tenant-scoped table(s) ledger_event with no explicit tenant predicate and no tenancy.WithTenant/dbport.Tx signal in package github.com/monstercameron/hcm-next/internal/data/partition":                                                                                                                                                                                                     true,
-		"scheduling.go: SELECT TimerStore.list touches tenant-scoped table(s) workflow_timer with no explicit tenant predicate and no tenancy.WithTenant/dbport.Tx signal in package github.com/monstercameron/hcm-next/internal/data/runtimestate":                                                                                                                                                                                       true,
-		"probe.go: SELECT Probe.probeGeneric touches tenant-scoped table(s) ledger_event,outbox,projection_checkpoint,stream_head,tenant with no explicit tenant predicate and no tenancy.WithTenant/dbport.Tx signal in package github.com/monstercameron/hcm-next/internal/data/health":                                                                                                                                                 true,
-		"store.go: UPDATE put touches tenant-scoped table(s) assignment,budget_reservation,compensation_band,compensation_component,compensation_package,employment,identity_claim,job,job_position,legal_entity,organization_unit,person,position_occupancy,worker,workforce_budget with no explicit tenant predicate and no tenancy.WithTenant/dbport.Tx signal in package github.com/monstercameron/hcm-next/internal/data/aggregates": true,
+		"kit.go: INSERT Kit.Load touches tenant-scoped table(s) ledger_event with no explicit tenant predicate and no tenancy.WithTenant/dbport.Tx signal in package github.com/monstercameron/human-capital-management-suite/internal/data/partition":                                                                                                                                                                                                          true,
+		"kit.go: OTHER Kit.Build touches tenant-scoped table(s) ledger_event with no explicit tenant predicate and no tenancy.WithTenant/dbport.Tx signal in package github.com/monstercameron/human-capital-management-suite/internal/data/partition":                                                                                                                                                                                                          true,
+		"kit.go: SELECT Kit.fetchJSON touches tenant-scoped table(s) ledger_event with no explicit tenant predicate and no tenancy.WithTenant/dbport.Tx signal in package github.com/monstercameron/human-capital-management-suite/internal/data/partition":                                                                                                                                                                                                     true,
+		"scheduling.go: SELECT TimerStore.list touches tenant-scoped table(s) workflow_timer with no explicit tenant predicate and no tenancy.WithTenant/dbport.Tx signal in package github.com/monstercameron/human-capital-management-suite/internal/data/runtimestate":                                                                                                                                                                                       true,
+		"probe.go: SELECT Probe.probeGeneric touches tenant-scoped table(s) ledger_event,outbox,projection_checkpoint,stream_head,tenant with no explicit tenant predicate and no tenancy.WithTenant/dbport.Tx signal in package github.com/monstercameron/human-capital-management-suite/internal/data/health":                                                                                                                                                 true,
+		"store.go: UPDATE put touches tenant-scoped table(s) assignment,budget_reservation,compensation_band,compensation_component,compensation_package,employment,identity_claim,job,job_position,legal_entity,organization_unit,person,position_occupancy,worker,workforce_budget with no explicit tenant predicate and no tenancy.WithTenant/dbport.Tx signal in package github.com/monstercameron/human-capital-management-suite/internal/data/aggregates": true,
 	}
 	got := map[string]bool{}
 	for _, f := range report.TenantScope {
@@ -231,7 +231,7 @@ func Delete(db Conn, tenantID, id string) error {
 	})
 
 	t.Run("package importing tenancy clears it despite no in-statement evidence", func(t *testing.T) {
-		pkg := mustPackage(t, "example.com/adapter", []string{"github.com/monstercameron/hcm-next/internal/data/tenancy"}, map[string]string{
+		pkg := mustPackage(t, "example.com/adapter", []string{"github.com/monstercameron/human-capital-management-suite/internal/data/tenancy"}, map[string]string{
 			"adapter.go": `package adapter
 
 import "fmt"
@@ -294,7 +294,7 @@ func List(db Conn) {
 func TestTodo_STORE_002_Security(t *testing.T) {
 	t.Run("non-pgxadapter package importing pgxpool is a violation", func(t *testing.T) {
 		pkg := storeboundaries.PackageSource{
-			ImportPath: "github.com/monstercameron/hcm-next/internal/data/somepkg",
+			ImportPath: "github.com/monstercameron/human-capital-management-suite/internal/data/somepkg",
 			Imports:    []string{"github.com/jackc/pgx/v5/pgxpool"},
 		}
 		f := storeboundaries.EvaluatePoolImport(pkg)
@@ -308,7 +308,7 @@ func TestTodo_STORE_002_Security(t *testing.T) {
 
 	t.Run("pgxadapter itself importing pgxpool is not a violation", func(t *testing.T) {
 		pkg := storeboundaries.PackageSource{
-			ImportPath: "github.com/monstercameron/hcm-next/internal/data/pgxadapter",
+			ImportPath: "github.com/monstercameron/human-capital-management-suite/internal/data/pgxadapter",
 			Imports:    []string{"github.com/jackc/pgx/v5/pgxpool"},
 		}
 		if f := storeboundaries.EvaluatePoolImport(pkg); f != nil {
@@ -318,7 +318,7 @@ func TestTodo_STORE_002_Security(t *testing.T) {
 
 	t.Run("a package neither importing pgxpool nor being pgxadapter is clean", func(t *testing.T) {
 		pkg := storeboundaries.PackageSource{
-			ImportPath: "github.com/monstercameron/hcm-next/internal/data/somepkg",
+			ImportPath: "github.com/monstercameron/human-capital-management-suite/internal/data/somepkg",
 			Imports:    []string{"github.com/jackc/pgx/v5"},
 		}
 		if f := storeboundaries.EvaluatePoolImport(pkg); f != nil {

@@ -1,4 +1,4 @@
-module github.com/monstercameron/hcm-next
+module github.com/monstercameron/human-capital-management-suite
 
 go 1.26.3
 

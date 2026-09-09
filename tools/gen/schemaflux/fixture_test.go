@@ -8,7 +8,7 @@ import (
 
 	upstream "github.com/monstercameron/schemaflux"
 
-	sfx "github.com/monstercameron/hcm-next/tools/gen/schemaflux"
+	sfx "github.com/monstercameron/human-capital-management-suite/tools/gen/schemaflux"
 )
 
 func definitionsPath(t *testing.T) string {

@@ -9,7 +9,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/internal/data/tenancy/storagedisposition"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/tenancy/storagedisposition"
 )
 
 // PackageSource is everything one rule needs about a single Go package: its
@@ -366,7 +366,7 @@ func IsIdentifierByte(b byte) bool { return isIdentByte(b) }
 const pgxpoolImportPath = "github.com/jackc/pgx/v5/pgxpool"
 
 // pgxadapterImportPath is the one package allowed to import pgxpoolImportPath.
-const pgxadapterImportPath = "github.com/monstercameron/hcm-next/internal/data/pgxadapter"
+const pgxadapterImportPath = "github.com/monstercameron/human-capital-management-suite/internal/data/pgxadapter"
 
 // PoolFinding is a RED-clause violation of "no adapter opens its own pool".
 type PoolFinding struct {

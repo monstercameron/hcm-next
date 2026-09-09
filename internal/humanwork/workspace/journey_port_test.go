@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/humanwork/workspace"
+	"github.com/monstercameron/human-capital-management-suite/internal/humanwork/workspace"
 )
 
 // The port file declares types and sentinels, not behaviour, so what there is

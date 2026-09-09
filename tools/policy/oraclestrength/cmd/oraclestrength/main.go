@@ -7,7 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/monstercameron/hcm-next/tools/policy/oraclestrength"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/oraclestrength"
 )
 
 // Run executes the GOV-021 command and returns a process-style exit code.

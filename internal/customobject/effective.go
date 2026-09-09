@@ -3,7 +3,7 @@ package customobject
 import (
 	"sort"
 
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // EffectiveAt returns facts whose half-open effective interval contains at.

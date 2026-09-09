@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/domains/pseudonym"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/pseudonym"
 )
 
 func evidencePseudonym() pseudonym.Pseudonym {

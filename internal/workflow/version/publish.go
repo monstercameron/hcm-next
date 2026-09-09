@@ -1,7 +1,7 @@
 package version
 
 import (
-	"github.com/monstercameron/hcm-next/internal/workflow"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow"
 )
 
 // Publish mints an immutable [CompiledVersion] for a compiled workflow plan

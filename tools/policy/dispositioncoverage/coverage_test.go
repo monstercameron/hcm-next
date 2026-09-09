@@ -5,8 +5,8 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/policy/dispositioncoverage"
-	"github.com/monstercameron/hcm-next/tools/policy/internal/repopath"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/dispositioncoverage"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/internal/repopath"
 )
 
 // TestTodo_DB_COVERAGE_001 is the PRIMARY test for DB-COVERAGE-001:

@@ -5,7 +5,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/domains/asset/quarantine"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/asset/quarantine"
 )
 
 func TestUseGateRefusesRejectedContent(t *testing.T) {

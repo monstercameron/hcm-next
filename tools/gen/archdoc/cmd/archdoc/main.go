@@ -9,7 +9,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/monstercameron/hcm-next/tools/gen/archdoc"
+	"github.com/monstercameron/human-capital-management-suite/tools/gen/archdoc"
 )
 
 func main() {

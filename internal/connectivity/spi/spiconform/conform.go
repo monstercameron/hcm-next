@@ -5,8 +5,8 @@ import (
 	"errors"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/connectivity"
-	"github.com/monstercameron/hcm-next/internal/connectivity/spi"
+	"github.com/monstercameron/human-capital-management-suite/internal/connectivity"
+	"github.com/monstercameron/human-capital-management-suite/internal/connectivity/spi"
 )
 
 // TB is the subset of testing.TB the conformance kit needs. A caller

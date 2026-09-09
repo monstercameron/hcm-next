@@ -83,7 +83,7 @@ func (r RelationshipRef) String() string { return fmt.Sprintf("%s/v%d", r.Name, 
 // PropertyRef is a schema path of the form "entity_key.path", for example
 // "employment.status" or "assignment.manager_relationship". It is a plain
 // string type deliberately: the fourteen intent definitions already carry
-// these exact strings in [github.com/monstercameron/hcm-next/internal/intent.Binding],
+// these exact strings in [github.com/monstercameron/human-capital-management-suite/internal/intent.Binding],
 // and a PropertyRef must interoperate with that untyped form without a
 // conversion step.
 type PropertyRef string

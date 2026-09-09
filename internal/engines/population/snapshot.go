@@ -12,7 +12,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // ErrSnapshotIncomplete is returned when Freeze is asked to bind a snapshot

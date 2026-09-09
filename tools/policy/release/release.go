@@ -16,9 +16,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/tools/planning/gateevidence"
-	"github.com/monstercameron/hcm-next/tools/policy/provenance"
-	"github.com/monstercameron/hcm-next/tools/policy/releaseadmission"
+	"github.com/monstercameron/human-capital-management-suite/tools/planning/gateevidence"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/provenance"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/releaseadmission"
 )
 
 const (

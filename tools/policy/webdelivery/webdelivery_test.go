@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/humanwork/workspace"
+	"github.com/monstercameron/human-capital-management-suite/internal/humanwork/workspace"
 	"gopkg.in/yaml.v3"
 )
 

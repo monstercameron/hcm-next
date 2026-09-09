@@ -101,14 +101,14 @@ func TestLoadPackageAllowlistIncludesPromotionPackages(t *testing.T) {
 		t.Fatalf("LoadPackageAllowlist: %v", err)
 	}
 	for _, want := range []string{
-		"github.com/monstercameron/hcm-next/cmd/hcmnext",
-		"github.com/monstercameron/hcm-next/internal/capability",
+		"github.com/monstercameron/human-capital-management-suite/cmd/hcmnext",
+		"github.com/monstercameron/human-capital-management-suite/internal/capability",
 	} {
 		if !allowlist[want] {
 			t.Errorf("package %q not found in the live Phase 1 allowlist", want)
 		}
 	}
-	if allowlist["github.com/monstercameron/hcm-next/internal/domains/payroll"] {
+	if allowlist["github.com/monstercameron/human-capital-management-suite/internal/domains/payroll"] {
 		t.Error("a DB-016-deferred package unexpectedly resolved into the Phase 1 allowlist")
 	}
 }

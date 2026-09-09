@@ -1,8 +1,8 @@
 package migrate
 
 import (
-	"github.com/monstercameron/hcm-next/internal/workflow"
-	"github.com/monstercameron/hcm-next/internal/workflow/migrationpreview"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/migrationpreview"
 )
 
 // PreviewRecord is the immutable evidence one [migrationpreview.Preview] call

@@ -8,7 +8,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/monstercameron/hcm-next/tools/planning/obligations"
+	"github.com/monstercameron/human-capital-management-suite/tools/planning/obligations"
 )
 
 func main() {

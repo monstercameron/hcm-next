@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/policy/defaultactivation"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/defaultactivation"
 )
 
 func TestDefaultActivation_MetadataAndDecisions(t *testing.T) {

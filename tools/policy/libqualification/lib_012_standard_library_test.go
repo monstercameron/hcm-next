@@ -5,7 +5,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/policy/internal/repopath"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/internal/repopath"
 )
 
 // Forbidden third-party modules that violate the standard-library-first policy.
@@ -102,7 +102,7 @@ func TestStandardLibraryDefaultPolicy(t *testing.T) {
 		}
 
 		// Skip tools-only packages (they may experiment with frameworks).
-		if strings.HasPrefix(pkg.ImportPath, "github.com/monstercameron/hcm-next/tools/") &&
+		if strings.HasPrefix(pkg.ImportPath, "github.com/monstercameron/human-capital-management-suite/tools/") &&
 			!strings.Contains(pkg.ImportPath, "tools/policy") {
 			continue
 		}
@@ -133,10 +133,10 @@ func TestStandardLibraryDefaultPolicy(t *testing.T) {
 
 // TestTodo_LIB_012_Golden verifies the exact policy rationale persists:
 // Go stdlib provides mature, well-reviewed logging, crypto, networking,
-// and testing mechanics that are sufficient for all Phase 1 HCM Next needs.
+// and testing mechanics that are sufficient for all Phase 1 Human Capital Management Suite needs.
 // Any exception requires a named capability gap and LIB-012 decision.
 func TestTodo_LIB_012_Golden(t *testing.T) {
-	// The rationale: HCM Next is Go-first (Go technology constitution). The Go
+	// The rationale: Human Capital Management Suite is Go-first (Go technology constitution). The Go
 	// standard library contains:
 	// - log/slog for structured logging (1.21+)
 	// - crypto/* for signature verification, hashing, symmetric ciphers
@@ -204,7 +204,7 @@ func TestTodo_LIB_012_Conformance(t *testing.T) {
 			continue
 		}
 
-		if strings.HasPrefix(pkg.ImportPath, "github.com/monstercameron/hcm-next/tools/") &&
+		if strings.HasPrefix(pkg.ImportPath, "github.com/monstercameron/human-capital-management-suite/tools/") &&
 			!strings.Contains(pkg.ImportPath, "tools/policy") {
 			continue
 		}

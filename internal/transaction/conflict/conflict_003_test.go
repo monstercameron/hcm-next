@@ -5,7 +5,7 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/transaction/conflict"
+	"github.com/monstercameron/human-capital-management-suite/internal/transaction/conflict"
 )
 
 func registeredConflictIntents(t *testing.T) (*conflict.Registry, conflict.WriteIntent, conflict.WriteIntent) {

@@ -3,7 +3,7 @@ package model
 import (
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // Catalog compiles the MODEL-011..MODEL-030 registry scoped to the fourteen
@@ -12,12 +12,12 @@ import (
 // (Grade/PayBand), CompensationPackage (Compensation), OrganizationUnit
 // (Organization), LegalEntity, IntentInstance (BusinessIntent),
 // ProposalRevision, TransactionPlan and EvidenceRecord — plus the nine
-// supporting entities [github.com/monstercameron/hcm-next/internal/intent.CoveredEntities]
+// supporting entities [github.com/monstercameron/human-capital-management-suite/internal/intent.CoveredEntities]
 // already names as covered (ApprovalBinding, BudgetReservation,
 // CompensationComponent, ConnectorOperation, ExecutionBinding, Observation,
 // OrganizationRelationship, PositionOccupancy, RepairPlan). Every property
 // path here matches the strings
-// [github.com/monstercameron/hcm-next/internal/intent/definitions.Bindings]
+// [github.com/monstercameron/human-capital-management-suite/internal/intent/definitions.Bindings]
 // already reads and writes, so this registry is grounded in the frozen intent
 // kernel's own data rather than an independent guess.
 func Catalog() (*Registry, error) {

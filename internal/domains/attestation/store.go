@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // Store is the persistence port for attestation statements and their binding

@@ -4,7 +4,7 @@ import (
 	"context"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/internal/data/dbport"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
 )
 
 // Call is one statement a [Spy] observed a caller run, exactly as that

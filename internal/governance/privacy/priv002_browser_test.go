@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/uxqual/qual"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/qual"
 )
 
 // TestTodo_PRIV_002_Browser is the BROWSER matrix test for PRIV-002. It

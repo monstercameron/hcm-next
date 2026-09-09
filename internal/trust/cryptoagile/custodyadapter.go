@@ -3,7 +3,7 @@ package cryptoagile
 import (
 	"fmt"
 
-	"github.com/monstercameron/hcm-next/internal/trust/custody"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/custody"
 )
 
 // CustodyKeySource adapts internal/trust/custody.Provider - the key custody

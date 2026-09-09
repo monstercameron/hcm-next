@@ -11,7 +11,7 @@ import (
 // us-federal.md's Section 1 summary bullets: just the four sentences
 // ParseBaseline depends on, in their real shape, with the real figures.
 func validBaseline() string {
-	return `## 1. Summary for HCM Next
+	return `## 1. Summary for Human Capital Management Suite
 
 - WARN Act (60 days' notice) applies to employers 100+ employees; triggered by plant closing 50+ or mass layoff 50+ employees or 33%+ of workforce.
 - FLSA minimum wage $7.25/hour (unchanged since 2009), overtime required at 1.5x after 40 hours/week.
@@ -22,7 +22,7 @@ func validBaseline() string {
 
 func TestFederalBaselineIsStatedOnce(t *testing.T) {
 	t.Run("RED_baseline_missing_a_required_sentence_is_reported", func(t *testing.T) {
-		broken := "## 1. Summary for HCM Next\n\nNothing useful here.\n"
+		broken := "## 1. Summary for Human Capital Management Suite\n\nNothing useful here.\n"
 		_, violations := ParseBaseline(broken)
 		if len(violations) != 4 {
 			t.Fatalf("ParseBaseline on a baseline with no summary sentences returned %d violation(s), want 4:\n%s", len(violations), joinViolations(violations))

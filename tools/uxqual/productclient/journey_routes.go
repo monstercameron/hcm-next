@@ -4,8 +4,8 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/internal/humanwork/productui"
-	"github.com/monstercameron/hcm-next/tools/uxqual/journeyclient"
+	"github.com/monstercameron/human-capital-management-suite/internal/humanwork/productui"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/journeyclient"
 )
 
 // JourneyFragment translates a first-class product route into the address

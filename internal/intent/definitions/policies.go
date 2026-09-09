@@ -1,6 +1,6 @@
 package definitions
 
-import "github.com/monstercameron/hcm-next/internal/intent"
+import "github.com/monstercameron/human-capital-management-suite/internal/intent"
 
 // Negative-state policy references. Definitions reference a policy by id;
 // common policies are shared, never copied into each definition.

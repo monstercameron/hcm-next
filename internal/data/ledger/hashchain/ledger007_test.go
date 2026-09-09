@@ -8,7 +8,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/monstercameron/hcm-next/internal/data/ledger/hashchain"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/ledger/hashchain"
 )
 
 // These focused tests mirror the LEDGER-007 registry matrix.  DATA-004 owns

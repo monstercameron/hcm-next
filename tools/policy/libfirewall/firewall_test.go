@@ -6,9 +6,9 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/policy/depmanifest"
-	"github.com/monstercameron/hcm-next/tools/policy/internal/repopath"
-	"github.com/monstercameron/hcm-next/tools/policy/libfirewall"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/depmanifest"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/internal/repopath"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/libfirewall"
 )
 
 func loadRoleManifest(t *testing.T) *depmanifest.Manifest {
@@ -22,7 +22,7 @@ func loadRoleManifest(t *testing.T) *depmanifest.Manifest {
 }
 
 // TestThirdPartySemanticFirewall is the LIB-002 primary test. It injects
-// pgx/apd/OTel/goose/protobuf/grpc imports into HCM Next's semantic-contract
+// pgx/apd/OTel/goose/protobuf/grpc imports into Human Capital Management Suite's semantic-contract
 // package roots (definitions, intent, capability, workflow, domain models,
 // ledger, gen, and an arbitrary "owner port" package) and expects a
 // violation naming the forbidden importer/module/rule for every edge whose
@@ -262,7 +262,7 @@ func TestTodo_LIB_002_Integration(t *testing.T) {
 }
 
 // TestTodo_LIB_002_Conformance runs a small canonical vector set (one
-// representative edge per manifest role family HCM Next currently
+// representative edge per manifest role family Human Capital Management Suite currently
 // classifies) end to end, so the firewall's role-handling stays correct as
 // dependency-roles.yaml grows new rows.
 func TestTodo_LIB_002_Conformance(t *testing.T) {

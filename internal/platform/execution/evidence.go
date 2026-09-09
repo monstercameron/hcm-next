@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/capability"
-	"github.com/monstercameron/hcm-next/internal/workflow/execute"
+	"github.com/monstercameron/human-capital-management-suite/internal/capability"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/execute"
 )
 
 // capabilityEvidenceAdapter adapts a [capability.EvidenceSink] — the same

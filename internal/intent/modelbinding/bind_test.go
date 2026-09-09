@@ -3,8 +3,8 @@ package modelbinding
 import (
 	"testing"
 
-	model "github.com/monstercameron/hcm-next/gen/go/hcmnext/model"
-	"github.com/monstercameron/hcm-next/internal/intent"
+	model "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/model"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent"
 )
 
 func realRegistry(t *testing.T) *model.Registry {

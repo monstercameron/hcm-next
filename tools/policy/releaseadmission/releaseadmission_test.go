@@ -7,9 +7,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/policy/internal/repopath"
-	"github.com/monstercameron/hcm-next/tools/policy/provenance"
-	"github.com/monstercameron/hcm-next/tools/policy/releaseadmission"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/internal/repopath"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/provenance"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/releaseadmission"
 )
 
 const checkedInSBOMDigest = "70b290b26aac40b8ea9f5f4fb0e3edbe219391a2c3643adcc545a14d543ff43d"

@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/domains/evidence"
-	"github.com/monstercameron/hcm-next/tools/uxqual/contract"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/evidence"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/contract"
 )
 
 // Receipt is one zero-effect receipt as this workspace shows it: the domain's

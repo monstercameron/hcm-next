@@ -18,7 +18,7 @@ import (
 	"strings"
 )
 
-const modulePath = "github.com/monstercameron/hcm-next"
+const modulePath = "github.com/monstercameron/human-capital-management-suite"
 
 // Version reports the policy table/scan contract version.
 func Version() int { return 1 }

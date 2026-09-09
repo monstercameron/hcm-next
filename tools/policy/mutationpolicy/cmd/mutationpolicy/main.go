@@ -7,7 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/monstercameron/hcm-next/tools/policy/mutationpolicy"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/mutationpolicy"
 )
 
 // Run executes the GOV-019 command and returns a process-style exit code.

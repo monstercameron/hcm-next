@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/domains/tenant"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/tenant"
 )
 
 func manifest(t *testing.T, mutate ...func(*tenant.BootstrapManifest)) tenant.BootstrapManifest {

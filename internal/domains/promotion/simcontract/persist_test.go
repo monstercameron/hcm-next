@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/domains/promotion/simcontract"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/promotion/simcontract"
 )
 
 // TestPersistRefusesAnInvalidContract proves Store validates before it

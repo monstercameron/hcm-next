@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"reflect"
 
-	identity "github.com/monstercameron/hcm-next/internal/intent/model"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	identity "github.com/monstercameron/human-capital-management-suite/internal/intent/model"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // IdentityLinkOwner is the authority boundary for identity links. CRM never

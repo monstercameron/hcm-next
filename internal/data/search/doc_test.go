@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/data/search"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/search"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // TestAllowAllDisclosesEveryValidSubject holds doc.go's claim about

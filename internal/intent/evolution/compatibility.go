@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/monstercameron/hcm-next/internal/intent"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent"
 )
 
 // Verdict is the compatibility outcome [CompatibilityCheck] returns.

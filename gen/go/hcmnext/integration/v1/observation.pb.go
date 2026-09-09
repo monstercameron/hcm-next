@@ -389,7 +389,7 @@ const file_hcmnext_integration_v1_observation_proto_rawDesc = "" +
 	"\x15FRESHNESS_UNAVAILABLE\x10\x05*|\n" +
 	"\x19ObservationClassification\x12*\n" +
 	"&OBSERVATION_CLASSIFICATION_UNSPECIFIED\x10\x00\x123\n" +
-	"/OBSERVATION_CLASSIFICATION_EXTERNAL_OBSERVATION\x10\x01BPZNgithub.com/monstercameron/hcm-next/gen/go/hcmnext/integration/v1;integrationv1b\x06proto3"
+	"/OBSERVATION_CLASSIFICATION_EXTERNAL_OBSERVATION\x10\x01BfZdgithub.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/integration/v1;integrationv1b\x06proto3"
 
 var (
 	file_hcmnext_integration_v1_observation_proto_rawDescOnce sync.Once

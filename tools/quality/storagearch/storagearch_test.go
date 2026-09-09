@@ -34,7 +34,7 @@ func TestStoreAdaptersRejectBusinessOwnership(t *testing.T) {
 	root := fixture(t, map[string]string{
 		"internal/domains/people/port.go":  "package people\ntype Store interface { Save() error }\n",
 		"internal/data/postgres/people.go": "package postgres\nimport \"github.com/jackc/pgx/v5\"\ntype Command struct{}\nfunc (s *Store) Execute() error { return nil }\ntype Store struct { c *pgx.Conn }\nfunc New(c *pgx.Conn) *Store { return &Store{c:c} }\n",
-		"internal/workflow/use.go":         "package workflow\nimport _ \"github.com/monstercameron/hcm-next/internal/data/postgres\"\n",
+		"internal/workflow/use.go":         "package workflow\nimport _ \"github.com/monstercameron/human-capital-management-suite/internal/data/postgres\"\n",
 	})
 	fs := Check(root)
 	for _, code := range []string{"adapter-business-authority", "driver-leak", "semantic-imports-technology"} {
@@ -47,7 +47,7 @@ func TestStoreAdaptersRejectBusinessOwnership(t *testing.T) {
 func TestSemanticPortsRemainAllowed(t *testing.T) {
 	root := fixture(t, map[string]string{
 		"internal/domains/people/port.go":  "package people\ntype Store interface { Save() error }\n",
-		"internal/data/postgres/people.go": "package postgres\nimport \"github.com/monstercameron/hcm-next/internal/domains/people\"\ntype Store struct{}\nvar _ people.Store = (*Store)(nil)\n",
+		"internal/data/postgres/people.go": "package postgres\nimport \"github.com/monstercameron/human-capital-management-suite/internal/domains/people\"\ntype Store struct{}\nvar _ people.Store = (*Store)(nil)\n",
 	})
 	if fs := Check(root); len(fs) != 0 {
 		t.Fatalf("unexpected findings: %#v", fs)
@@ -56,8 +56,8 @@ func TestSemanticPortsRemainAllowed(t *testing.T) {
 
 func TestSemanticEdgesCannotImportAdapters(t *testing.T) {
 	root := fixture(t, map[string]string{
-		"internal/transport/http.go": "package transport\nimport _ \"github.com/monstercameron/hcm-next/internal/data/pgxadapter\"\n",
-		"internal/operations/use.go": "package operations\nimport _ \"github.com/monstercameron/hcm-next/internal/data/postgres\"\n",
+		"internal/transport/http.go": "package transport\nimport _ \"github.com/monstercameron/human-capital-management-suite/internal/data/pgxadapter\"\n",
+		"internal/operations/use.go": "package operations\nimport _ \"github.com/monstercameron/human-capital-management-suite/internal/data/postgres\"\n",
 	})
 	fs := Check(root)
 	if len(fs) != 1 || fs[0].Code != "semantic-imports-technology" {

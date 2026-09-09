@@ -3,8 +3,8 @@ package archrules_test
 import (
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/policy/archrules"
-	"github.com/monstercameron/hcm-next/tools/policy/internal/repopath"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/archrules"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/internal/repopath"
 )
 
 func matchesAnyImportPrefix(importPath string, prefixes []string) bool {

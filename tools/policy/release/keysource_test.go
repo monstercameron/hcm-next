@@ -12,9 +12,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/trust/custody"
-	"github.com/monstercameron/hcm-next/tools/policy/provenance"
-	"github.com/monstercameron/hcm-next/tools/policy/release"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/custody"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/provenance"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/release"
 )
 
 type releaseCustodyFake struct {

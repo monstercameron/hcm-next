@@ -1,6 +1,6 @@
 package inspect
 
-import "github.com/monstercameron/hcm-next/internal/kernel/values"
+import "github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 
 // GapKind classifies why one rendered reference carries no value, closing
 // the hole ADMIN-008's RED clause names: "an empty governance ref is

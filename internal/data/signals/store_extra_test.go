@@ -7,8 +7,8 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
-	stepSignal "github.com/monstercameron/hcm-next/internal/workflow/steps/signal"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
+	stepSignal "github.com/monstercameron/human-capital-management-suite/internal/workflow/steps/signal"
 )
 
 func validSubscription() Subscription {

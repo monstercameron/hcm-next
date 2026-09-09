@@ -17,7 +17,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/humanwork"
+	"github.com/monstercameron/human-capital-management-suite/internal/humanwork"
 )
 
 // Reason codes this file mints for the two transitions materializing one

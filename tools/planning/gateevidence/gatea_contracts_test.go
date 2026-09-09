@@ -358,7 +358,7 @@ func TestTodo_WEDGE_009_Security(t *testing.T) {
 }
 
 func TestPilotExitPlanRejectsMissingRevocationOrExport(t *testing.T) {
-	plan := PilotExitPlan{SchemaVersion: 1, TenantRefHash: strings.Repeat("a", 64), CredentialRevocation: "revoke all connector leases", PendingWorkDisposition: "cancel and export pending work", EvidenceExport: "encrypted tenant export", RetentionAndHolds: "retain legal holds; expire non-held evidence", DestructionResponsibility: "customer and HCM Next custodians", ConnectorAuthority: "none after revocation"}
+	plan := PilotExitPlan{SchemaVersion: 1, TenantRefHash: strings.Repeat("a", 64), CredentialRevocation: "revoke all connector leases", PendingWorkDisposition: "cancel and export pending work", EvidenceExport: "encrypted tenant export", RetentionAndHolds: "retain legal holds; expire non-held evidence", DestructionResponsibility: "customer and Human Capital Management Suite custodians", ConnectorAuthority: "none after revocation"}
 	if got := ValidatePilotExitPlan(plan); len(got) != 0 {
 		t.Fatalf("complete exit plan rejected: %v", got)
 	}

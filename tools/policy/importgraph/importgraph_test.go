@@ -6,10 +6,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/policy/depedge"
-	"github.com/monstercameron/hcm-next/tools/policy/importgraph"
-	"github.com/monstercameron/hcm-next/tools/policy/internal/repopath"
-	"github.com/monstercameron/hcm-next/tools/policy/layout"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/depedge"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/importgraph"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/internal/repopath"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/layout"
 )
 
 // TestGoImportGraphPolicy is the ARCH-GO-003 primary test. It builds the

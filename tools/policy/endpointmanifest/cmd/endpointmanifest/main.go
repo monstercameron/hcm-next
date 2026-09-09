@@ -14,8 +14,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/monstercameron/hcm-next/internal/transport/manifest"
-	"github.com/monstercameron/hcm-next/tools/policy/endpointmanifest"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/manifest"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/endpointmanifest"
 )
 
 func main() {

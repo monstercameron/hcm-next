@@ -3,8 +3,8 @@ package workflow_test
 import (
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/intent/lifecycle"
-	"github.com/monstercameron/hcm-next/internal/workflow"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/lifecycle"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow"
 )
 
 // TestTodo_WF_STEP_017 proves planning/todos.md WF-STEP-017: a terminal

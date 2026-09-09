@@ -6,7 +6,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/data/artifacts"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/artifacts"
 )
 
 // Algorithm is the only digest algorithm a snapshot's identity is computed

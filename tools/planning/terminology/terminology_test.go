@@ -10,7 +10,7 @@ import (
 // TestCanonicalTerms is the primary red/green test for GOV-012.
 func TestCanonicalTerms(t *testing.T) {
 	t.Run("Workforce Access acting as Platform IAM is rejected", func(t *testing.T) {
-		v := CheckCanonicalTerms("Workforce Access authenticates every HCM Next operator session.")
+		v := CheckCanonicalTerms("Workforce Access authenticates every Human Capital Management Suite operator session.")
 		assertHasRule(t, v, "Platform IAM confused with Workforce Access")
 	})
 	t.Run("Platform IAM acting as Workforce Access is rejected", func(t *testing.T) {
@@ -28,7 +28,7 @@ func TestCanonicalTerms(t *testing.T) {
 
 	t.Run("the correct distinguishing prose is not rejected", func(t *testing.T) {
 		correct := []string{
-			"PLATFORM IAM authenticates and authorizes HCM Next users, services, agents, operators, workloads, sessions, and production administration.",
+			"PLATFORM IAM authenticates and authorizes Human Capital Management Suite users, services, agents, operators, workloads, sessions, and production administration.",
 			"WORKFORCE ACCESS PRODUCT governs customer-worker accounts, applications, devices, entitlements, provisioning, deprovisioning, and access reviews.",
 			"`Candidate`, `Worker`, and `Former Worker` are not mutually exclusive Person states.",
 			"Ledger events classify their assertion authority as transaction fact, domain fact, external observation, claim, or correction.",

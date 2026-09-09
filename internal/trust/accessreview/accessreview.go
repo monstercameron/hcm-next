@@ -19,10 +19,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/trust"
-	"github.com/monstercameron/hcm-next/internal/trust/authz"
-	"github.com/monstercameron/hcm-next/internal/trust/jit"
-	"github.com/monstercameron/hcm-next/internal/trust/sod"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/authz"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/jit"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/sod"
 )
 
 var (

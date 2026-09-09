@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/platform/timeauth"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/timeauth"
 )
 
 func TestResponseEnumsAndTrustedTimeValidation(t *testing.T) {

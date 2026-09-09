@@ -3,14 +3,14 @@ package main
 import (
 	"context"
 	"errors"
-	"github.com/monstercameron/hcm-next/internal/application"
+	"github.com/monstercameron/human-capital-management-suite/internal/application"
 	"sync"
 	"testing"
 	"time"
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/capability"
+	"github.com/monstercameron/human-capital-management-suite/internal/capability"
 )
 
 type activityEvidenceRecorder struct {

@@ -21,10 +21,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/humanwork/workspace"
-	kernelvalues "github.com/monstercameron/hcm-next/internal/kernel/values"
-	"github.com/monstercameron/hcm-next/internal/platform/bootstrap"
-	"github.com/monstercameron/hcm-next/internal/trust/devprofile"
+	"github.com/monstercameron/human-capital-management-suite/internal/humanwork/workspace"
+	kernelvalues "github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/bootstrap"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/devprofile"
 )
 
 // EnvDatabaseURL names the server the serve role connects to, matching

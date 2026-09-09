@@ -14,7 +14,7 @@ package main
 import (
 	"os"
 
-	"github.com/monstercameron/hcm-next/internal/transport/admin/hcmctl"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/admin/hcmctl"
 )
 
 func main() {

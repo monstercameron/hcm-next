@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/connectivity/observe"
+	"github.com/monstercameron/human-capital-management-suite/internal/connectivity/observe"
 )
 
 const Version = 1

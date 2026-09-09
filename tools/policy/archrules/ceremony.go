@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/monstercameron/hcm-next/tools/policy/internal/repopath"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/internal/repopath"
 )
 
 // CeremonyRules is the reviewed ARCH-GO-027 policy. Naming a package with a

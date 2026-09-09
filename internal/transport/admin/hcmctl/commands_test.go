@@ -3,7 +3,7 @@ package hcmctl
 import (
 	"testing"
 
-	adminv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/admin/v1"
+	adminv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/admin/v1"
 )
 
 func TestCommands_Smoke(t *testing.T) {

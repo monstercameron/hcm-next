@@ -6,10 +6,10 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/internal/domains/payroll/calcpolicy"
-	"github.com/monstercameron/hcm-next/internal/domains/taxprofile"
-	"github.com/monstercameron/hcm-next/internal/engines/canonicalbytes"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/payroll/calcpolicy"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/taxprofile"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/canonicalbytes"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // PopulationState is the lifecycle of a payroll population revision.

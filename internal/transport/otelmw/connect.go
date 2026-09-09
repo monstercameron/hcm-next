@@ -5,7 +5,7 @@ import (
 
 	"connectrpc.com/connect"
 
-	hcmotel "github.com/monstercameron/hcm-next/internal/platform/telemetry/otel"
+	hcmotel "github.com/monstercameron/human-capital-management-suite/internal/platform/telemetry/otel"
 )
 
 // connectInterceptor implements connect.Interceptor, starting one OTel span

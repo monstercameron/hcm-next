@@ -5,7 +5,7 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/internal/platform/telemetry"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/telemetry"
 )
 
 // Kind identifies a physical boundary. Payloads are intentionally absent

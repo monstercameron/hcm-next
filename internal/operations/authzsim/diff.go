@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/monstercameron/hcm-next/internal/operations/internal/viewdigest"
-	"github.com/monstercameron/hcm-next/internal/trust/authz"
+	"github.com/monstercameron/human-capital-management-suite/internal/operations/internal/viewdigest"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/authz"
 )
 
 // FieldDelta is one field's ruling before and after a proposed change.

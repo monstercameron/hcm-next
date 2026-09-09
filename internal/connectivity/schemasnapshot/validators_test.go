@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/connectivity/schemasnapshot"
+	"github.com/monstercameron/human-capital-management-suite/internal/connectivity/schemasnapshot"
 )
 
 func TestWellFormednessValidator(t *testing.T) {

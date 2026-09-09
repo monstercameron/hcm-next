@@ -13,7 +13,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/tools/gen/compatibility"
+	"github.com/monstercameron/human-capital-management-suite/tools/gen/compatibility"
 	"gopkg.in/yaml.v3"
 )
 

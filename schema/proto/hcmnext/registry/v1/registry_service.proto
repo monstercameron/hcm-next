@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package hcmnext.registry.v1;
 
-option go_package = "github.com/monstercameron/hcm-next/gen/go/hcmnext/registry/v1;registryv1";
+option go_package = "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/registry/v1;registryv1";
 
 import "hcmnext/capabilities/v1/capability.proto";
 import "hcmnext/common/v1/common.proto";

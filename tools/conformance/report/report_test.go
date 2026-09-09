@@ -5,10 +5,10 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/conformance/discover"
-	"github.com/monstercameron/hcm-next/tools/conformance/internal/reporoot"
-	"github.com/monstercameron/hcm-next/tools/conformance/runner"
-	"github.com/monstercameron/hcm-next/tools/conformance/vocab"
+	"github.com/monstercameron/human-capital-management-suite/tools/conformance/discover"
+	"github.com/monstercameron/human-capital-management-suite/tools/conformance/internal/reporoot"
+	"github.com/monstercameron/human-capital-management-suite/tools/conformance/runner"
+	"github.com/monstercameron/human-capital-management-suite/tools/conformance/vocab"
 )
 
 func testSetup(t *testing.T) (repoRoot, refRoot, runtimeSpecPath, contextSpecPath string, v *vocab.Vocabulary) {

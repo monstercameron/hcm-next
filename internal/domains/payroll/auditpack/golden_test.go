@@ -8,12 +8,12 @@ import (
 
 	"github.com/google/uuid"
 
-	datalogger "github.com/monstercameron/hcm-next/internal/data/ledger"
-	"github.com/monstercameron/hcm-next/internal/data/ledger/checkpoint"
-	"github.com/monstercameron/hcm-next/internal/data/ledger/evidence"
-	"github.com/monstercameron/hcm-next/internal/data/ledger/hashchain"
-	"github.com/monstercameron/hcm-next/internal/domains/payroll/auditpack"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	datalogger "github.com/monstercameron/human-capital-management-suite/internal/data/ledger"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/ledger/checkpoint"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/ledger/evidence"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/ledger/hashchain"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/payroll/auditpack"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // The golden fixture is pure: fixed identifiers, fixed instants, fixed

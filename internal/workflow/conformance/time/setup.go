@@ -3,8 +3,8 @@ package time
 import (
 	"fmt"
 
-	"github.com/monstercameron/hcm-next/internal/workflow"
-	"github.com/monstercameron/hcm-next/internal/workflow/simulate"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow/simulate"
 )
 
 // Setup is a ready-to-run simulation of the time-punch/timecard/payroll-

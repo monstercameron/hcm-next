@@ -9,10 +9,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/internal/trust/custody"
-	"github.com/monstercameron/hcm-next/tools/planning/gateevidence"
-	"github.com/monstercameron/hcm-next/tools/policy/provenance"
-	"github.com/monstercameron/hcm-next/tools/policy/releaseadmission"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/custody"
+	"github.com/monstercameron/human-capital-management-suite/tools/planning/gateevidence"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/provenance"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/releaseadmission"
 )
 
 // KeySource is the release bundle signing port. It is an alias of the

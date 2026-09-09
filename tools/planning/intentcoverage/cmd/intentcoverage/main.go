@@ -10,7 +10,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/monstercameron/hcm-next/tools/planning/intentcoverage"
+	"github.com/monstercameron/human-capital-management-suite/tools/planning/intentcoverage"
 )
 
 func main() { os.Exit(run(os.Args[1:], os.Stdout, os.Stderr)) }

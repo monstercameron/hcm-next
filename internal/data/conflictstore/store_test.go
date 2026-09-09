@@ -5,8 +5,8 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/data/conflictstore"
-	"github.com/monstercameron/hcm-next/internal/transaction/conflict"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/conflictstore"
+	"github.com/monstercameron/human-capital-management-suite/internal/transaction/conflict"
 )
 
 func TestStoreRegisterValidatesBeforeUsingCallerTransaction(t *testing.T) {

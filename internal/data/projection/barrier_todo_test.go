@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/data/projection"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/projection"
 )
 
 func TestTodo_DATA_021(t *testing.T) {

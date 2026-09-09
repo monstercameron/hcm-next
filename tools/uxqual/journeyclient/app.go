@@ -6,10 +6,10 @@ import (
 	"sync"
 	"time"
 
-	commonv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/common/v1"
-	journeyv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/journey/v1"
-	"github.com/monstercameron/hcm-next/tools/uxqual/render/journey"
-	"github.com/monstercameron/hcm-next/tools/uxqual/taskmux"
+	commonv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/common/v1"
+	journeyv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/journey/v1"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/render/journey"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/taskmux"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

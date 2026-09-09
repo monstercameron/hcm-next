@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/connectivity/schemasnapshot"
-	"github.com/monstercameron/hcm-next/internal/connectivity/schemasnapshot/diff"
+	"github.com/monstercameron/human-capital-management-suite/internal/connectivity/schemasnapshot"
+	"github.com/monstercameron/human-capital-management-suite/internal/connectivity/schemasnapshot/diff"
 )
 
 func admitted(provider schemasnapshot.ProviderRef, digest string) schemasnapshot.SchemaSnapshot {

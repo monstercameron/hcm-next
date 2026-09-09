@@ -14,7 +14,7 @@ type Info struct {
 
 // Current returns the build identity embedded by the Go toolchain.
 func Current() Info {
-	info := Info{Module: "github.com/monstercameron/hcm-next"}
+	info := Info{Module: "github.com/monstercameron/human-capital-management-suite"}
 	bi, ok := debug.ReadBuildInfo()
 	if !ok {
 		return info

@@ -6,7 +6,7 @@ import (
 	"context"
 
 	"connectrpc.com/connect"
-	intentsv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/intents/v1"
+	intentsv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/intents/v1"
 	"google.golang.org/grpc"
 )
 

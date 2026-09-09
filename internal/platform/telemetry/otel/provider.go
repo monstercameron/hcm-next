@@ -17,7 +17,7 @@ import (
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
 	"go.opentelemetry.io/otel/trace"
 
-	"github.com/monstercameron/hcm-next/internal/platform/telemetry"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/telemetry"
 )
 
 // ExporterKind selects which exporter backend a signal's Config builds when
@@ -42,7 +42,7 @@ const (
 	defaultBatchTimeout    = 5 * time.Second
 	defaultExportTimeout   = 10 * time.Second
 	defaultMetricInterval  = 30 * time.Second
-	meterAndTracerNameSelf = "github.com/monstercameron/hcm-next/internal/platform/telemetry/otel"
+	meterAndTracerNameSelf = "github.com/monstercameron/human-capital-management-suite/internal/platform/telemetry/otel"
 )
 
 // TraceConfig configures the trace signal's exporter and the bounded batch

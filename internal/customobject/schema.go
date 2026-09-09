@@ -10,7 +10,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/tools/gen/schemaflux"
+	"github.com/monstercameron/human-capital-management-suite/tools/gen/schemaflux"
 )
 
 const (

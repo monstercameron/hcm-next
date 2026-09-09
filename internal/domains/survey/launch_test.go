@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/domains/audience"
-	"github.com/monstercameron/hcm-next/internal/engines/messagetemplate"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/audience"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/messagetemplate"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 func launchTemplate() messagetemplate.Template {

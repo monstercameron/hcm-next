@@ -21,7 +21,7 @@ func fixtureRoot(t *testing.T, importEngine bool) string {
 	engine := "package eligibility\n\nfunc Version() int { return 1 }\nfunc Explain() string { return \"eligibility\" }\n"
 	consumer := "package definitions\n"
 	if importEngine {
-		consumer = "package definitions\n\nimport _ \"github.com/monstercameron/hcm-next/internal/engines/eligibility\"\n"
+		consumer = "package definitions\n\nimport _ \"github.com/monstercameron/human-capital-management-suite/internal/engines/eligibility\"\n"
 	}
 	if err := os.WriteFile(filepath.Join(engineDir, "eligibility.go"), []byte(engine), 0o644); err != nil {
 		t.Fatal(err)

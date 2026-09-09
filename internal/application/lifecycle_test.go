@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/platform/bootstrap"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/bootstrap"
 )
 
 // blockingWorkload returns a workload that runs until released, plus its

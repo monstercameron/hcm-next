@@ -4,8 +4,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/engines/snapshot"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/snapshot"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // mustInstant builds a values.Instant at the given UTC clock reading, failing

@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // TenantPlanStore is the tenant-aware persistence port for durable mobility

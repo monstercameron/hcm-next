@@ -3,7 +3,7 @@ package workflow
 import (
 	"sort"
 
-	"github.com/monstercameron/hcm-next/internal/capability"
+	"github.com/monstercameron/human-capital-management-suite/internal/capability"
 )
 
 // CompilerVersion identifies the compiler that produced a plan. It is part of

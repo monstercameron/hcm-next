@@ -7,7 +7,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/internal/data/dbport"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
 )
 
 // PlanNode is one node of a PostgreSQL EXPLAIN (FORMAT JSON) plan tree, kept

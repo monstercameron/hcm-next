@@ -12,8 +12,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/trust/custody"
-	"github.com/monstercameron/hcm-next/internal/trust/workload"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/custody"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/workload"
 )
 
 const MaxBootstrapLeaseTTL = 5 * time.Minute

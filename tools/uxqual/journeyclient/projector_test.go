@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	journeyv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/journey/v1"
-	"github.com/monstercameron/hcm-next/tools/uxqual/render/journey"
+	journeyv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/journey/v1"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/render/journey"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -166,10 +166,10 @@ func TestListPageChrome(t *testing.T) {
 	cfg := testConfig()
 	p := ListPage(cfg, ListData{}, nil, nil)
 
-	if p.Brand != "HCM Next" {
-		t.Errorf("Brand = %q, want HCM Next", p.Brand)
+	if p.Brand != "Human Capital Management Suite" {
+		t.Errorf("Brand = %q, want Human Capital Management Suite", p.Brand)
 	}
-	if p.Title != "Promotion journeys · HCM Next" {
+	if p.Title != "Promotion journeys · Human Capital Management Suite" {
 		t.Errorf("Title = %q", p.Title)
 	}
 	if p.TenantLabel != cfg.Tenant {
@@ -559,7 +559,7 @@ func TestDetailPageSections(t *testing.T) {
 	p := DetailPage(testConfig(), testDetail(t, journeyv1.JourneyStage_JOURNEY_STAGE_COMPLETED), nil, nil)
 	d := p.Detail
 
-	if p.Title != "Omar Reyes · Promotion journey · HCM Next" {
+	if p.Title != "Omar Reyes · Promotion journey · Human Capital Management Suite" {
 		t.Errorf("Title = %q", p.Title)
 	}
 	if d.BackLink.Label != "Back to Omar Reyes in People" || d.BackLink.Href != "/workspace/app/person?person=worker%3ANW-40118" || d.JourneysLink.Href != ListHref() {
@@ -864,7 +864,7 @@ func TestProjectedPagesRender(t *testing.T) {
 	if err != nil {
 		t.Fatalf("rendering the list: %v", err)
 	}
-	for _, want := range []string{"HCM Next", "Omar Reyes", "USD 93,000.00", "Awaiting approval", "Propose and simulate"} {
+	for _, want := range []string{"Human Capital Management Suite", "Omar Reyes", "USD 93,000.00", "Awaiting approval", "Propose and simulate"} {
 		if !strings.Contains(list, want) {
 			t.Errorf("the rendered list page does not carry %q", want)
 		}

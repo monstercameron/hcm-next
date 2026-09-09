@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/trust/session"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/session"
 )
 
 // TestTodo_TRUST_003_Recovery is the TRUST-003 recovery test. TRUST-003's

@@ -15,7 +15,7 @@ import (
 	"github.com/monstercameron/GoWebComponents/v5/html"
 	renderfixture "github.com/monstercameron/GoWebComponents/v5/testkit/render"
 	"github.com/monstercameron/GoWebComponents/v5/ui"
-	"github.com/monstercameron/hcm-next/internal/humanwork/productui"
+	"github.com/monstercameron/human-capital-management-suite/internal/humanwork/productui"
 )
 
 // TestTodo_WEB_038_Browser runs inside the compiled Go js/wasm binary. It

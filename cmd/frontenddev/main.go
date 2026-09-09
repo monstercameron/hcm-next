@@ -15,8 +15,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/trust"
-	"github.com/monstercameron/hcm-next/internal/trust/devprofile"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/devprofile"
 )
 
 const (
@@ -30,7 +30,7 @@ const (
 func main() {
 	profile := flag.String("profile", standardProfile, "development defaults profile: standard or local-dev")
 	listen := flag.String("listen", defaultListen, "local address for the frontend development gateway")
-	upstreamText := flag.String("upstream", defaultUpstream, "live HCM Next HTTP cell origin")
+	upstreamText := flag.String("upstream", defaultUpstream, "live Human Capital Management Suite HTTP cell origin")
 	tenant := flag.String("tenant", devprofile.Tenant, "tenant used by the local-dev credential")
 	flag.Parse()
 	upstream, err := url.Parse(*upstreamText)
@@ -47,7 +47,7 @@ func main() {
 		}
 	}
 	server := &http.Server{Addr: *listen, Handler: frontendHandler(upstream, bearer, *profile == devprofile.Name), ReadHeaderTimeout: 5 * time.Second}
-	fmt.Fprintf(os.Stdout, "HCM Next live gateway: http://%s/ -> %s\n", *listen, upstream)
+	fmt.Fprintf(os.Stdout, "Human Capital Management Suite live gateway: http://%s/ -> %s\n", *listen, upstream)
 	log.Fatal(server.ListenAndServe())
 }
 
@@ -125,7 +125,7 @@ func frontendHandler(upstream *url.URL, bearer string, allowOpaqueBrowserOrigin 
 			}
 		},
 		ErrorHandler: func(w http.ResponseWriter, _ *http.Request, err error) {
-			http.Error(w, "live HCM Next cell unavailable", http.StatusBadGateway)
+			http.Error(w, "live Human Capital Management Suite cell unavailable", http.StatusBadGateway)
 		},
 	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

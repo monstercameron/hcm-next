@@ -21,7 +21,7 @@ var ignoredDirNames = map[string]bool{
 	"tmp":          true,
 	"vendor":       true,
 	"testdata":     true,
-	"src":          true, // legacy module hcm-next-executor: a separate go.mod
+	"src":          true, // legacy module human-capital-management-suite-executor: a separate go.mod
 }
 
 // findGoFiles walks root, excluding ignoredDirNames, and returns every .go

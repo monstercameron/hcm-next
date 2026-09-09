@@ -3,8 +3,8 @@ package schemafluxsql
 import (
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/intent/model"
-	"github.com/monstercameron/hcm-next/tools/gen/storagemanifest"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/model"
+	"github.com/monstercameron/human-capital-management-suite/tools/gen/storagemanifest"
 )
 
 func TestGenerateIsDeterministicAndProducesReviewInputs(t *testing.T) {

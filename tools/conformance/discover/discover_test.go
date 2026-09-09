@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/conformance/internal/reporoot"
-	"github.com/monstercameron/hcm-next/tools/conformance/vocab"
+	"github.com/monstercameron/human-capital-management-suite/tools/conformance/internal/reporoot"
+	"github.com/monstercameron/human-capital-management-suite/tools/conformance/vocab"
 )
 
 func testVocab(t *testing.T) (*vocab.Vocabulary, string) {

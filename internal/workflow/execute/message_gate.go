@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/messaging"
+	"github.com/monstercameron/human-capital-management-suite/internal/messaging"
 )
 
 var (

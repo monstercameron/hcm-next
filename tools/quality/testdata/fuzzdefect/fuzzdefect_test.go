@@ -3,7 +3,7 @@ package fuzzdefect
 import (
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/quality/fuzzkit"
+	"github.com/monstercameron/human-capital-management-suite/tools/quality/fuzzkit"
 )
 
 // FuzzTodo_TOOL_013 fuzzes the planted-defect ParseEnvelope using the exact

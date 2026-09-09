@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	trustfederation "github.com/monstercameron/hcm-next/internal/trust/federation"
+	trustfederation "github.com/monstercameron/human-capital-management-suite/internal/trust/federation"
 )
 
 func testIssuerDER(t *testing.T) []byte {

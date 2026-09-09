@@ -14,7 +14,7 @@ import (
 	healthpb "google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/status"
 
-	"github.com/monstercameron/hcm-next/internal/platform/bootstrap"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/bootstrap"
 )
 
 const ReadyService = "ready"

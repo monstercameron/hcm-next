@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/operations/reconcile"
-	operationrepair "github.com/monstercameron/hcm-next/internal/operations/repair"
+	"github.com/monstercameron/human-capital-management-suite/internal/operations/reconcile"
+	operationrepair "github.com/monstercameron/human-capital-management-suite/internal/operations/repair"
 )
 
 type repairEffectDouble struct {

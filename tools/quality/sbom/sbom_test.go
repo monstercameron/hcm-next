@@ -12,7 +12,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/quality/sbom"
+	"github.com/monstercameron/human-capital-management-suite/tools/quality/sbom"
 )
 
 func repoRoot(t *testing.T) string {

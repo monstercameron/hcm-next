@@ -6,9 +6,9 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/transport"
-	transportjourney "github.com/monstercameron/hcm-next/internal/transport/journey"
-	"github.com/monstercameron/hcm-next/internal/trust"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport"
+	transportjourney "github.com/monstercameron/human-capital-management-suite/internal/transport/journey"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust"
 )
 
 type promotionRouteVerifier struct{}

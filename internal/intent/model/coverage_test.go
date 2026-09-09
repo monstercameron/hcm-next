@@ -3,7 +3,7 @@ package model_test
 import (
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/intent/model"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/model"
 )
 
 // TestTodo_MODEL_030 is the PRIMARY test for the model coverage report.

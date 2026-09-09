@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/policy/archrules"
-	"github.com/monstercameron/hcm-next/tools/policy/internal/repopath"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/archrules"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/internal/repopath"
 )
 
 // TestHumanInteractionBoundaries is the ARCH-GO-022 primary test: workflow,
@@ -18,7 +18,7 @@ import (
 //   - each owner has its own package root
 func TestHumanInteractionBoundaries(t *testing.T) {
 	const (
-		modulePrefix     = "github.com/monstercameron/hcm-next"
+		modulePrefix     = "github.com/monstercameron/human-capital-management-suite"
 		workflowRoot     = "internal/workflow"
 		humanworkRoot    = "internal/humanwork"
 		formsRoot        = "internal/forms"
@@ -143,7 +143,7 @@ func TestHumanInteractionBoundaries(t *testing.T) {
 // comment explaining why they are necessary.
 func TestTodo_ARCH_GO_022_Integration(t *testing.T) {
 	const (
-		module          = "github.com/monstercameron/hcm-next"
+		module          = "github.com/monstercameron/human-capital-management-suite"
 		workflowRoot    = "internal/workflow"
 		humanworkRoot   = "internal/humanwork"
 		formsRoot       = "internal/forms"

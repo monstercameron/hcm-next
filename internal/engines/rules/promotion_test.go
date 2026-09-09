@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // TestTodo_RULE_003 proves the compiled Promotion approval-threshold rule

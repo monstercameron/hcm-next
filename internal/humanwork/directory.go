@@ -3,7 +3,7 @@ package humanwork
 import (
 	"sort"
 
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // PrincipalFacts is everything resolution needs to know about one principal.

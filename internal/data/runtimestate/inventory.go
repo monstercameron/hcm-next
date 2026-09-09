@@ -5,7 +5,7 @@ import (
 	"slices"
 	"sort"
 
-	"github.com/monstercameron/hcm-next/internal/data/dbport"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
 )
 
 // RuntimeTables is the closed, named set of tables DB-012's migrations

@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/quality/cicd"
+	"github.com/monstercameron/human-capital-management-suite/tools/quality/cicd"
 )
 
 func TestTodo_CICD_001(t *testing.T) {

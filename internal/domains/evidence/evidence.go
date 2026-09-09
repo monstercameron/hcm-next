@@ -18,8 +18,8 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/monstercameron/hcm-next/internal/engines/canonicalbytes"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/canonicalbytes"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 const (
@@ -140,7 +140,7 @@ func (c EffectCounters) Canonical() []byte {
 	return raw
 }
 
-// AuthorityKind says whether HCM Next owns a fact or is merely reporting one
+// AuthorityKind says whether Human Capital Management Suite owns a fact or is merely reporting one
 // it observed somewhere else. The distinction is the whole point of the
 // source-authority contract: an observed incumbent value must never be
 // published as a local domain fact.
@@ -150,7 +150,7 @@ type AuthorityKind uint8
 const (
 	// AuthorityUnspecified is the zero value and is never legal.
 	AuthorityUnspecified AuthorityKind = iota
-	// AuthorityLocal means HCM Next holds effective-dated source authority.
+	// AuthorityLocal means Human Capital Management Suite holds effective-dated source authority.
 	AuthorityLocal
 	// AuthorityExternalObservation means the value was observed from the system
 	// of record and is reported, not owned.

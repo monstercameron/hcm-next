@@ -9,7 +9,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/internal/transport/productquery"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/productquery"
 )
 
 const schemaVersion = 1

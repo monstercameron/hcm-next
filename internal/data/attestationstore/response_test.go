@@ -8,9 +8,9 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/hcm-next/internal/data/pgtest"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
-	trustattest "github.com/monstercameron/hcm-next/internal/trust/attest"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/pgtest"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
+	trustattest "github.com/monstercameron/human-capital-management-suite/internal/trust/attest"
 )
 
 func TestTodo_ATTEST_004_DurableResponses(t *testing.T) {

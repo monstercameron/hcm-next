@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/internal/data/runtimestate"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/runtimestate"
 )
 
 // The lease resource kinds, re-exported from the durable store so a caller of

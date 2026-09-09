@@ -15,7 +15,7 @@ package webdelivery
 import (
 	"strings"
 
-	"github.com/monstercameron/hcm-next/internal/humanwork/workspace"
+	"github.com/monstercameron/human-capital-management-suite/internal/humanwork/workspace"
 )
 
 // Manifest describes a production frontend delivery including bundles,

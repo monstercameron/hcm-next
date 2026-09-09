@@ -12,7 +12,7 @@ func fixtureRegistries() Registries {
 		Pages:           map[string]bool{"promotion.journeys.list": true},
 		Widgets:         map[string]bool{"widget.table.workforce@1": true},
 		Capabilities:    map[string]bool{"hcmnext.people.promote_worker": true},
-		Packages:        map[string]bool{"github.com/monstercameron/hcm-next/cmd/hcmnext": true},
+		Packages:        map[string]bool{"github.com/monstercameron/human-capital-management-suite/cmd/hcmnext": true},
 		Todos:           map[string]bool{"PROMO-001": true},
 	}
 }
@@ -26,7 +26,7 @@ func validFixtureSlice() ProductSliceDefinition {
 		Pages:           []string{"promotion.journeys.list"},
 		Widgets:         []string{"widget.table.workforce@1"},
 		Capabilities:    []string{"hcmnext.people.promote_worker"},
-		Packages:        []string{"github.com/monstercameron/hcm-next/cmd/hcmnext"},
+		Packages:        []string{"github.com/monstercameron/human-capital-management-suite/cmd/hcmnext"},
 		Todos:           []string{"PROMO-001"},
 		Jurisdictions:   []string{"US-ALL"},
 		Personas:        []string{"manager"},
@@ -75,9 +75,9 @@ func TestTodo_ALIGN_001(t *testing.T) {
 
 	t.Run("RED: unauthorized package (outside the Phase 1 allowlist)", func(t *testing.T) {
 		s := validFixtureSlice()
-		s.Packages = []string{"github.com/monstercameron/hcm-next/internal/domains/payroll"}
+		s.Packages = []string{"github.com/monstercameron/human-capital-management-suite/internal/domains/payroll"}
 		violations := s.Validate(reg)
-		assertHasViolation(t, violations, "packages", "github.com/monstercameron/hcm-next/internal/domains/payroll")
+		assertHasViolation(t, violations, "packages", "github.com/monstercameron/human-capital-management-suite/internal/domains/payroll")
 	})
 
 	t.Run("RED: stale/unrecoverable todo proof", func(t *testing.T) {

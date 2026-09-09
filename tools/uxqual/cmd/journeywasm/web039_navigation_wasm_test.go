@@ -12,7 +12,7 @@ import (
 	"github.com/monstercameron/GoWebComponents/v5/router"
 	renderfixture "github.com/monstercameron/GoWebComponents/v5/testkit/render"
 	"github.com/monstercameron/GoWebComponents/v5/ui"
-	"github.com/monstercameron/hcm-next/internal/humanwork/productui"
+	"github.com/monstercameron/human-capital-management-suite/internal/humanwork/productui"
 )
 
 // TestTodo_WEB_039_Browser runs the compiled GWC runtime, drives its real

@@ -12,7 +12,7 @@
 // any one of them could pass unreconciled.
 //
 // Every total this package produces is [ResolveFromContent] over an
-// [github.com/monstercameron/hcm-next/internal/data/ledger/evidence.Content]
+// [github.com/monstercameron/human-capital-management-suite/internal/data/ledger/evidence.Content]
 // - the same signed-checkpoint-backed, hash-chained slice of the ledger that
 // package exports - and never over a domain aggregate. A payroll or paygl
 // value object can be wrong in memory; a ledger event a checkpoint has
@@ -45,7 +45,7 @@
 // # The auditor package
 //
 // [Build] wraps one
-// github.com/monstercameron/hcm-next/internal/data/ledger/evidence.Package
+// github.com/monstercameron/human-capital-management-suite/internal/data/ledger/evidence.Package
 // (unmodified, under the "evidence/" path prefix) with a summary part - the
 // four totals, their contributing event references and the variance decision
 // - and an outer manifest whose digest folds the evidence package's own

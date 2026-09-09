@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package hcmnext.intents.v1;
 
-option go_package = "github.com/monstercameron/hcm-next/gen/go/hcmnext/intents/v1;intentsv1";
+option go_package = "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/intents/v1;intentsv1";
 
 import "google/protobuf/timestamp.proto";
 import "hcmnext/common/v1/common.proto";

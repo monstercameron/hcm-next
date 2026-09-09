@@ -4,7 +4,7 @@ import (
 	"sort"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/operations/inspector"
+	"github.com/monstercameron/human-capital-management-suite/internal/operations/inspector"
 )
 
 func nodeByID(t *testing.T, view inspector.WorkflowView, id string) inspector.NodeView {

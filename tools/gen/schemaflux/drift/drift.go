@@ -13,9 +13,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/tools/gen/schemaflux"
-	"github.com/monstercameron/hcm-next/tools/gen/schemaflux/modelgen"
-	"github.com/monstercameron/hcm-next/tools/gen/schemaflux/sources"
+	"github.com/monstercameron/human-capital-management-suite/tools/gen/schemaflux"
+	"github.com/monstercameron/human-capital-management-suite/tools/gen/schemaflux/modelgen"
+	"github.com/monstercameron/human-capital-management-suite/tools/gen/schemaflux/sources"
 )
 
 type Document struct{ Path, Digest string }

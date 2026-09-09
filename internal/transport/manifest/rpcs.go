@@ -13,10 +13,10 @@ import (
 	// invoking buf or parsing schema/proto/**, is what makes RPC discovery
 	// read "the generated descriptors" (this package's mandate) instead of
 	// re-deriving a second, potentially divergent, view of the schema.
-	_ "github.com/monstercameron/hcm-next/gen/go/hcmnext/capabilities/v1"
-	_ "github.com/monstercameron/hcm-next/gen/go/hcmnext/common/v1"
-	_ "github.com/monstercameron/hcm-next/gen/go/hcmnext/intents/v1"
-	_ "github.com/monstercameron/hcm-next/gen/go/hcmnext/registry/v1"
+	_ "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/capabilities/v1"
+	_ "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/common/v1"
+	_ "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/intents/v1"
+	_ "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/registry/v1"
 )
 
 // governedServices lists the fully qualified service names this manifest

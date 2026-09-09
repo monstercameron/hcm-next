@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/monstercameron/hcm-next/internal/intent"
-	compiled "github.com/monstercameron/hcm-next/internal/intent/definitions"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent"
+	compiled "github.com/monstercameron/human-capital-management-suite/internal/intent/definitions"
 )
 
 // CrossCheckCompiled compares catalog against the hand-authored compiled-in

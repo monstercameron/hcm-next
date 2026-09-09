@@ -4,11 +4,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/uxqual/contract"
-	"github.com/monstercameron/hcm-next/tools/uxqual/qual"
-	"github.com/monstercameron/hcm-next/tools/uxqual/render/gwc"
-	"github.com/monstercameron/hcm-next/tools/uxqual/render/ssr"
-	"github.com/monstercameron/hcm-next/tools/uxqual/testdata"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/contract"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/qual"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/render/gwc"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/render/ssr"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/testdata"
 )
 
 // TestTodo_FORM_004_Browser is the BROWSER matrix test for FORM-004. Like

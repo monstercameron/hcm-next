@@ -3,8 +3,8 @@ package simulate
 import (
 	"context"
 
-	"github.com/monstercameron/hcm-next/internal/domains/promotion"
-	"github.com/monstercameron/hcm-next/internal/workflow"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/promotion"
+	"github.com/monstercameron/human-capital-management-suite/internal/workflow"
 )
 
 // PromotionProposalTransformRef is the transform reference the promotion

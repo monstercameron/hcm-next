@@ -9,7 +9,7 @@
 // audit evidence record derives from bytes produced here. grpcbridge, GWC, and
 // any browser or mobile client never recompute canonical bytes or digests; they
 // submit values and receive an authoritative
-// [github.com/monstercameron/hcm-next/internal/engines/wire/digest.Reference]
+// [github.com/monstercameron/human-capital-management-suite/internal/engines/wire/digest.Reference]
 // computed on the server. A client-supplied digest is input to be verified, not
 // an authority to be trusted.
 //

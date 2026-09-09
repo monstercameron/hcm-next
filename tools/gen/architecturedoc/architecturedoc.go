@@ -14,9 +14,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/tools/policy/depedge"
-	"github.com/monstercameron/hcm-next/tools/policy/importgraph"
-	"github.com/monstercameron/hcm-next/tools/policy/layout"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/depedge"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/importgraph"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/layout"
 	"gopkg.in/yaml.v3"
 )
 

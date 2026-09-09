@@ -3,7 +3,7 @@ package bitemporal_test
 import (
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/data/bitemporal"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/bitemporal"
 )
 
 // TestTodo_DATA_005_Security proves the RED clause directly: a denied field

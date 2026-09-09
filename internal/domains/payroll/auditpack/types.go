@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	datalogger "github.com/monstercameron/hcm-next/internal/data/ledger"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	datalogger "github.com/monstercameron/human-capital-management-suite/internal/data/ledger"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // TotalKind is the closed vocabulary of the four totals a payroll run's

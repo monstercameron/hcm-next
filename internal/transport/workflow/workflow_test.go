@@ -9,12 +9,12 @@ import (
 	"testing"
 	"time"
 
-	commonv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/common/v1"
-	workflowv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/workflow/v1"
-	"github.com/monstercameron/hcm-next/internal/transport"
-	"github.com/monstercameron/hcm-next/internal/transport/envelope"
-	"github.com/monstercameron/hcm-next/internal/transport/transporttest"
-	"github.com/monstercameron/hcm-next/internal/trust"
+	commonv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/common/v1"
+	workflowv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/workflow/v1"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/envelope"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/transporttest"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust"
 )
 
 func TestProjectWorkflowInspectionRedactsPayloadsAndPreservesFrontier(t *testing.T) {

@@ -3,8 +3,8 @@ package authzsim
 import (
 	"fmt"
 
-	"github.com/monstercameron/hcm-next/internal/operations/internal/viewdigest"
-	"github.com/monstercameron/hcm-next/internal/trust/authz"
+	"github.com/monstercameron/human-capital-management-suite/internal/operations/internal/viewdigest"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/authz"
 )
 
 // Result is one simulation's outcome: the decision authz.Simulate produced,

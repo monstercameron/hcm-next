@@ -11,10 +11,10 @@ import (
 	"github.com/monstercameron/GoGRPCBridge/pkg/grpctunnel"
 	"google.golang.org/grpc"
 
-	"github.com/monstercameron/hcm-next/internal/humanwork/workspace"
-	"github.com/monstercameron/hcm-next/internal/intent/app"
-	"github.com/monstercameron/hcm-next/internal/transport"
-	transportoperations "github.com/monstercameron/hcm-next/internal/transport/operations"
+	"github.com/monstercameron/human-capital-management-suite/internal/humanwork/workspace"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/app"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport"
+	transportoperations "github.com/monstercameron/human-capital-management-suite/internal/transport/operations"
 )
 
 // TunnelPath is the edge route the gRPC-over-WebSocket bridge is mounted on.

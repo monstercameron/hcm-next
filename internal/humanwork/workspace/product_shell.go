@@ -8,10 +8,10 @@ import (
 	"strings"
 
 	"github.com/monstercameron/GoWebComponents/v5/ui"
-	"github.com/monstercameron/hcm-next/internal/experience/roleaccess"
-	"github.com/monstercameron/hcm-next/internal/humanwork/productui"
-	"github.com/monstercameron/hcm-next/internal/trust"
-	"github.com/monstercameron/hcm-next/tools/uxqual/render/journey"
+	"github.com/monstercameron/human-capital-management-suite/internal/experience/roleaccess"
+	"github.com/monstercameron/human-capital-management-suite/internal/humanwork/productui"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/render/journey"
 )
 
 const (
@@ -109,7 +109,7 @@ func productShellDocumentForRoute(config JourneyConfig, bundleBuilt bool, locale
 	}
 	b.WriteString(`><head><meta charset="utf-8"><meta name="color-scheme" content="light dark">`)
 	b.WriteString(`<meta name="viewport" content="width=device-width, initial-scale=1">`)
-	b.WriteString("<title>HCM Next</title><style>")
+	b.WriteString("<title>Human Capital Management Suite</title><style>")
 	b.WriteString(productStylesheet())
 	b.WriteString("</style></head><body>")
 	b.WriteString(`<div id="` + JourneyRootElementID + `">`)

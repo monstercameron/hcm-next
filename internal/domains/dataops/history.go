@@ -6,11 +6,11 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/monstercameron/hcm-next/internal/domains/evidence"
-	"github.com/monstercameron/hcm-next/internal/engines/canonicalbytes"
-	"github.com/monstercameron/hcm-next/internal/engines/effectivedate"
-	"github.com/monstercameron/hcm-next/internal/engines/fielddiff"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/evidence"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/canonicalbytes"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/effectivedate"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/fielddiff"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // Operation identity for DATAOPS-007. The effective-date debugger is a
@@ -58,7 +58,7 @@ type AssertionClass uint8
 const (
 	// ClassUnspecified is the zero value and is never legal.
 	ClassUnspecified AssertionClass = iota
-	// ClassDomainFact is a fact HCM Next holds effective-dated authority over.
+	// ClassDomainFact is a fact Human Capital Management Suite holds effective-dated authority over.
 	ClassDomainFact
 	// ClassExternalObservation is a value observed from a system of record and
 	// reported, never owned.

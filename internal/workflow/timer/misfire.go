@@ -4,8 +4,8 @@ import (
 	"errors"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/engines/schedule"
-	"github.com/monstercameron/hcm-next/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/internal/engines/schedule"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 // Decision is what a declared misfire policy decided about one overdue timer.

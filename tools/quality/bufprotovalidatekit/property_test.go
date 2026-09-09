@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	kit "github.com/monstercameron/hcm-next/tools/quality/bufprotovalidatekit"
+	kit "github.com/monstercameron/human-capital-management-suite/tools/quality/bufprotovalidatekit"
 )
 
 // TestTodo_LIB_019_Property proves deterministic, transport-neutral results

@@ -7,7 +7,7 @@
 package workflowv1
 
 import (
-	v1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/common/v1"
+	v1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/common/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -774,7 +774,7 @@ const file_hcmnext_workflow_v1_workflow_service_proto_rawDesc = "" +
 	"\rPauseWorkflow\x12).hcmnext.workflow.v1.PauseWorkflowRequest\x1a*.hcmnext.workflow.v1.PauseWorkflowResponse\x12i\n" +
 	"\x0eResumeWorkflow\x12*.hcmnext.workflow.v1.ResumeWorkflowRequest\x1a+.hcmnext.workflow.v1.ResumeWorkflowResponse\x12i\n" +
 	"\x0eCancelWorkflow\x12*.hcmnext.workflow.v1.CancelWorkflowRequest\x1a+.hcmnext.workflow.v1.CancelWorkflowResponse\x12Z\n" +
-	"\tRetryNode\x12%.hcmnext.workflow.v1.RetryNodeRequest\x1a&.hcmnext.workflow.v1.RetryNodeResponseBJZHgithub.com/monstercameron/hcm-next/gen/go/hcmnext/workflow/v1;workflowv1b\x06proto3"
+	"\tRetryNode\x12%.hcmnext.workflow.v1.RetryNodeRequest\x1a&.hcmnext.workflow.v1.RetryNodeResponseB`Z^github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/workflow/v1;workflowv1b\x06proto3"
 
 var (
 	file_hcmnext_workflow_v1_workflow_service_proto_rawDescOnce sync.Once

@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/platform/configregistry"
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/configregistry"
 )
 
 // TestTodo_CP_001 is the PRIMARY test the todo names. RED: "mutable

@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	ds "github.com/monstercameron/hcm-next/internal/operations/admincenter/diagnosticsession"
+	ds "github.com/monstercameron/human-capital-management-suite/internal/operations/admincenter/diagnosticsession"
 )
 
 func scope() ds.Scope {

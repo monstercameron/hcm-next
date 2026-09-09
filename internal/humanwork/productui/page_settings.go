@@ -2,7 +2,7 @@ package productui
 
 import (
 	"github.com/monstercameron/GoWebComponents/v5/ui"
-	"github.com/monstercameron/hcm-next/internal/humanwork/uicomponents"
+	"github.com/monstercameron/human-capital-management-suite/internal/humanwork/uicomponents"
 )
 
 func settingsPage(view View) ui.Node {

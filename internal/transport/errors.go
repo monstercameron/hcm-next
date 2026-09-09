@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/monstercameron/hcm-next/internal/transport/envelope"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/envelope"
 )
 
 // OwnedError converts an error returned by a handler port into the canonical

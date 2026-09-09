@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/tools/policy/internal/repopath"
+	"github.com/monstercameron/human-capital-management-suite/tools/policy/internal/repopath"
 )
 
 const celGoModuleFamily = "github.com/google/cel-go"
@@ -55,7 +55,7 @@ func TestCELBackendQualification(t *testing.T) {
 // TestTodo_LIB_005_Golden verifies the exact deferral rationale persists:
 // no expression backend needed until a bounded rule DSL exists.
 func TestTodo_LIB_005_Golden(t *testing.T) {
-	// The rationale: HCM Next has no bounded rule DSL that requires a
+	// The rationale: Human Capital Management Suite has no bounded rule DSL that requires a
 	// compiled expression language backend. The decision-table engine in
 	// internal/engines/rules provides pure, deterministic evaluation through
 	// structural conditions (equality, ordering, membership, range) without
@@ -107,7 +107,7 @@ func TestTodo_LIB_005_Integration(t *testing.T) {
 	}
 
 	// Verify the project uses the rules engine as the current DSL alternative
-	rulesImportPath := "github.com/monstercameron/hcm-next/internal/engines/rules"
+	rulesImportPath := "github.com/monstercameron/human-capital-management-suite/internal/engines/rules"
 	pkgs, err := repopath.ListPackages(root)
 	if err != nil {
 		t.Fatalf("listing packages: %v", err)

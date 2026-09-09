@@ -23,19 +23,19 @@ import (
 
 	"google.golang.org/grpc/metadata"
 
-	journeyv1 "github.com/monstercameron/hcm-next/gen/go/hcmnext/journey/v1"
-	"github.com/monstercameron/hcm-next/internal/data/pgtest"
-	"github.com/monstercameron/hcm-next/internal/data/pgxadapter"
-	"github.com/monstercameron/hcm-next/internal/humanwork/workspace"
-	"github.com/monstercameron/hcm-next/internal/intent/app"
-	"github.com/monstercameron/hcm-next/internal/intent/app/pgstore"
-	"github.com/monstercameron/hcm-next/internal/transport"
-	transportcell "github.com/monstercameron/hcm-next/internal/transport/cell"
-	"github.com/monstercameron/hcm-next/internal/transport/grpcserver"
-	transportjourney "github.com/monstercameron/hcm-next/internal/transport/journey"
-	"github.com/monstercameron/hcm-next/internal/transport/streaming"
-	"github.com/monstercameron/hcm-next/internal/trust"
-	"github.com/monstercameron/hcm-next/internal/trust/authz"
+	journeyv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/journey/v1"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/pgtest"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/pgxadapter"
+	"github.com/monstercameron/human-capital-management-suite/internal/humanwork/workspace"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/app"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/app/pgstore"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport"
+	transportcell "github.com/monstercameron/human-capital-management-suite/internal/transport/cell"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/grpcserver"
+	transportjourney "github.com/monstercameron/human-capital-management-suite/internal/transport/journey"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/streaming"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/authz"
 )
 
 // tunnelCursorKey signs the stream cursors this suite reads back. It is

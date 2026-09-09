@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/connectivity"
+	"github.com/monstercameron/human-capital-management-suite/internal/connectivity"
 )
 
 // FieldFilterConnector wraps a [connectivity.Connector], redacting every

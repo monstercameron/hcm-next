@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"sort"
 
-	model "github.com/monstercameron/hcm-next/gen/go/hcmnext/model"
-	"github.com/monstercameron/hcm-next/internal/intent"
-	"github.com/monstercameron/hcm-next/internal/intent/definitions"
+	model "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/model"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/definitions"
 )
 
 // BindCatalog binds the real fourteen drafted definitions
@@ -52,8 +52,8 @@ func BindCatalog() (Table, error) {
 
 // Digest computes a stable sha256 digest over t's compiled content, the same
 // canonical length-tagged-parts convention
-// [github.com/monstercameron/hcm-next/internal/intent/model.Registry.Digest]
-// and [github.com/monstercameron/hcm-next/tools/gen/storagemanifest] use.
+// [github.com/monstercameron/human-capital-management-suite/internal/intent/model.Registry.Digest]
+// and [github.com/monstercameron/human-capital-management-suite/tools/gen/storagemanifest] use.
 // Two Tables built from identical bindings and an identical generated
 // registry always agree — this is what TestTodo_MSRC_009_Golden pins.
 func (t Table) Digest() string {

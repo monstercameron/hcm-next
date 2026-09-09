@@ -22,7 +22,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/monstercameron/hcm-next/internal/trust/lease"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/lease"
 )
 
 // Errors. All are matchable with errors.Is.

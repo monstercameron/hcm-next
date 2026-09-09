@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/monstercameron/hcm-next/internal/domains/asset/quarantine"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/asset/quarantine"
 )
 
 // pngFixture is a minimal, structurally valid one-pixel PNG: the eight-byte

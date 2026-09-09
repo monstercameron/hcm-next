@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/monstercameron/hcm-next/internal/trust/workload"
+	"github.com/monstercameron/human-capital-management-suite/internal/trust/workload"
 )
 
 func verifiedIdentity(t *testing.T, authority *testAuthority, verifier *workload.Verifier, role workload.ProcessRole) workload.Identity {

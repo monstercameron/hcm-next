@@ -5,7 +5,7 @@ import (
 	"crypto/ed25519"
 	"testing"
 
-	legal "github.com/monstercameron/hcm-next/internal/governance/legal"
+	legal "github.com/monstercameron/human-capital-management-suite/internal/governance/legal"
 )
 
 // fixedSigner returns a deterministic ed25519 signer for reproducible golden
