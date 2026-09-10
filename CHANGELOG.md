@@ -2,6 +2,13 @@
 
 ## 2026-09-10
 
+- Land the execution conflict preflight (CONFLICT-004): execution-time
+  re-evaluation of the approval-pinned intent set against the current
+  set under one versioned policy — post-approval collisions block with
+  a per-overlap explanation, post-approval creations need reapproval,
+  drift needs replan, identical sets clear, and the read-only
+  evaluation carries a deterministic digest.
+
 - Land the availability revision (AVAIL-003): append-only per-worker
   revision log with prepare/commit two-phase recovery — availability
   never exists without its owning leave event, stale heads, inverted
