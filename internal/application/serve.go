@@ -686,6 +686,7 @@ func RequestLogger(logger bootstrap.Logger) func(transport.LogRecord) {
 			"tenant", record.TenantID,
 			"purpose", record.Purpose,
 			"outcome", outcome,
+			"error_type", record.ErrorType,
 			"duration", record.Duration.String())
 	}
 }

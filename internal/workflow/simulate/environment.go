@@ -109,11 +109,11 @@ func NewPromotionEnvironment() (*Environment, error) {
 	if err != nil {
 		return nil, fmt.Errorf("simulate: evaluation date: %w", err)
 	}
-	currentBase, err := fixtures.Money("165000.00", "USD")
+	currentBase, err := fixtures.Money(fixtures.JanePromotionBase, "USD")
 	if err != nil {
 		return nil, fmt.Errorf("simulate: current base: %w", err)
 	}
-	bonus, err := fixtures.Percent("0.1500")
+	bonus, err := fixtures.Percent(fixtures.JanePromotionBonus)
 	if err != nil {
 		return nil, fmt.Errorf("simulate: bonus target: %w", err)
 	}

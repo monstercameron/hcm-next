@@ -2,11 +2,39 @@ package transport
 
 import (
 	"context"
+	"fmt"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/monstercameron/human-capital-management-suite/internal/transport/envelope"
 )
+
+type diagnosticSQLState string
+
+func (s diagnosticSQLState) Error() string    { return "secret database payload" }
+func (s diagnosticSQLState) SQLState() string { return string(s) }
+
+func TestRequestDiagnosticClassificationDoesNotExposePayload(t *testing.T) {
+	for err, want := range map[error]string{context.Canceled: "CANCELED", context.DeadlineExceeded: "DEADLINE_EXCEEDED"} {
+		if got := diagnosticType(envelope.New(envelope.CodeUnavailable, "test", "unavailable").WithDiagnostic(fmt.Errorf("wrapped: %w", err))); got != want {
+			t.Fatalf("got %s want %s", got, want)
+		}
+	}
+	for state, want := range map[string]string{"42703": "SCHEMA_MISMATCH", "42P01": "SCHEMA_MISMATCH", "40001": "TRANSACTION_CONFLICT", "40P01": "TRANSACTION_CONFLICT", "23505": "UNIQUENESS_CONFLICT", "XX000": "DATABASE_FAILURE"} {
+		err := envelope.New(envelope.CodeUnavailable, "test", "unavailable").WithDiagnostic(fmt.Errorf("wrapped: %w", diagnosticSQLState(state)))
+		record := NewLogRecord("/test", KindGRPC, nil, "req-test", time.Millisecond, err)
+		if record.ErrorType != want || strings.Contains(fmt.Sprintf("%+v", record), "secret") {
+			t.Fatalf("unsafe or incorrect record: %+v", record)
+		}
+	}
+	if got := diagnosticType(envelope.New(envelope.CodeUnavailable, "test", "unavailable")); got != "UNCLASSIFIED" {
+		t.Fatal(got)
+	}
+	if got := diagnosticType(envelope.New(envelope.CodeUnavailable, "test", "unavailable").WithDiagnostic(fmt.Errorf("secret"))); got != "INTERNAL_FAILURE" {
+		t.Fatal(got)
+	}
+}
 
 func TestOwnedErrorNil(t *testing.T) {
 	if got := OwnedError(nil, nil); got != nil {

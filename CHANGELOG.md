@@ -2,6 +2,14 @@
 
 ## 2026-09-10
 
+- Land the worker/journey/diagnostic hardening (no dedicated ticks —
+  registry gap, see devlog): bounded worker-ID previews replacing an
+  unbounded exclusion loop, worker-specific declared baselines with
+  unknown-worker refusal, shared declared-baseline fixtures, and
+  bounded error-type diagnostics with a capability grant so log fields
+  never carry payloads — all tested, all above their coverage
+  baselines.
+
 - Land the domain kernels (CONF-006, PROMO-008, DATA-015, EVIDENCE-001,
   OPS-006, DOC-SIGN-001, ARCH-GO-024): payroll correction with
   bitemporal repair, promotion persistence traces, transaction lineage,
