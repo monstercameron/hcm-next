@@ -64,13 +64,13 @@ The ledger must support historical explanation without treating replay as automa
 
 Ledger authority is attached to the assertion, not inferred from the fact that an event was recorded:
 
-| Assertion class        | Meaning                                                                                           |
-| ---------------------- | ------------------------------------------------------------------------------------------------- |
+| Assertion class        | Meaning                                                                                                                 |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------- |
 | `TRANSACTION_FACT`     | Human Capital Management Suite authoritatively records its own proposal, decision, plan, attempt, or transaction result |
 | `DOMAIN_FACT`          | Human Capital Management Suite is the configured authority for the asserted domain fact and effective interval          |
-| `EXTERNAL_OBSERVATION` | Another configured authority reported a value at an observation time                              |
-| `CLAIM`                | A human, service, agent, document, or import asserted something not yet promoted to domain truth  |
-| `CORRECTION`           | A later governed assertion corrects, completes, or supersedes an earlier assertion                |
+| `EXTERNAL_OBSERVATION` | Another configured authority reported a value at an observation time                                                    |
+| `CLAIM`                | A human, service, agent, document, or import asserted something not yet promoted to domain truth                        |
+| `CORRECTION`           | A later governed assertion corrects, completes, or supersedes an earlier assertion                                      |
 
 For example, `CompensationObserved(amount=145000, source=Workday)` is authoritative evidence that Human Capital Management Suite observed Workday report that value. It becomes authoritative compensation truth only if the source-authority contract says that Workday governed that field and interval, or a governed process promotes the assertion.
 

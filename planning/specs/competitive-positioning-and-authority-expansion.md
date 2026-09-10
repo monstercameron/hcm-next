@@ -135,15 +135,15 @@ rate limit, idempotency behavior, observation method, and reconciliation limits.
 Every product/domain proposal receives exactly one current disposition per
 customer segment and phase:
 
-| Disposition                | Meaning                                                                         |
-| -------------------------- | ------------------------------------------------------------------------------- |
-| `OBSERVE`                  | Read/compare with authority remaining elsewhere                                 |
-| `ORCHESTRATE`              | Govern intent and effects while the incumbent remains authoritative             |
+| Disposition                | Meaning                                                                                               |
+| -------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `OBSERVE`                  | Read/compare with authority remaining elsewhere                                                       |
+| `ORCHESTRATE`              | Govern intent and effects while the incumbent remains authoritative                                   |
 | `OWN_SELECTED_SCOPE`       | Human Capital Management Suite is authoritative for explicitly named fields/populations/jurisdictions |
 | `REPLACE_SELECTED_PRODUCT` | Customer migrates a bounded incumbent function to Human Capital Management Suite                      |
 | `PARTNER_LONG_TERM`        | Human Capital Management Suite intentionally integrates rather than builds                            |
-| `DEFER`                    | Architectural contract only; no funded product work                             |
-| `REJECT`                   | Does not fit strategy/economics/risk                                            |
+| `DEFER`                    | Architectural contract only; no funded product work                                                   |
+| `REJECT`                   | Does not fit strategy/economics/risk                                                                  |
 
 The register is scoped, effective-dated, and evidence-backed. `Payroll`, `WFM`,
 or `Benefits` is too broad a scope. Examples are `US salaried base-pay authority`,

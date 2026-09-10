@@ -1984,13 +1984,13 @@ Its governing objective is:
 
 The analytical model preserves five distinct classes:
 
-| Class       | Meaning                                              | Example                                     |
-| ----------- | ---------------------------------------------------- | ------------------------------------------- |
-| Fact        | Authoritative business assertion or event            | Worker promoted from L4 to L5               |
-| Observation | A sourced assessment or reported belief              | Manager rates readiness as high             |
-| Decision    | An actor's explicit choice with rationale and inputs | Promotion approved                          |
-| Interaction | A meaningful action inside Human Capital Management Suite                  | Manager opened compensation then simulation |
-| Inference   | A model-derived hypothesis or score                  | Possible flight risk with medium confidence |
+| Class       | Meaning                                                   | Example                                     |
+| ----------- | --------------------------------------------------------- | ------------------------------------------- |
+| Fact        | Authoritative business assertion or event                 | Worker promoted from L4 to L5               |
+| Observation | A sourced assessment or reported belief                   | Manager rates readiness as high             |
+| Decision    | An actor's explicit choice with rationale and inputs      | Promotion approved                          |
+| Interaction | A meaningful action inside Human Capital Management Suite | Manager opened compensation then simulation |
+| Inference   | A model-derived hypothesis or score                       | Possible flight risk with medium confidence |
 
 ```text
 Business facts       Observations       Interactions
@@ -6136,11 +6136,11 @@ The default evaluation set is intentionally portable:
 | Language and runtime        | Go only, standard library, small focused Go packages                                                 |
 | UI                          | GWC/GoWebComponents with Go/WASM and selective SSR/hydration; no React or TypeScript                 |
 | Service contracts           | Protobuf, `grpc-go`, generated Go clients                                                            |
-| Web protocol bridge         | `grpcbridge`, maintained as a core Human Capital Management Suite library                                                  |
+| Web protocol bridge         | `grpcbridge`, maintained as a core Human Capital Management Suite library                            |
 | Structured definition build | SchemaFlux core pipeline plus authoritative Protobuf and migration sources                           |
 | Transactional data          | PostgreSQL with direct SQL, `pgx`, generated queries where valuable, transactional outbox            |
 | Local and test data         | PostgreSQL-compatible containers; SQLite only for bounded tooling where semantics are not misleading |
-| Authorization               | Open policy/relationship engine evaluated behind Human Capital Management Suite's AuthZ contract                           |
+| Authorization               | Open policy/relationship engine evaluated behind Human Capital Management Suite's AuthZ contract     |
 | Policy expressions          | CEL or another sandboxed open expression language where domain code is unnecessary                   |
 | Secrets                     | Open-source vault candidate plus cloud KMS/HSM adapters for stronger custody                         |
 | Object storage              | S3-compatible API with open-source local/test implementation                                         |

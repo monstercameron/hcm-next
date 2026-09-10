@@ -2,6 +2,11 @@
 
 ## 2026-09-10
 
+- Record the formatting sweep and UX evidence (docs): prettier table
+  rewraps across the rebrand-renamed specs, plan and design mock, the
+  supply-chain provenance array collapse, and the blind UX review log
+  that evidences the UI refinement batch — no content changes.
+
 - Land the product UI refinement (WEB-027, WEB-037, WEB-039, WEB-040,
   WEB-045, WEB-063): blind-review repairs across shell, navigation,
   launcher, identity and record pages — popover focus containment,

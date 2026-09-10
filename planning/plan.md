@@ -1324,7 +1324,7 @@ Initial internal planning objectives—not contractual customer promises—are:
 
 | Work class                                      | Initial planning objective                                                      |
 | ----------------------------------------------- | ------------------------------------------------------------------------------- |
-| Interactive projection read                     | p95 under 500 ms inside the Human Capital Management Suite boundary                                   |
+| Interactive projection read                     | p95 under 500 ms inside the Human Capital Management Suite boundary             |
 | Change preflight without slow external provider | p95 under 2 seconds                                                             |
 | Local authoritative command commit              | p99 under 1 second                                                              |
 | Critical projection freshness                   | p95 lag under 5 seconds; never used silently beyond its declared age            |
@@ -1895,7 +1895,7 @@ Owners review these risks at each authority gate. The complete long-term registe
 
 | Decision                           | Direction                                                                                                                                   |
 | ---------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| Initial product                    | Human Capital Management Suite ChangeOps                                                                                                                          |
+| Initial product                    | Human Capital Management Suite ChangeOps                                                                                                    |
 | Adjacent administrator product     | HRIS DataOps, productized incrementally from proven governed operator capabilities                                                          |
 | Integration architecture           | Horizontal connector definitions, tenant connections, mappings, operation journals, scheduling, observation, and repair                     |
 | Communications architecture        | Semantic intent, audience/endpoint resolution, deterministic content, secure inbox, channel policy, delivery evidence, and workflow signals |
@@ -1913,7 +1913,7 @@ Owners review these risks at each authority gate. The complete long-term registe
 | Completion model                   | Business, external consistency, reconciliation, operational, and obligation states remain separate                                          |
 | Initial relationship to incumbents | Overlay and control layer, not replacement                                                                                                  |
 | Core data model                    | Shared Person/Worker Graph with stable HCM primitives and governed metadata                                                                 |
-| Source of truth                    | Human Capital Management Suite for transaction truth; configured authority for employee domains                                                                   |
+| Source of truth                    | Human Capital Management Suite for transaction truth; configured authority for employee domains                                             |
 | Ledger assertion authority         | Transaction fact, domain fact, external observation, claim, and correction remain explicit                                                  |
 | Multi-stream transaction           | Validate expected heads and append local authoritative events, projections, and outbox atomically                                           |
 | Approval model                     | Immutable proposal and context-bound approval                                                                                               |
@@ -1995,7 +1995,7 @@ Owners review these risks at each authority gate. The complete long-term registe
 | Government reporting               | Versioned definitions and immutable FilingPackages through governed submission workflows                                                    |
 | Obligation model                   | Typed, assigned, deadline-aware requirements with evidence and satisfaction conditions                                                      |
 | Regulatory interpretation          | Vendor baseline plus specialist and customer-counsel-controlled production approval                                                         |
-| Legal interpretation               | Human Capital Management Suite baselines with final tenant configuration controlled by customer counsel                                                           |
+| Legal interpretation               | Human Capital Management Suite baselines with final tenant configuration controlled by customer counsel                                     |
 | Privacy processing                 | Purpose, legal basis, classification, parties, regions, retention, and transfer                                                             |
 | Sensitive ledger data              | Minimal immutable facts with encrypted, retainable, destructible payload references                                                         |
 | Compliance operations              | DSAR, retention, holds, DPIA, breach, and legal-change workflows                                                                            |
