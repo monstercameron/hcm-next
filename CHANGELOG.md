@@ -2,6 +2,12 @@
 
 ## 2026-09-10
 
+- Land the org kernels (CONF-007, CONF-025): the governed manager-change
+  lifecycle (propose through reconcile, cycles and overlaps refused,
+  tamper-evident approvals) and the conformance-only ChangeManager
+  intent compiler with typed block/replan negatives and zero production
+  exposure.
+
 - Land the outbox consumer group (EVENT-002): idempotent dispatch with
   per-partition checkpoints, fenced duplicates and per-record poison
   isolation with expiry requeue; checkpoints commit with application,
