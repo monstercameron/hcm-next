@@ -361,51 +361,9 @@ GRANT SELECT, INSERT ON leave_intent_link TO hcmnext_app;
 GRANT SELECT, INSERT ON leave_medical_detail TO hcmnext_app;
 
 -- +goose Down
-REVOKE ALL ON leave_medical_detail FROM hcmnext_app;
-REVOKE ALL ON leave_intent_link FROM hcmnext_app;
-REVOKE ALL ON leave_obligation FROM hcmnext_app;
-REVOKE ALL ON leave_work_restriction FROM hcmnext_app;
-REVOKE ALL ON leave_evidence_ref FROM hcmnext_app;
-REVOKE ALL ON leave_balance_posting FROM hcmnext_app;
-REVOKE ALL ON leave_availability_revision FROM hcmnext_app;
-REVOKE ALL ON leave_absence_link FROM hcmnext_app;
-REVOKE ALL ON leave_entitlement_segment FROM hcmnext_app;
-REVOKE ALL ON leave_program_eligibility FROM hcmnext_app;
-REVOKE ALL ON leave_record FROM hcmnext_app;
-REVOKE ALL ON leave_request FROM hcmnext_app;
-DROP POLICY tenant_isolation ON leave_medical_detail;
-DROP POLICY tenant_isolation ON leave_intent_link;
-DROP POLICY tenant_isolation ON leave_obligation;
-DROP POLICY tenant_isolation ON leave_work_restriction;
-DROP POLICY tenant_isolation ON leave_evidence_ref;
-DROP POLICY tenant_isolation ON leave_balance_posting;
-DROP POLICY tenant_isolation ON leave_availability_revision;
-DROP POLICY tenant_isolation ON leave_absence_link;
-DROP POLICY tenant_isolation ON leave_entitlement_segment;
-DROP POLICY tenant_isolation ON leave_program_eligibility;
-DROP POLICY tenant_isolation ON leave_record;
-DROP POLICY tenant_isolation ON leave_request;
-DROP TRIGGER leave_request_no_rewrite ON leave_request;
-DROP TRIGGER leave_record_no_rewrite ON leave_record;
-DROP TRIGGER leave_program_eligibility_no_rewrite ON leave_program_eligibility;
-DROP TRIGGER leave_entitlement_segment_no_rewrite ON leave_entitlement_segment;
-DROP TRIGGER leave_absence_link_no_rewrite ON leave_absence_link;
-DROP TRIGGER leave_availability_revision_no_rewrite ON leave_availability_revision;
-DROP TRIGGER leave_balance_posting_no_rewrite ON leave_balance_posting;
-DROP TRIGGER leave_evidence_ref_no_rewrite ON leave_evidence_ref;
-DROP TRIGGER leave_work_restriction_no_rewrite ON leave_work_restriction;
-DROP TRIGGER leave_obligation_no_rewrite ON leave_obligation;
-DROP TRIGGER leave_intent_link_no_rewrite ON leave_intent_link;
-DROP TRIGGER leave_medical_detail_no_rewrite ON leave_medical_detail;
-DROP TABLE leave_medical_detail;
-DROP TABLE leave_intent_link;
-DROP TABLE leave_obligation;
-DROP TABLE leave_work_restriction;
-DROP TABLE leave_evidence_ref;
-DROP TABLE leave_balance_posting;
-DROP TABLE leave_availability_revision;
-DROP TABLE leave_absence_link;
-DROP TABLE leave_entitlement_segment;
-DROP TABLE leave_program_eligibility;
-DROP TABLE leave_record;
-DROP TABLE leave_request;
+-- Leave tables are append-only evidence (SELECT/INSERT only, with the
+-- forbid_mutation trigger 00001 declares) and must not be silently
+-- discarded. This migration is intentionally irreversible.
+-- +goose StatementBegin
+DO $$ BEGIN RAISE EXCEPTION '00281 is irreversible: leave tables are durable evidence'; END $$;
+-- +goose StatementEnd

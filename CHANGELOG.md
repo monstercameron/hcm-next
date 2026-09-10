@@ -2,6 +2,13 @@
 
 ## 2026-09-10
 
+- Harden the admission retry evidence tables: 00282 scopes both primary
+  keys by tenant and repairs the cross-boundary foreign key from 00280,
+  and 00283 forces row-level security on both tables (00280 enabled RLS
+  without FORCE, which the parity gate rejects). 00281's Down now refuses
+  with P0001 like its neighbors so the admissionstore evidence wall holds;
+  manifest re-signed and evidence reports regenerated.
+
 - Backfill governance evidence for 43 completed todos so GOV-017 and
   GOV-003 pass with no new allowlist entries: LEAVE/AVAIL/BAL/INTENT/
   LEGAL/MSG/REPLAN/WORK/WF-DISC/OBS-013/WEB-024..036 evidence now names

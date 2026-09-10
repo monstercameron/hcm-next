@@ -543,7 +543,13 @@ migrations:
       checksum: "sha256:74bf9a4c02a583899dcb7958b726518ad54f2631c4066b6237dd7d3531b20afe"
     - version: 281
       name: 00281_medical_leave_return_to_work.sql
-      checksum: "sha256:568b928ec1e6374a256c74b79858d764cd81fd1322818265a6b2cad276108575"
+      checksum: "sha256:24cb5433af872a806da2e5b1ae0a71ea7c398857118f6a4fdab066ad3be467e8"
+    - version: 282
+      name: 00282_admission_retry_tenant_pk.sql
+      checksum: "sha256:496cdabaec1f381e01726889ff36e76c0bcb52e2454d7747f912326472c33e48"
+    - version: 283
+      name: 00283_admission_retry_force_rls.sql
+      checksum: "sha256:2920b205aa78e1f02c52aa144b1cca3e91a912291518f02b9d62acbdc82e7fc8"
   gaps:
     - version: 9
       reason: "No 00009_*.sql file exists under migrations/. Not documented anywhere in planning/todos.md, migrations/migrations.go or the DB-* todo evidence as of 2026-09-03. Recorded here as a NEXT-002 finding rather than silently renumbered or hidden; migrations.Files() (the Goose loader) is unaffected because Goose numbers by version, not by contiguous sequence."
@@ -903,4 +909,4 @@ signature:
   algorithm: ed25519
   public_key: 93019e7b15fc44dbfb7f36e105e465486e5d5a6ddec109abda44507e0d45332b
   key_fixture: tools/planning/gateevidence/testdata/dev-signing-key.yaml
-  value: "5c89efdb161cdc4c079a64f33d06a815496f1b00598912bee63ce0a8561b9b38c791a418c0af88915efd7120ef9f12d9a0f82eb1106c3a1e94d799b7865bc607"
+  value: "fb80cd8549d6075f30231f514789ef2631dbbee8213d40b5496f7edbe3b52f62321ddcf2424e663bf8afe0046f84b742d215039f0bc613e9b2193c6df457c803"

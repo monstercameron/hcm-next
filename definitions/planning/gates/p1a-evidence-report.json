@@ -1,6 +1,6 @@
 {
   "manifest_todo_id": "NEXT-002",
-  "manifest_digest": "c59b32e7f25328c6b31dcebd1db537a0994daa9e3d29a6e78a2a7cc7dfee4ce5",
+  "manifest_digest": "ec54b939170df14b4edaa8ffd0ce9122556dfdfa84f28442faa44a9698527137",
   "as_of": "2026-09-03",
   "decision": "GATE_CLEAR",
   "findings": [
