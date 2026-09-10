@@ -2,6 +2,11 @@
 
 ## 2026-09-10
 
+- Land the work-item kernels (WORK-007, WORK-008, WORK-009): fair
+  queue ordering with legal-authority precedence and reserved tenant
+  capacity, compartment authorization with recorded access decisions,
+  and typed restricted-review findings behind evidence grants.
+
 - Land the delivery kernels (MSG-007, MSG-008, MSG-009, MSG-010,
   MSG-013): honest attempt/recipient lifecycles, typed workflow
   signals, bounded failure reconciliation, content-gated redaction
