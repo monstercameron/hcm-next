@@ -1,0 +1,36 @@
+{
+  "PackageRef": "package/assignment-1",
+  "Children": [
+    {
+      "Component": "BASE",
+      "Op": "REVISE",
+      "Revision": 5,
+      "ApprovalRef": "approval/captains-1"
+    }
+  ],
+  "Components": [
+    {
+      "Type": "BASE",
+      "Op": "REVISE",
+      "Revision": 5,
+      "Carried": false,
+      "Retroactive": true
+    },
+    {
+      "Type": "BONUS_TARGET",
+      "Op": "REVISE",
+      "Revision": 2,
+      "Carried": true,
+      "Retroactive": false
+    },
+    {
+      "Type": "ALLOWANCE",
+      "Op": "REVISE",
+      "Revision": 7,
+      "Carried": true,
+      "Retroactive": false
+    }
+  ],
+  "CorrectionChain": null,
+  "Digest": "sha256:b40a96903272983df37f11fb73283059616537fdc77d62b27ef7ea1cd6b78a87"
+}

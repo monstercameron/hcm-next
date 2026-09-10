@@ -2,6 +2,12 @@
 
 ## 2026-09-10
 
+- Land the compensation kernels (CONF-020, COMP-005): standalone
+  compensation change with exact-decimal simulation, live-budget-fence
+  reservation, atomic commit and failed-effect-only repair, plus parent
+  and bounded child intent composition with omitted components carried
+  at exact revisions — every negative case sentinel-typed.
+
 - Land the governed cancellation kernels (WF-RUN-010, WF-RUN-011,
   WF-STEP-009): pure cancellation decisions over pinned subworkflow
   children — clean cancel keeps per-child reports and intact history,
