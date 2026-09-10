@@ -2,6 +2,13 @@
 
 ## 2026-09-10
 
+- Land the product UI refinement (WEB-027, WEB-037, WEB-039, WEB-040,
+  WEB-045, WEB-063): blind-review repairs across shell, navigation,
+  launcher, identity and record pages — popover focus containment,
+  hydration-gated router mount, explicit shell props, worker-ID page
+  previews, i18n and typed-style migrations — with the wasm shell
+  contract holding and embedded journey assets regenerated.
+
 - Land the worker/journey/diagnostic hardening (no dedicated ticks —
   registry gap, see devlog): bounded worker-ID previews replacing an
   unbounded exclusion loop, worker-specific declared baselines with

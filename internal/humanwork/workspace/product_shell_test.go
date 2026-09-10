@@ -1,6 +1,7 @@
 package workspace
 
 import (
+	"html"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -11,6 +12,23 @@ import (
 	"github.com/monstercameron/human-capital-management-suite/internal/transport"
 	"github.com/monstercameron/human-capital-management-suite/internal/trust"
 )
+
+func TestProductLoadingShellSeedsMenuQueryForHydration(t *testing.T) {
+	for _, query := range []string{"language", `a"<b>`, "  people  "} {
+		doc, err := productShellDocumentForRouteQuery(JourneyConfig{Roles: []string{"comp_admin"}}, true, productui.ResolveProductLocale("en-US"), productui.PageHome, query)
+		if err != nil {
+			t.Fatal(err)
+		}
+		start := strings.Index(doc, `id="menu-filter"`)
+		if start < 0 {
+			t.Fatal("missing loading-shell filter")
+		}
+		end := strings.Index(doc[start:], ">")
+		if end < 0 || !strings.Contains(doc[start:start+end], `value="`+html.EscapeString(strings.TrimSpace(query))+`"`) {
+			t.Fatalf("loading-shell input lost or failed to escape query %q", query)
+		}
+	}
+}
 
 func TestProductShellCarriesAuthenticatedLiveClientConfiguration(t *testing.T) {
 	h, token := newShellHandler(t, false)

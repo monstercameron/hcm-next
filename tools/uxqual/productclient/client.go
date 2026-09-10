@@ -20,6 +20,7 @@ import (
 	"github.com/monstercameron/human-capital-management-suite/internal/humanwork/productui"
 	"github.com/monstercameron/human-capital-management-suite/internal/humanwork/uicomponents"
 	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
+	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/journeyclient"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -177,6 +178,7 @@ var pageRouteQueryKeys = map[productui.PageID][]string{
 	productui.PagePerson:       {"person", "q", "page", "page_size", "team", "location", "sort", "dir", "workflow_q", "history_q", "outcome", "history_person", "history_year", "history_sort", "history_dir", "history_page", "history_page_size"},
 	productui.PageOrganization: {"org_view"},
 	productui.PageStudio:       {"mode"},
+	productui.PageRoles:        {"q"},
 }
 
 func safeRouteValue(value string) bool {
@@ -291,6 +293,8 @@ func CanonicalHref(state State) string {
 		setHistoryRouteValues(values, state)
 	case productui.PageOrganization:
 		set("org_view", request.OrganizationView)
+	case productui.PageRoles:
+		set("q", request.Query)
 	case productui.PageStudio:
 		set("mode", request.Mode)
 	}
@@ -539,6 +543,17 @@ func load(ctx context.Context, service Service, session Session, state State, ba
 	} else if requirements.workers {
 		var projectionErr error
 		view.People, projectionErr = projectWorkers(workersResponse.GetWorkers())
+		if options := workersResponse.GetOptions(); options != nil {
+			unavailable := make(map[string]bool, len(workersResponse.GetWorkers()))
+			for _, worker := range workersResponse.GetWorkers() {
+				if worker != nil {
+					unavailable[worker.GetWorkerRef()] = !journeyclient.HasPromotionChoices(options, worker)
+				}
+			}
+			for index := range view.People {
+				view.People[index].PromotionUnavailable = unavailable[view.People[index].ID]
+			}
+		}
 		if projectionErr != nil {
 			failures = append(failures, projectionErr)
 		}
@@ -936,13 +951,31 @@ func projectPersonWorkflows(view productui.View, workerRef string) []productui.P
 func stagePresentation(stage journeyv1.JourneyStage) (status, tone string, terminal bool) {
 	switch stage {
 	case journeyv1.JourneyStage_JOURNEY_STAGE_PROPOSED:
-		return "Ready to execute", "neutral", false
+		return "Ready to start approval", "neutral", false
 	case journeyv1.JourneyStage_JOURNEY_STAGE_BLOCKED:
 		return "Blocked", "warning", false
 	case journeyv1.JourneyStage_JOURNEY_STAGE_AWAITING_APPROVAL:
 		return "Awaiting approval", "warning", false
 	case journeyv1.JourneyStage_JOURNEY_STAGE_COMPLETED:
 		return "Completed", "success", true
+	case journeyv1.JourneyStage_JOURNEY_STAGE_RECORDED:
+		return "Recorded", "success", true
+	case journeyv1.JourneyStage_JOURNEY_STAGE_FINANCE_APPROVAL:
+		return "Finance approval", "warning", false
+	case journeyv1.JourneyStage_JOURNEY_STAGE_MANAGER_APPROVAL:
+		return "Manager approval", "warning", false
+	case journeyv1.JourneyStage_JOURNEY_STAGE_WAITING_EFFECTIVE_DATE:
+		return "Waiting for effective date", "neutral", false
+	case journeyv1.JourneyStage_JOURNEY_STAGE_REVALIDATION:
+		return "Final checks", "neutral", false
+	case journeyv1.JourneyStage_JOURNEY_STAGE_REAPPROVAL:
+		return "Approval required again", "warning", false
+	case journeyv1.JourneyStage_JOURNEY_STAGE_EXECUTED:
+		return "Recording promotion", "neutral", false
+	case journeyv1.JourneyStage_JOURNEY_STAGE_OBSERVING_EFFECTS:
+		return "Checking downstream effects", "neutral", false
+	case journeyv1.JourneyStage_JOURNEY_STAGE_REPAIR_REQUIRED:
+		return "Needs repair", "danger", false
 	case journeyv1.JourneyStage_JOURNEY_STAGE_REJECTED:
 		return "Rejected", "neutral", true
 	case journeyv1.JourneyStage_JOURNEY_STAGE_FAILED:

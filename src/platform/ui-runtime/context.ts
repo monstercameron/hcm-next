@@ -1,4 +1,7 @@
-import type { BrandPack, SurfaceMode } from "@human-capital-management-suite/ui-contracts";
+import type {
+  BrandPack,
+  SurfaceMode,
+} from "@human-capital-management-suite/ui-contracts";
 
 export type UiRuntimeActor = {
   id: string;

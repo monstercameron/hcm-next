@@ -141,7 +141,7 @@ func declarenavigationInteractionRefinementsStyles() {
 		mediaRule(gwccss.MinW(761), gwccss.Display.Block),
 	)
 	declareGlobal(".primary-nav .nav-entry>.nav-link",
-		mediaRule(gwccss.MinW(761), gwccss.Raw("padding-inline-end", "46px")),
+		mediaRule(gwccss.MinW(761), gwccss.Raw("padding-inline-end", "36px")),
 	)
 	declareGlobal(".primary-nav .nav-favorite",
 		mediaRule(gwccss.MinW(761), gwccss.Position.Absolute, gwccss.Top(gwccss.Percent(50)), gwccss.Raw("inset-inline-end", "2px"), gwccss.Raw("translate", "0 -50%")),
@@ -987,6 +987,9 @@ func peopleActionColumnStylesStylesheet() string {
 }
 
 func declarepeopleActionColumnStylesStyles() {
+	declareGlobal(".people-table td:last-child:has(.popover-root[open])",
+		gwccss.ZIndex(8),
+	)
 	declareGlobal(".people-table :is(th,td):last-child",
 		mediaRule(gwccss.MinW(1051), gwccss.Position.Sticky, gwccss.Raw("inset-inline-end", "0"), gwccss.Bg(gwccss.Var("surface")), gwccss.Raw("box-shadow", "-10px 0 16px color-mix(in srgb,var(--ink) 5%,transparent)")),
 	)

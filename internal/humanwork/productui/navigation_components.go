@@ -61,6 +61,7 @@ type MenuFilterProps struct {
 	Navigate  func(string)
 	OnInput   func(string)
 	OnFilter  func(string)
+	OnClear   func()
 }
 
 type MenuHiddenInput struct {
@@ -99,14 +100,13 @@ func navigationSidebarPropsForQuery(view View) NavigationSidebarProps {
 			}
 			view.Navigate(filterHref(query))
 		}
+		filter.OnClear = func() {
+			if view.CancelDebouncedNavigation != nil {
+				view.CancelDebouncedNavigation()
+			}
+		}
 		if view.NavigateDebounced != nil {
 			filter.OnInput = func(query string) {
-				if strings.TrimSpace(query) == view.MenuQuery {
-					if view.CancelDebouncedNavigation != nil {
-						view.CancelDebouncedNavigation()
-					}
-					return
-				}
 				view.NavigateDebounced(filterHref(query))
 			}
 		}
@@ -123,9 +123,6 @@ func navigationSidebarPropsForQuery(view View) NavigationSidebarProps {
 	}
 	support := make([]NavigationItemProps, 0, len(supportItems))
 	for _, item := range supportItems {
-		if navigationSearchScore(item, view.MenuQuery) == 0 {
-			continue
-		}
 		props := navigationLeafProps(view, item, false)
 		props.FavoriteHref = ""
 		support = append(support, props)
@@ -317,13 +314,22 @@ func NavigationSidebar(props NavigationSidebarProps) ui.Node {
 	}, propQuery)
 	if props.Search != nil {
 		search := props.Search
+		// Local input must project immediately; the effect synchronizes genuine
+		// route changes without overwriting a draft with unchanged route props.
 		props = search(query.Get())
 		props.Search = search
 		filterInput := props.Filter.OnInput
+		filterClear := props.Filter.OnClear
 		props.Filter.OnInput = func(next string) {
 			query.Set(next)
 			if filterInput != nil {
 				filterInput(next)
+			}
+		}
+		props.Filter.OnClear = func() {
+			query.Set("")
+			if filterClear != nil {
+				filterClear()
 			}
 		}
 	}
@@ -351,7 +357,17 @@ func NavigationSidebar(props NavigationSidebarProps) ui.Node {
 		}
 		menu = append(menu, ui.CreateElement(NavigationItem, item))
 	}
-	if len(menu) == 0 && len(props.Support) == 0 {
+	// Matching support pages belong beside search results, not below an empty
+	// scroll region. Keep only the non-matches in the stable recovery area.
+	supportItems := make([]NavigationItemProps, 0, len(props.Support))
+	for _, item := range props.Support {
+		if strings.TrimSpace(props.Filter.Query) != "" && item.MatchScore > 0 {
+			menu = append(menu, ui.CreateElement(NavigationItem, item))
+		} else {
+			supportItems = append(supportItems, item)
+		}
+	}
+	if len(menu) == 0 {
 		emptyText := props.EmptyText
 		if emptyText == "" {
 			emptyText = props.Text("nav.none")
@@ -359,9 +375,9 @@ func NavigationSidebar(props NavigationSidebarProps) ui.Node {
 		menu = append(menu, html.Li(html.Props{Class: "nav-empty", Raw: map[string]any{"role": "status"}}, ui.Text(emptyText)))
 	}
 	children = append(children, html.Nav(html.Props{Class: "primary-nav", Aria: map[string]string{"label": props.Text("nav.main")}}, html.Ul(html.Props{}, menu...)))
-	if len(props.Support) > 0 {
-		support := make([]ui.Node, 0, len(props.Support))
-		for _, item := range props.Support {
+	if len(supportItems) > 0 {
+		support := make([]ui.Node, 0, len(supportItems))
+		for _, item := range supportItems {
 			support = append(support, ui.CreateElement(NavigationItem, item))
 		}
 		children = append(children, html.Nav(html.Props{Class: "nav-bottom", Aria: map[string]string{"label": props.Text("nav.support")}}, support...))
@@ -455,7 +471,21 @@ func MenuFilter(props MenuFilterProps) ui.Node {
 		children = append(children, html.Tag("input", html.Props{Name: hidden.Name, Value: hidden.Value, Raw: map[string]any{"type": "hidden"}}))
 	}
 	if props.Query != "" {
-		children = append(children, softwareLink(props.Navigate, html.Props{Class: "menu-filter-clear"}, props.ClearHref, ui.Text(props.Text("nav.filter_clear"))))
+		clearNavigate := menuFilterClearNavigate(props)
+		children = append(children, softwareLink(clearNavigate, html.Props{Class: "menu-filter-clear"}, props.ClearHref, ui.Text(props.Text("nav.filter_clear"))))
 	}
 	return html.Form(formProps, children...)
+}
+
+func menuFilterClearNavigate(props MenuFilterProps) func(string) {
+	if props.OnClear == nil {
+		return props.Navigate
+	}
+	clear, navigate := props.OnClear, props.Navigate
+	return func(href string) {
+		clear()
+		if navigate != nil {
+			navigate(href)
+		}
+	}
 }

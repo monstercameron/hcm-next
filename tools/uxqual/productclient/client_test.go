@@ -22,6 +22,35 @@ func TestOpenWorkCountExcludesTerminalJourneys(t *testing.T) {
 	}
 }
 
+func TestRecordedJourneyLeavesOpenWorkAndAllKnownStagesHaveLabels(t *testing.T) {
+	items, err := projectJourneys([]*journeyv1.Journey{{IntentId: "recorded", Stage: journeyv1.JourneyStage_JOURNEY_STAGE_RECORDED}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(items) != 1 || !items[0].Terminal || len(productui.OpenWorkItems(items)) != 0 {
+		t.Fatal("recorded promotion incorrectly remains open")
+	}
+	for number, name := range journeyv1.JourneyStage_name {
+		if number == 0 {
+			continue
+		}
+		label, _, _ := stagePresentation(journeyv1.JourneyStage(number))
+		if label == "Status unavailable" {
+			t.Errorf("known stage has no presentation: %s", name)
+		}
+	}
+}
+
+func TestUXBLIND014RoleFilterSurvivesCanonicalization(t *testing.T) {
+	state, err := ParseState("/workspace/app/admin/roles", "locale=en-US&q=Rafael")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if state.Request.Query != "Rafael" || CanonicalHref(state) != "/workspace/app/admin/roles?locale=en-US&q=Rafael" {
+		t.Fatalf("role query lost: %+v, %s", state.Request, CanonicalHref(state))
+	}
+}
+
 func TestContentLoadingViewRetargetsRouteWithoutDiscardingAuthorizedShell(t *testing.T) {
 	previous := productui.NewView(productui.PageHome, "HarborCare Demo", "Rafael Torres", "admin")
 	previous.Viewer = productui.ViewerProfile{Name: "Rafael Torres", PhotoURL: "/workspace/assets/rafael-small.jpg"}
@@ -175,6 +204,36 @@ func TestParseStateUsesProductionRoutes(t *testing.T) {
 		state.Request.HistoryPerson != "worker-avery" || state.Request.HistoryYear != "2026" || state.Request.HistorySort != "person" ||
 		state.Request.HistoryDirection != "asc" || !state.Request.NavCollapsed {
 		t.Fatalf("history route state was not preserved: state=%+v err=%v", state, err)
+	}
+}
+
+func TestPromotionEligibilityProjectsPublishedChoices(t *testing.T) {
+	state, err := ParseState("/workspace/app/people", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	options := &journeyv1.WorkforceOptions{
+		Currency:       "USD",
+		Placements:     []*journeyv1.WorkforcePlacementOption{{JobCode: "ENG2", Grade: "P2", PayZone: "US", Currency: "USD"}},
+		PromotionPaths: []*journeyv1.PromotionPathOption{{SourceJobCode: "ENG1", SourceGrade: "P1", TargetJobCode: "ENG2", TargetGrade: "P2"}},
+	}
+	service := Service{
+		ListJourneys: func(context.Context, *journeyv1.ListJourneysRequest) (*journeyv1.ListJourneysResponse, error) {
+			return &journeyv1.ListJourneysResponse{}, nil
+		},
+		ListWorkers: func(context.Context, *journeyv1.ListWorkersRequest) (*journeyv1.ListWorkersResponse, error) {
+			return &journeyv1.ListWorkersResponse{Options: options, Workers: []*journeyv1.Worker{
+				{WorkerRef: "eligible", JobCode: "ENG1", Grade: "P1", PayZone: "US", Currency: "USD"},
+				{WorkerRef: "no-path", JobCode: "SALES1", Grade: "P1", PayZone: "US", Currency: "USD"},
+			}}, nil
+		},
+	}
+	view, err := Load(context.Background(), service, Session{}, state)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(view.People) != 2 || view.People[0].PromotionUnavailable || !view.People[1].PromotionUnavailable {
+		t.Fatalf("published eligibility not preserved: %+v", view.People)
 	}
 }
 

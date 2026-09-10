@@ -42,9 +42,13 @@ func AdminPage(props AdminPageProps) ui.Node {
 }
 
 func AdminHero(props AdminHeroProps) ui.Node {
+	var action ui.Node
+	if props.Action.Href != "" {
+		action = ui.CreateElement(ActionLink, props.Action)
+	}
 	return html.Section(html.Props{Class: "surface admin-hero"},
 		html.Div(html.Props{}, html.Small(html.Props{}, ui.Text(props.Eyebrow)), html.H2(html.Props{}, ui.Text(props.Title)), html.P(html.Props{Class: "muted"}, ui.Text(props.Description))),
-		ui.CreateElement(ActionLink, props.Action),
+		action,
 	)
 }
 

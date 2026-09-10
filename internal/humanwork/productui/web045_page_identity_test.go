@@ -66,7 +66,7 @@ func TestTodo_WEB_045_Golden(t *testing.T) {
 	}
 	digest := sha256.Sum256([]byte(node))
 	got := hex.EncodeToString(digest[:])
-	const want = "0016c9351b1322688e2a3f124e91b53678e75a17b2b4f29d803e27972853f938"
+	const want = "16bd305d89854be0220fd111fb17b977d76509ad0df343dabac7cf86524f3568"
 	if got != want {
 		t.Fatalf("page-identity header golden digest = %s, want %s", got, want)
 	}
@@ -99,8 +99,8 @@ func TestTodo_WEB_045_Browser(t *testing.T) {
 		t.Fatal("main landmark lost its page-title labelling")
 	}
 	scopeLink := findScopeLink(head)
-	if scopeLink == nil || xhtmlAttr(scopeLink, "href") != "/workspace/app/settings" {
-		t.Fatal("authorized scope control is not a settings link")
+	if scopeLink != nil {
+		t.Fatal("informational scope must not masquerade as a context switch")
 	}
 
 	restrictedDoc, err := Render(ApplyPagePermissions(testView(PageHistory), []RolePagePermission{

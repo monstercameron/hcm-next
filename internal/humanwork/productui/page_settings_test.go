@@ -50,11 +50,11 @@ func TestLocalePreferencesPanelIsAccessibleAndDirectionAware(t *testing.T) {
 
 func TestSettingsPageSubtitleIsLocalized(t *testing.T) {
 	german := ApplyRequest(testView(PageSettings), PageRequest{Locale: "de-DE"})
-	if german.Subtitle != "Aktuelle authentifizierte Sitzung und verfügbare Einstellungen." {
+	if german.Subtitle != "Verwalten Sie Sprache, Barrierefreiheit und persönliche Einstellungen." {
 		t.Fatalf("German settings subtitle = %q", german.Subtitle)
 	}
 	arabic := ApplyRequest(testView(PageSettings), PageRequest{Locale: "ar"})
-	if arabic.Subtitle != "الجلسة المصادق عليها حاليًا والتفضيلات المتاحة." {
+	if arabic.Subtitle != "أدر لغتك وإعدادات إمكانية الوصول وتفضيلاتك الشخصية." {
 		t.Fatalf("Arabic settings subtitle = %q", arabic.Subtitle)
 	}
 }

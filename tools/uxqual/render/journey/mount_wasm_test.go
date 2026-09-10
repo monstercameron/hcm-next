@@ -6,8 +6,43 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/monstercameron/GoWebComponents/v5/html"
 	gwctest "github.com/monstercameron/GoWebComponents/v5/testkit/render"
+	"github.com/monstercameron/GoWebComponents/v5/ui"
 )
+
+func TestJourneyLoadCompletesBeforeSubscription(t *testing.T) {
+	// Initialize the UI facade before the testkit installs its runtime.
+	_ = ui.RenderInto(nil, nil)
+	fixture := gwctest.New(t)
+	store := NewStore(Page{Title: "Loading journeys"})
+	completed := false
+	fixture.Render(liveComponent(store, func(page Page) ui.Node {
+		if !completed {
+			completed = true
+			// Force the response into the read/subscribe gap.
+			store.Set(Page{Title: "Journeys ready"})
+		}
+		return html.Div(html.Props{}, ui.Text(page.Title))
+	}))
+	fixture.Flush()
+	if fixture.Text() != "Journeys ready" {
+		t.Fatalf("stuck page: %q", fixture.Text())
+	}
+	if store.SubscriberCount() != 1 {
+		t.Fatal("missing or duplicate subscription")
+	}
+	store.Set(Page{Title: "Later update"})
+	fixture.Flush()
+	if fixture.Text() != "Later update" {
+		t.Fatal("later updates stopped rendering")
+	}
+	fixture.Rerender(nil)
+	fixture.Flush()
+	if store.SubscriberCount() != 0 {
+		t.Fatal("unmount leaked subscription")
+	}
+}
 
 // These tests carry the same build tag as mount_wasm.go so
 // `GOOS=js GOARCH=wasm go vet ./tools/uxqual/render/journey/` type-checks

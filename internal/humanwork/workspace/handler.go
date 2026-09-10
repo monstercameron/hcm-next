@@ -527,7 +527,7 @@ func (h *Handler) serveLoginSubmit(w http.ResponseWriter, r *http.Request) {
 	if personaID := strings.TrimSpace(r.PostFormValue(paramLoginPersona)); personaID != "" {
 		persona, ok := h.devPersonas[personaID]
 		if !ok {
-			h.writeLoginPage(w, http.StatusUnauthorized, "That development persona was not accepted.")
+			h.writeLoginPage(w, http.StatusUnauthorized, "We couldn't find that workspace persona. Try again, or use a bearer credential or contact the workspace administrator.")
 			return
 		}
 		token = persona.Token
@@ -541,7 +541,7 @@ func (h *Handler) serveLoginSubmit(w http.ResponseWriter, r *http.Request) {
 	if _, err := h.config.Verifier.Verify(r.Context(), trust.Credential{
 		Token: token, Audience: h.config.Audience,
 	}); err != nil {
-		h.writeLoginPage(w, http.StatusUnauthorized, "That credential was not accepted.")
+		h.writeLoginPage(w, http.StatusUnauthorized, "We couldn't sign you in right now. Try again; if the problem continues, use a bearer credential or contact the workspace administrator.")
 		return
 	}
 	http.SetCookie(w, &http.Cookie{
@@ -587,7 +587,7 @@ func normalizeBearerInput(raw string) string {
 func (h *Handler) writeLoginPage(w http.ResponseWriter, status int, problem string) {
 	var banner string
 	if problem != "" {
-		banner = `<div class="status-banner" data-status="failed" role="alert">` + html.EscapeString(problem) + `</div>`
+		banner = `<div class="status-banner" data-status="failed" role="alert">` + html.EscapeString(problem) + ` <a href="#credential-sign-in">Use a bearer credential</a></div>`
 	}
 	var personaForms strings.Builder
 	for _, id := range []string{"admin", "hiring-manager", "payroll-manager", "individual-contributor"} {
@@ -598,15 +598,19 @@ func (h *Handler) writeLoginPage(w http.ResponseWriter, status int, problem stri
 		personaForms.WriteString(`<form class="persona" method="post" action="` + PathLogin + `">`)
 		personaForms.WriteString(`<span class="persona-access">` + html.EscapeString(persona.Access) + `</span>`)
 		personaForms.WriteString(`<strong>` + html.EscapeString(persona.Name) + `</strong>`)
-		personaForms.WriteString(`<span>` + html.EscapeString(persona.Description) + `</span>`)
+		personaForms.WriteString(`<span>` + html.EscapeString(loginPersonaDescription(persona)) + `</span>`)
 		// Put the selected persona on the successful submit control itself.
 		// Besides making the association explicit to assistive technology, this
 		// avoids depending on a hidden input surviving browser form mediation.
 		personaForms.WriteString(`<button type="submit" name="` + paramLoginPersona + `" value="` + html.EscapeString(persona.ID) + `">Continue as ` + html.EscapeString(persona.Name) + `</button></form>`)
 	}
-	credentialForm := `<details class="advanced"><summary>Use a bearer credential</summary><form method="post" action="` + PathLogin + `"><label for="` + paramLoginToken + `">Bearer credential</label><input type="password" id="` + paramLoginToken + `" name="` + paramLoginToken + `" autocomplete="off"><button type="submit">Sign in</button></form></details>`
+	credentialDisclosure := ""
+	if problem != "" {
+		credentialDisclosure = " open"
+	}
+	credentialForm := `<details class="advanced" id="credential-sign-in"` + credentialDisclosure + `><summary>Use a bearer credential</summary><p>Paste the credential provided by your workspace administrator. It is used only to start this session.</p><form method="post" action="` + PathLogin + `"><label for="` + paramLoginToken + `">Bearer credential</label><input type="password" id="` + paramLoginToken + `" name="` + paramLoginToken + `" autocomplete="off"><button type="submit">Sign in</button></form></details>`
 	if len(h.devPersonas) == 0 {
-		credentialForm = `<form method="post" action="` + PathLogin + `"><label for="` + paramLoginToken + `">Bearer credential</label><input type="password" id="` + paramLoginToken + `" name="` + paramLoginToken + `" autocomplete="off" required><button type="submit">Sign in</button></form>`
+		credentialForm = `<form id="credential-sign-in" method="post" action="` + PathLogin + `"><label for="` + paramLoginToken + `">Bearer credential</label><input type="password" id="` + paramLoginToken + `" name="` + paramLoginToken + `" autocomplete="off" required><button type="submit">Sign in</button></form>`
 	}
 	stylesheet := loginStylesheet()
 	doc := `<!doctype html>
@@ -622,13 +626,28 @@ func (h *Handler) writeLoginPage(w http.ResponseWriter, status int, problem stri
 <div class="login-brand"><span class="login-mark" aria-hidden="true">H</span><strong>HarborCare</strong></div>
 <p class="persona-access">Local development</p><h1>Choose a workspace persona</h1>
 <p class="login-intro">Each persona starts a signed server session with different permissions. Production deployments use the configured enterprise identity provider.</p>
-` + banner + `
-<div class="persona-grid">` + personaForms.String() + `</div>` + credentialForm + `
+<div class="persona-grid">` + personaForms.String() + `</div>
+` + banner + credentialForm + `
 </section></main>
 </body>
 </html>
 `
 	h.writeLoginDocument(w, status, doc, stylesheet)
+}
+
+func loginPersonaDescription(persona DevPersona) string {
+	switch persona.ID {
+	case "admin":
+		return "Review people data, approve compensation changes, and manage workspace settings."
+	case "hiring-manager":
+		return "Review hiring and organization requests, and follow up on team changes."
+	case "payroll-manager":
+		return "Review payroll information, reports, and assigned workflow requests."
+	case "individual-contributor":
+		return "View your employment details, personal tasks, and organization information."
+	default:
+		return persona.Description
+	}
 }
 
 func loginStylesheet() string {

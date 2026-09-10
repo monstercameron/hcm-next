@@ -49,6 +49,40 @@ func declarevisualQARefinementsStyles() {
 		gwccss.Raw("white-space", "normal"),
 		gwccss.Raw("text-overflow", "clip"),
 	)
+	declareGlobal(".sidebar .nav-copy>.nav-label",
+		mediaRule(gwccss.MinW(761),
+			gwccss.Raw("white-space", "normal"),
+			gwccss.Raw("overflow-wrap", "normal"),
+			gwccss.Raw("word-break", "normal"),
+			gwccss.Raw("hyphens", "none"),
+		),
+	)
+	declareGlobal(".global-search .global-search-input",
+		gwccss.Raw("padding-block", "10px"),
+		gwccss.Raw("padding-inline", "48px 14px"),
+	)
+	declareGlobal(".global-search-glyph",
+		gwccss.W(gwccss.Px(20)),
+		gwccss.Raw("text-align", "center"),
+	)
+	declareGlobal(".people-page",
+		gwccss.Gap(gwccss.RawLength("calc(var(--hcm-space-3) * var(--hcm-density))")),
+	)
+	declareGlobal(".people-filter",
+		gwccss.PaddingY(gwccss.RawLength("calc(var(--hcm-space-2) * var(--hcm-density))")),
+		gwccss.PaddingX(gwccss.RawLength("calc(var(--hcm-space-2) * var(--hcm-density))")),
+	)
+	declareGlobal(".people-table .data-table-row",
+		mediaRule(gwccss.MaxW(1050),
+			gwccss.Gap(gwccss.RawLength("calc(var(--hcm-space-1) * var(--hcm-density))")),
+			gwccss.Padding(gwccss.RawLength("calc(var(--hcm-space-2) * var(--hcm-density))")),
+		),
+	)
+	declareGlobal(".people-table .data-table-cell",
+		mediaRule(gwccss.MaxW(1050),
+			gwccss.Gap(gwccss.RawLength("calc(var(--hcm-space-2) * var(--hcm-density))")),
+		),
+	)
 	declareGlobal(".brand-logo-slot[data-hcm-brand-logo-state=\"fallback\"] .wordmark-label",
 		mediaRule(gwccss.RawMedia("(min-width:761px) and (max-width:1190px)"), gwccss.Display.None),
 	)
@@ -802,7 +836,8 @@ func organizationDisclosureStylesStylesheet() string {
 }
 
 func declareorganizationDisclosureStylesStyles() {
-	declareGlobal(".org-branches",
+	declareGlobal(".organization-page .org-branches",
+		gwccss.Raw("grid-template-columns", "minmax(0,1fr)"),
 		gwccss.Raw("align-items", "start"),
 	)
 	declareGlobal(".organization-unit",
@@ -844,6 +879,7 @@ func declareorganizationDisclosureStylesStyles() {
 	)
 	declareGlobal(".organization-unit-members",
 		gwccss.Display.Grid,
+		gwccss.Raw("grid-template-columns", "repeat(auto-fit,minmax(min(100%,280px),1fr))"),
 		gwccss.Gap(gwccss.Px(8)),
 		gwccss.Margin(gwccss.Zero),
 		gwccss.Padding(gwccss.Px(10)),
@@ -1363,9 +1399,20 @@ func declareorganizationHierarchyStylesStyles() {
 		gwccss.Bg(gwccss.Var("hcm-hover-surface")),
 	)
 	declareGlobal(".ownership-card .row-main small",
-		gwccss.Raw("overflow", "hidden"),
-		gwccss.TextOverflowEllipsis(),
-		gwccss.Raw("white-space", "nowrap"),
+		gwccss.Raw("white-space", "normal"),
+		gwccss.Raw("overflow-wrap", "anywhere"),
+	)
+	declareGlobal(".ownership-card .row-main strong", gwccss.Raw("overflow-wrap", "anywhere"))
+	declareGlobal(".ownership-reports>summary",
+		gwccss.Raw("cursor", "pointer"), gwccss.MinHeight(gwccss.Px(44)),
+		gwccss.Padding(gwccss.Px(10)), gwccss.TextColor(gwccss.Var("accent")),
+		gwccss.Rounded(gwccss.VarLength("hcm-radius-control")),
+	)
+	declareGlobal(".ownership-reports>summary:hover,.organization-unit-disclosure>summary:hover",
+		gwccss.Bg(gwccss.Var("hcm-hover-surface")),
+	)
+	declareGlobal(".ownership-reports>summary:focus-visible,.organization-unit-disclosure>summary:focus-visible",
+		gwccss.Raw("outline", "2px solid var(--accent)"), gwccss.Raw("outline-offset", "-3px"),
 	)
 	declareGlobal(".ownership-count",
 		gwccss.Display.Grid,

@@ -7,11 +7,44 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/monstercameron/GoWebComponents/v5/ui"
+
 	xhtml "golang.org/x/net/html"
 )
 
 // RED for WEB-040: the shell has no global action launcher yet, so every
 // assertion below must fail before implementation and pass after.
+
+func TestActionLauncherComboboxReflectsVisibleResults(t *testing.T) {
+	for _, tc := range []struct{ query, expanded string }{{"", "false"}, {"people", "true"}, {"zzzznotfound", "false"}} {
+		doc, err := ui.RenderToString(ui.CreateElement(ActionLauncher, ActionLauncherProps{
+			InitialQuery: tc.query, Items: []ActionLauncherItem{{ID: "people", Label: "People", Href: "/workspace/app/people"}},
+		}))
+		if err != nil {
+			t.Fatal(err)
+		}
+		root, err := xhtml.Parse(strings.NewReader(doc))
+		if err != nil {
+			t.Fatal(err)
+		}
+		input := findElementByID(root, "action-launcher-input")
+		if input == nil || attr(input, "aria-expanded") != tc.expanded {
+			t.Fatalf("query %q has incorrect expansion state", tc.query)
+		}
+		if tc.expanded == "false" && (attr(input, "aria-activedescendant") != "" || attr(input, "aria-controls") != "") {
+			t.Fatalf("query %q references hidden/missing results", tc.query)
+		}
+		if tc.query == "zzzznotfound" {
+			if !strings.Contains(doc, "No matching actions") || strings.Contains(doc, "No authorized action") {
+				t.Fatal("filtered empty state implies missing authorization")
+			}
+			empty := findElementByID(root, "action-launcher-empty")
+			if empty == nil || attr(empty, "role") != "status" {
+				t.Fatal("no-results message is not an announced status")
+			}
+		}
+	}
+}
 
 func TestTodo_WEB_040(t *testing.T) {
 	doc, err := Render(testView(PageHome))
@@ -97,7 +130,7 @@ func launcherHrefs(root *xhtml.Node) []string {
 }
 
 // web040GoldenDigest is pinned from the GREEN implementation run.
-const web040GoldenDigest = "ec01684d4f16a0c53dd67496792fad7e3351f67f553eff0ed5494a217b63ce9a"
+const web040GoldenDigest = "6b5582e0a87b624743bf454e7719af76ee813e151f12ff5a653b2c457c21a8b4"
 
 func TestTodo_WEB_040_Golden(t *testing.T) {
 	doc, err := Render(testView(PageHome))
@@ -156,8 +189,8 @@ func TestTodo_WEB_040_Browser(t *testing.T) {
 	if dialog == nil {
 		t.Fatal("launcher panel is not exposed as a dialog")
 	}
-	if attr(dialog, "aria-modal") != "true" {
-		t.Fatal("launcher dialog does not trap modal semantics")
+	if attr(dialog, "aria-modal") == "true" {
+		t.Fatal("dismiss-on-blur launcher must not claim to trap modal focus")
 	}
 	if strings.TrimSpace(attr(dialog, "aria-label")) == "" && strings.TrimSpace(attr(dialog, "aria-labelledby")) == "" {
 		t.Fatal("launcher dialog has no accessible name")

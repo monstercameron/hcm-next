@@ -586,14 +586,18 @@ func listView(p Page, v ListView) ui.Node {
 // while the integrated product already has a dedicated People module and
 // therefore leads with the records and actions readers came here to use.
 func embeddedListView(p Page, v ListView) ui.Node {
-	l := liveOf(p)
+	if len(v.Journeys) == 0 {
+		v.Empty = "No promotion requests are visible yet. Choose an employee above to start a request."
+	}
 	return html.Div(html.Props{Class: "jn-stack"},
-		pageHeader(pageHeaderProps{Eyebrow: "Governed workflows", Title: "Promotion journeys", Lead: leadSentence(p)}),
+		pageHeader(pageHeaderProps{Eyebrow: "Workflows", Title: "Promotion journeys", Lead: "Follow promotion requests, review their progress, and open past decisions.",
+			Actions: []ui.Node{htmlIf(v.People != nil && v.People.DirectoryLink.Href != "", func() ui.Node {
+				link := v.People.DirectoryLink
+				return html.A(html.Props{Class: "jn-btn", Href: link.Href, OnClick: activate(link.OnNavigate)}, html.Text("Choose an employee to promote"))
+			})},
+		}),
 		journeysSection(v),
 		engineUnavailableCallout(v.EngineAvailable, v.EngineNotice),
-		proposalSection(l, v),
-		peopleSection(v.People),
-		htmlIf(v.People != nil, func() ui.Node { return newEmployeeSection(l, v.People.Form) }),
 	)
 }
 
@@ -721,9 +725,7 @@ func proposalFormSection(l live, f ProposalForm, heading string) ui.Node {
 	if f.Disabled {
 		btn.Disabled = true
 		btn.Aria = map[string]string{"describedby": "proposal-disabled"}
-		foot = append(foot, html.Button(btn, html.Text(submit)),
-			html.P(html.Props{ID: "proposal-disabled", Class: "jn-blocked"},
-				iconWarning("jn-blocked-icon"), html.Text(f.DisabledReason)))
+		foot = append(foot, html.Button(btn, html.Text(submit)))
 	} else {
 		foot = append(foot, html.Button(btn, html.Text(submit)),
 			html.P(html.Props{Class: "jn-help"},
@@ -735,6 +737,10 @@ func proposalFormSection(l live, f ProposalForm, heading string) ui.Node {
 			html.H2(html.Props{ID: "propose-heading"}, html.Text(heading)),
 		),
 		html.Form(formProps(l, f.Action, f.OnSubmit, f.Hidden, f.Fields),
+			htmlIf(f.Disabled, func() ui.Node {
+				return html.P(html.Props{ID: "proposal-disabled", Class: "jn-blocked", Raw: map[string]any{"role": "status"}},
+					iconWarning("jn-blocked-icon"), html.Text(f.DisabledReason))
+			}),
 			html.Fragment(hiddenInputs(f.Hidden)...),
 			html.Div(html.Props{Class: "jn-fieldgrid"}, fields...),
 			html.Div(html.Props{Class: "jn-formfoot"}, foot...),
@@ -912,17 +918,17 @@ func detailView(p Page, v DetailView) ui.Node {
 	return html.Div(html.Props{Class: "jn-stack"},
 		detailNavigation(v),
 		heroSection(v.Journey),
+		actionsSection(l, v.Actions),
 		stepperSection(v.Steps),
+		proposalDetailSection(v),
 		html.Div(html.Props{Class: "jn-columns"},
 			html.Div(html.Props{Class: "jn-col"},
-				proposalDetailSection(v),
 				preflightSection(v),
 				workflowSection(v),
 				outcomeSection(v.Ledger),
 				evidenceSection(v.Evidence),
 			),
 			html.Aside(html.Props{Class: "jn-col jn-rail", Aria: map[string]string{"label": "Actions and history"}},
-				actionsSection(l, v.Actions),
 				timelineSection(v.Timeline),
 			),
 		),
@@ -970,10 +976,15 @@ func heroSection(j JourneyCard) ui.Node {
 		html.P(html.Props{Class: "jn-meta jn-hero-ids"},
 			metaItem("Effective", j.EffectiveDate, false),
 			metaItem("Updated", j.Updated, false),
-			metaItem("Worker", j.WorkerRef, true),
-			metaItem("Intent", j.IntentID, true),
-			metaItem("Instance", j.InstanceID, true),
 		),
+		htmlIf(j.WorkerRef != "" || j.IntentID != "" || j.InstanceID != "", func() ui.Node {
+			return html.Details(html.Props{Class: "jn-journey-technical"},
+				html.Summary(html.Props{}, html.Text("Technical details")),
+				html.P(html.Props{Class: "jn-meta"},
+					metaItem("Worker", j.WorkerRef, true),
+					metaItem("Intent", j.IntentID, true),
+					metaItem("Instance", j.InstanceID, true)))
+		}),
 	)
 }
 
@@ -1028,18 +1039,18 @@ func proposalDetailSection(v DetailView) ui.Node {
 			html.H2(html.Props{ID: "proposal-heading"}, html.Text("Proposal")),
 		),
 	}
-	if len(v.Proposal) > 0 {
-		children = append(children,
-			html.Div(html.Props{Class: "jn-subsection"},
-				html.H3(html.Props{Class: "jn-subhead"}, html.Text("Request")),
-				factsList(v.Proposal),
-			))
-	}
 	if len(v.Comparison) > 0 {
 		children = append(children,
 			html.Div(html.Props{Class: "jn-subsection"},
 				html.H3(html.Props{Class: "jn-subhead", ID: "comparison-heading"}, html.Text("Current and proposed")),
 				comparisonTable(v.Comparison),
+			))
+	}
+	if len(v.Proposal) > 0 {
+		children = append(children,
+			html.Div(html.Props{Class: "jn-subsection"},
+				html.H3(html.Props{Class: "jn-subhead"}, html.Text("Request")),
+				factsList(v.Proposal),
 			))
 	}
 	return html.Section(html.Props{Class: "jn-panel", Aria: map[string]string{"labelledby": "proposal-heading"}}, children...)
@@ -1435,7 +1446,7 @@ func outcomeSection(l *LedgerCard) ui.Node {
 	if l == nil {
 		body = html.P(html.Props{Class: "jn-quiet"},
 			iconClock("jn-quiet-icon"),
-			html.Text("No promotion fact has been recorded yet. The workflow writes exactly one, at its terminal node, once the approver decides."))
+			html.Text("This promotion has not been recorded yet. Required approvals, the effective date and final checks must be complete first."))
 	} else {
 		body = factsList([]Fact{
 			{Label: "Stream", Value: l.StreamKey, Mono: true},
@@ -1553,8 +1564,9 @@ func actionCard(l live, a Action) ui.Node {
 		}
 		confirmChildren = append(confirmChildren, submit)
 		children = append(children, html.Details(html.Props{Class: "jn-confirm"},
-			html.Summary(html.Props{Class: "jn-btn", Raw: map[string]any{"role": "button"}},
-				html.Text("Review and "+strings.ToLower(a.Label))),
+			html.Summary(html.Props{Class: "jn-btn", DataAttr: html.DataAttribute{Name: "variant", Value: "secondary"}, Raw: map[string]any{"role": "button"}},
+				html.Span(html.Props{Class: "jn-confirm-open-label"}, html.Text("Review and "+strings.ToLower(a.Label))),
+				html.Span(html.Props{Class: "jn-confirm-close-label"}, html.Text("Cancel review"))),
 			html.Div(html.Props{Class: "jn-confirm-body"}, confirmChildren...),
 		))
 	} else {

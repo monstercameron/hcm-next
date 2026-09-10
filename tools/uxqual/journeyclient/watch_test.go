@@ -2,6 +2,7 @@ package journeyclient
 
 import (
 	"context"
+	"io"
 	"testing"
 	"time"
 
@@ -10,6 +11,22 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
+
+func TestQuietWatchRolloverPreservesFailureBudgetForRealOutages(t *testing.T) {
+	for _, err := range []error{io.EOF, context.DeadlineExceeded, status.Error(codes.DeadlineExceeded, "deadline")} {
+		if !quietWatchRollover(err, 30*time.Second) {
+			t.Fatalf("quiet transport rotation counted as outage: %v", err)
+		}
+		if quietWatchRollover(err, time.Millisecond) {
+			t.Fatalf("immediate failure bypassed retry budget: %v", err)
+		}
+	}
+	for _, err := range []error{nil, context.Canceled, status.Error(codes.Unavailable, "offline"), status.Error(codes.PermissionDenied, "denied")} {
+		if quietWatchRollover(err, time.Minute) {
+			t.Fatalf("non-rotation error masked: %v", err)
+		}
+	}
+}
 
 // openWatchedJourney puts the client on one journey's detail route with its
 // change feed running, and returns the first stream.
@@ -27,6 +44,7 @@ func openWatchedJourney(t *testing.T, h *harness) *fakeStream {
 func TestWatchRedrawsThePageWhenTheEngineChanges(t *testing.T) {
 	h := newHarness(t)
 	stream := openWatchedJourney(t, h)
+	h.app.show(&journey.Notice{Tone: toneSuccess, Title: "Approvals complete", Detail: "Waiting for the effective date"})
 
 	completed := testDetail(t, journeyv1.JourneyStage_JOURNEY_STAGE_COMPLETED)
 	completed.DetailDigest = "sha256:bbbb2222"
@@ -37,6 +55,9 @@ func TestWatchRedrawsThePageWhenTheEngineChanges(t *testing.T) {
 	})
 	if p.Detail.Ledger == nil {
 		t.Error("the update did not bring the ledger fact with it")
+	}
+	if p.Notice == nil || p.Notice.Title != "Promotion recorded" {
+		t.Fatal("terminal update retained a stale waiting notice")
 	}
 	if len(p.Detail.Actions) != 0 {
 		t.Error("the completed journey still offers decisions after the update")

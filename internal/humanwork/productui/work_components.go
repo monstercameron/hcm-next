@@ -9,8 +9,9 @@ import (
 
 type WorkPageProps struct {
 	I18nProps
-	Collection WorkCollectionProps
-	Preview    WorkPreviewProps
+	Collection  WorkCollectionProps
+	Preview     WorkPreviewProps
+	HidePreview bool
 }
 
 type WorkCollectionProps struct {
@@ -31,13 +32,16 @@ type WorkTabProps struct {
 
 type WorkRowProps struct {
 	I18nProps
-	ID               string
-	Initials         string
-	PhotoURL         string
-	Title            string
-	Person           string
-	Summary          string
-	Due              string
+	ID       string
+	Initials string
+	PhotoURL string
+	Title    string
+	Person   string
+	Summary  string
+	Due      string
+	// JourneyStage is a server-projected workflow label, not a canonical
+	// BusinessIntent lifecycle tuple. Never derive StatusProjection from it.
+	JourneyStage     string
 	StatusProjection StatusProjection
 	Href             string
 	Selected         bool
@@ -58,6 +62,7 @@ type WorkPreviewProps struct {
 	Title            string
 	Person           string
 	Summary          string
+	JourneyStage     string
 	StatusProjection StatusProjection
 	Provenance       ProvenanceProjection
 	FactsTitle       string
@@ -70,6 +75,9 @@ type WorkPreviewProps struct {
 func WorkPage(props WorkPageProps) ui.Node {
 	props.Collection.I18nProps = props.I18nProps
 	props.Preview.I18nProps = props.I18nProps
+	if props.HidePreview {
+		return html.Div(html.Props{Class: "page-stack"}, ui.CreateElement(WorkCollection, props.Collection))
+	}
 	return html.Div(html.Props{Class: "workbench"},
 		ui.CreateElement(WorkCollection, props.Collection),
 		ui.CreateElement(WorkPreview, props.Preview),
@@ -124,13 +132,20 @@ func WorkRow(props WorkRowProps) ui.Node {
 	if props.Selected {
 		linkProps.Aria = map[string]string{"current": "true"}
 	}
-	status := ui.CreateElement(StatusPresentation, StatusPresentationProps{I18nProps: props.I18nProps, IDSeed: "work-row-status-" + props.ID, Projection: props.StatusProjection})
+	status := workStatus(props.I18nProps, "work-row-status-"+props.ID, props.StatusProjection, props.JourneyStage)
 	return html.Li(html.Props{Class: "work-row-item"}, softwareLink(props.Navigate, linkProps, props.Href,
 		personAvatar(props.Person, props.Initials, props.PhotoURL, ""),
 		html.Span(html.Props{Class: "row-main"}, html.Strong(html.Props{}, ui.Text(props.Title)), html.Small(html.Props{}, ui.Text(props.Person)), html.Small(html.Props{}, ui.Text(props.Summary))),
 		html.Span(html.Props{Class: "row-end"}, status, html.Small(html.Props{}, ui.Text(props.Due))),
 		html.Span(html.Props{Aria: map[string]string{"hidden": "true"}}, ui.Text("›")),
 	))
+}
+
+func workStatus(i18n I18nProps, id string, projection StatusProjection, stage string) ui.Node {
+	if stage != "" && !projection.Available {
+		return html.Span(html.Props{Class: "workflow-stage"}, ui.Text(stage))
+	}
+	return ui.CreateElement(StatusPresentation, StatusPresentationProps{I18nProps: i18n, IDSeed: id, Projection: projection})
 }
 
 func WorkPreview(props WorkPreviewProps) ui.Node {
@@ -140,7 +155,7 @@ func WorkPreview(props WorkPreviewProps) ui.Node {
 		})
 	}
 	facts := append([]ui.Node{html.H3(html.Props{}, ui.Text(props.FactsTitle))}, factRows(props.Facts)...)
-	status := ui.CreateElement(StatusPresentation, StatusPresentationProps{I18nProps: props.I18nProps, IDSeed: "work-preview-status-" + props.ID, Projection: props.StatusProjection})
+	status := workStatus(props.I18nProps, "work-preview-status-"+props.ID, props.StatusProjection, props.JourneyStage)
 	provenance := ui.CreateElement(ProvenancePresentation, ProvenancePresentationProps{I18nProps: props.I18nProps, IDSeed: "work-preview-provenance-" + props.ID, Projection: props.Provenance})
 	return html.Aside(html.Props{Class: "surface work-preview", Aria: map[string]string{"label": props.Text("work.selected_summary")}},
 		html.Div(html.Props{Class: "preview-head"},

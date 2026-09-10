@@ -2,6 +2,7 @@ package productui
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/monstercameron/GoWebComponents/v5/html"
 	"github.com/monstercameron/GoWebComponents/v5/ui"
@@ -38,6 +39,7 @@ func AppearancePage(props AppearancePageProps) ui.Node {
 			),
 			html.Span(html.Props{Class: "appearance-badge"}, navIcon("palette"), ui.Text(props.Text("appearance.tenant"))),
 		),
+		appearanceScopeGuidance(props.I18nProps),
 		html.Form(html.Props{Class: "appearance-form", OnSubmit: preventFormSubmit(props.OnSave, &draft)},
 			html.Fieldset(html.Props{Class: "appearance-edit-boundary", Disabled: !props.Editable},
 				html.Div(html.Props{Class: "appearance-controls"},
@@ -93,7 +95,8 @@ func AppearancePage(props AppearancePageProps) ui.Node {
 func appearanceBrandSignature(i18n I18nProps, theme CustomerTheme, onName, onMark, onLogo func(string)) ui.Node {
 	name := html.Props{ID: "appearance-brand-name", Type: "text", Name: "brand_name", Value: theme.BrandName, MaxLength: 40, AutoComplete: "off"}
 	mark := html.Props{ID: "appearance-brand-mark", Type: "text", Name: "brand_mark", Value: theme.BrandMark, MaxLength: 3, AutoComplete: "off"}
-	logo := html.Props{ID: "appearance-brand-logo", Type: "text", Name: "brand_logo_url", Value: theme.BrandLogoURL, MaxLength: 240, AutoComplete: "off", Raw: map[string]any{"placeholder": i18n.Text("appearance.company_logo_placeholder"), "inputmode": "url"}}
+	logoHelpID := "appearance-brand-logo-help"
+	logo := html.Props{ID: "appearance-brand-logo", Type: "text", Name: "brand_logo_url", Value: theme.BrandLogoURL, MaxLength: 240, AutoComplete: "off", Aria: map[string]string{"describedby": logoHelpID}, Raw: map[string]any{"placeholder": i18n.Text("appearance.company_logo_placeholder"), "inputmode": "url"}}
 	if onName != nil {
 		name.OnInput = ui.UseEvent(func(event ui.InputEvent) { onName(event.GetValue()) })
 	}
@@ -109,9 +112,24 @@ func appearanceBrandSignature(i18n I18nProps, theme CustomerTheme, onName, onMar
 		html.Div(html.Props{Class: "appearance-brand-fields"},
 			html.Label(html.Props{For: name.ID}, html.Span(html.Props{}, ui.Text(i18n.Text("appearance.workspace_name"))), html.Input(name), html.Small(html.Props{}, ui.Text(i18n.Text("appearance.workspace_name_help")))),
 			html.Label(html.Props{For: mark.ID}, html.Span(html.Props{}, ui.Text(i18n.Text("appearance.short_mark"))), html.Input(mark), html.Small(html.Props{}, ui.Text(i18n.Text("appearance.short_mark_help")))),
-			html.Label(html.Props{Class: "appearance-brand-logo-field", For: logo.ID}, html.Span(html.Props{}, ui.Text(i18n.Text("appearance.company_logo"))), html.Input(logo), html.Small(html.Props{}, ui.Text(i18n.Text("appearance.company_logo_help")))),
+			html.Label(html.Props{Class: "appearance-brand-logo-field", For: logo.ID}, html.Span(html.Props{}, ui.Text(i18n.Text("appearance.company_logo"))), html.Input(logo), html.Small(html.Props{ID: logoHelpID}, ui.Text(i18n.Text("appearance.company_logo_help"))), html.Small(html.Props{Class: "appearance-logo-action-help"}, ui.Text(appearanceCopy(i18n, "appearance.company_logo_action_help", "Enter an approved image path supplied by your workspace administrator. This page does not upload or choose files.")))),
 		),
 	)
+}
+
+func appearanceScopeGuidance(i18n I18nProps) ui.Node {
+	return html.Section(html.Props{Class: "surface appearance-scope-guidance", Aria: map[string]string{"labelledby": "appearance-scope-title"}},
+		html.H2(html.Props{ID: "appearance-scope-title"}, ui.Text(appearanceCopy(i18n, "appearance.scope_title", "Organization-wide appearance"))),
+		html.P(html.Props{Class: "muted"}, ui.Text(appearanceCopy(i18n, "appearance.scope_detail", "Saved appearance settings apply to this organization and every signed-in user. Use system setting lets each device resolve light or dark from its own system preference; Light and Dark are organization-wide choices."))),
+	)
+}
+
+func appearanceCopy(i18n I18nProps, key, fallback string) string {
+	value := i18n.Text(key)
+	if strings.HasPrefix(value, "⟦") && strings.HasSuffix(value, "⟧") {
+		return fallback
+	}
+	return value
 }
 
 func appearanceChoices(title, help, name, selected string, options []AppearanceOption, class string, onChange func(string)) ui.Node {

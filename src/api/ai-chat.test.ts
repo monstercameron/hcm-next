@@ -11,7 +11,12 @@ import {
   type AiChatTurnResponse,
   type AiClient,
 } from "@human-capital-management-suite/ai-client";
-import { ERROR_CODES, ok, type AppError, type Result } from "@human-capital-management-suite/foundation";
+import {
+  ERROR_CODES,
+  ok,
+  type AppError,
+  type Result,
+} from "@human-capital-management-suite/foundation";
 import type { AppDependencies } from "./dependencies.js";
 import type { ApiRequestContext } from "./request-context.js";
 import { AI_CHAT_SYSTEM_PROMPT, handleAiChat } from "./ai-chat.js";

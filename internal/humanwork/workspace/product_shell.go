@@ -70,7 +70,7 @@ func (h *Handler) serveProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	locale := productui.ResolveProductLocale(r.URL.Query().Get("locale"))
-	doc, err := productShellDocumentForRoute(config, JourneyBundleBuilt(), locale, definition.ID)
+	doc, err := productShellDocumentForRouteQuery(config, JourneyBundleBuilt(), locale, definition.ID, r.URL.Query().Get("menu_q"))
 	if err != nil {
 		h.writeProblem(w, http.StatusInternalServerError, "Workspace unavailable", err.Error())
 		return
@@ -87,6 +87,10 @@ func productShellDocumentForLocale(config JourneyConfig, bundleBuilt bool, local
 }
 
 func productShellDocumentForRoute(config JourneyConfig, bundleBuilt bool, locale productui.LocaleContext, page productui.PageID) (string, error) {
+	return productShellDocumentForRouteQuery(config, bundleBuilt, locale, page, "")
+}
+
+func productShellDocumentForRouteQuery(config JourneyConfig, bundleBuilt bool, locale productui.LocaleContext, page productui.PageID, menuQuery string) (string, error) {
 	island, err := json.Marshal(config)
 	if err != nil {
 		return "", err
@@ -115,6 +119,9 @@ func productShellDocumentForRoute(config JourneyConfig, bundleBuilt bool, locale
 	b.WriteString(`<div id="` + JourneyRootElementID + `">`)
 	if bundleBuilt {
 		view := productui.NewView(page, productui.DisplayLabel(config.Tenant), productui.DisplayLabel(config.Subject), productui.DisplayLabel(config.Purpose))
+		// Hydration preserves live input values. Seed the request's query in the
+		// loading shell so an empty SSR value cannot hide an active client filter.
+		view.MenuQuery = strings.TrimSpace(menuQuery)
 		view.LogoutHref = config.LogoutPath
 		view = productui.ApplyRoleVisibility(view, config.Roles)
 		if len(config.PagePermissions) > 0 {

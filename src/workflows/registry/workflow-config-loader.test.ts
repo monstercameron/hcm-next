@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { ERROR_CODES, WORKFLOW_INTENTS } from "@human-capital-management-suite/foundation";
+import {
+  ERROR_CODES,
+  WORKFLOW_INTENTS,
+} from "@human-capital-management-suite/foundation";
 import {
   createEmptyStore,
   createRepositories,

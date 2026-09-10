@@ -207,27 +207,28 @@ type WorkItem struct {
 }
 
 type Person struct {
-	ID            string
-	WorkerID      string
-	Initials      string
-	PhotoURL      string
-	Name          string
-	LegalName     string
-	PreferredName string
-	Role          string
-	Team          string
-	Manager       string
-	Location      string
-	WorkerNumber  string
-	JobCode       string
-	Grade         string
-	PositionID    string
-	PayZone       string
-	BasePay       values.Money
-	BonusTarget   string
-	HireDate      string
-	Source        string
-	CreatedAt     string
+	ID                   string
+	WorkerID             string
+	Initials             string
+	PhotoURL             string
+	Name                 string
+	LegalName            string
+	PreferredName        string
+	Role                 string
+	Team                 string
+	Manager              string
+	Location             string
+	WorkerNumber         string
+	PromotionUnavailable bool
+	JobCode              string
+	Grade                string
+	PositionID           string
+	PayZone              string
+	BasePay              values.Money
+	BonusTarget          string
+	HireDate             string
+	Source               string
+	CreatedAt            string
 	// normalized is an immutable client-side search/sort index populated once
 	// when a workforce projection arrives. Keeping it beside the projection
 	// avoids allocating lower-cased copies for every filter and sort render.

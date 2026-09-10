@@ -16,12 +16,14 @@ func historyNavigationStylesheet() string {
 
 func declareHistoryNavigationStyles() {
 	declareGlobal(".header-navigation-tools",
-		gwccss.Display.Grid,
-		gwccss.GridCols(gwccss.TrackLen(gwccss.RawLength("auto")), gwccss.MinMax(gwccss.TrackLen(gwccss.Zero), gwccss.Fr(1))),
+		gwccss.Display.Flex,
 		gwccss.Items.Center, gwccss.Gap(gwccss.Px(9)), gwccss.MinWidth(gwccss.Zero),
 	)
 	declareGlobal(".history-navigation",
 		gwccss.Display.InlineFlex, gwccss.Items.Center, gwccss.Gap(gwccss.Px(4)),
+	)
+	declareGlobal(".header-navigation-tools>.global-search",
+		gwccss.Raw("flex", "1 1 0"), gwccss.MinWidth(gwccss.Zero),
 	)
 	declareGlobal(".history-navigation-button",
 		gwccss.Display.Grid, gwccss.Raw("place-items", "center"),
@@ -111,6 +113,11 @@ func permissionBoundaryStylesheet() string {
 }
 
 func declarePermissionBoundaryStyles() {
+	declareGlobal(".app-shell .button:disabled,.app-shell .button:disabled:hover",
+		gwccss.Bg(gwccss.Var("surface-subtle")), gwccss.TextColor(gwccss.Var("muted")),
+		gwccss.BorderColor(gwccss.Var("line")), gwccss.Raw("cursor", "not-allowed"),
+		gwccss.Raw("transform", "none"), gwccss.Raw("box-shadow", "none"),
+	)
 	declareGlobal(".appearance-edit-boundary,.worker-id-edit-boundary", gwccss.Raw("display", "contents"))
 	declareGlobal(".appearance-edit-boundary:disabled", gwccss.Opacity(0.82))
 	declareGlobal(".worker-id-edit-boundary:disabled", gwccss.Opacity(0.82))
@@ -554,6 +561,9 @@ func declarePopoverStyles() {
 		mediaRule(gwccss.MaxW(760), gwccss.Position.Fixed, gwccss.Top(gwccss.Px(68)), gwccss.Right(gwccss.Px(12)), gwccss.Left(gwccss.RawLength("auto")), gwccss.MaxWidth(gwccss.RawLength("calc(100vw - 24px)"))),
 	)
 	declareGlobal(".people-workflow-menu>.people-workflow-options",
+		// Keep desktop row actions in table flow: an absolute panel is clipped
+		// by the matrix scroll region when only one filtered row remains.
+		mediaRule(gwccss.MinW(761), gwccss.Position.Static, gwccss.W(gwccss.Percent(100)), gwccss.MinWidth(gwccss.Px(160)), gwccss.Raw("margin-block-start", "8px")),
 		mediaRule(gwccss.MaxW(760), gwccss.Position.Fixed, gwccss.Top(gwccss.RawLength("auto")), gwccss.Right(gwccss.Px(12)), gwccss.Bottom(gwccss.Px(12)), gwccss.Left(gwccss.Px(12)), gwccss.W(gwccss.RawLength("auto")), gwccss.MaxHeight(gwccss.MinLen(gwccss.RawLength("70dvh"), gwccss.Px(520))), gwccss.Raw("overflow", "auto"), gwccss.Raw("transform-origin", "bottom center")),
 	)
 	declareGlobal(".popover-root[open]>.popover-surface",
@@ -905,10 +915,18 @@ func declareBaseStyles() {
 	)
 	declareGlobal(".page-head",
 		gwccss.Display.Flex,
+		gwccss.Raw("flex-wrap", "wrap"),
 		gwccss.Raw("align-items", "flex-start"),
 		gwccss.Raw("justify-content", "space-between"),
 		gwccss.Gap(gwccss.Px(20)),
 		gwccss.Raw("margin-bottom", "30px"),
+	)
+	declareGlobal(".page-head>.breadcrumbs",
+		gwccss.Raw("flex-basis", "100%"),
+		gwccss.Raw("min-width", "0"),
+	)
+	declareGlobal(".appearance-scope-guidance",
+		gwccss.Raw("padding", "20px 24px"),
 	)
 	declareGlobal(".page-head h1",
 		gwccss.Margin(gwccss.Zero),
@@ -982,6 +1000,10 @@ func declareBaseStyles() {
 		gwccss.Gap(gwccss.Px(22)),
 		gwccss.PaddingY(gwccss.Zero), gwccss.PaddingX(gwccss.Px(22)),
 		gwccss.BorderBottom(gwccss.Px(1), gwccss.Var("line")),
+	)
+	declareGlobal(".work-list .tabs",
+		gwccss.Raw("flex-wrap", "wrap"),
+		gwccss.Raw("row-gap", "0"),
 	)
 	declareGlobal(".tab",
 		gwccss.PaddingY(gwccss.Px(11)), gwccss.PaddingX(gwccss.Zero),
@@ -1236,6 +1258,11 @@ func declareBaseStyles() {
 	)
 	declareGlobal(".people-row.selected",
 		gwccss.Shadow(gwccss.ShadowInset(gwccss.Px(3), gwccss.Zero, gwccss.Zero, gwccss.Zero, gwccss.Var("accent"))),
+	)
+	declareGlobal(".people-identity",
+		gwccss.Display.Grid,
+		gwccss.MinWidth(gwccss.Zero),
+		gwccss.Gap(gwccss.Px(3)),
 	)
 	declareGlobal(".person-cell,.person-head",
 		gwccss.Display.Flex,

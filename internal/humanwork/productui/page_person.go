@@ -1,6 +1,8 @@
 package productui
 
-import "github.com/monstercameron/GoWebComponents/v5/ui"
+import (
+	"github.com/monstercameron/GoWebComponents/v5/ui"
+)
 
 // personPage is the route adapter. It resolves authorized projection data and
 // passes presentation-only props into the reusable component tree.
@@ -109,6 +111,9 @@ func personWorkflowLauncherProps(view View, person Person, target PageID) Workfl
 	}
 	workflows := make([]WorkflowCardProps, 0, len(filtered))
 	for _, workflow := range filtered {
+		if workflow.ID == "promotion" && person.PromotionUnavailable {
+			continue
+		}
 		href := workflow.Href
 		if workflow.LaunchHref != nil {
 			href = workflow.LaunchHref(person.ID)
@@ -139,8 +144,13 @@ func personWorkflowLauncherProps(view View, person Person, target PageID) Workfl
 				"page", peoplePageValue(view.PeoplePage), "workflow_q", query))
 		}
 	}
+	unavailableDetail := ""
+	if person.PromotionUnavailable && (len(view.EffectivePermissions) == 0 || view.Can(PageJourneys, "create")) {
+		unavailableDetail = view.Locale.Text("workflow.no_promotion_path")
+	}
 	return WorkflowLauncherProps{
-		PersonName: person.Name, TotalCount: len(filtered), Filter: filter, Workflows: workflows,
+		UnavailableDetail: unavailableDetail,
+		PersonName:        person.Name, TotalCount: len(workflows), Filter: filter, Workflows: workflows,
 	}
 }
 

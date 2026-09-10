@@ -11,6 +11,17 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
+func TestUXBlindPromotionWithoutPublishedPathIsActionable(t *testing.T) {
+	worker := &journeyv1.Worker{JobCode: "SAL-AE3", Grade: "P4"}
+	form := focusedProposalForm(nil, "adrian", &journeyv1.WorkforceOptions{}, worker)
+	if !form.Disabled || !strings.Contains(form.DisabledReason, "job ladder") {
+		t.Fatalf("missing promotion path must disable submission with recovery guidance: %+v", form)
+	}
+	if strings.Contains(form.DisabledReason, "access role") {
+		t.Fatal("job architecture gap must not suggest changing authorization roles")
+	}
+}
+
 // ---------------------------------------------------------------------
 // Fixtures. One promotion -- Omar Reyes, OPS-HRBP2/P2 to OPS-HRBP3/P3, USD
 // 93,000.00 to 98,000.00 effective 1 June 2026 -- shaped exactly as the
@@ -292,6 +303,11 @@ func TestStageLabelsAndTones(t *testing.T) {
 
 func TestProposalFormShape(t *testing.T) {
 	form := ProposalForm(map[string]string{FieldEffective: "2026-12-01"}, nil, "")
+	for _, field := range form.Fields {
+		if field.ID == FieldEffective && (strings.Contains(field.Help, "today") || !strings.Contains(field.Help, "Simulation checks")) {
+			t.Fatalf("effective-date guidance promises a wall-clock rule: %q", field.Help)
+		}
+	}
 
 	if len(form.Hidden) != 0 {
 		t.Errorf("Hidden = %v, want empty: this client submits over gRPC and has no CSRF token", form.Hidden)
@@ -472,7 +488,7 @@ func TestDetailPageActionsPerStage(t *testing.T) {
 		if a.ID != ActionExecute || a.Variant != "primary" || a.Disabled {
 			t.Errorf("action = %+v, want an enabled primary execute", a)
 		}
-		if a.Label != "Execute under authority" {
+		if a.Label != "Start approval workflow" {
 			t.Errorf("label = %q", a.Label)
 		}
 		if len(a.Hidden) != 0 {

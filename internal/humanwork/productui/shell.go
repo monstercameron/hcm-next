@@ -226,9 +226,8 @@ func navigationDestinationAuthorized(view View, page PageID) bool {
 	if view.NavigationProjection == nil {
 		return view.Allows(page, "view")
 	}
-	if err := validateAuthorizedNavigationProjection(*view.NavigationProjection); err != nil {
-		return false
-	}
+	// The collector validates before exposing any destination. Do not validate
+	// the same projection twice for each header link.
 	return authorizedNavigationPages(view)[page]
 }
 

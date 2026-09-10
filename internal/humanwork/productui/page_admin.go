@@ -75,7 +75,6 @@ func adminPage(view View) ui.Node {
 	return ui.CreateElement(AdminPage, AdminPageProps{
 		Hero: AdminHeroProps{
 			Eyebrow: "LIVE CELL", Title: valueOrUnavailable(view.Tenant), Description: "This page reports only services the authenticated cell has actually exposed.",
-			Action: ActionLinkProps{Label: "Open Journeys", Href: statefulHref(view, PageJourneys), Class: "button primary", Navigate: view.Navigate},
 		},
 		Capabilities: cards,
 	})

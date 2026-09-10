@@ -5,6 +5,21 @@ import (
 	"testing"
 )
 
+func TestProfileWorkflowEmptyReasonRespectsCreatePermission(t *testing.T) {
+	for _, allowed := range []bool{false, true} {
+		view := testView(PageMyself)
+		view.EffectivePermissions = []RolePagePermission{{Page: PageJourneys, View: true, Create: allowed}}
+		person := Person{ID: "worker-avery", Name: "Avery", PromotionUnavailable: true}
+		props := personWorkflowLauncherProps(view, person, PageMyself)
+		if allowed && props.UnavailableDetail != view.Locale.Text("workflow.no_promotion_path") {
+			t.Fatal("authorized requester lost the job-ladder explanation")
+		}
+		if !allowed && (props.UnavailableDetail != "" || len(props.Workflows) != 0) {
+			t.Fatal("denied requester received job-ladder advice or launch actions")
+		}
+	}
+}
+
 func TestMyselfPageUsesOnlyTheAuthenticatedViewerBinding(t *testing.T) {
 	view := testView(PageMyself)
 	view.SelectedPerson = "worker-jordan"
@@ -18,7 +33,7 @@ func TestMyselfPageUsesOnlyTheAuthenticatedViewerBinding(t *testing.T) {
 		"CAD 118,000", "CA-ON", "Pay statements, deductions, taxes, bank details, and pay schedules are not exposed",
 		"My workflow history", `href="/workspace/app/journeys?mode=new&amp;worker=worker-avery"`,
 		`action="/workspace/app/myself"`,
-		"My organization tree", `role="tree"`, `aria-current="true"`,
+		"My organization tree", `role="list"`, `aria-current="true"`,
 	} {
 		if !strings.Contains(doc, want) {
 			t.Errorf("Myself page missing %q", want)

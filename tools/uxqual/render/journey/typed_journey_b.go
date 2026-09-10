@@ -215,13 +215,13 @@ func declareJourneyForms() {
 		gwccss.Transform(gwccss.TranslateY(gwccss.Px(1))),
 	)
 	declareGlobal(`.jn-btn[data-variant="secondary"]`,
-		gwccss.Bg(gwccss.Var("jn-surface")),
+		gwccss.Raw("background", "var(--jn-surface)"),
 		gwccss.TextColor(gwccss.Var("jn-accent")),
 		gwccss.BorderColor(gwccss.Var("jn-control-border")),
 		gwccss.Raw("box-shadow", "var(--jn-shadow)"),
 	)
 	declareGlobal(`.jn-btn[data-variant="secondary"]:hover`,
-		gwccss.Bg(gwccss.Var("jn-surface-sunk")),
+		gwccss.Raw("background", "var(--jn-surface-sunk)"),
 		gwccss.Raw("filter", "none"),
 	)
 	declareGlobal(`.jn-btn[data-variant="danger"]`,

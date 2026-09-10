@@ -99,7 +99,8 @@ func TestTodo_WEB_037_Golden(t *testing.T) {
 	}
 	digest := sha256.Sum256([]byte(doc))
 	got := hex.EncodeToString(digest[:])
-	const want = "ad6740d6339c2fe105e1867ba24e5f0f61370eb89d6e07810cf2bb972f188c03"
+	// Closed launcher omits active-option references and does not claim modality.
+	const want = "35ae98bbdd9e61b29316b899ee829d1d940c8cbf1c8ab9a86eae8de5d37e16c8"
 	if got != want {
 		t.Fatalf("stable shell golden digest = %s, want %s", got, want)
 	}

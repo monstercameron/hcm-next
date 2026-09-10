@@ -30,6 +30,100 @@ func TestWorkComponentsRenderWithoutPageProjection(t *testing.T) {
 	}
 }
 
+func TestWorkRowUsesJourneyStageWithoutInventingLifecycleDimensions(t *testing.T) {
+	markup, err := ui.RenderToString(WorkRow(WorkRowProps{JourneyStage: "Waiting for effective date", Href: "/work"}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(markup, "Waiting for effective date") || strings.Contains(markup, "Lifecycle status is not available") || strings.Contains(markup, "data-status-dimension=") {
+		t.Fatal("workflow stage missing or converted into invented lifecycle dimensions")
+	}
+	markup, err = ui.RenderToString(WorkRow(WorkRowProps{Href: "/work"}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(markup, "Lifecycle status is not available") {
+		t.Fatal("missing status was silently hidden")
+	}
+}
+
+func TestWorkPreviewAndRowShareStageAndRespectCanonicalProjection(t *testing.T) {
+	markup, err := ui.RenderToString(WorkPreview(WorkPreviewProps{JourneyStage: "Waiting for effective date"}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(markup, `class="workflow-stage"`) || !strings.Contains(markup, "Waiting for effective date") || strings.Contains(markup, "Lifecycle status is not available") {
+		t.Fatal("preview disagrees with stage-only row")
+	}
+	markup, err = ui.RenderToString(workStatus(I18nProps{}, "test", StatusProjection{Available: true}, "must-not-override"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(markup, "must-not-override") || !strings.Contains(markup, "data-status-dimension=") {
+		t.Fatal("stage overrode canonical lifecycle projection")
+	}
+}
+
+func TestHistoryEmptyFilterDoesNotClaimNoRecordedWorkflows(t *testing.T) {
+	view := testView(PageHistory)
+	view.HistoryQuery = "unmatched-worker-xyz"
+	props := workflowHistoryProps(view, "", "History", "", true)
+	if props.TotalCount == 0 || props.FilteredCount != 0 || props.EmptyText != view.Locale.Text("history.none_detail") {
+		t.Fatal("filtered empty state must distinguish existing records from an empty history")
+	}
+	view.Work = nil
+	props = workflowHistoryProps(view, "", "History", "", true)
+	if props.EmptyText != view.Locale.Text("history.empty_terminal") {
+		t.Fatal("empty history lost onboarding explanation")
+	}
+}
+
+func TestPeopleMissingFactsAreExplicitWithoutGuessing(t *testing.T) {
+	row := peopleDataTableRow(PeopleRowProps{Name: "Employee", Manager: "Visible manager"})
+	for _, cell := range row.Cells {
+		switch cell.ColumnID {
+		case peopleSortRole, peopleSortTeam, peopleSortLocation:
+			if cell.Text != "Not reported" {
+				t.Fatalf("missing %s rendered as %q", cell.ColumnID, cell.Text)
+			}
+		case peopleSortManager:
+			if cell.Text != "Visible manager" {
+				t.Fatal("known manager replaced")
+			}
+		}
+	}
+}
+
+func TestSettingsAccessCopyUsesPlainLocalizedLanguage(t *testing.T) {
+	for _, locale := range SupportedProductLocales() {
+		text := ResolveProductLocale(locale).Text("settings.access_callout")
+		if text == "" || strings.Contains(text, "RPC") {
+			t.Fatalf("technical access copy in %s: %s", locale, text)
+		}
+	}
+}
+
+func TestAdminHeroWithoutActionDoesNotRenderEmptyNavigation(t *testing.T) {
+	markup, err := ui.RenderToString(AdminHero(AdminHeroProps{Title: "Organization"}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(markup, "<a") || strings.Contains(markup, "<button") {
+		t.Fatal("hero rendered an unconfigured action")
+	}
+}
+
+func TestVisibilitySummaryKeepsBoundaryVisibleAndRoleListCollapsed(t *testing.T) {
+	markup, err := ui.RenderToString(organizationVisibilityEffectiveSummary(OrganizationVisibilityPageProps{}, []AccessRole{{ID: "reviewer", Name: "Reviewer"}}, nil))
+	if err != nil {
+		t.Fatal(err)
+	}
+	start := strings.Index(markup, "<details>")
+	if start < 0 || strings.Index(markup, "Role grants are additive") > start || strings.Index(markup, "Reviewer:") < start {
+		t.Fatal("boundary must precede collapsed configured-role list")
+	}
+}
+
 func TestSharedActionLinkUsesSoftwareNavigationOnlyInsideTheProduct(t *testing.T) {
 	navigate := func(string) {}
 	internal := ActionLink(ActionLinkProps{Label: "People", Href: "/workspace/app/people", Navigate: navigate})

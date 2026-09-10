@@ -353,9 +353,11 @@ func declareJourneyMotion() {
 	declareGlobal(`.jn-confirm>summary::-webkit-details-marker`,
 		gwccss.Display.None,
 	)
-	declareGlobal(`.jn-confirm[open]>summary`,
+	declareGlobal(`.jn-confirm-close-label`,
 		gwccss.Display.None,
 	)
+	declareGlobal(`.jn-confirm[open] .jn-confirm-open-label`, gwccss.Display.None)
+	declareGlobal(`.jn-confirm[open] .jn-confirm-close-label`, gwccss.Display.Inline)
 	declareGlobal(`.jn-confirm-body`,
 		gwccss.Display.Flex,
 		gwccss.FlexDir.Col,

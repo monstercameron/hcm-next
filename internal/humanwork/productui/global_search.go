@@ -161,6 +161,9 @@ func globalSearchItems(view View) []GlobalSearchItem {
 			if !DiscoveryAdmitted(person.ID, view.RecordVerdicts) {
 				continue
 			}
+			if person.PromotionUnavailable {
+				continue
+			}
 			items = append(items, GlobalSearchItem{
 				ID: "action:promotion:" + person.ID, Kind: "action", KindLabel: globalSearchKindLabel(view.Locale, "action"),
 				Label:       view.Locale.Text("global_search.promote_person", map[string]string{"name": DiscoveryLabel(view.Locale, person.ID, person.Name, "name", view.RecordVerdicts)}),

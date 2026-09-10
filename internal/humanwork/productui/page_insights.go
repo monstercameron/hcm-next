@@ -23,13 +23,13 @@ func insightsPage(view View) ui.Node {
 	}
 	return ui.CreateElement(InsightsPage, InsightsPageProps{
 		Metrics: []MetricProps{
-			{Label: "Visible journeys", Value: fmt.Sprint(len(view.Work)), Note: "Live governed workflow data"},
-			{Label: "In progress", Value: fmt.Sprint(active), Note: "Derived from current stage"},
-			{Label: "Terminal", Value: fmt.Sprint(terminal), Note: "Completed, rejected, or failed"},
+			{Label: "Visible workflows", Value: fmt.Sprint(len(population)), Note: "Current workflows in your authorized scope"},
+			{Label: "In progress", Value: fmt.Sprint(active), Note: "Workflows awaiting a next step"},
+			{Label: "Completed or closed", Value: fmt.Sprint(terminal), Note: "Workflows with a final outcome"},
 		},
 		Attention: AttentionPanelProps{
 			Title: "Operational attention", CountLabel: "Needs attention", CountValue: fmt.Sprint(attention),
-			Description: "No trend, benchmark, or certification is shown because the server has not published an analytics capability for it.",
+			Description: "This is a limited workflow summary of current visible states. Trend, benchmark, certification, and broader workforce reporting are not available in this cell.",
 			Action:      action,
 		},
 	})

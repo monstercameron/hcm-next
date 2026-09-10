@@ -88,7 +88,7 @@ func TestExperienceStudioDoesNotSimulateAnUnpublishedService(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(doc, "No configuration projection is published") || strings.Contains(doc, "Validation passed") || strings.Contains(doc, "Request publication") {
+	if !strings.Contains(doc, "Custom page editing is not enabled") || strings.Contains(doc, "Validation passed") || strings.Contains(doc, "Request publication") {
 		t.Fatal("Studio simulated a configuration service the cell did not publish")
 	}
 }

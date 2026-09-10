@@ -242,11 +242,12 @@ func actionLauncherScore(item ActionLauncherItem, tokens []string) int {
 }
 
 // ActionLauncher is the shell "Start an action" control: a trigger button
-// opening a modal dialog that filters the authorized starts locally.
+// opening a non-modal dialog that filters the authorized starts locally.
 func ActionLauncher(props ActionLauncherProps) ui.Node {
 	query := ui.UseState(props.InitialQuery)
 	open := ui.UseState(strings.TrimSpace(props.InitialQuery) != "")
 	active := ui.UseState(0)
+	usePopoverFocusDismissal("action-launcher", "action-launcher-trigger", open.Get(), func() { open.Set(false) })
 	results := RankActionLauncherItems(props.Items, query.Get(), actionLauncherLimit)
 	activeIndex := active.Get()
 	if activeIndex >= len(results) && len(results) > 0 {
@@ -282,15 +283,16 @@ func ActionLauncher(props ActionLauncherProps) ui.Node {
 	// the accessibility tree and layout until the trigger opens it.
 	dialogHidden := !open.Get()
 	inputAria := map[string]string{
-		"label": props.Text("action_launcher.filter_label"), "autocomplete": "list", "controls": "action-launcher-results",
-		"expanded": fmt.Sprint(strings.TrimSpace(query.Get()) != ""),
+		"label": props.Text("action_launcher.filter_label"), "autocomplete": "list",
+		"expanded": fmt.Sprint(open.Get() && len(results) > 0),
 	}
-	if len(results) > 0 {
+	if open.Get() && len(results) > 0 {
+		inputAria["controls"] = "action-launcher-results"
 		inputAria["activedescendant"] = "action-launcher-result-" + fmt.Sprint(activeIndex)
 	}
 	dialogProps := html.Props{
 		ID: "action-launcher-dialog", Class: "action-launcher-dialog",
-		Raw: map[string]any{"role": "dialog", "aria-modal": "true", "aria-label": props.Text("action_launcher.dialog_title")},
+		Raw: map[string]any{"role": "dialog", "aria-label": props.Text("action_launcher.dialog_title")},
 	}
 	if dialogHidden {
 		dialogProps.Class += " action-launcher-dialog-hidden"
@@ -341,7 +343,13 @@ func ActionLauncher(props ActionLauncherProps) ui.Node {
 
 func actionLauncherResults(props ActionLauncherProps, results []ActionLauncherItem, active int, navigate func(ActionLauncherItem)) ui.Node {
 	if len(results) == 0 {
-		return unavailablePanel(props.Text("action_launcher.empty_title"), props.Text("action_launcher.empty_description"))
+		title, description := props.Text("action_launcher.empty_title"), props.Text("action_launcher.empty_description")
+		if len(props.Items) > 0 {
+			title, description = props.Text("action_launcher.no_matches_title"), props.Text("action_launcher.no_matches_description")
+		}
+		// This is a status message, not an expanded listbox with missing options.
+		return html.Div(html.Props{ID: "action-launcher-empty", Raw: map[string]any{"role": "status"}},
+			unavailablePanel(title, description))
 	}
 	children := make([]ui.Node, 0, len(results))
 	for index, result := range results {

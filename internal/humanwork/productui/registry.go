@@ -393,21 +393,25 @@ func validateAuthorizedNavigationProjection(projection AuthorizedNavigationProje
 	}
 	seen := make(map[PageID]bool)
 	overviews := make(map[PageID]bool)
+	definitions := make(map[PageID]PageDefinition)
+	for _, definition := range registeredPages() {
+		definitions[definition.ID] = definition
+	}
 	count := 0
 	for _, item := range projection.Items {
-		if err := validateAuthorizedNavigationItem(item, true, 0, "", seen, overviews, &count); err != nil {
+		if err := validateAuthorizedNavigationItem(item, true, 0, "", seen, overviews, &count, definitions); err != nil {
 			return err
 		}
 	}
 	for _, item := range projection.Support {
-		if err := validateAuthorizedNavigationItem(item, false, 0, "", seen, overviews, &count); err != nil {
+		if err := validateAuthorizedNavigationItem(item, false, 0, "", seen, overviews, &count, definitions); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func validateAuthorizedNavigationItem(item AuthorizedNavigationItem, primary bool, depth int, parent PageID, seen, overviews map[PageID]bool, count *int) error {
+func validateAuthorizedNavigationItem(item AuthorizedNavigationItem, primary bool, depth int, parent PageID, seen, overviews map[PageID]bool, count *int, definitions map[PageID]PageDefinition) error {
 	if depth > maxAuthorizedNavigationDepth || *count >= maxAuthorizedNavigationItems {
 		return fmt.Errorf("productui: navigation projection exceeds structural limit")
 	}
@@ -415,7 +419,7 @@ func validateAuthorizedNavigationItem(item AuthorizedNavigationItem, primary boo
 	if len(item.Children) > maxAuthorizedNavigationItems-*count {
 		return fmt.Errorf("productui: navigation projection exceeds item limit")
 	}
-	definition, ok := LookupPage(item.Page)
+	definition, ok := definitions[item.Page]
 	if !ok || !item.Authorized || item.Count < 0 || len(item.Keywords) > maxAuthorizedNavigationKeywords {
 		return fmt.Errorf("productui: malformed navigation projection item")
 	}
@@ -423,7 +427,7 @@ func validateAuthorizedNavigationItem(item AuthorizedNavigationItem, primary boo
 		!validNavigationText(item.Description, false) {
 		return fmt.Errorf("productui: unsafe navigation projection text")
 	}
-	if item.Icon != definition.Icon || !validNavigationHref(item.Page, item.Href) {
+	if item.Icon != definition.Icon || !validNavigationHref(definition, item.Href) {
 		return fmt.Errorf("productui: malformed navigation projection route")
 	}
 	for _, keyword := range item.Keywords {
@@ -457,20 +461,19 @@ func validateAuthorizedNavigationItem(item AuthorizedNavigationItem, primary boo
 	}
 	seen[item.Page] = true
 	for _, child := range item.Children {
-		if err := validateAuthorizedNavigationItem(child, false, depth+1, item.Page, seen, overviews, count); err != nil {
+		if err := validateAuthorizedNavigationItem(child, false, depth+1, item.Page, seen, overviews, count, definitions); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func validNavigationHref(page PageID, href string) bool {
+func validNavigationHref(definition PageDefinition, href string) bool {
 	if href == "" || strings.TrimSpace(href) != href || len(href) > maxAuthorizedNavigationText || !validNavigationText(href, true) {
 		return false
 	}
 	parsed, err := url.Parse(href)
-	definition, ok := LookupPage(page)
-	return err == nil && ok && !parsed.IsAbs() && parsed.Opaque == "" && parsed.Scheme == "" && parsed.User == nil && parsed.Host == "" &&
+	return err == nil && !parsed.IsAbs() && parsed.Opaque == "" && parsed.Scheme == "" && parsed.User == nil && parsed.Host == "" &&
 		parsed.Path == definition.Route && parsed.RawPath == "" && parsed.RawQuery == "" && parsed.Fragment == ""
 }
 
