@@ -2,6 +2,12 @@
 
 ## 2026-09-10
 
+- Land the timer-resume span links (OBS-013): the drift-checked timer
+  row's stored causal identity opens exactly one hcmnext.timer.resume
+  span back to the parked trace — nil, expired, tampered or missing
+  links advance unlinked with identical business behavior, human-work
+  resumes never open one, and the resume span emits no log line.
+
 - Land the agent trust kernels (AGENT-003, AGENT-004, AGENT-005):
   owner-bound draft ingestion with fuzz-pinned refusals, immutable eval
   runs gating publication with kill-switch lease revocation and

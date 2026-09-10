@@ -62,12 +62,16 @@ func (d *Driver) Resume(ctx context.Context, req ResumeRequest) (Result, error) 
 	}
 
 	advanced, created, evidenceIDs, timers, err := d.advanceOnce(ctx, run, req.ExpectedInstanceVersion, at, 1,
-		func(ctx context.Context, ex runtime.Executor) (frontier.NodeOutcome, runtime.GovernanceRefs, error) {
+		func(ctx context.Context, ex runtime.Executor) (frontier.NodeOutcome, runtime.GovernanceRefs, *runtime.CausalMetadata, error) {
 			item, loadErr := d.opts.Items.Load(ctx, ex, req.Start.TenantID, req.WorkItemID)
 			if loadErr != nil {
-				return frontier.NodeOutcome{}, runtime.GovernanceRefs{}, loadErr
+				return frontier.NodeOutcome{}, runtime.GovernanceRefs{}, nil, loadErr
 			}
-			return checkWorkItemDrift(req, selection, item)
+			// Human-work items carry no stored causal identity (OBS-013
+			// persists it on timer, job, outbox and signal envelopes, not
+			// on work items), so this path always advances unlinked.
+			outcome, refs, driftErr := checkWorkItemDrift(req, selection, item)
+			return outcome, refs, nil, driftErr
 		})
 	if err != nil {
 		return Result{}, err

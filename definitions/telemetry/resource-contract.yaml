@@ -150,6 +150,11 @@ attribute_allowlist:
     signals: [span]
     max_cardinality: 0
     description: Bounded durable attempt identifier; span context only, never authority or a metric label.
+  - key: timer_id
+    class: OPERATIONAL_RESTRICTED
+    signals: [span]
+    max_cardinality: 0
+    description: Durable timer identifier attributing a timer-fire or timer-resume span; span context only, never authority or a metric label.
   - key: message_kind
     class: OPERATIONAL_RESTRICTED
     signals: [span]

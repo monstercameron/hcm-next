@@ -70,6 +70,11 @@ type FiredTimer struct {
 	Key        string
 	State      string
 	FiresAt    time.Time
+	// Causal is the timer's stored correlation/causation identity plus its
+	// optional diagnostic trace link (OBS-013). It is populated from the
+	// committed row and is used only to link the resume span; it never
+	// governs the advancement, which rests on the drift-checked row alone.
+	Causal *runtime.CausalMetadata
 }
 
 // TimerReader loads the durable timer a [Driver.ResumeTimer] advances from,
@@ -118,6 +123,9 @@ func (d *Driver) ResumeTimer(ctx context.Context, req ResumeTimerRequest) (Resul
 	run := runContext{
 		start: req.Start, selection: selection, instanceID: req.InstanceID,
 		traceID: d.opts.Instrumentation.TraceID(ctx),
+		// OBS-013: the fired timer's identity selects the timer_id
+		// attribute on the resume span its stored causal identity links.
+		timerID: req.TimerID,
 	}
 	at := req.RecordedAt.UTC()
 	if req.RecordedAt.IsZero() {
@@ -125,12 +133,21 @@ func (d *Driver) ResumeTimer(ctx context.Context, req ResumeTimerRequest) (Resul
 	}
 
 	advanced, created, evidenceIDs, timers, err := d.advanceOnce(ctx, run, req.ExpectedInstanceVersion, at, 1,
-		func(ctx context.Context, ex runtime.Executor) (frontier.NodeOutcome, runtime.GovernanceRefs, error) {
+		func(ctx context.Context, ex runtime.Executor) (frontier.NodeOutcome, runtime.GovernanceRefs, *runtime.CausalMetadata, error) {
 			row, loadErr := d.opts.TimerReader.LoadTimer(ctx, ex, req.Start.TenantID, req.TimerID)
 			if loadErr != nil {
-				return frontier.NodeOutcome{}, runtime.GovernanceRefs{}, loadErr
+				return frontier.NodeOutcome{}, runtime.GovernanceRefs{}, nil, loadErr
 			}
-			return checkTimerDrift(req, selection, row)
+			outcome, refs, driftErr := checkTimerDrift(req, selection, row)
+			if driftErr != nil {
+				return frontier.NodeOutcome{}, runtime.GovernanceRefs{}, nil, driftErr
+			}
+			// OBS-013: the drift-checked row's stored causal identity
+			// rides out for the resume span link. It never governs: the
+			// drift check above already refused any row this request may
+			// not advance on, and a nil (pre-causal timer) advances
+			// unlinked with identical business behavior.
+			return outcome, refs, row.Causal, nil
 		})
 	if err != nil {
 		return Result{}, err

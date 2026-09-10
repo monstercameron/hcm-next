@@ -6,17 +6,17 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/monstercameron/human-capital-management-suite/internal/platform/telemetry"
 	hcmotel "github.com/monstercameron/human-capital-management-suite/internal/platform/telemetry/otel"
 	"github.com/monstercameron/human-capital-management-suite/internal/workflow/execute"
 	"github.com/monstercameron/human-capital-management-suite/internal/workflow/runtime"
 )
 
-// Span names OBS-023 opens. No OBS-012 span-topology contract exists yet
-// (planning/todos.md OBS-012 is unimplemented), so this package falls back
-// to the todo's own named convention: "span and log names follow the
-// repository's OBS-012 topology conventions if defined, otherwise
-// `hcmnext.workflow.<verb>`". A later OBS-012 landing replaces these
-// constants' values, not their call sites.
+// Span names OBS-023 opens. These match the OBS-012 topology contract
+// (internal/platform/telemetry.CanonicalPromotionTopology): the advance
+// and terminal names below equal their contract rows, and the resume span
+// uses telemetry.SpanTimerResume directly so the published name has one
+// source of truth.
 const (
 	spanWorkflowNode     = "hcmnext.workflow.node"
 	spanWorkflowAdvance  = "hcmnext.workflow.advance"
@@ -92,6 +92,54 @@ func (o *OTelInstrumentation) StartAdvanceSpan(ctx context.Context, attrs execut
 // StartTerminalSpan implements execute.Instrumentation.
 func (o *OTelInstrumentation) StartTerminalSpan(ctx context.Context, attrs execute.SpanAttributes) (context.Context, execute.Span) {
 	return o.startSpan(ctx, spanWorkflowTerminal, attrs, logEventTerminal)
+}
+
+// zeroUUID is the execute.TimerID zero value rendered by uuid.String. A
+// resume request carrying it has no timer to attribute, so the timer_id
+// attribute is omitted rather than recorded as a nil UUID.
+const zeroUUID = "00000000-0000-0000-0000-000000000000"
+
+// StartResumeSpan implements execute.ResumeSpanStarter (OBS-013). It opens
+// the finite hcmnext.timer.resume span for one timer-wake advancement: a
+// new root linked to the parked trace when the stored causal identity is
+// valid and unexpired, otherwise an identical unlinked span. Correlation,
+// causation and logical-operation identity are preserved verbatim from the
+// stored row; only the attempt identity is fresh for this advancement.
+// Like a node span it carries no log line: the nested advancement span
+// still owns the one required per-advancement line.
+func (o *OTelInstrumentation) StartResumeSpan(ctx context.Context, req execute.ResumeSpanRequest) (context.Context, execute.Span) {
+	attrs := execute.SpanAttributes{InstanceID: req.InstanceID, NodeID: req.NodeID, Attempt: req.Attempt}
+	if req.Causal == nil {
+		return o.startSpan(ctx, string(telemetry.SpanTimerResume), attrs, "")
+	}
+	logical := req.Causal.LogicalOperationID
+	if logical == "" {
+		logical = req.InstanceID
+	}
+	attempt := req.InstanceID + "/" + req.NodeID + "/" + strconv.Itoa(req.Attempt)
+	cont := hcmotel.DurableAsyncContinuation{
+		CorrelationID:      req.Causal.CorrelationID,
+		CausationID:        req.Causal.CausationID,
+		LogicalOperationID: logical,
+		AttemptID:          attempt,
+	}
+	if link := req.Causal.TraceLink; link != nil {
+		cont.TraceLink = &hcmotel.TraceLinkMetadata{
+			TraceID: link.TraceID, SpanID: link.SpanID, TraceFlags: link.TraceFlags,
+			TraceState: link.TraceState, ExpiresAt: link.ExpiresAt,
+		}
+	}
+	linkAttrs := map[string]string{"logical_operation_id": logical, "attempt_id": attempt}
+	if req.TimerID != "" && req.TimerID != zeroUUID {
+		linkAttrs["timer_id"] = req.TimerID
+	}
+	spanCtx, span, err := o.provider.StartDurableAsyncSpan(ctx, tracerName, string(telemetry.SpanTimerResume), cont, linkAttrs, req.At)
+	if err != nil {
+		// Stored identity failed validation: advance unlinked with
+		// identical business behavior rather than refusing the resume.
+		return o.startSpan(ctx, string(telemetry.SpanTimerResume), attrs, "")
+	}
+	return spanCtx, &otelSpan{span: span, started: o.clock(), attrs: attrs, logger: o.logger, logEvent: "", clock: o.clock}
 }
 
 func spanAttributeMap(attrs execute.SpanAttributes) map[string]string {

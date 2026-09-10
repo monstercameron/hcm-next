@@ -39,5 +39,9 @@ func (r Reader) LoadTimer(ctx context.Context, ex runtime.Executor, tenantID, ti
 		Key:        row.Key,
 		State:      row.State,
 		FiresAt:    row.FiresAt,
+		// OBS-013: the row's stored causal identity rides along so the
+		// resume span can link to the parked trace. Drift-checking still
+		// reads only the fields above; this one never governs.
+		Causal: row.Causal,
 	}, nil
 }
