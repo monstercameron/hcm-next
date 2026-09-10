@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-09-10
+
+- Land the legal entitlement kernels (LEGAL-003, LEGAL-004, LEGAL-006):
+  entitlement composition that never lets company policy narrow statutory
+  protection, watermark-bound rule-change impact assessment, and the
+  sealed obligation lifecycle (open/satisfy/waive/block/age) —
+  kernel-pure and digest-sealed.
+
 - Land the Medical Leave domain kernels (LEAVE-002–LEAVE-011, LEAVE-014,
   LEAVE-017): snapshot intake, eligibility resolution, entitlement planning,
   simulation/proposal, transaction compile, atomic commit, determination

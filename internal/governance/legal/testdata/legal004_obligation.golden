@@ -1,0 +1,4 @@
+type=FINAL_PAY_DEADLINE
+due=trigger+3d|calendar|ca-2026.1
+open=OPEN aged=OVERDUE
+digest=sha256:5e9dda0b253051430e77bbc62544701c0cecac26a32ffa0c0dc2c9d1cccf240e
