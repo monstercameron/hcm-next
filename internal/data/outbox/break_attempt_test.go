@@ -145,7 +145,12 @@ func TestBreak_RunHaltsWhenLeaseExpiresMidHandler(t *testing.T) {
 	first := breakEnqueue(t, f, "slow-effect", nil)
 	second := breakEnqueue(t, f, "second-effect", nil)
 
-	c := outbox.NewConsumer(f.db.Conn, outbox.WithLease(100*time.Millisecond))
+	// Run's own connection is separate from f.db.Conn (see
+	// TestOutboxConsumerHandlerIsIdempotentByMessageID): sharing one
+	// connection between Run and this test's Read-polling loop fails the
+	// first Begin with "conn busy" and Run returns before any delivery.
+	runConn := f.db.NewConn(t)
+	c := outbox.NewConsumer(runConn, outbox.WithLease(100*time.Millisecond))
 	handlerCalls := 0
 	handler := func(ctx context.Context, msg outbox.Record) error {
 		handlerCalls++

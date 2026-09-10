@@ -80,3 +80,22 @@ fully green: `quality: PASSED`.
   repository-scope findings also fail on pristine c0a28ebe (checked via a
   clean archive copy), so they are pre-existing and need a security review
   before anyone allowlists them — deliberately left red.
+
+## Outbox duplicate-dispatch fence (EVENT_002)
+
+- Two concurrent `Dispatch` calls for the same record could both read
+  "not applied" and run the handler. `ConsumerGroup` now registers one
+  in-flight dispatch per applied key under the mutex; a second delivery
+  waits on the runner's done channel and re-checks fencing afterwards
+  instead of running the handler twice.
+- Verified: the EVENT_002 race test passes repeatedly (10/10 in the prior
+  session's runs, 3/3 re-verified here); the outbox suite re-runs with the
+  commit hook.
+- The pre-existing TestBreak_RunHaltsWhenLeaseExpiresMidHandler failure was
+  a test-harness bug, not a product break: Run and the test's delivery
+  polling shared one pgx connection, so the first Begin failed with "conn
+  busy" (proven by replicating Run with its return value visible) and Run
+  returned before any delivery. Run now gets its own connection via
+  pgtest NewConn, the pattern TestOutboxConsumerHandlerIsIdempotentByMessageID
+  already documents. No product code changed for this; the assertions are
+  untouched.

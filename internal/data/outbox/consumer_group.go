@@ -194,6 +194,18 @@ type ConsumerGroup struct {
 	mu       sync.Mutex
 	attempts map[string]int
 	clock    func() time.Time
+	// inflight tracks one in-progress Dispatch per applied key so two
+	// concurrent deliveries of the same record cannot both pass the
+	// applied check and run the handler. A waiter blocks until the
+	// runner finishes, then re-checks under the same fencing rules.
+	inflight map[string]*inflightDispatch
+}
+
+// inflightDispatch is one in-progress Dispatch. done closes when the
+// runner finishes; waiters re-check fencing afterwards instead of
+// running the handler a second time.
+type inflightDispatch struct {
+	done chan struct{}
 }
 
 // NewConsumerGroup validates one group policy.
@@ -228,16 +240,44 @@ func (g *ConsumerGroup) Dispatch(ctx context.Context, record Record, handler Eff
 	}
 	partition := partitionOf(record)
 	key := appliedKey(g.policy.Group, partition, record.EffectIdentity)
-	g.mu.Lock()
-	poisoned := g.poisonedLocked(partition, record.EffectIdentity)
-	seen := g.store.Applied(g.policy.Group, partition, record.EffectIdentity)
-	g.mu.Unlock()
-	if poisoned {
-		return ApplyPoisonIsolated, nil
+	for {
+		g.mu.Lock()
+		poisoned := g.poisonedLocked(partition, record.EffectIdentity)
+		seen := g.store.Applied(g.policy.Group, partition, record.EffectIdentity)
+		if poisoned {
+			g.mu.Unlock()
+			return ApplyPoisonIsolated, nil
+		}
+		if seen {
+			g.mu.Unlock()
+			return ApplyDuplicateFenced, nil
+		}
+		if in, ok := g.inflight[key]; ok {
+			g.mu.Unlock()
+			<-in.done
+			continue
+		}
+		if g.inflight == nil {
+			g.inflight = make(map[string]*inflightDispatch)
+		}
+		in := &inflightDispatch{done: make(chan struct{})}
+		g.inflight[key] = in
+		g.mu.Unlock()
+
+		outcome := g.runHandler(ctx, record, handler, partition, key)
+
+		g.mu.Lock()
+		delete(g.inflight, key)
+		close(in.done)
+		g.mu.Unlock()
+		return outcome, nil
 	}
-	if seen {
-		return ApplyDuplicateFenced, nil
-	}
+}
+
+// runHandler runs one fenced delivery outside the group lock and records
+// its outcome. Only the singleflight runner reaches here, so exactly one
+// handler runs per record no matter how many deliveries race.
+func (g *ConsumerGroup) runHandler(ctx context.Context, record Record, handler EffectHandler, partition, key string) ApplyOutcome {
 	if err := handler(ctx, record, Fencing{AllowExternalEffects: true}); err != nil {
 		g.mu.Lock()
 		defer g.mu.Unlock()
@@ -252,15 +292,15 @@ func (g *ConsumerGroup) Dispatch(ctx context.Context, record Record, handler Eff
 				RepairRoute:    g.policy.RepairRoute,
 				Attempts:       g.attempts[key],
 			})
-			return ApplyPoisonIsolated, nil
+			return ApplyPoisonIsolated
 		}
-		return ApplyTransientFailed, nil
+		return ApplyTransientFailed
 	}
 	g.mu.Lock()
 	defer g.mu.Unlock()
 	g.store.RecordApplied(g.policy.Group, partition, record.EffectIdentity)
 	delete(g.attempts, key)
-	return ApplyApplied, nil
+	return ApplyApplied
 }
 
 func (g *ConsumerGroup) poisonedLocked(partition, identity string) bool {

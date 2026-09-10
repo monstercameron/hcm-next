@@ -9,6 +9,15 @@
   with P0001 like its neighbors so the admissionstore evidence wall holds;
   manifest re-signed and evidence reports regenerated.
 
+- Fence concurrent duplicate outbox delivery: ConsumerGroup.Dispatch now
+  tracks one in-progress dispatch per applied key so two concurrent
+  deliveries of the same record cannot both pass the applied check and run
+  the handler; waiters block until the runner finishes, then re-check.
+  Also give the lease-expiry break test Run its own connection: sharing one
+  connection with the test's read-polling loop failed the first Begin with
+  "conn busy" so Run returned before any delivery (same pattern the
+  idempotency test already documents).
+
 - Backfill governance evidence for 43 completed todos so GOV-017 and
   GOV-003 pass with no new allowlist entries: LEAVE/AVAIL/BAL/INTENT/
   LEGAL/MSG/REPLAN/WORK/WF-DISC/OBS-013/WEB-024..036 evidence now names
