@@ -1,0 +1,229 @@
+{
+  "matrix": {
+    "definition": "hcmnext.people.change_manager/v1",
+    "intent": "ChangeManager",
+    "scenarios": [
+      {
+        "id": "hcmnext.people.change_manager/v1/positive/00",
+        "name": "happy-path-execution",
+        "class": "POSITIVE",
+        "dimension": "completion",
+        "fixture": "definition=hcmnext.people.change_manager/v1 boundary=manager-edge-proposal engines=identity-resolution",
+        "expected": "terminal edge-observed observed with digest",
+        "prohibited": "partial or unordered completion",
+        "oracle": "execute ChangeManager through manager-edge-proposal to edge-observed"
+      },
+      {
+        "id": "hcmnext.people.change_manager/v1/positive/01",
+        "name": "exact-write-posted",
+        "class": "POSITIVE",
+        "dimension": "writes",
+        "fixture": "definition=hcmnext.people.change_manager/v1 boundary=manager-edge-proposal engines=identity-resolution writes=manager-edge-replacement",
+        "expected": "manager-edge-replacement posted exactly once",
+        "prohibited": "duplicate manager-edge-replacement rows",
+        "oracle": "write manager-edge-replacement posted exactly once with edge-observed"
+      },
+      {
+        "id": "hcmnext.people.change_manager/v1/positive/02",
+        "name": "exact-read-returned",
+        "class": "POSITIVE",
+        "dimension": "reads",
+        "fixture": "definition=hcmnext.people.change_manager/v1 boundary=manager-edge-proposal engines=identity-resolution",
+        "expected": "engines identity-resolution return typed reads",
+        "prohibited": "untyped or partial reads presented as complete",
+        "oracle": "engines identity-resolution return typed reads under authority-snapshot"
+      },
+      {
+        "id": "hcmnext.people.change_manager/v1/positive/03",
+        "name": "human-decision-recorded",
+        "class": "POSITIVE",
+        "dimension": "human",
+        "fixture": "definition=hcmnext.people.change_manager/v1 boundary=manager-edge-proposal engines=identity-resolution decider=manager-self-service",
+        "expected": "decision by manager-self-service recorded with rationale",
+        "prohibited": "unrecorded decision",
+        "oracle": "decision by manager-self-service recorded with rationale before edge-observed"
+      },
+      {
+        "id": "hcmnext.people.change_manager/v1/positive/04",
+        "name": "completion-observed",
+        "class": "POSITIVE",
+        "dimension": "completion",
+        "fixture": "definition=hcmnext.people.change_manager/v1 boundary=manager-edge-proposal engines=identity-resolution",
+        "expected": "edge-observed observed with digest",
+        "prohibited": "unobserved completion",
+        "oracle": "terminal edge-observed observed with digest per reconciliation"
+      },
+      {
+        "id": "hcmnext.people.change_manager/v1/negative/05",
+        "name": "invalid-input-rejected",
+        "class": "NEGATIVE",
+        "dimension": "reads",
+        "fixture": "definition=hcmnext.people.change_manager/v1 boundary=manager-edge-proposal engines=identity-resolution input=malformed",
+        "expected": "typed rejection naming the boundary",
+        "prohibited": "silent acceptance past manager-edge-proposal",
+        "oracle": "malformed input rejected at manager-edge-proposal with a typed error"
+      },
+      {
+        "id": "hcmnext.people.change_manager/v1/negative/06",
+        "name": "duplicate-signal-coalesced",
+        "class": "NEGATIVE",
+        "dimension": "effects",
+        "fixture": "definition=hcmnext.people.change_manager/v1 boundary=manager-edge-proposal engines=identity-resolution signal=manager-edge-replacement twice",
+        "expected": "duplicate manager-edge-replacement coalesced to one application",
+        "prohibited": "double application of manager-edge-replacement",
+        "oracle": "duplicate signal for manager-edge-replacement coalesced to one application"
+      },
+      {
+        "id": "hcmnext.people.change_manager/v1/negative/07",
+        "name": "provider-ambiguity-refused",
+        "class": "NEGATIVE",
+        "dimension": "reads",
+        "fixture": "definition=hcmnext.people.change_manager/v1 boundary=manager-edge-proposal engines=identity-resolution provider=ambiguous",
+        "expected": "ambiguous provider refused with a typed error",
+        "prohibited": "ambiguous provider silently selected",
+        "oracle": "engines identity-resolution refuse an ambiguous provider with a typed error"
+      },
+      {
+        "id": "hcmnext.people.change_manager/v1/temporal/08",
+        "name": "stale-approval-revalidated",
+        "class": "TEMPORAL",
+        "dimension": "waits",
+        "fixture": "definition=hcmnext.people.change_manager/v1 boundary=manager-edge-proposal engines=identity-resolution approval=stale",
+        "expected": "stale approval revalidated after approval-window",
+        "prohibited": "stale approval honored",
+        "oracle": "stale approval revalidated after approval-window before edge-observed"
+      },
+      {
+        "id": "hcmnext.people.change_manager/v1/temporal/09",
+        "name": "cancellation-during-wait",
+        "class": "TEMPORAL",
+        "dimension": "waits",
+        "fixture": "definition=hcmnext.people.change_manager/v1 boundary=manager-edge-proposal engines=identity-resolution cancel=during-approval-window",
+        "expected": "cancellation aborts approval-window without effects",
+        "prohibited": "orphaned wait past cancellation",
+        "oracle": "cancellation during approval-window aborts without effects"
+      },
+      {
+        "id": "hcmnext.people.change_manager/v1/concurrency/10",
+        "name": "conflicting-future-change",
+        "class": "CONCURRENCY",
+        "dimension": "effects",
+        "fixture": "definition=hcmnext.people.change_manager/v1 boundary=manager-edge-proposal engines=identity-resolution future=conflicting",
+        "expected": "conflicting future change detected before commit",
+        "prohibited": "silent overwrite by a future change",
+        "oracle": "conflicting future change detected before commit of edge-observed"
+      },
+      {
+        "id": "hcmnext.people.change_manager/v1/concurrency/11",
+        "name": "concurrent-effect-idempotent",
+        "class": "CONCURRENCY",
+        "dimension": "effects",
+        "fixture": "definition=hcmnext.people.change_manager/v1 boundary=manager-edge-proposal engines=identity-resolution concurrent=manager-edge-replacement",
+        "expected": "concurrent manager-edge-replacement applies once",
+        "prohibited": "concurrent double application",
+        "oracle": "concurrent manager-edge-replacement applies exactly once"
+      },
+      {
+        "id": "hcmnext.people.change_manager/v1/failure/12",
+        "name": "partial-snapshot-detected",
+        "class": "FAILURE",
+        "dimension": "reads",
+        "fixture": "definition=hcmnext.people.change_manager/v1 boundary=manager-edge-proposal engines=identity-resolution snapshot=partial",
+        "expected": "partial authority-snapshot detected and refused",
+        "prohibited": "partial snapshot honored",
+        "oracle": "partial authority-snapshot detected and refused before execution"
+      },
+      {
+        "id": "hcmnext.people.change_manager/v1/failure/13",
+        "name": "worker-crash-recoverable",
+        "class": "FAILURE",
+        "dimension": "effects",
+        "fixture": "definition=hcmnext.people.change_manager/v1 boundary=manager-edge-proposal engines=identity-resolution crash=mid-execution",
+        "expected": "crash replays from the last observed edge",
+        "prohibited": "unrecoverable crash past edge-observed",
+        "oracle": "worker crash replays from the last observed edge to edge-observed"
+      },
+      {
+        "id": "hcmnext.people.change_manager/v1/failure/14",
+        "name": "partial-external-success",
+        "class": "FAILURE",
+        "dimension": "effects",
+        "fixture": "definition=hcmnext.people.change_manager/v1 boundary=manager-edge-proposal engines=identity-resolution external=partial",
+        "expected": "partial success reconciled, never half-reported",
+        "prohibited": "half-reported external success",
+        "oracle": "partial external success over manager-edge-replacement reconciled, never half-reported"
+      },
+      {
+        "id": "hcmnext.people.change_manager/v1/failure/15",
+        "name": "invalidator-supersedes",
+        "class": "FAILURE",
+        "dimension": "invalidators",
+        "fixture": "definition=hcmnext.people.change_manager/v1 boundary=manager-edge-proposal engines=identity-resolution invalidation=org-reparent",
+        "expected": "org-reparent supersedes stale work",
+        "prohibited": "stale work surviving org-reparent",
+        "oracle": "org-reparent supersedes stale work before edge-observed"
+      },
+      {
+        "id": "hcmnext.people.change_manager/v1/failure/16",
+        "name": "quarantined-ingress-corrected",
+        "class": "FAILURE",
+        "dimension": "invalidators",
+        "fixture": "definition=hcmnext.people.change_manager/v1 boundary=manager-edge-proposal engines=identity-resolution ingress=quarantined",
+        "expected": "quarantined ingress corrected via org-reparent",
+        "prohibited": "quarantined ingress executed",
+        "oracle": "quarantined ingress corrected via org-reparent with evidence"
+      },
+      {
+        "id": "hcmnext.people.change_manager/v1/security/17",
+        "name": "authority-drift-refused",
+        "class": "SECURITY",
+        "dimension": "reads",
+        "fixture": "definition=hcmnext.people.change_manager/v1 boundary=manager-edge-proposal engines=identity-resolution authority=drifted",
+        "expected": "drifted authority refused before effects",
+        "prohibited": "drifted authority honored",
+        "oracle": "drifted authority refused before effects by engines identity-resolution"
+      },
+      {
+        "id": "hcmnext.people.change_manager/v1/security/18",
+        "name": "confidential-field-redacted",
+        "class": "SECURITY",
+        "dimension": "reads",
+        "fixture": "definition=hcmnext.people.change_manager/v1 boundary=manager-edge-proposal engines=identity-resolution field=confidential",
+        "expected": "confidential fields redacted in reads and decisions",
+        "prohibited": "confidential field leak into evidence",
+        "oracle": "confidential fields redacted in reads by identity-resolution and in decisions"
+      },
+      {
+        "id": "hcmnext.people.change_manager/v1/security/19",
+        "name": "cross-compartment-isolation",
+        "class": "SECURITY",
+        "dimension": "reads",
+        "fixture": "definition=hcmnext.people.change_manager/v1 boundary=manager-edge-proposal engines=identity-resolution compartment=sibling",
+        "expected": "profile PPL isolated from sibling compartments",
+        "prohibited": "cross-compartment read",
+        "oracle": "profile PPL for hcmnext.people.change_manager/v1 isolated from sibling compartments"
+      },
+      {
+        "id": "hcmnext.people.change_manager/v1/repair/20",
+        "name": "correction-supersedes",
+        "class": "REPAIR",
+        "dimension": "invalidators",
+        "fixture": "definition=hcmnext.people.change_manager/v1 boundary=manager-edge-proposal engines=identity-resolution fault=correctable",
+        "expected": "revoke-and-replace supersedes the faulty revision",
+        "prohibited": "faulty revision surviving correction",
+        "oracle": "revoke-and-replace supersedes the faulty revision with evidence"
+      },
+      {
+        "id": "hcmnext.people.change_manager/v1/repair/21",
+        "name": "failed-repair-escalates",
+        "class": "REPAIR",
+        "dimension": "invalidators",
+        "fixture": "definition=hcmnext.people.change_manager/v1 boundary=manager-edge-proposal engines=identity-resolution repair=failed",
+        "expected": "failed repair escalates with evidence, never silent",
+        "prohibited": "silent failed repair",
+        "oracle": "failed repair escalates with evidence for ChangeManager"
+      }
+    ],
+    "digest": "sha256:c57437729bad27b0ee5aa346bc78e20a5773e431c7b0652dc76eed79dd60edfd"
+  }
+}

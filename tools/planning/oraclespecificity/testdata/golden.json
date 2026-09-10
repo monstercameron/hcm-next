@@ -1,0 +1,16 @@
+[
+  {
+    "file": "golden.md",
+    "line": 4,
+    "todo_id": "GoldenViolates",
+    "code": "PLACEHOLDER_RED_ORACLE",
+    "message": "RED is placeholder contract language (\"violates this contract\"): name one semantic defect with its exact typed rejection and state"
+  },
+  {
+    "file": "golden.md",
+    "line": 21,
+    "todo_id": "GoldenLedger",
+    "code": "MISSING_PROHIBITED_EFFECT_ORACLE",
+    "message": "GREEN claims persistence, ledger, outbox, human-work or provider effects without a prohibited outcome: state the exact counts and the zero side effects"
+  }
+]

@@ -1,0 +1,25 @@
+{
+  "join": {
+    "matched": 1,
+    "total": 2,
+    "bindings": [
+      {
+        "definition": "hcmnext.t.alpha/v1",
+        "intent": "Alpha"
+      }
+    ],
+    "digest": "sha256:c71c64b36a94684b80012e90ce996119dd4442b3efeed97e6f7db80fcf91a7ef"
+  },
+  "findings": [
+    {
+      "intent": "AliasOnly",
+      "code": "ALIAS_RECORD",
+      "detail": "record carries no definition ref; display names must never be join keys"
+    },
+    {
+      "definition": "hcmnext.t.beta/v1",
+      "code": "MISSING_DESIGN",
+      "detail": "accepted definition has no design record"
+    }
+  ]
+}

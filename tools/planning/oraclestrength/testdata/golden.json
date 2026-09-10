@@ -1,0 +1,16 @@
+[
+  {
+    "file": "golden.md",
+    "line": 5,
+    "todo_id": "GoldenPanic",
+    "code": "WEAK_ORACLE",
+    "message": "execution-only assertion (\"without panic\") without an exact typed outcome, count, digest or prohibited-effect bound"
+  },
+  {
+    "file": "golden.md",
+    "line": 21,
+    "todo_id": "GoldenSnapshot",
+    "code": "WEAK_ORACLE",
+    "message": "snapshot or golden oracle without a canonical digest, pinned bytes or deterministic repeat: unstable recorded output cannot satisfy a todo"
+  }
+]

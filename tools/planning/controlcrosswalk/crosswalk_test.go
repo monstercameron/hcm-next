@@ -20,8 +20,8 @@ func TestTodo_GOV_030(t *testing.T) {
 	if findControl(revision, "E-05").Status != Implemented {
 		t.Fatalf("E-05 status = %q, want %q", findControl(revision, "E-05").Status, Implemented)
 	}
-	if findControl(revision, "E-16").Status != Missing {
-		t.Fatalf("E-16 status = %q, want %q", findControl(revision, "E-16").Status, Missing)
+	if findControl(revision, "E-16").Status != Implemented {
+		t.Fatalf("E-16 status = %q, want %q", findControl(revision, "E-16").Status, Implemented)
 	}
 	if err := Verify(revision); err != nil {
 		t.Fatal(err)
@@ -57,7 +57,7 @@ func TestTodo_GOV_030_Golden(t *testing.T) {
 func TestTodo_GOV_030_Security(t *testing.T) {
 	definition, todos := realInputs(t)
 	for index := range definition.Controls {
-		if definition.Controls[index].ID == "E-16" {
+		if definition.Controls[index].ID == "F-13" {
 			definition.Controls[index].DeclaredStatus = string(Implemented)
 		}
 	}
@@ -77,7 +77,7 @@ func TestTodo_GOV_030_Security(t *testing.T) {
 	}
 	revision := realRevision(t)
 	explanation := revision.Explain()
-	for _, raw := range []string{"E-16", "GOV-030", "internal/"} {
+	for _, raw := range []string{"F-13", "PRIV-008", "internal/"} {
 		if strings.Contains(explanation, raw) {
 			t.Fatalf("Explain leaked raw identifier %q: %s", raw, explanation)
 		}
@@ -127,7 +127,7 @@ func TestTodo_GOV_030_Mutation(t *testing.T) {
 	mutated := append([]todoregistry.Todo(nil), todos...)
 	for index := range mutated {
 		if mutated[index].ID == "GOV-030" {
-			mutated[index].Done = true
+			mutated[index].Done = false
 		}
 	}
 	after, err := Regenerate(definition, mutated, nil)
@@ -137,8 +137,8 @@ func TestTodo_GOV_030_Mutation(t *testing.T) {
 	if before.Digest == after.Digest {
 		t.Fatal("revision digest did not change when cited todo status changed")
 	}
-	if findControl(after, "E-16").Status != Implemented {
-		t.Fatalf("mutated E-16 status = %q, want %q", findControl(after, "E-16").Status, Implemented)
+	if findControl(after, "E-16").Status != Missing {
+		t.Fatalf("mutated E-16 status = %q, want %q", findControl(after, "E-16").Status, Missing)
 	}
 }
 

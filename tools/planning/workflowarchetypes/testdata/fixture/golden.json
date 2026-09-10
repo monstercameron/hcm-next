@@ -1,0 +1,93 @@
+{
+  "catalogs": [
+    {
+      "catalog": "people/catalog.md",
+      "rows": 3
+    },
+    {
+      "catalog": "leave/catalog.md",
+      "rows": 2
+    }
+  ],
+  "rows": [
+    {
+      "catalog": "leave/catalog.md",
+      "intent": "ChangeManager",
+      "archetypes": [
+        "A2"
+      ],
+      "dependencies": "Ppl, Org",
+      "data": "Ppl, Org",
+      "delta": "org validation"
+    },
+    {
+      "catalog": "leave/catalog.md",
+      "intent": "TakeLeave",
+      "archetypes": [
+        "A7"
+      ],
+      "dependencies": "Time, Payroll",
+      "data": "Time, Payroll",
+      "delta": "balance check"
+    },
+    {
+      "catalog": "people/catalog.md",
+      "intent": "ChangeManager",
+      "archetypes": [
+        "A2"
+      ],
+      "dependencies": "Ppl, Org",
+      "data": "manager edge",
+      "delta": "cycle validation"
+    },
+    {
+      "catalog": "people/catalog.md",
+      "intent": "EmptyDeps",
+      "archetypes": [
+        "A1"
+      ],
+      "dependencies": "",
+      "data": "thing",
+      "delta": "delta"
+    },
+    {
+      "catalog": "people/catalog.md",
+      "intent": "GhostRow",
+      "archetypes": [
+        "A99"
+      ],
+      "dependencies": "Ppl",
+      "data": "thing",
+      "delta": "delta"
+    }
+  ],
+  "findings": [
+    {
+      "catalog": "leave/catalog.md",
+      "intent": "ChangeManager",
+      "code": "DUPLICATE_INTENT_PLACEMENT",
+      "detail": "intent is placed in more than one catalog"
+    },
+    {
+      "catalog": "people/catalog.md",
+      "intent": "ChangeManager",
+      "code": "DUPLICATE_INTENT_PLACEMENT",
+      "detail": "intent is placed in more than one catalog"
+    },
+    {
+      "catalog": "people/catalog.md",
+      "intent": "EmptyDeps",
+      "code": "EMPTY_REQUIRED_CELL",
+      "field": "dependencies",
+      "detail": "catalog row states no dependencies"
+    },
+    {
+      "catalog": "people/catalog.md",
+      "intent": "GhostRow",
+      "code": "UNKNOWN_ARCHETYPE",
+      "field": "arch",
+      "detail": "archetype A99 is not defined"
+    }
+  ],
+  "digest": "sha256:a783c47f586b4922134fc7af61e6af5d51a7f28bca5a28ff97283222a2a3e34d"
+}

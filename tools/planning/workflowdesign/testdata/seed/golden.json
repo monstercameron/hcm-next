@@ -1,0 +1,509 @@
+{
+  "records": [
+    {
+      "intent": "ChangeManager",
+      "definition": "hcmnext.people.change_manager/v1",
+      "disposition": "WORKFLOW",
+      "archetype": "A2",
+      "domain_profile": "PPL",
+      "input_boundary": "manager-edge-proposal",
+      "snapshot_policy": "authority-snapshot-per-dispatch",
+      "engines": {
+        "items": [
+          "identity-resolution",
+          "workflow-timers"
+        ]
+      },
+      "human_work": {
+        "value": "manager-self-service"
+      },
+      "writes": {
+        "value": "manager-edge-replacement"
+      },
+      "waits": {
+        "value": "approval-window"
+      },
+      "invalidators": {
+        "value": "org-reparent"
+      },
+      "reconciliation": {
+        "value": "relationship-derived-access"
+      },
+      "correction": {
+        "value": "revoke-and-replace"
+      },
+      "completion": "edge-observed"
+    },
+    {
+      "intent": "ExplainWorkerState",
+      "definition": "hcmnext.people.explain_worker_state/v1",
+      "disposition": "WORKFLOW",
+      "archetype": "A6",
+      "domain_profile": "PPL",
+      "input_boundary": "explanation-request",
+      "snapshot_policy": "pinned-rule-versions",
+      "engines": {
+        "items": [
+          "provenance-query"
+        ]
+      },
+      "human_work": {
+        "value": "NOT_APPLICABLE",
+        "reason": "NO_HUMAN_STEP"
+      },
+      "writes": {
+        "value": "NOT_APPLICABLE",
+        "reason": "READ_ONLY"
+      },
+      "waits": {
+        "value": "NOT_APPLICABLE",
+        "reason": "NO_WAIT"
+      },
+      "invalidators": {
+        "value": "NOT_APPLICABLE",
+        "reason": "NO_DEFERRAL"
+      },
+      "reconciliation": {
+        "value": "NOT_APPLICABLE",
+        "reason": "NO_EXTERNAL_EFFECT"
+      },
+      "correction": {
+        "value": "NOT_APPLICABLE",
+        "reason": "NO_MUTATION"
+      },
+      "completion": "explanation-delivered"
+    },
+    {
+      "intent": "PromoteWorker",
+      "definition": "hcmnext.people.promote_worker/v1",
+      "disposition": "WORKFLOW",
+      "archetype": "A4",
+      "domain_profile": "PPL",
+      "input_boundary": "promotion-proposal",
+      "snapshot_policy": "frozen-eligibility-facts",
+      "engines": {
+        "items": [
+          "identity-resolution",
+          "access-provisioning"
+        ]
+      },
+      "human_work": {
+        "value": "approval-committee"
+      },
+      "writes": {
+        "value": "employment-revision"
+      },
+      "waits": {
+        "value": "approval-window"
+      },
+      "invalidators": {
+        "value": "reorg-freeze"
+      },
+      "reconciliation": {
+        "value": "provisioned-access"
+      },
+      "correction": {
+        "value": "superseding-revision"
+      },
+      "completion": "worker-active"
+    },
+    {
+      "intent": "ExplainTransaction",
+      "definition": "hcmnext.intelligence.explain_transaction/v1",
+      "disposition": "DIRECT",
+      "archetype": "D1",
+      "domain_profile": "ANALYTICS",
+      "input_boundary": "explanation-request",
+      "snapshot_policy": "pinned-rule-versions",
+      "engines": {
+        "items": [
+          "provenance-query"
+        ]
+      },
+      "human_work": {
+        "value": "NOT_APPLICABLE",
+        "reason": "NO_HUMAN_STEP"
+      },
+      "writes": {
+        "value": "NOT_APPLICABLE",
+        "reason": "READ_ONLY"
+      },
+      "waits": {
+        "value": "NOT_APPLICABLE",
+        "reason": "NO_WAIT"
+      },
+      "invalidators": {
+        "value": "NOT_APPLICABLE",
+        "reason": "NO_DEFERRAL"
+      },
+      "reconciliation": {
+        "value": "NOT_APPLICABLE",
+        "reason": "NO_EXTERNAL_EFFECT"
+      },
+      "correction": {
+        "value": "NOT_APPLICABLE",
+        "reason": "NO_MUTATION"
+      },
+      "completion": "explanation-delivered"
+    },
+    {
+      "intent": "DetectDrift",
+      "definition": "hcmnext.operations.detect_drift/v1",
+      "disposition": "DIRECT",
+      "archetype": "D1",
+      "domain_profile": "OPS",
+      "input_boundary": "drift-observation-window",
+      "snapshot_policy": "pinned-rule-versions",
+      "engines": {
+        "items": [
+          "provenance-query"
+        ]
+      },
+      "human_work": {
+        "value": "NOT_APPLICABLE",
+        "reason": "NO_HUMAN_STEP"
+      },
+      "writes": {
+        "value": "NOT_APPLICABLE",
+        "reason": "NO_MUTATION"
+      },
+      "waits": {
+        "value": "NOT_APPLICABLE",
+        "reason": "NO_WAIT"
+      },
+      "invalidators": {
+        "value": "NOT_APPLICABLE",
+        "reason": "NO_DEFERRAL"
+      },
+      "reconciliation": {
+        "value": "NOT_APPLICABLE",
+        "reason": "NO_EXTERNAL_EFFECT"
+      },
+      "correction": {
+        "value": "NOT_APPLICABLE",
+        "reason": "NO_MUTATION"
+      },
+      "completion": "drift-report-delivered"
+    },
+    {
+      "intent": "SimulateRepair",
+      "definition": "hcmnext.operations.simulate_repair/v1",
+      "disposition": "DIRECT",
+      "archetype": "D1",
+      "domain_profile": "OPS",
+      "input_boundary": "repair-simulation-request",
+      "snapshot_policy": "pinned-rule-versions",
+      "engines": {
+        "items": [
+          "policy-evaluation"
+        ]
+      },
+      "human_work": {
+        "value": "NOT_APPLICABLE",
+        "reason": "NO_HUMAN_STEP"
+      },
+      "writes": {
+        "value": "NOT_APPLICABLE",
+        "reason": "NO_MUTATION"
+      },
+      "waits": {
+        "value": "NOT_APPLICABLE",
+        "reason": "NO_WAIT"
+      },
+      "invalidators": {
+        "value": "NOT_APPLICABLE",
+        "reason": "NO_DEFERRAL"
+      },
+      "reconciliation": {
+        "value": "NOT_APPLICABLE",
+        "reason": "NO_EXTERNAL_EFFECT"
+      },
+      "correction": {
+        "value": "NOT_APPLICABLE",
+        "reason": "NO_MUTATION"
+      },
+      "completion": "simulation-delivered"
+    },
+    {
+      "intent": "CreateRepairPlan",
+      "definition": "hcmnext.operations.create_repair_plan/v1",
+      "disposition": "WORKFLOW",
+      "archetype": "A4",
+      "domain_profile": "OPS",
+      "input_boundary": "repair-plan-proposal",
+      "snapshot_policy": "authority-snapshot-per-dispatch",
+      "engines": {
+        "items": [
+          "identity-resolution",
+          "workflow-timers"
+        ]
+      },
+      "human_work": {
+        "value": "approval-committee"
+      },
+      "writes": {
+        "value": "repair-plan-record"
+      },
+      "waits": {
+        "value": "approval-window"
+      },
+      "invalidators": {
+        "value": "drift-superseded"
+      },
+      "reconciliation": {
+        "value": "plan-ledger"
+      },
+      "correction": {
+        "value": "superseding-revision"
+      },
+      "completion": "plan-recorded"
+    },
+    {
+      "intent": "SimulateCompensation",
+      "definition": "hcmnext.rewards.simulate_compensation/v1",
+      "disposition": "DIRECT",
+      "archetype": "D1",
+      "domain_profile": "REW",
+      "input_boundary": "compensation-simulation-request",
+      "snapshot_policy": "pinned-rule-versions",
+      "engines": {
+        "items": [
+          "policy-evaluation"
+        ]
+      },
+      "human_work": {
+        "value": "NOT_APPLICABLE",
+        "reason": "NO_HUMAN_STEP"
+      },
+      "writes": {
+        "value": "NOT_APPLICABLE",
+        "reason": "NO_MUTATION"
+      },
+      "waits": {
+        "value": "NOT_APPLICABLE",
+        "reason": "NO_WAIT"
+      },
+      "invalidators": {
+        "value": "NOT_APPLICABLE",
+        "reason": "NO_DEFERRAL"
+      },
+      "reconciliation": {
+        "value": "NOT_APPLICABLE",
+        "reason": "NO_EXTERNAL_EFFECT"
+      },
+      "correction": {
+        "value": "NOT_APPLICABLE",
+        "reason": "NO_MUTATION"
+      },
+      "completion": "simulation-delivered"
+    },
+    {
+      "intent": "EvaluatePayBandPosition",
+      "definition": "hcmnext.rewards.evaluate_pay_band_position/v1",
+      "disposition": "DIRECT",
+      "archetype": "D1",
+      "domain_profile": "REW",
+      "input_boundary": "pay-band-evaluation-request",
+      "snapshot_policy": "pinned-rule-versions",
+      "engines": {
+        "items": [
+          "policy-evaluation"
+        ]
+      },
+      "human_work": {
+        "value": "NOT_APPLICABLE",
+        "reason": "NO_HUMAN_STEP"
+      },
+      "writes": {
+        "value": "NOT_APPLICABLE",
+        "reason": "NO_MUTATION"
+      },
+      "waits": {
+        "value": "NOT_APPLICABLE",
+        "reason": "NO_WAIT"
+      },
+      "invalidators": {
+        "value": "NOT_APPLICABLE",
+        "reason": "NO_DEFERRAL"
+      },
+      "reconciliation": {
+        "value": "NOT_APPLICABLE",
+        "reason": "NO_EXTERNAL_EFFECT"
+      },
+      "correction": {
+        "value": "NOT_APPLICABLE",
+        "reason": "NO_MUTATION"
+      },
+      "completion": "evaluation-delivered"
+    },
+    {
+      "intent": "ChangeBasePay",
+      "definition": "hcmnext.rewards.change_base_pay/v1",
+      "disposition": "WORKFLOW",
+      "archetype": "A2",
+      "domain_profile": "REW",
+      "input_boundary": "base-pay-change-proposal",
+      "snapshot_policy": "authority-snapshot-per-dispatch",
+      "engines": {
+        "items": [
+          "identity-resolution",
+          "workflow-timers"
+        ]
+      },
+      "human_work": {
+        "value": "manager-self-service"
+      },
+      "writes": {
+        "value": "compensation-revision"
+      },
+      "waits": {
+        "value": "approval-window"
+      },
+      "invalidators": {
+        "value": "band-revision"
+      },
+      "reconciliation": {
+        "value": "payroll-derived-access"
+      },
+      "correction": {
+        "value": "revoke-and-replace"
+      },
+      "completion": "revision-observed"
+    },
+    {
+      "intent": "ReserveCompensationBudget",
+      "definition": "hcmnext.rewards.reserve_compensation_budget/v1",
+      "disposition": "WORKFLOW",
+      "archetype": "A7",
+      "domain_profile": "REW",
+      "input_boundary": "budget-reservation-request",
+      "snapshot_policy": "budget-fence",
+      "engines": {
+        "items": [
+          "budget-check"
+        ]
+      },
+      "human_work": {
+        "value": "compensation-planner"
+      },
+      "writes": {
+        "value": "budget-reservation"
+      },
+      "waits": {
+        "value": "budget-window"
+      },
+      "invalidators": {
+        "value": "budget-revocation"
+      },
+      "reconciliation": {
+        "value": "reservation-ledger"
+      },
+      "correction": {
+        "value": "release-reservation"
+      },
+      "completion": "reservation-consumed"
+    },
+    {
+      "intent": "ReleaseCompensationBudget",
+      "definition": "hcmnext.rewards.release_compensation_budget/v1",
+      "disposition": "WORKFLOW",
+      "archetype": "A7",
+      "domain_profile": "REW",
+      "input_boundary": "budget-release-request",
+      "snapshot_policy": "budget-fence",
+      "engines": {
+        "items": [
+          "budget-check"
+        ]
+      },
+      "human_work": {
+        "value": "compensation-planner"
+      },
+      "writes": {
+        "value": "budget-release"
+      },
+      "waits": {
+        "value": "budget-window"
+      },
+      "invalidators": {
+        "value": "budget-revocation"
+      },
+      "reconciliation": {
+        "value": "release-ledger"
+      },
+      "correction": {
+        "value": "superseding-revision"
+      },
+      "completion": "release-posted"
+    },
+    {
+      "intent": "ApproveProposal",
+      "definition": "hcmnext.work.approve_proposal/v1",
+      "disposition": "WORKFLOW",
+      "archetype": "A4",
+      "domain_profile": "CASE",
+      "input_boundary": "proposal-decision-request",
+      "snapshot_policy": "authority-snapshot-per-dispatch",
+      "engines": {
+        "items": [
+          "identity-resolution",
+          "workflow-timers"
+        ]
+      },
+      "human_work": {
+        "value": "approval-committee"
+      },
+      "writes": {
+        "value": "decision-record"
+      },
+      "waits": {
+        "value": "approval-window"
+      },
+      "invalidators": {
+        "value": "proposal-withdrawal"
+      },
+      "reconciliation": {
+        "value": "decision-ledger"
+      },
+      "correction": {
+        "value": "superseding-decision"
+      },
+      "completion": "decision-recorded"
+    },
+    {
+      "intent": "RejectProposal",
+      "definition": "hcmnext.work.reject_proposal/v1",
+      "disposition": "WORKFLOW",
+      "archetype": "A4",
+      "domain_profile": "CASE",
+      "input_boundary": "proposal-decision-request",
+      "snapshot_policy": "authority-snapshot-per-dispatch",
+      "engines": {
+        "items": [
+          "identity-resolution",
+          "workflow-timers"
+        ]
+      },
+      "human_work": {
+        "value": "approval-committee"
+      },
+      "writes": {
+        "value": "decision-record"
+      },
+      "waits": {
+        "value": "approval-window"
+      },
+      "invalidators": {
+        "value": "proposal-withdrawal"
+      },
+      "reconciliation": {
+        "value": "decision-ledger"
+      },
+      "correction": {
+        "value": "superseding-decision"
+      },
+      "completion": "decision-recorded"
+    }
+  ],
+  "digest": "sha256:1e954481c52817ae916966def2f3e56029fe410ec293b2a6e7e4883b4ecfe3d8"
+}

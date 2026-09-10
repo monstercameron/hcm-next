@@ -2,6 +2,16 @@
 
 ## 2026-09-10
 
+- Land the planning and policy tooling (GOV-003, GOV-021, GOV-026,
+  GOV-028, GOV-029, GOV-030, CLOSE-001, WF-DISC-001 through WF-DISC-010,
+  ROLLOUT-001, IAC-001, ARCH-GO-024): design-closure and ownership
+  registers, direct-capability and oracle-strength/specificity gates,
+  engine-ownership and IaC-stack validators, the full workflow-design
+  toolchain, rollout-plan activation, config boundaries and a crosswalk
+  test repair tracking the implemented E-16 control — all matrix-tested
+  above the floor. (The traceability dot-directory test stays unlanded:
+  its package is red on pre-existing evidence-less ticks; see devlog.)
+
 - Land the conformance proofs (CONF-022, CONF-023, CONF-024, WF-STEP-007,
   WF-STEP-008): bounded bulk acknowledgement with honest legal
   satisfaction, hostile-content-proof case triage, the twelve-case

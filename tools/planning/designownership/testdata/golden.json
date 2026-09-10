@@ -1,0 +1,130 @@
+{
+  "ownership": {
+    "resolutions": [
+      {
+        "kind": "engine",
+        "name": "owned-engine",
+        "owner": "internal/engines/owned",
+        "source": "internal/engines/owned exports Version and Explain"
+      },
+      {
+        "kind": "entity",
+        "name": "Proposal",
+        "owner": "GOVERNANCE",
+        "source": "model-sources.yaml#ProposalRevision/v1"
+      }
+    ],
+    "candidates": [
+      {
+        "id": "WF-DISC-009-123adf58",
+        "kind": "property",
+        "name": "proposal_id",
+        "refs": [
+          "hcmnext.t.alpha/v1",
+          "hcmnext.t.beta/v1"
+        ],
+        "owner": "UNASSIGNED",
+        "phase": "P0",
+        "title": "Bind property proposal_id to a model owner",
+        "red": "reference proposal_id has no versioned semantic owner",
+        "green": "reference proposal_id resolves to one versioned owner, or the design stops referencing it",
+        "blocks": "CONTRACTED"
+      },
+      {
+        "id": "WF-DISC-009-54ef06c8",
+        "kind": "engine-adapter",
+        "name": "postgres-direct",
+        "refs": [
+          "hcmnext.t.beta/v1"
+        ],
+        "owner": "UNASSIGNED",
+        "phase": "GATE_A",
+        "title": "Remove direct postgres-direct call from hcmnext.t.beta/v1",
+        "red": "reference postgres-direct violates ownership",
+        "green": "reference postgres-direct resolves to one versioned semantic owner",
+        "blocks": "CONTRACTED"
+      },
+      {
+        "id": "WF-DISC-009-8b03585f",
+        "kind": "entity",
+        "name": "Ghost",
+        "refs": [
+          "hcmnext.t.alpha/v1"
+        ],
+        "owner": "UNASSIGNED",
+        "phase": "P0",
+        "title": "Bind entity Ghost to a model owner",
+        "red": "reference Ghost has no versioned semantic owner",
+        "green": "reference Ghost resolves to one versioned owner, or the design stops referencing it",
+        "blocks": "CONTRACTED"
+      },
+      {
+        "id": "WF-DISC-009-f778655d",
+        "kind": "engine",
+        "name": "wild-engine",
+        "refs": [
+          "hcmnext.t.alpha/v1"
+        ],
+        "owner": "UNASSIGNED",
+        "phase": "P0",
+        "title": "Own engine wild-engine",
+        "red": "reference wild-engine has no versioned semantic owner",
+        "green": "reference wild-engine resolves to one versioned owner, or the design stops referencing it",
+        "blocks": "CONTRACTED"
+      },
+      {
+        "id": "WF-DISC-009-fd6cb4f8",
+        "kind": "authority",
+        "name": "postgres-primary",
+        "refs": [
+          "hcmnext.t.beta/v1"
+        ],
+        "owner": "UNASSIGNED",
+        "phase": "GATE_A",
+        "title": "Replace physical authority postgres-primary with a semantic rule",
+        "red": "reference postgres-primary violates ownership",
+        "green": "reference postgres-primary resolves to one versioned semantic owner",
+        "blocks": "CONTRACTED"
+      }
+    ],
+    "digest": "sha256:05fa4c55b469fb2f8f33df1e2bfc08e1691991c049b5558f4cd76363f6aa623a"
+  },
+  "findings": [
+    {
+      "definition": "hcmnext.t.alpha/v1",
+      "name": "wild-engine",
+      "code": "UNOWNED_ENGINE",
+      "detail": "design engine wild-engine resolves to no versioned semantic owner"
+    },
+    {
+      "definition": "hcmnext.t.alpha/v1",
+      "name": "Ghost",
+      "code": "UNOWNED_ENTITY",
+      "detail": "descriptor entity Ghost resolves to no model owner"
+    },
+    {
+      "definition": "hcmnext.t.alpha/v1",
+      "name": "proposal_id",
+      "code": "UNOWNED_PROPERTY",
+      "detail": "descriptor property proposal_id resolves to no model owner"
+    },
+    {
+      "definition": "hcmnext.t.beta/v1",
+      "name": "postgres-direct",
+      "code": "DIRECT_ADAPTER_CALL",
+      "detail": "design calls persistence or provider adapter postgres-direct directly; route through a versioned semantic engine"
+    },
+    {
+      "definition": "hcmnext.t.beta/v1",
+      "name": "postgres-primary",
+      "code": "PHYSICAL_OWNER",
+      "detail": "authority postgres-primary assumes a physical system owner"
+    },
+    {
+      "definition": "hcmnext.t.beta/v1",
+      "name": "proposal_id",
+      "code": "UNOWNED_PROPERTY",
+      "detail": "descriptor property proposal_id resolves to no model owner"
+    }
+  ]
+}
