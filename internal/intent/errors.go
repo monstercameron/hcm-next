@@ -156,6 +156,111 @@ var (
 	// ErrCausalSeparation reports a replay that does not name the historical
 	// intent it replays, or a new action that pretends to be one.
 	ErrCausalSeparation = errors.New("intent: replay and new action are not causally separated")
+
+	// ErrInvalidEmission reports an emission request that cannot name a
+	// child: a missing parent, revision, source node, child definition or
+	// version, or a relation kind other than CHILD or FOLLOW_UP.
+	ErrInvalidEmission = errors.New("intent: invalid child emission")
+
+	// ErrRecursiveEmission reports a child whose definition is its own
+	// parent definition or one of its ancestors.
+	ErrRecursiveEmission = errors.New("intent: recursive child emission")
+
+	// ErrFanoutOverflow reports a sibling ordinal outside the fan-out bound.
+	ErrFanoutOverflow = errors.New("intent: child fan-out bound exceeded")
+
+	// ErrDepthOverflow reports a child depth outside the depth bound.
+	ErrDepthOverflow = errors.New("intent: child depth bound exceeded")
+
+	// ErrBudgetOverflow reports a child cost outside the resource bound.
+	ErrBudgetOverflow = errors.New("intent: child resource bound exceeded")
+
+	// ErrScopeExpansion reports a child scope outside parent approval.
+	ErrScopeExpansion = errors.New("intent: child scope exceeds parent approval")
+
+	// ErrPurposeBroadening reports a child purpose that broadens rather
+	// than narrows the parent purpose.
+	ErrPurposeBroadening = errors.New("intent: child purpose broadens parent purpose")
+
+	// ErrMissingManifestDecision reports an emission without the explicit
+	// manifest decision that alone may invoke a child intent.
+	ErrMissingManifestDecision = errors.New("intent: child emission needs a manifest decision")
+
+	// ErrInvalidCompletionBehavior reports an undeclared parent
+	// wait/detach/failure/repair behavior.
+	ErrInvalidCompletionBehavior = errors.New("intent: invalid child completion behavior")
+
+	// ErrEmissionConflict reports a redelivery whose key matches a prior
+	// emission but whose request differs.
+	ErrEmissionConflict = errors.New("intent: conflicting child redelivery")
+
+	// ErrUnknownEmission reports an outcome for an emission key the
+	// emitter never issued.
+	ErrUnknownEmission = errors.New("intent: unknown emission key")
+
+	// ErrMissingChildOutcome reports a parent completion whose mandatory
+	// child has no recorded outcome.
+	ErrMissingChildOutcome = errors.New("intent: mandatory child outcome is missing")
+
+	// ErrInvalidComposition reports a composition plan that cannot bind: a
+	// missing parent, proposal, authority or ownerless child.
+	ErrInvalidComposition = errors.New("intent: invalid composition plan")
+
+	// ErrDuplicateChild reports a child template declared twice.
+	ErrDuplicateChild = errors.New("intent: duplicate composition child")
+
+	// ErrCompositionCycle reports a dependency DAG that is not acyclic.
+	ErrCompositionCycle = errors.New("intent: composition dependency cycle")
+
+	// ErrAuthorityBroadening reports a child that broadens tenant, org,
+	// purpose or delegation beyond its parent.
+	ErrAuthorityBroadening = errors.New("intent: composition child broadens authority")
+
+	// ErrCrossSystemAtomicity reports an atomic group spanning systems.
+	ErrCrossSystemAtomicity = errors.New("intent: atomic group spans systems")
+
+	// ErrUnorderedChildren reports duplicated child ordinals.
+	ErrUnorderedChildren = errors.New("intent: composition children are unordered")
+
+	// ErrBudgetExceeded reports a plan over its cost or child limits.
+	ErrBudgetExceeded = errors.New("intent: composition budget exceeded")
+
+	// ErrMissingCompositionPolicy reports an undeclared wait, failure,
+	// correction or cancellation policy.
+	ErrMissingCompositionPolicy = errors.New("intent: composition policy is missing")
+
+	// ErrBundleMismatch reports a bundle verified against a different plan.
+	ErrBundleMismatch = errors.New("intent: bundle does not match its plan")
+
+	// ErrInvalidPreflight reports a preflight plan request that cannot
+	// bind: a missing definition, proposal or authority.
+	ErrInvalidPreflight = errors.New("intent: invalid preflight plan")
+
+	// ErrMismatchedSnapshot reports a plan calculated from a missing
+	// snapshot digest or empty engine/control versions.
+	ErrMismatchedSnapshot = errors.New("intent: preflight snapshot mismatch")
+
+	// ErrMissingEstimate reports a plan without a calculated cost basis
+	// or risk level.
+	ErrMissingEstimate = errors.New("intent: preflight estimate is missing")
+
+	// ErrHiddenEffect reports an effect DAG edge naming an undeclared write.
+	ErrHiddenEffect = errors.New("intent: hidden preflight effect")
+
+	// ErrGuaranteedOutcome reports an intended write declared guaranteed:
+	// preflight never promises external outcomes.
+	ErrGuaranteedOutcome = errors.New("intent: preflight guarantees an external outcome")
+
+	// ErrUnsafeAffirmation reports a redacted material assumption resolved
+	// to a concrete value without a resolver.
+	ErrUnsafeAffirmation = errors.New("intent: unsafe affirmation of redacted input")
+
+	// ErrUnfencedReservation reports a conflict reservation without a fence.
+	ErrUnfencedReservation = errors.New("intent: unfenced conflict reservation")
+
+	// ErrMissingRepairPolicy reports an undeclared repair expectation,
+	// completion behavior or revalidation trigger set.
+	ErrMissingRepairPolicy = errors.New("intent: preflight repair policy is missing")
 )
 
 // Error is the typed error this package returns. Op names the operation,

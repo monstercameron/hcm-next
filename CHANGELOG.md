@@ -2,6 +2,13 @@
 
 ## 2026-09-10
 
+- Land the intent kernels (INTENT-016, INTENT-018, INTENT-019,
+  INTENT-021, INTENT-026, INTENT-027, WF-DISC-011, REPLAN-002,
+  REPLAN-004): deterministic child emission, event-to-intent policy
+  conversion, bulk batch compilation, composition with DAG validation,
+  universal preflight, governed lifecycle surfaces, approval reuse and
+  successor proposals — every negative case typed, every digest sealed.
+
 - Land the org kernels (CONF-007, CONF-025): the governed manager-change
   lifecycle (propose through reconcile, cycles and overlaps refused,
   tamper-evident approvals) and the conformance-only ChangeManager

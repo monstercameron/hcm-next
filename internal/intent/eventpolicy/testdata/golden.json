@@ -1,0 +1,62 @@
+{
+  "accepted": {
+    "Decision": "ACCEPTED",
+    "Intents": [
+      {
+        "IntentID": "evtintent:6ba424a1cf7503fe90b0e1f57e8cd912",
+        "IdempotencyKey": "evt:4d2b29926a5d52b6d3e17eedb349a7eacd59ee830ff5687b25ea4cd0de8d88c2",
+        "Ordinal": 0,
+        "Scope": [
+          "org:acme"
+        ],
+        "TruthDigest": "sha256:current-truth",
+        "ObservedDigest": "sha256:payload"
+      },
+      {
+        "IntentID": "evtintent:283630b41979ef2f0a749b99756c0f53",
+        "IdempotencyKey": "evt:f3ebdd5b8efb2c6043f4df8c761c2fe9bb436d8403c8e1b94a7017a870f08b0b",
+        "Ordinal": 1,
+        "Scope": [
+          "org:acme"
+        ],
+        "TruthDigest": "sha256:current-truth",
+        "ObservedDigest": "sha256:payload"
+      }
+    ],
+    "Evidence": "ACCEPTED: event \"evt-001\" accepted under policy v3",
+    "Duplicate": false
+  },
+  "duplicate": {
+    "Decision": "ACCEPTED",
+    "Intents": [
+      {
+        "IntentID": "evtintent:6ba424a1cf7503fe90b0e1f57e8cd912",
+        "IdempotencyKey": "evt:4d2b29926a5d52b6d3e17eedb349a7eacd59ee830ff5687b25ea4cd0de8d88c2",
+        "Ordinal": 0,
+        "Scope": [
+          "org:acme"
+        ],
+        "TruthDigest": "sha256:current-truth",
+        "ObservedDigest": "sha256:payload"
+      },
+      {
+        "IntentID": "evtintent:283630b41979ef2f0a749b99756c0f53",
+        "IdempotencyKey": "evt:f3ebdd5b8efb2c6043f4df8c761c2fe9bb436d8403c8e1b94a7017a870f08b0b",
+        "Ordinal": 1,
+        "Scope": [
+          "org:acme"
+        ],
+        "TruthDigest": "sha256:current-truth",
+        "ObservedDigest": "sha256:payload"
+      }
+    ],
+    "Evidence": "ACCEPTED: event \"evt-001\" accepted under policy v3",
+    "Duplicate": true
+  },
+  "unknown": {
+    "Decision": "UNKNOWN",
+    "Intents": null,
+    "Evidence": "UNKNOWN: event \"evt-unknown\" matches no rule in policy v3",
+    "Duplicate": false
+  }
+}

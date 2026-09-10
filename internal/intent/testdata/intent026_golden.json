@@ -1,0 +1,82 @@
+{
+  "plan": {
+    "ParentDefinition": {
+      "TypeID": "payroll.run",
+      "Version": 2
+    },
+    "ParentProposal": "proposal/payroll-run-88/r9",
+    "ParentTenant": "tenant-1",
+    "ParentOrg": "org:acme",
+    "ParentPurpose": "payroll.run",
+    "ParentDelegation": [
+      "payroll:run",
+      "payroll:read"
+    ],
+    "Children": [
+      {
+        "Definition": {
+          "TypeID": "payroll.run.overtime",
+          "Version": 1
+        },
+        "Ordinal": 0,
+        "Owner": "payroll-engine",
+        "System": "payroll-core",
+        "Tenant": "tenant-1",
+        "Org": "org:acme",
+        "Purpose": "payroll.run.overtime",
+        "Delegation": [
+          "payroll:run"
+        ],
+        "Cost": 10,
+        "Material": true
+      },
+      {
+        "Definition": {
+          "TypeID": "payroll.run.notify",
+          "Version": 3
+        },
+        "Ordinal": 1,
+        "Owner": "notify-engine",
+        "System": "notify",
+        "Tenant": "tenant-1",
+        "Org": "org:acme",
+        "Purpose": "payroll.run.notify",
+        "Delegation": [
+          "payroll:read"
+        ],
+        "Cost": 5,
+        "Material": false
+      }
+    ],
+    "Edges": [
+      {
+        "Before": "payroll.run.overtime",
+        "After": "payroll.run.notify"
+      }
+    ],
+    "AtomicGroups": [
+      [
+        "payroll.run.overtime"
+      ]
+    ],
+    "Boundary": "SAGA",
+    "Wait": "WAIT_FOR_CHILDREN",
+    "Failure": "FAIL_PARENT",
+    "Correction": "CORRECT_IN_PLACE",
+    "Cancellation": "PROPAGATE_CANCELLATION",
+    "MaxCost": 100,
+    "MaxChildren": 8
+  },
+  "digest": "sha256:b23746b683eb315aa5a91121fe0feffcb94ddabb17613a9273a1871767e2a394",
+  "bundle": {
+    "PlanDigest": "sha256:b23746b683eb315aa5a91121fe0feffcb94ddabb17613a9273a1871767e2a394",
+    "Children": [
+      "payroll.run.notify/v3",
+      "payroll.run.overtime/v1"
+    ],
+    "Evidence": [
+      "evidence/audit-1"
+    ],
+    "Digest": "sha256:ef66abaf756e1446684f73b4bc7198ab5229238ecc53b07851c8e81d52c803be"
+  }
+}

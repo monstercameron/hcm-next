@@ -1,0 +1,36 @@
+{
+  "child": {
+    "Key": "emit:f10f19108cdb15fad171bc23a78e45b1334ceab2a8df363bb5ceb414d07fb5b8",
+    "ChildID": "child:f10f19108cdb15fa",
+    "Definition": "payroll.run.overtime",
+    "Version": "v1.2.0",
+    "Ordinal": 0,
+    "Kind": 1,
+    "Governance": {
+      "Scope": [
+        "payroll:run"
+      ],
+      "Purpose": "payroll.run.overtime",
+      "PolicyRef": "governance/payroll.run.overtime@v1.2.0"
+    },
+    "Behavior": "WAIT_FOR_CHILD",
+    "Duplicate": false
+  },
+  "duplicate": {
+    "Key": "emit:f10f19108cdb15fad171bc23a78e45b1334ceab2a8df363bb5ceb414d07fb5b8",
+    "ChildID": "child:f10f19108cdb15fa",
+    "Definition": "payroll.run.overtime",
+    "Version": "v1.2.0",
+    "Ordinal": 0,
+    "Kind": 1,
+    "Governance": {
+      "Scope": [
+        "payroll:run"
+      ],
+      "Purpose": "payroll.run.overtime",
+      "PolicyRef": "governance/payroll.run.overtime@v1.2.0"
+    },
+    "Behavior": "WAIT_FOR_CHILD",
+    "Duplicate": true
+  }
+}

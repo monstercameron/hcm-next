@@ -1,0 +1,6 @@
+composition=comp-1 status=failed
+child=child-a outcome=succeeded evidence=ev-a
+child=child-b outcome=failed evidence=ev-b
+child=child-c outcome=unknown evidence=ev-c
+repair=child-b,child-c
+digest=sha256:e690aac492c9973e876c33454cdace17f4fced48deffd55a1e9a39d5453af35c
