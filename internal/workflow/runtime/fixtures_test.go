@@ -73,16 +73,6 @@ func appConn(t *testing.T, db *pgtest.DB) *pgxadapter.Conn {
 	return conn
 }
 
-// inTx runs fn inside its own transaction on conn and commits it. Every
-// Record* call issues two statements, so the store's own doc requires a
-// transaction rather than a bare connection.
-func inTx(t *testing.T, conn *pgxadapter.Conn, fn func(tx dbport.Tx) error) {
-	t.Helper()
-	if err := inTxErr(conn, fn); err != nil {
-		t.Fatalf("transaction: %v", err)
-	}
-}
-
 // inTxErr is inTx for a call whose own error the test wants to inspect. A
 // failing fn rolls the transaction back, so a refused write leaves nothing
 // behind.

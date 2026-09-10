@@ -1,9 +1,6 @@
 package signal
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
-
 	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 	"github.com/monstercameron/human-capital-management-suite/internal/workflow"
 )
@@ -36,14 +33,6 @@ type Signal struct {
 	Signature []byte
 
 	ReceivedAt values.Instant
-}
-
-// payloadDigest returns the sha256 hex of the payload bytes. It is computed
-// from the bytes themselves rather than trusted from a caller-supplied field,
-// so a caller cannot claim two different payloads are byte-identical.
-func (s Signal) payloadDigest() string {
-	h := sha256.Sum256(s.Payload)
-	return hex.EncodeToString(h[:])
 }
 
 // copyPayload returns an independent copy of the payload bytes, so a LogEntry

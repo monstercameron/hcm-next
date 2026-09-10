@@ -98,10 +98,11 @@ func derivedStartInstanceID(tenantID uuid.UUID, workflowID, startIdempotencyKey 
 type ProposalBinding struct {
 	Revision intent.ProposalRevision
 
-	// Approved, ApprovalRef and Superseded are retained only as deprecated
+	// ApprovalRef and Superseded are retained only as deprecated
 	// source-compatibility fields for callers migrating from WF-RUN-023. They
 	// are never consulted by Start; authorization and currency come only from
 	// ProposalFacts and ApprovalFacts (TestTodo_WF_RUN_027 pins this boundary).
+	// The Approved flag completed the same migration and was deleted.
 	//
 	// internal/intent/app.ExecuteIntent supplies both ports when composed with
 	// an execution database, backed by
@@ -109,10 +110,6 @@ type ProposalBinding struct {
 	// (internal/intent/app.DurableProposalFacts). The fields remain solely so
 	// those packages can migrate their fixtures independently; a request with
 	// no facts ports is rejected before they can influence a start.
-	//
-	// Deprecated: migrate to StartRequest.ProposalFacts and
-	// StartRequest.ApprovalFacts, then delete these fields.
-	Approved    bool
 	ApprovalRef string
 	Superseded  bool
 }

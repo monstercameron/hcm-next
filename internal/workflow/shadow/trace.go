@@ -5,7 +5,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"sort"
 	"time"
 
 	"github.com/monstercameron/human-capital-management-suite/internal/workflow"
@@ -137,9 +136,4 @@ func digestState(s State) string {
 	}
 	b, _ := json.Marshal(pairs)
 	return digestBytes("hcmnext.workflow.shadow.State/v1", b)
-}
-func sortedStrings(in []string) []string {
-	out := append([]string(nil), in...)
-	sort.Strings(out)
-	return out
 }

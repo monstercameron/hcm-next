@@ -54,14 +54,6 @@ func appConn(t *testing.T, db *pgtest.DB) *pgxadapter.Conn {
 	}
 	return conn
 }
-
-func inTx(t *testing.T, conn *pgxadapter.Conn, fn func(tx dbport.Tx) error) {
-	t.Helper()
-	if err := inTxErr(conn, fn); err != nil {
-		t.Fatalf("transaction: %v", err)
-	}
-}
-
 func inTxErr(conn *pgxadapter.Conn, fn func(tx dbport.Tx) error) error {
 	ctx := context.Background()
 	tx, err := conn.Begin(ctx)

@@ -25,11 +25,6 @@ func fixedDate(t *testing.T, text string) values.LocalDate {
 	}
 	return d
 }
-
-func fixedObservation(year int, month time.Month, day, hour int) values.Instant {
-	return values.NewInstant(time.Date(year, month, day, hour, 0, 0, 0, time.UTC))
-}
-
 func oneTimeline(t *testing.T, scenario CutoffScenario) {
 	t.Helper()
 	interval, err := values.NewLocalDateInterval(scenario.Fixture.Period.Start, scenario.Fixture.Period.End, scenario.Fixture.Calendar.Calendar)

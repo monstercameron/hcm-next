@@ -53,7 +53,8 @@ func TestTodo_WF_DISC_003_Golden(t *testing.T) {
 	if got := d.Digest(); len(got) != 64 {
 		t.Fatalf("digest = %q", got)
 	}
-	if d.Digest() != d.Digest() {
+	firstDecisionDigest, secondDecisionDigest := d.Digest(), d.Digest()
+	if firstDecisionDigest != secondDecisionDigest {
 		t.Fatal("digest is not deterministic")
 	}
 	if !strings.Contains(d.Explain(), "safe-default=ROUTE_HUMAN") {
