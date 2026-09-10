@@ -2,6 +2,11 @@
 
 ## 2026-09-10
 
+- Land the contact kernels (CONF-017, CONF-018): typed endpoint updates
+  with tenant isolation, stale-revision refusal and verification
+  challenges, plus ordered emergency-contact sets with priority
+  uniqueness, governed person linkage and minimum disclosure.
+
 - Land the work-item kernels (WORK-007, WORK-008, WORK-009): fair
   queue ordering with legal-authority precedence and reserved tenant
   capacity, compartment authorization with recorded access decisions,
