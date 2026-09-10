@@ -2,6 +2,12 @@
 
 ## 2026-09-10
 
+- Land the conformance proofs (CONF-022, CONF-023, CONF-024, WF-STEP-007,
+  WF-STEP-008): bounded bulk acknowledgement with honest legal
+  satisfaction, hostile-content-proof case triage, the twelve-case
+  adversarial edge matrix, and bounded PARALLEL plus typed JOIN
+  strategies — every verdict deterministic, sealed and matrix-tested.
+
 - Land the timer-resume span links (OBS-013): the drift-checked timer
   row's stored causal identity opens exactly one hcmnext.timer.resume
   span back to the parked trace — nil, expired, tampered or missing

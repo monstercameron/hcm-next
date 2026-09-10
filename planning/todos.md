@@ -3484,6 +3484,7 @@ or an explicit rejection and replacement decision.
   - **GREEN:** admitted branches have independent identity/idempotency and exact succeeded/failed/cancelled results.
   - **REFACTOR:** Phase 1 may use only fixed compiled branches required by Promotion.
   - **Refs:** [PARALLEL step](workflows/_engine/step-types.md#7-parallel).
+  - **Evidence (2026-09-10):** `TestTodo_WF_STEP_007` (bounded admission: unique identity/idempotency, write-conflict, budget and failure-policy refusal before any branch runs; FAIL_FAST cancels siblings), `_Race` (16 concurrent executions converge), `_Mutation` in `internal/workflow/parallel` (`parallel.go`); `go test -count=1 ./internal/workflow/parallel/` PASS with 84.6% cover on windows/arm64 (Go 1.26.3); branch fix/unblock-main-gateclosure.
 
 - [x] `WF-STEP-008` **[DESIGN][SOL_HIGH] Implement `JOIN` strategies.**
   - **Depends:** `WF-STEP-007`.
@@ -3494,6 +3495,7 @@ or an explicit rejection and replacement decision.
   - **GREEN:** `ALL`, `ANY`, `QUORUM`, `REQUIRED_SET`, `BEST_EFFORT` return typed aggregate and degraded/unknown dimensions.
   - **REFACTOR:** strategy/version is part of compiled plan.
   - **Refs:** [JOIN step](workflows/_engine/step-types.md#8-join).
+  - **Evidence (2026-09-10):** `TestTodo_WF_STEP_008` (ALL/ANY/QUORUM/REQUIRED_SET/BEST_EFFORT aggregates with degraded/unknown dimensions; missing mandatory and impossible quorum never succeed; unknown never coerced), `_Golden` (pinned in `testdata/wf_step008_join.golden`), `_Mutation` in `internal/workflow/parallel` (`join.go`); `go test -count=1 ./internal/workflow/parallel/` PASS with 84.6% cover on windows/arm64 (Go 1.26.3); branch fix/unblock-main-gateclosure.
 
 - [x] `WF-STEP-009` **[DESIGN][SOL_HIGH] Implement bounded `SUBWORKFLOW`.**
   - **Depends:** `WF-RUN-001`, `WF-RUN-004`, `WF-RUN-005`, `WF-COMP-002`.
@@ -12856,6 +12858,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **GREEN:** versioned audience snapshot partitions within concurrency/cost limits, each child binds recipient/artifact/version/idempotency and verified signal, REQUIRED_SET join accounts for acknowledged/unreachable/excluded/degraded results, mandatory gaps create human work and terminal dimensions never overstate legal satisfaction.
   - **REFACTOR:** parent retains typed aggregates and child references rather than copying protected recipient payloads.
   - **Refs:** [Bulk acknowledgement sample](workflows/samples/bulk-policy-acknowledgement.md), [messaging requirements](specs/messaging-and-notification-plane.md).
+  - **Evidence (2026-09-10):** `TestBulkPolicyAcknowledgementConformancePreservesRecipientObligations` (frozen versioned audience, bounded partitions, per-child recipient/artifact/version/idempotency/signal binding, REQUIRED_SET accounting, mandatory gaps to human work, legal satisfaction never overstated) plus `TestTodo_CONF_022_Property/_Golden/_Race/_Integration/_Fault/_Security/_Conformance/_Mutation` and `BenchmarkTodo_CONF_022` in `internal/workflow/conformance/bulkack` (over the new `internal/workflow/parallel` package); `go test -count=1 ./internal/workflow/conformance/bulkack/` PASS with 94.5% cover on windows/arm64 (Go 1.26.3); branch fix/unblock-main-gateclosure.
 
 - [x] `CONF-023` **[CONFORMANCE][SOL_HIGH] Prove agent-assisted HR case triage cannot become an employment-decision path.**
   - **Depends:** `CONF-001`, `CONF-014`, `AGENT-001`–`AGENT-004`, `DOC-MAL-001`, `RULE-003`.
@@ -12866,6 +12869,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **GREEN:** quarantine and minimum-necessary redaction precede read-only agent execution; typed cited TriageProposal validation plus deterministic rules routes high-risk/unknown to specialist and standard cases to governed creation, every failure takes deterministic/manual path and final evidence states the agent never made an employment decision.
   - **REFACTOR:** model/provider implementations remain replaceable behind identical taint, tool, output and fallback conformance.
   - **Refs:** [Agent case-triage sample](workflows/samples/agent-assisted-hr-case-triage.md), [HR case conformance](#21-future-domain-intent-conformance).
+  - **Evidence (2026-09-10):** `TestAgentCaseTriageConformanceContainsHostileContentAndAuthority` (quarantine/redaction precede read-only execution; hostile roles, write attempts and employment decisions refused; cited taxonomy routing) plus `TestTodo_CONF_023_Property/_Golden/_Integration/_Fault/_Security/_Conformance/_Mutation` and `FuzzTodo_CONF_023` in `internal/workflow/conformance/triage`; `go test -count=1 ./internal/workflow/conformance/triage/` PASS with 96.8% cover on windows/arm64 (Go 1.26.3); branch fix/unblock-main-gateclosure.
 
 - [x] `CONF-024` **[CONFORMANCE][SOL_HIGH] Execute the complete adversarial workflow-context edge matrix.**
   - **Depends:** `CONF-001`, `WF-DISC-004`, `WF-RUN-016`, `GOVERN-003`, `INTG-016`, `APPROVAL-006`.
@@ -12876,6 +12880,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **GREEN:** version-pinned matrix executes every case through public capabilities and returns exact `BLOCK|REPLAN|REAPPROVE|ROUTE_HUMAN|DEGRADE|REPAIR_REQUIRED|COMPLETE` dimensions, authority/taint/evidence bindings and ledger/effect counts; no transport acceptance, stale decision or manual continuity path fabricates business completion.
   - **REFACTOR:** reusable fixtures compose across vertical workflows while each domain retains its own legal, authority and mutation semantics.
   - **Refs:** [Workflow context layers](workflows/_engine/workflow-context-layers.md#open-research-edges), [edge-case samples](workflows/samples/workflow-context-edge-cases.md), [adversarial audit](workflows/_engine/workflow-context-adversarial-audit-2026-08-14.md).
+  - **Evidence (2026-09-10):** `TestWorkflowContextEdgeMatrixHasNoImplicitAuthorityOrCompletion` (all twelve required cases through public capabilities with exact BLOCK/REPLAN/REAPPROVE/ROUTE_HUMAN/DEGRADE/REPAIR_REQUIRED/COMPLETE dimensions, authority bindings, ledger/effect counts, zero prohibited effects) plus `TestTodo_CONF_024_Property/_Golden/_Race/_Integration/_Fault/_Security/_Conformance/_Recovery/_Mutation` in `internal/workflow/conformance/edges`; `go test -count=1 ./internal/workflow/conformance/edges/` PASS with 94.6% cover on windows/arm64 (Go 1.26.3); branch fix/unblock-main-gateclosure.
 
 ## 48. Feature-to-Intent semantic instruction-set closure
 
