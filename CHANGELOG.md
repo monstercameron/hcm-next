@@ -2,6 +2,13 @@
 
 ## 2026-09-10
 
+- Land the schedule kernels (INTENT-017, SCHED-003): frozen occurrences
+  convert to exactly one intent with DST-fold twins named apart and
+  replay/leader-overlap/post-crash convergence, and the dispatcher
+  ingests occurrence/event firings in sequence with redelivery replay,
+  rewind refusal and stale/poison handling — revisions surface as
+  review receipts, never silent adoption.
+
 - Land the compensation kernels (CONF-020, COMP-005): standalone
   compensation change with exact-decimal simulation, live-budget-fence
   reservation, atomic commit and failed-effect-only repair, plus parent

@@ -1,0 +1,21 @@
+{
+  "Intent": {
+    "IntentID": "schedintent:17e64137f281409f95f2040e30795dfc",
+    "IdempotencyKey": "sha256:11f1d23ef10c644fa4e87fc4afd1862aff6ac561f2a3dbbef06d047a2fc8f4df",
+    "Target": {
+      "TypeID": "hcmnext.people.review_worker",
+      "Version": 3
+    },
+    "TriggerDigest": "sha256:7f9f38122d01750c1902057e0f5aa4beb7960dd21507b11a0b27f7b2da852190",
+    "OccurrenceKey": "sha256:11f1d23ef10c644fa4e87fc4afd1862aff6ac561f2a3dbbef06d047a2fc8f4df",
+    "Purpose": "workforce.review",
+    "Scope": [
+      "org:acme"
+    ],
+    "ScheduledAt": "2026-11-01T01:30:00[America/New_York@2026a-14400/EARLIER]",
+    "NominalDate": "2026-11-01",
+    "Source": "CRON"
+  },
+  "Receipt": null,
+  "Duplicate": false
+}
