@@ -255,7 +255,8 @@ func parseDependencyField(todoID string, line int, raw string) ([]string, []Diag
 				} else {
 					deps = append(deps, rangeDeps...)
 				}
-				i++
+				// NOTE: no manual index skip here: range rebinds i every
+				// iteration, so an increment would be a silent no-op.
 				continue
 			}
 			if !isListSeparator(gap) {

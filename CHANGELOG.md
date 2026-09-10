@@ -18,6 +18,17 @@
   "conn busy" so Run returned before any delivery (same pattern the
   idempotency test already documents).
 
+- Clear all 266 staticcheck findings to zero (unused code, deprecated
+  APIs, ineffassign, staticcheck style batch) with no behavior change,
+  except one genuine swallowed error in the rules engine that now
+  returns; quality gate fully green. The todo-traceability scanner now
+  skips dot-directories so lane scratch files never register ghost tests.
+- Repair the gates the sweep's blast radius exposed: add the missing
+  frontenddev ownership row (the rebrand left the dev server without one),
+  correct the release-admission SBOM pin to the checked-in file's digest,
+  fix the P1A manifest's forbidden-import prefixes to the renamed module
+  path, and refresh the Phase 1 manifest golden for the current tree.
+
 - Backfill governance evidence for 43 completed todos so GOV-017 and
   GOV-003 pass with no new allowlist entries: LEAVE/AVAIL/BAL/INTENT/
   LEGAL/MSG/REPLAN/WORK/WF-DISC/OBS-013/WEB-024..036 evidence now names

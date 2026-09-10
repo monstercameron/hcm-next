@@ -154,9 +154,7 @@ func Evaluate(root string, todoIDs map[string]bool, orphanOwners map[string]stri
 			return Report{}, fmt.Errorf("read %s: %w", path, err)
 		}
 		anchors[rel] = headingAnchors(string(data))
-		for _, f := range documentSyntaxFindings(rel, data) {
-			report.Findings = append(report.Findings, f)
-		}
+		report.Findings = append(report.Findings, documentSyntaxFindings(rel, data)...)
 	}
 
 	rootDocs := map[string]bool{"planning/plan.md": true}

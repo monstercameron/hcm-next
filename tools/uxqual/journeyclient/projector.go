@@ -426,15 +426,6 @@ func personHref(ref string) string {
 	}
 	return "/workspace/app/person?person=" + url.QueryEscape(ref)
 }
-
-func peopleSearchHref(name string) string {
-	name = strings.TrimSpace(name)
-	if name == "" {
-		return "/workspace/app/people"
-	}
-	return "/workspace/app/people?q=" + url.QueryEscape(name)
-}
-
 func nonEmpty(value, fallback string) string {
 	if strings.TrimSpace(value) == "" {
 		return fallback

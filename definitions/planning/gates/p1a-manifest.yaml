@@ -901,12 +901,12 @@ evidence:
 # proven against a synthetic fixture, not a real import, in
 # compiler_test.go's TestP1AEvidenceCompilerRejectsMissingStaleOutOfManifestOrEffectfulEvidence.
 forbidden_import_prefixes:
-  - github.com/monstercameron/hcm-next/internal/connectivity/writeadapters
-  - github.com/monstercameron/hcm-next/internal/transport/clients/providerwrite
-  - github.com/monstercameron/hcm-next/internal/domains/promotion/execute
+  - github.com/monstercameron/human-capital-management-suite/internal/connectivity/writeadapters
+  - github.com/monstercameron/human-capital-management-suite/internal/transport/clients/providerwrite
+  - github.com/monstercameron/human-capital-management-suite/internal/domains/promotion/execute
 
 signature:
   algorithm: ed25519
   public_key: 93019e7b15fc44dbfb7f36e105e465486e5d5a6ddec109abda44507e0d45332b
   key_fixture: tools/planning/gateevidence/testdata/dev-signing-key.yaml
-  value: "fb80cd8549d6075f30231f514789ef2631dbbee8213d40b5496f7edbe3b52f62321ddcf2424e663bf8afe0046f84b742d215039f0bc613e9b2193c6df457c803"
+  value: "cd259e2d3818443b3e3322c978a540ed4b80547372c0db9e9c3657ee549179fc1218a6dd9aa4a07ab8705fb7cd754ca920f6f774672d6368d8b03af549ef110e"

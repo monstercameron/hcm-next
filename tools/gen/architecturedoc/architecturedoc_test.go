@@ -61,7 +61,8 @@ func TestLoadAndWriteOnlyToExplicitTempPath(t *testing.T) {
 }
 
 func TestDigestStable(t *testing.T) {
-	if Digest([]byte("x")) != Digest([]byte("x")) {
+	firstArchDigest, secondArchDigest := Digest([]byte("x")), Digest([]byte("x"))
+	if firstArchDigest != secondArchDigest {
 		t.Fatal("digest changed")
 	}
 	if Digest([]byte("x")) == Digest([]byte("y")) {

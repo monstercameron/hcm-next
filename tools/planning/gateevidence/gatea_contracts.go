@@ -177,10 +177,6 @@ type DataTreatment struct {
 	Classification string `json:"classification" yaml:"classification"`
 }
 
-func (t DataTreatment) key() string {
-	return strings.Join([]string{t.System, t.FieldPath, t.Region, t.Purpose, t.Processor, t.Retention, t.Classification}, "\x00")
-}
-
 // DataProcessingApproval is the decision-shaped WEDGE-010 record. A
 // placeholder approval is structurally representable for planning, but
 // Qualify/Validate still requires a human-approved decision and exact binds.
@@ -988,7 +984,7 @@ func VerifyGateADecision(d GateADecisionRecord) (bool, error) {
 		return false, fmt.Errorf("decision has no signature")
 	}
 	if d.WriteAuthority {
-		return false, fmt.Errorf("Gate A decision cannot grant write authority")
+		return false, fmt.Errorf("gate A decision cannot grant write authority")
 	}
 	ok, err := VerifyDigestSignature(d.Signature.PublicKey, d.unsignedDigest(), d.Signature.Value)
 	if err != nil {

@@ -71,7 +71,7 @@ func (i Index) Digest() string {
 		Entries       []Entry   `json:"entries"`
 		Findings      []Finding `json:"findings,omitempty"`
 	}
-	b, _ := json.Marshal(canonical{i.SchemaVersion, i.Entries, i.Findings})
+	b, _ := json.Marshal(canonical(i))
 	sum := sha256.Sum256(b)
 	return "sha256:" + hex.EncodeToString(sum[:])
 }

@@ -150,25 +150,35 @@ func cleanStrings(values []string) []string {
 // tools/policy/enginecoverage/ENGINE-COVERAGE-001 checks.
 func scanEngineContract(dir string) (hasVersion, hasExplain bool, err error) {
 	set := token.NewFileSet()
-	packages, err := parser.ParseDir(set, dir, func(info os.FileInfo) bool {
-		return !strings.HasSuffix(info.Name(), "_test.go")
-	}, 0)
+	// parser.ParseDir is deprecated; a ReadDir plus ParseFile loop collects
+	// the same file set (build-tag precision is irrelevant here).
+	var files []*ast.File
+	entries, err := os.ReadDir(dir)
 	if err != nil {
 		return false, false, err
 	}
-	for _, pkg := range packages {
-		for _, file := range pkg.Files {
-			for _, decl := range file.Decls {
-				fn, ok := decl.(*ast.FuncDecl)
-				if !ok {
-					continue
-				}
-				if fn.Name.Name == "Version" && fn.Recv == nil {
-					hasVersion = true
-				}
-				if fn.Name.Name == "Explain" {
-					hasExplain = true
-				}
+	for _, entry := range entries {
+		name := entry.Name()
+		if entry.IsDir() || !strings.HasSuffix(name, ".go") || strings.HasSuffix(name, "_test.go") {
+			continue
+		}
+		file, err := parser.ParseFile(set, filepath.Join(dir, name), nil, 0)
+		if err != nil {
+			return false, false, err
+		}
+		files = append(files, file)
+	}
+	for _, file := range files {
+		for _, decl := range file.Decls {
+			fn, ok := decl.(*ast.FuncDecl)
+			if !ok {
+				continue
+			}
+			if fn.Name.Name == "Version" && fn.Recv == nil {
+				hasVersion = true
+			}
+			if fn.Name.Name == "Explain" {
+				hasExplain = true
 			}
 		}
 	}

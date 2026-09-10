@@ -6,7 +6,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"os"
 	"sort"
 	"strings"
 )
@@ -69,74 +68,6 @@ type Feature struct {
 	Label          string `yaml:"label"`
 	Category       string `yaml:"category"` // CREATE, CHANGE, CALCULATE, OBSERVE
 	MappedIntentID string `yaml:"mapped_intent_id"`
-}
-
-// LoadIntentManifest loads the intent conformance descriptors from YAML.
-func LoadIntentManifest(path string) ([]IntentDescriptor, error) {
-	data, err := os.ReadFile(path)
-	if err != nil {
-		return nil, fmt.Errorf("read intent manifest: %w", err)
-	}
-
-	// Parse YAML manually since we're working with a simple structure.
-	// For production, use gopkg.in/yaml.v3 or similar.
-	var raw map[string]interface{}
-	if err := parseSimpleYAML(string(data), &raw); err != nil {
-		return nil, fmt.Errorf("parse intent manifest: %w", err)
-	}
-
-	descriptorsRaw, ok := raw["descriptors"].([]interface{})
-	if !ok {
-		return nil, fmt.Errorf("invalid descriptors structure in intent manifest")
-	}
-
-	var descriptors []IntentDescriptor
-	for _, d := range descriptorsRaw {
-		dMap, ok := d.(map[string]interface{})
-		if !ok {
-			return nil, fmt.Errorf("invalid descriptor entry")
-		}
-		desc, err := unmarshalDescriptor(dMap)
-		if err != nil {
-			return nil, err
-		}
-		descriptors = append(descriptors, desc)
-	}
-
-	return descriptors, nil
-}
-
-// LoadFeatureManifest loads the feature-to-intent intake manifest from YAML.
-func LoadFeatureManifest(path string) ([]FeatureGroup, error) {
-	data, err := os.ReadFile(path)
-	if err != nil {
-		return nil, fmt.Errorf("read feature manifest: %w", err)
-	}
-
-	var raw map[string]interface{}
-	if err := parseSimpleYAML(string(data), &raw); err != nil {
-		return nil, fmt.Errorf("parse feature manifest: %w", err)
-	}
-
-	groupsRaw, ok := raw["groups"].([]interface{})
-	if !ok {
-		return nil, fmt.Errorf("invalid groups structure in feature manifest")
-	}
-
-	var groups []FeatureGroup
-	for _, g := range groupsRaw {
-		gMap, ok := g.(map[string]interface{})
-		if !ok {
-			return nil, fmt.Errorf("invalid group entry")
-		}
-		group, err := unmarshalFeatureGroup(gMap)
-		if err != nil {
-			return nil, err
-		}
-		groups = append(groups, group)
-	}
-
-	return groups, nil
 }
 
 // ValidateIntentManifest checks finite coverage and all mandatory dimensions.
@@ -317,25 +248,4 @@ func ComputeFeatureDigest(groups []FeatureGroup) (string, error) {
 
 	h := sha256.Sum256(b)
 	return hex.EncodeToString(h[:]), nil
-}
-
-// Helper functions for YAML parsing.
-// These use gopkg.in/yaml.v3 which is already in project go.mod.
-
-func parseSimpleYAML(content string, result *map[string]interface{}) error {
-	// This is intentionally not implemented in this version.
-	// Use gopkg.in/yaml.v3 directly instead.
-	return fmt.Errorf("parseSimpleYAML deprecated; use yaml.Unmarshal directly")
-}
-
-func unmarshalDescriptor(data map[string]interface{}) (IntentDescriptor, error) {
-	// This is intentionally not implemented in this version.
-	// Use yaml.Unmarshal with struct tags instead.
-	return IntentDescriptor{}, fmt.Errorf("unmarshalDescriptor deprecated; use yaml.Unmarshal directly")
-}
-
-func unmarshalFeatureGroup(data map[string]interface{}) (FeatureGroup, error) {
-	// This is intentionally not implemented in this version.
-	// Use yaml.Unmarshal with struct tags instead.
-	return FeatureGroup{}, fmt.Errorf("unmarshalFeatureGroup deprecated; use yaml.Unmarshal directly")
 }

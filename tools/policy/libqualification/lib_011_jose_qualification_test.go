@@ -65,12 +65,10 @@ func TestJOSEDependencyNeedAndConformance(t *testing.T) {
 		}
 
 		hasJOSE := false
-		var joseImports []string
 		for _, imp := range pkg.Imports {
 			for _, family := range joseModuleFamilies {
 				if strings.HasPrefix(imp, family) {
 					hasJOSE = true
-					joseImports = append(joseImports, imp)
 				}
 			}
 		}

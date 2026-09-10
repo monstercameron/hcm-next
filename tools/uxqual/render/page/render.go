@@ -114,12 +114,6 @@ func LiveRegion(politeness pagedef.LiveRegionPoliteness) ui.Node {
 	})
 }
 
-// buildRegion renders one region: its landmark element, its heading (if
-// any), and each of its widget slots, in declaration order.
-func buildRegion(pd pagedef.PageDefinition, region pagedef.Region, reg *Registry) (ui.Node, error) {
-	return buildRegionWithResponsiveProps(pd, region, reg, nil)
-}
-
 func buildRegionWithResponsiveProps(pd pagedef.PageDefinition, region pagedef.Region, reg *Registry, responsive map[string]html.Props) (ui.Node, error) {
 	tag, label, ok := ssrshell.LandmarkForRegionKind(region.Kind)
 	if !ok {

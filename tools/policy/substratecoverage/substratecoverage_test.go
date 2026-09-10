@@ -37,7 +37,8 @@ func TestTodo_SUBSTRATE_COVERAGE_001(t *testing.T) {
 func TestTodo_SUBSTRATE_COVERAGE_001_Golden(t *testing.T) {
 	rows := append([]Responsibility(nil), Responsibilities...)
 	report := Report{Responsibilities: rows}
-	if report.Digest() == "" || report.Digest() != report.Digest() {
+	firstSubstrateDigest, secondSubstrateDigest := report.Digest(), report.Digest()
+	if firstSubstrateDigest == "" || firstSubstrateDigest != secondSubstrateDigest {
 		t.Fatal("substrate report digest is not stable")
 	}
 	if len(rows) != 8 {

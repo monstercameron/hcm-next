@@ -143,9 +143,7 @@ func Rehearse(runbooks []Runbook, cases []RehearsalCase, now time.Time) Rehearsa
 	result := RehearsalResult{Status: StatusRehearsalRejected, Runbooks: len(runbooks), Cases: len(cases), Effects: ZeroEffects{}}
 	byID := make(map[string]Runbook, len(runbooks))
 	for _, runbook := range runbooks {
-		for _, diagnostic := range ValidateRunbook(runbook) {
-			result.Diagnostics = append(result.Diagnostics, diagnostic)
-		}
+		result.Diagnostics = append(result.Diagnostics, ValidateRunbook(runbook)...)
 		if prior, exists := byID[runbook.ID]; exists {
 			result.Diagnostics = append(result.Diagnostics, RehearsalDiagnostic{RunbookID: runbook.ID, Field: "id", State: "DUPLICATE", Version: prior.Version, Reason: "runbook id is registered more than once"})
 		}

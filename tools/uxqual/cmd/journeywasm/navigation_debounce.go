@@ -24,12 +24,6 @@ type navigationDebouncer struct {
 	schedule   debounceScheduler
 }
 
-func newNavigationDebouncer(navigate func(string)) *navigationDebouncer {
-	return newNavigationDebouncerWithScheduler(navigate, func(delay time.Duration, callback func()) debounceTimer {
-		return time.AfterFunc(delay, callback)
-	})
-}
-
 func newNavigationDebouncerWithScheduler(navigate func(string), schedule debounceScheduler) *navigationDebouncer {
 	return &navigationDebouncer{navigate: navigate, schedule: schedule}
 }

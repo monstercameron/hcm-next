@@ -3,36 +3,15 @@ package sbom_test
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"runtime"
 	"sort"
 	"strings"
 	"testing"
 
 	"github.com/monstercameron/human-capital-management-suite/tools/quality/sbom"
 )
-
-func repoRoot(t *testing.T) string {
-	t.Helper()
-	_, file, _, ok := runtime.Caller(0)
-	if !ok {
-		t.Fatal("runtime.Caller failed")
-	}
-	dir := filepath.Dir(file)
-	for {
-		if _, err := os.Stat(filepath.Join(dir, "go.mod")); err == nil {
-			return dir
-		}
-		parent := filepath.Dir(dir)
-		if parent == dir {
-			t.Fatal("go.mod not found")
-		}
-		dir = parent
-	}
-}
 
 func shippedBinary(t *testing.T) (string, string) {
 	t.Helper()
@@ -229,6 +208,6 @@ func TestTodo_TOOL_017_Golden(t *testing.T) {
 		t.Fatal(err)
 	}
 	if !sbom.EqualCanonical(d, roundTrip) {
-		t.Fatal(fmt.Sprintf("JSON round trip changed canonical document"))
+		t.Fatal("JSON round trip changed canonical document")
 	}
 }

@@ -44,7 +44,8 @@ func TestTodo_MSRC_010_Golden(t *testing.T) {
 	report := Report{Checks: []CheckResult{
 		{Name: "modelgen", RegenerationCommand: "go run ./tools/gen/modelgen/cmd/modelgen", Passed: true},
 	}}
-	if report.Digest() == "" || report.Digest() != report.Digest() {
+	firstDriftDigest, secondDriftDigest := report.Digest(), report.Digest()
+	if firstDriftDigest == "" || firstDriftDigest != secondDriftDigest {
 		t.Fatal("drift report digest is not stable")
 	}
 	if !report.OK() {

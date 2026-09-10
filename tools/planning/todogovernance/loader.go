@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"regexp"
 	"sort"
 	"strings"
 
@@ -109,8 +108,6 @@ func LoadMarkdown(path string) (content string, records []Record, parseErrs []er
 	records, errs := ParseRecords(content)
 	return content, records, errs, nil
 }
-
-var titleLineRe = regexp.MustCompile("^- \\[( |x)\\] `([^`]+)`")
 
 // BuildRecords augments already-parsed todos with their raw block detail.
 // todos must have accurate Line fields (as returned by todoregistry.ParseTodos

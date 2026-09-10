@@ -25,15 +25,6 @@ var allowedPhaseOneLayers = map[string]bool{
 	"domains":      true,
 }
 
-func isPhaseOneRoot(m *layout.Manifest, name string) bool {
-	for _, r := range m.InternalPackageRoots {
-		if r.Name == name {
-			return r.Phase == "P1A"
-		}
-	}
-	return false
-}
-
 func DeferredRoots(m *layout.Manifest) []string {
 	var out []string
 	for _, r := range m.InternalPackageRoots {

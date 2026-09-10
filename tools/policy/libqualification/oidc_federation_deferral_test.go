@@ -118,8 +118,7 @@ func TestTodo_LIB_010_Integration(t *testing.T) {
 
 	// Check that OIDC/OAuth2 are not in go.mod yet (they're deferred, not yet pinned)
 	goModPath := filepath.Join(root, "go.mod")
-	data, err = os.ReadFile(goModPath)
-	if err != nil {
+	if _, err := os.ReadFile(goModPath); err != nil {
 		t.Fatalf("reading go.mod: %v", err)
 	}
 

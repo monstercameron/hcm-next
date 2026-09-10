@@ -161,7 +161,8 @@ func TestPartnerManifestRejectsUnboundedWedge(t *testing.T) {
 
 func TestTodo_WEDGE_001_Golden(t *testing.T) {
 	manifest := PlaceholderPartnerManifest()
-	if len(manifest.Digest()) != 64 || manifest.Digest() != manifest.Digest() {
+	firstManifestDigest, secondManifestDigest := manifest.Digest(), manifest.Digest()
+	if len(firstManifestDigest) != 64 || firstManifestDigest != secondManifestDigest {
 		t.Fatal("partner manifest digest is not deterministic")
 	}
 }

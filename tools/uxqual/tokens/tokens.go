@@ -171,21 +171,3 @@ var workspaceCSSOnce = sync.OnceValue(func() string {
 func WorkspaceCSS() string {
 	return workspaceCSSOnce()
 }
-
-// modeContractsCSS contains renderer-owned presentation contracts for user
-// agents that replace the normal colour scheme, and for printed evidence.
-// System colours and important declarations keep these safety rules outside
-// the customer-token cascade. State words and evidence remain real DOM text;
-// CSS generated content is deliberately not used because user agents expose
-// it inconsistently to assistive technology and document exporters.
-func modeContractsCSS() string {
-	return modeContractsTyped()
-}
-
-// responsiveLayoutCSS is the renderer-owned mapping from the closed
-// floorplan projection to CSS. The narrow rules are unconditional; wider
-// rules only add capability through fixed min-width queries. No page,
-// request, locale, or user-agent value is interpolated into this stylesheet.
-func responsiveLayoutCSS() string {
-	return responsiveLayoutTyped()
-}

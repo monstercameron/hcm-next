@@ -625,18 +625,6 @@ func isMockCall(name, receiver string) bool {
 	text := strings.ToLower(name + " " + receiver)
 	return strings.Contains(text, "mock") || strings.Contains(text, "called") || strings.Contains(text, "invoked") || strings.Contains(text, "expect")
 }
-
-func containsComparison(node ast.Node) bool {
-	found := false
-	ast.Inspect(node, func(n ast.Node) bool {
-		if expr, ok := n.(*ast.BinaryExpr); ok && isComparison(expr.Op) {
-			found = true
-		}
-		return !found
-	})
-	return found
-}
-
 func comparisonPair(expr *ast.BinaryExpr) bool {
 	left, lok := unwrapParen(expr.X).(*ast.BinaryExpr)
 	right, rok := unwrapParen(expr.Y).(*ast.BinaryExpr)

@@ -250,9 +250,7 @@ func validateEvidenceOnly(fields map[string][]field, block todoBlock, add func(i
 			statuses = append(statuses, f)
 		}
 	}
-	for _, f := range fields["EVIDENCE_ONLY"] {
-		statuses = append(statuses, f)
-	}
+	statuses = append(statuses, fields["EVIDENCE_ONLY"]...)
 	if len(statuses) == 0 {
 		return
 	}

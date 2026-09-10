@@ -235,6 +235,10 @@ func renderEntity(b *bytes.Buffer, e sources.EntitySource) {
 }
 
 func renderRequired(b *bytes.Buffer, expr, typ, path string) {
+	// Error strings must not be capitalized (ST1005): the path leads with
+	// the exported Go type name, so lowercase its first rune. The field
+	// segment is already snake_case.
+	path = string(unicode.ToLower(rune(path[0]))) + path[1:]
 	switch typ {
 	case "string", "lifecycle.StateID":
 		fmt.Fprintf(b, "\tif %s == \"\" { return fmt.Errorf(%q) }\n", expr, path+": required value is empty")

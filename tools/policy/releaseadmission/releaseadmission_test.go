@@ -12,7 +12,7 @@ import (
 	"github.com/monstercameron/human-capital-management-suite/tools/policy/releaseadmission"
 )
 
-const checkedInSBOMDigest = "70b290b26aac40b8ea9f5f4fb0e3edbe219391a2c3643adcc545a14d543ff43d"
+const checkedInSBOMDigest = "6df911799045862d5ec8650654d3553002c4595a2fb9e17e8e637c89740f4c9d"
 
 func signedFixture(t *testing.T) provenance.Statement {
 	t.Helper()

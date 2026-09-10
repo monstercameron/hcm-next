@@ -118,9 +118,7 @@ func DeriveTestClassApplicability(record Record) TestClassApplicability {
 		}
 	}
 	if len(app.Required) == 0 {
-		for _, class := range TestClasses {
-			app.NotApplicable = append(app.NotApplicable, class)
-		}
+		app.NotApplicable = append(app.NotApplicable, TestClasses...)
 	}
 	sort.Strings(app.Required)
 	sort.Strings(app.NotApplicable)
