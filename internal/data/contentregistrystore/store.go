@@ -742,9 +742,6 @@ type articlePayload struct {
 	effectiveFrom, effectiveTo, knownFrom, knownTo *time.Time
 }
 
-type instantJSON struct {
-	Value string `json:"value"`
-}
 type supersessionJSON struct {
 	ArticleID string `json:"superseding_article_id"`
 	Revision  uint64 `json:"superseding_revision"`

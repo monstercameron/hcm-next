@@ -257,7 +257,7 @@ func TestPromotionWorkflowWaitsOnARealTimerAndCompletesUnderALeaseFence(t *testi
 
 	versions, plan, activated := publishActiveWaitPlan(t, fireAt, at)
 	proposal := newDemoProposal(t, values.TenantId("promo-wait-1"), "intent:promotion-wait-demo-1", at)
-	binding := runtime.ProposalBinding{Revision: proposal, Approved: true, ApprovalRef: "decision:hr-partner-approves-start"}
+	binding := runtime.ProposalBinding{Revision: proposal, ApprovalRef: "decision:hr-partner-approves-start"}
 
 	resolver := effects.PolicyResolver{Entries: []effects.PolicyEntry{{
 		WorkflowID: plan.WorkflowID, Pin: version.Pin{CompiledPlanDigest: activated.CompiledPlanDigest}, Plan: plan,

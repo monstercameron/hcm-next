@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"testing"
-	"time"
 
 	"github.com/google/uuid"
 
@@ -18,8 +17,6 @@ import (
 )
 
 func TestMain(m *testing.M) { pgtest.RunMain(m) }
-
-var at = time.Date(2026, 9, 5, 12, 0, 0, 0, time.UTC)
 
 func TestTodo_PERSIST_BALANCE_001(t *testing.T) {
 	t.Run("adapter constructs", func(t *testing.T) {

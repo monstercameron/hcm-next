@@ -567,17 +567,6 @@ func intervalStart(interval values.EffectiveInterval) time.Time {
 	}
 	return time.Time{}
 }
-
-func intervalEnd(interval values.EffectiveInterval) any {
-	if end, ok := interval.EndInstant(); ok {
-		return end.Time()
-	}
-	if end, ok := interval.EndDate(); ok {
-		return time.Date(int(end.Year()), end.Month(), int(end.Day()), 0, 0, 0, 0, time.UTC)
-	}
-	return nil
-}
-
 func intervalBounds(interval values.EffectiveInterval) (time.Time, *time.Time, error) {
 	if start, ok := interval.StartInstant(); ok {
 		if end, hasEnd := interval.EndInstant(); hasEnd {

@@ -42,15 +42,6 @@ func newDB(t *testing.T) *pgtest.DB {
 	}
 	return db
 }
-
-func insertTenant(t *testing.T, db *pgtest.DB, key string) uuid.UUID {
-	t.Helper()
-	id := uuid.New()
-	db.Exec(t, `INSERT INTO tenant (tenant_id, tenant_key, cell_id, display_name, status, effective_from)
-        VALUES ($1,$2,'cell-local',$3,'ACTIVE',timestamptz '2026-01-01T00:00:00Z')`, id, key, key)
-	return id
-}
-
 func appConn(t *testing.T, db *pgtest.DB) *pgxadapter.Conn {
 	t.Helper()
 	conn := db.NewConn(t)

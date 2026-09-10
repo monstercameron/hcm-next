@@ -53,13 +53,13 @@ func TestTodo_PERFOPT_001(t *testing.T) {
 	if err := raw.Close(ctx); err != nil {
 		t.Fatalf("close failing-hook probe: %v", err)
 	}
-	// BeforeAcquire is deliberately not part of pgxadapter's public surface.
+	// PrepareConn is deliberately not part of pgxadapter's public surface.
 	// The test reaches the private hook only to provide a deterministic failed
 	// hook input; the production pool remains opaque to callers.
 	poolValue := reflect.ValueOf(pool).Elem().FieldByName("pool")
 	inner := (*pgxpool.Pool)(unsafe.Pointer(poolValue.Pointer()))
-	if inner.Config().BeforeAcquire(ctx, raw) {
-		t.Fatal("failing BeforeAcquire unexpectedly accepted a closed connection")
+	if ok, err := inner.Config().PrepareConn(ctx, raw); err != nil || ok {
+		t.Fatalf("failing PrepareConn = (%v, %v), want (false, nil)", ok, err)
 	}
 	if got := pool.HygieneFailures(); got != failuresBefore+1 {
 		t.Fatalf("HygieneFailures = %d after failed hook, want %d", got, failuresBefore+1)

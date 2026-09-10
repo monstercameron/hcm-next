@@ -1,9 +1,9 @@
 package queryplans_test
 
 import (
-	"go/doc"
 	"go/parser"
 	"go/token"
+	"strings"
 	"testing"
 )
 
@@ -13,16 +13,16 @@ import (
 func TestPackageDocIsPresent(t *testing.T) {
 	t.Parallel()
 	fset := token.NewFileSet()
-	pkgs, err := parser.ParseDir(fset, ".", nil, parser.ParseComments)
+	// parser.ParseDir is deprecated; the package doc lives in doc.go, so
+	// parse that file directly (build-tag precision is irrelevant here).
+	file, err := parser.ParseFile(fset, "doc.go", nil, parser.ParseComments)
 	if err != nil {
-		t.Fatalf("parse .: %v", err)
+		t.Fatalf("parse doc.go: %v", err)
 	}
-	pkg, ok := pkgs["queryplans"]
-	if !ok {
-		t.Fatal(`package "queryplans" not found in this directory`)
+	if file.Name.Name != "queryplans" {
+		t.Fatalf("doc.go declares package %q, want queryplans", file.Name.Name)
 	}
-	docPkg := doc.New(pkg, "./", 0)
-	if docPkg.Doc == "" {
+	if file.Doc == nil || strings.TrimSpace(file.Doc.Text()) == "" {
 		t.Fatal("package queryplans has no doc comment")
 	}
 }

@@ -177,8 +177,6 @@ func storageString(value *string) string {
 	return *value
 }
 
-func storedRevision(value int64) string { return strconv.FormatInt(value, 10) }
-
 // SaveAgreement appends an immutable agreement revision.
 func (s *Store) SaveAgreement(ctx context.Context, tenantID string, value cba.AgreementRevision, expectedRevision string) error {
 	tid, err := parseTenant(tenantID)

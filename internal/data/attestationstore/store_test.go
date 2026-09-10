@@ -9,7 +9,6 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
 	"github.com/monstercameron/human-capital-management-suite/internal/data/pgtest"
 	"github.com/monstercameron/human-capital-management-suite/internal/data/pgxadapter"
 	"github.com/monstercameron/human-capital-management-suite/internal/data/tenancy"
@@ -46,27 +45,6 @@ func appConn(t *testing.T, db *pgtest.DB) *pgxadapter.Conn {
 }
 
 func tenantValue(id uuid.UUID) values.TenantId { return values.TenantId(id.String()) }
-
-func inTenant(t *testing.T, conn *pgxadapter.Conn, id uuid.UUID, fn func(dbport.Tx) error) {
-	t.Helper()
-	ctx := context.Background()
-	tx, err := conn.Begin(ctx)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := tenancy.WithTenant(ctx, tx, id); err != nil {
-		_ = tx.Rollback(ctx)
-		t.Fatal(err)
-	}
-	if err := fn(tx); err != nil {
-		_ = tx.Rollback(ctx)
-		t.Fatal(err)
-	}
-	if err := tx.Commit(ctx); err != nil {
-		t.Fatal(err)
-	}
-}
-
 func statement(tenant string, id string, version uint64) attestation.AttestationStatement {
 	person := values.EntityRef{Tenant: values.TenantId(tenant), Kind: "person", Id: "550e8400-e29b-41d4-a716-446655440000"}
 	return attestation.AttestationStatement{

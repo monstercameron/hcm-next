@@ -641,11 +641,6 @@ func timePtrUTC(value *time.Time) time.Time {
 	}
 	return value.UTC()
 }
-
-func encodeInterval(interval values.EffectiveInterval) string {
-	return base64.StdEncoding.EncodeToString(interval.Canonical())
-}
-
 func decodeInterval(encoded string) (values.EffectiveInterval, error) {
 	if encoded == "" {
 		return values.EffectiveInterval{}, values.ErrIntervalUnset

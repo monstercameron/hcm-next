@@ -8,7 +8,6 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/monstercameron/human-capital-management-suite/internal/data/aggregates"
-	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
 	"github.com/monstercameron/human-capital-management-suite/internal/data/pgtest"
 	"github.com/monstercameron/human-capital-management-suite/internal/data/pgxadapter"
 	"github.com/monstercameron/human-capital-management-suite/internal/data/tenancy"
@@ -67,32 +66,6 @@ func appConn(t *testing.T, db *pgtest.DB, tenant uuid.UUID) *pgxadapter.Conn {
 		t.Fatalf("set %s: %v", tenancy.SessionSetting, err)
 	}
 	return conn
-}
-
-// inTenantTx runs fn inside its own transaction on conn, scoped to tenant as
-// the transaction's first statement, and commits it.
-func inTenantTx(t *testing.T, conn *pgxadapter.Conn, tenant uuid.UUID, fn func(tx dbport.Tx) error) {
-	t.Helper()
-	if err := inTenantTxErr(conn, tenant, fn); err != nil {
-		t.Fatalf("tenant transaction: %v", err)
-	}
-}
-
-func inTenantTxErr(conn *pgxadapter.Conn, tenant uuid.UUID, fn func(tx dbport.Tx) error) error {
-	ctx := context.Background()
-	tx, err := conn.Begin(ctx)
-	if err != nil {
-		return err
-	}
-	if err := tenancy.WithTenant(ctx, tx, tenant); err != nil {
-		_ = tx.Rollback(ctx)
-		return err
-	}
-	if err := fn(tx); err != nil {
-		_ = tx.Rollback(ctx)
-		return err
-	}
-	return tx.Commit(ctx)
 }
 
 // newPersonRef registers a standin Person entity a Worker fixture can

@@ -109,18 +109,18 @@ func legacyPool(ctx context.Context, url string) (*pgxpool.Pool, error) {
 	}
 	cfg.ConnConfig.DefaultQueryExecMode = pgx.QueryExecModeCacheDescribe
 	var failures atomic.Int64
-	cfg.BeforeAcquire = func(ctx context.Context, conn *pgx.Conn) bool {
+	cfg.PrepareConn = func(ctx context.Context, conn *pgx.Conn) (bool, error) {
 		for _, statement := range []string{"RESET ROLE", "SELECT pg_advisory_unlock_all()", "DISCARD ALL"} {
 			if _, err := conn.Exec(ctx, statement, pgx.QueryExecModeSimpleProtocol); err != nil {
 				failures.Add(1)
-				return false
+				return false, nil
 			}
 		}
 		if _, err := conn.Exec(ctx, "SELECT set_config($1, $2, false)", pgx.QueryExecModeExec, "search_path", "public"); err != nil {
 			failures.Add(1)
-			return false
+			return false, nil
 		}
-		return true
+		return true, nil
 	}
 	p, err := pgxpool.NewWithConfig(ctx, cfg)
 	if err != nil {

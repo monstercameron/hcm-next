@@ -9,7 +9,6 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
 	"github.com/monstercameron/human-capital-management-suite/internal/data/pgtest"
 	"github.com/monstercameron/human-capital-management-suite/internal/data/pgxadapter"
 	dataref "github.com/monstercameron/human-capital-management-suite/internal/data/refdata"
@@ -66,27 +65,6 @@ func release(t *testing.T, version string) domainref.Release {
 	}
 	return r
 }
-
-func tenantTx(t *testing.T, conn *pgxadapter.Conn, id uuid.UUID, fn func(dbport.Tx) error) {
-	t.Helper()
-	ctx := context.Background()
-	tx, err := conn.Begin(ctx)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := tenancy.WithTenant(ctx, tx, id); err != nil {
-		_ = tx.Rollback(ctx)
-		t.Fatal(err)
-	}
-	if err := fn(tx); err != nil {
-		_ = tx.Rollback(ctx)
-		t.Fatal(err)
-	}
-	if err := tx.Commit(ctx); err != nil {
-		t.Fatal(err)
-	}
-}
-
 func TestReferenceDatasetReleaseDurableAdoptionHistory(t *testing.T) {
 	ctx := context.Background()
 	db := pgtest.New(t)

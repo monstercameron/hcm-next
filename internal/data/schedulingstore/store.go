@@ -135,14 +135,6 @@ func resolveTenant(ctx context.Context, q dbport.Querier, tenant values.TenantId
 	return id, nil
 }
 
-func tenantID(tenant values.TenantId) (uuid.UUID, error) {
-	id, err := uuid.Parse(tenant.String())
-	if err != nil || id == uuid.Nil {
-		return uuid.Nil, coded(CodeTenant, ErrTenantMismatch, "tenant must be a UUID for this operation")
-	}
-	return id, nil
-}
-
 func coded(code string, cause error, detail string) error {
 	if detail != "" {
 		cause = fmt.Errorf("%w: %s", cause, detail)
