@@ -1,0 +1,4 @@
+kind=ExtendLeave
+record=leave:w1
+lineage=sha256:intent-1,sha256:proposal-1
+digest=sha256:4784ed9cb3de669007df0b38da5afbc20cd9e71574bdc5a3de99d127b2e727cd

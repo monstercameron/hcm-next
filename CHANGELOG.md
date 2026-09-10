@@ -1,5 +1,12 @@
 # Changelog
 
+- Land the Medical Leave domain kernels (LEAVE-002–LEAVE-011, LEAVE-014,
+  LEAVE-017): snapshot intake, eligibility resolution, entitlement planning,
+  simulation/proposal, transaction compile, atomic commit, determination
+  rendering, effect reconciliation, replan, successor intents and the
+  restricted evidence-review loop — kernel-pure, digest-sealed, zero
+  workforce mutation outside the governed commit path.
+
 ## 2026-09-10
 
 - Persist Medical Leave and Return-to-Work domain state (DB-023): migration

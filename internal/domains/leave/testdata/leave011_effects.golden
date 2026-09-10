@@ -1,0 +1,5 @@
+business=LEAVE_ACTIVE
+consistency=DEGRADED
+obligation=PENDING
+repair=benefits:observe
+digest=sha256:1f82c087835cb96019e6db00f6040f15ba99b8a1385a5bd29219e449d56bcd4d
