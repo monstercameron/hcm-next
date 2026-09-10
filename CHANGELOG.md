@@ -2,6 +2,14 @@
 
 ## 2026-09-10
 
+- Land the availability revision (AVAIL-003): append-only per-worker
+  revision log with prepare/commit two-phase recovery — availability
+  never exists without its owning leave event, stale heads, inverted
+  or overlapping incompatible intervals, off-vocabulary states and
+  duplicate leave effects all refuse, recovery commits unfinished
+  prepares exactly once, and zero-padded sequence IDs keep History in
+  append order past the tenth revision.
+
 - Land configuration rollback (CP-009): the exact prior bundle is
   revalidated by digest, re-signed through the caller's capability and
   activated at a new epoch with receipts — history intact, mutable
