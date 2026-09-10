@@ -5693,6 +5693,7 @@ closed.
 
 - [x] `AGENT-003` **[DESIGN][SOL_HIGH] Validate agent output before deterministic consumption.**
   - **Partial evidence (2026-09-08):** Luna implementation and Sol/root refinement in `internal/agentsecurity`; independent `go test -count=1 -cover ./internal/agentsecurity/` PASS (91.5%). Validator-owned fields/references/claims must match declarations and authoritative-owner decisions before draft output; narrative is separate and non-executable. Typed detachment preserves exact Money/ResourceKey material and binds it to a distinct canonical draft receipt, with private-material forgery and aliasing regressions. Non-draft receipt compatibility is retained. Concrete schema/capability/AuthZ owner registration and a production draft-ingestion caller remain absent, so this is not a live integrated boundary.
+  - **Evidence (2026-09-10):** `OwnerRegistry` binds each draft tool to its reference/field/claim owners exactly once and `IngestDraft` validates through them (`draft_ingestion.go`; `TestOwnerRegistryIngestDraft`, `_Golden` pinning `testdata/agent003_ingestion.golden`, `FuzzOwnerRegistryIngestDraft`, `_Security`, `_Mutation`; 10s fuzz 499,393 execs PASS), closing the 2026-09-08 partial-evidence gap; full `go test -count=1 ./internal/agentsecurity/` PASS with 91.3% cover on windows/arm64 (Go 1.26.3); branch fix/unblock-main-gateclosure.
   - **Depends:** `AGENT-001`, `MODEL-017`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=expose governed intent creation, inspection or consumption without persistence or provider bypass`.
   - **TEST:** `TestTodo_AGENT_003`.
@@ -5711,6 +5712,7 @@ closed.
   - **GREEN:** immutable eval run gates publication; disable one agent/model/tool/tenant/all-write-AI revokes leases and returns deterministic fallback while non-AI HCM remains available.
   - **REFACTOR:** AI incident links exact versions, inputs, outputs and tool attempts.
   - **Refs:** [Agent evaluation](data/models/assurance-intelligence-platform.md), [AI incidents](specs/incident-management.md).
+  - **Evidence (2026-09-10):** `TestTodo_AGENT_004` (failed safety fixture grounds the release; kill switch revokes write-capable leases with fallback), `_Property` (publication holds exactly for passing sealed runs; version change re-seals), `_Race` (16 concurrent disable/invoke leases, none in flight after), `_Security` (tampered seal refused; foreign scope untouched; incidents version-bound) in `internal/agentsecurity` (`eval_gates.go`); full `go test -count=1 ./internal/agentsecurity/` PASS with 91.3% cover on windows/arm64 (Go 1.26.3); branch fix/unblock-main-gateclosure.
 
 - [x] `AGENT-005` **[DESIGN][SOL_HIGH] Compile agent-proposed actions into governed draft BusinessIntents.**
   - **Depends:** `AGENT-001`–`AGENT-004`, `INTENT-012`, `INTENT-014`, `INTENT-020`.
@@ -5721,6 +5723,7 @@ closed.
   - **GREEN:** validated agent output selects a discoverable IntentDefinition and creates an attributed draft/proposal with exact arguments, sources, taint, model/tool versions, delegation/purpose, cost and required review; deterministic gateways perform all subsequent governance and execution.
   - **REFACTOR:** HCM Concierge and domain agents share the same compiler; agent branding/persona never changes authority semantics.
   - **Refs:** [Agent runtime](data/models/assurance-intelligence-platform.md), [BusinessIntent](specs/business-intent-and-change-request.md).
+  - **Evidence (2026-09-10):** `TestAgentActionCreatesDraftIntentWithoutAuthorityExpansion` (concierge and domain agents share one compiler; 7 RED adversaries — invented definition, hidden uncertainty, missing evidence/taint, bulk loop, unattributed model, unvalidated output — refused with zero draft), `TestTodo_AGENT_005_Golden` (receipt-bound draft identity pinned in `testdata/agent005_action.golden`), `TestTodo_AGENT_005_Mutation` (argument/uncertainty mutation re-identifies; second definition versions separately) in `internal/agentsecurity` (`action_compiler.go` over the new `OwnerRegistry` ingestion); full `go test -count=1 ./internal/agentsecurity/` PASS with 91.3% cover on windows/arm64 (Go 1.26.3); branch fix/unblock-main-gateclosure.
 
 ## 19. Reference-workflow conformance harness
 

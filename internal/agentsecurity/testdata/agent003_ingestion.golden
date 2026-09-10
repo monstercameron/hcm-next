@@ -1,0 +1,4 @@
+draft-schema=people.v3
+draft-receipt=sha256:89f9cd5372b60f21398b527e22007e279ac1dfd3a9b35ef2f72a42c8387a304a
+refusal[people.delete]=AGENT_OUTPUT_UNVALIDATED: field tool: no draft owners are registered for this tool
+refusal[people.lookup]=AGENT_OUTPUT_UNVALIDATED: field schema: output schema does not match the validated type

@@ -2,6 +2,14 @@
 
 ## 2026-09-10
 
+- Land the agent trust kernels (AGENT-003, AGENT-004, AGENT-005):
+  owner-bound draft ingestion with fuzz-pinned refusals, immutable eval
+  runs gating publication with kill-switch lease revocation and
+  version-bound incidents, and one action compiler emitting attributed
+  receipt-bound drafts for concierge and domain agents — invented
+  definitions, hidden uncertainty and bulk loops refused with zero
+  draft.
+
 - Land the rule re-evaluation kernel (RULE-004): approved promotion
   plans re-run their rules at execution time — identical inputs confirm,
   moved inputs require re-approval even when the tier holds, moved tiers
