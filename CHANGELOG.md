@@ -2,6 +2,10 @@
 
 ## 2026-09-10
 
+- Fix four staticcheck findings the merge introduced (struct conversion,
+  raw regexp literal, two dead helpers) so the quality gate failure set
+  matches pre-merge main; the remaining findings are pre-existing debt.
+
 - Record the formatting sweep and UX evidence (docs): prettier table
   rewraps across the rebrand-renamed specs, plan and design mock, the
   supply-chain provenance array collapse, and the blind UX review log

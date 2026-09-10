@@ -143,12 +143,7 @@ func annualize(amount values.Decimal, frequency string, hours values.Decimal) (v
 func SimulateChange(current []CurrentComponent, req ChangeRequest, policy CompositionPolicy) (ChangeSimulation, error) {
 	proposals := make([]ComponentProposal, 0, len(req.Lines))
 	for _, line := range req.Lines {
-		proposals = append(proposals, ComponentProposal{
-			Type: line.Type, Op: line.Op, Revision: line.Revision,
-			Amount: line.Amount, HasAmount: line.HasAmount, Currency: line.Currency,
-			Frequency: line.Frequency, EndCondition: line.EndCondition,
-			CorrectionOf: line.CorrectionOf, RetroactiveReason: line.RetroactiveReason,
-		})
+		proposals = append(proposals, ComponentProposal(line))
 	}
 	composed, err := ComposePackage(current, PackageProposal{
 		PackageRef: req.PackageRef, EffectiveDate: req.EffectiveDate,

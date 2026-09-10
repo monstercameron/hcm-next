@@ -33,10 +33,6 @@ type ItemState struct {
 	Done       bool
 }
 
-func queueKey(item QueuedItem) string {
-	return strings.Join([]string{item.Tenant, fmt.Sprint(item.Priority, item.EnqueuedTick, item.DeadlineTick), item.ID, fmt.Sprint(item.LegalAuthority)}, "\x01")
-}
-
 // Order returns the deterministic schedule: legal-authority items first
 // (workload priority never overrides legal authority), then effective
 // priority with aging, then enqueue tick, then identity. Every item

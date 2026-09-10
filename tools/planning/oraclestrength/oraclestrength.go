@@ -76,7 +76,7 @@ var (
 
 	// strongMarkerRe matches the bounds that redeem an oracle: exact typed
 	// outcomes, counts, digests and prohibited-effect language.
-	strongMarkerRe = regexp.MustCompile("(?i)\\b(exact|typed|precisely|counts?|exactly|zero|digest|canonical|pinned|byte-identical|deterministic|stable|reproducib|prohibit|forbid|refus|reject|bound|identical)")
+	strongMarkerRe = regexp.MustCompile(`(?i)\b(exact|typed|precisely|counts?|exactly|zero|digest|canonical|pinned|byte-identical|deterministic|stable|reproducib|prohibit|forbid|refus|reject|bound|identical)`)
 
 	// effectRe matches GREEN language that claims persisted or emitted
 	// effects. Such claims need a bound from strongMarkerRe.

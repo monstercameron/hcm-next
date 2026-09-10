@@ -18,14 +18,6 @@ func oracleFixture(id, red, green string) string {
 		"  - **Refs:** [Plan](plan.md).\n"
 }
 
-func codes(findings []Finding) map[string]int {
-	counts := make(map[string]int)
-	for _, finding := range findings {
-		counts[finding.Code]++
-	}
-	return counts
-}
-
 func checkCorpus(t *testing.T, corpus, file string) map[string]map[string]int {
 	t.Helper()
 	findings, err := CheckMarkdown(corpus, file)
