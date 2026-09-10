@@ -97,6 +97,11 @@ Third-party modules are admitted only at the owning roots declared by `dependenc
 | `github.com/monstercameron/GoWebComponents/v5` | INFRASTRUCTURE_MECHANIC | `tools/uxqual`, `internal/humanwork/productui`, `internal/humanwork/uicomponents`, `internal/humanwork/workspace` |
 | `github.com/monstercameron/schemaflux` | DEV_TEST_ONLY | `tools/gen` |
 | `go.opentelemetry.io/otel/sdk/metric` | INFRASTRUCTURE_MECHANIC | `internal/platform/telemetry/otel`, `internal/transport/otelmw` |
+| `go.opentelemetry.io/otel/trace` | INFRASTRUCTURE_MECHANIC | `internal/platform/telemetry/otel`, `internal/intent/app` |
+| `go.opentelemetry.io/otel/metric` | INFRASTRUCTURE_MECHANIC | `internal/platform/telemetry/otel` |
+| `go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp` | INFRASTRUCTURE_MECHANIC | `internal/platform/telemetry/otel` |
+| `go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp` | INFRASTRUCTURE_MECHANIC | `internal/platform/telemetry/otel` |
+| `go.opentelemetry.io/otel/exporters/stdout/stdouttrace` | INFRASTRUCTURE_MECHANIC | `internal/platform/telemetry/otel` |
 | `google.golang.org/grpc` | INFRASTRUCTURE_MECHANIC | `internal/transport`, `gen`, `tools/gen`, `cmd`, `tools/uxqual/journeyclient`, `tools/uxqual/cmd/journeywasm` |
 | `google.golang.org/grpc/cmd/protoc-gen-go-grpc` | DEV_TEST_ONLY | `tools` |
 | `google.golang.org/protobuf` | INFRASTRUCTURE_MECHANIC | `gen`, `internal/transport`, `internal/intent/protomap`, `internal/engines/wire`, `tools/gen`, `tools/uxqual/journeyclient`, `tools/uxqual/cmd/journeywasm`, `tools/quality/bufprotovalidatekit` |
@@ -924,4 +929,4 @@ Generated Protobuf/Go artifacts. Content is owned by the generator (TOOL-002/TOO
 
 ## Document digest
 
-`9e1dc70f24a29886aef0cfe1afd820b6e80eeab225c4537139bb7dc644ad0b40`
+`9088b0bb6d5d87d6412933c786524d2afba363c112f1a182040d8ca2c7099555`

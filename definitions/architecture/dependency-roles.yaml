@@ -560,6 +560,160 @@ modules:
       dependency-admission report has a pinned version.
     replacement_strategy: OBS-002 decides OTel SDK adoption; transitive-only until then.
 
+  - path: go.opentelemetry.io/otel
+    version: v1.46.0
+    role: INFRASTRUCTURE_MECHANIC
+    semantic_owner: platform-foundation
+    license_owner: platform-foundation
+    security_owner: platform-foundation
+    allowed_import_roots: []
+    direct_import_expected: false
+    upgrade_sla: Tracks google.golang.org/grpc's transitive pin; security patch within 14 days.
+    exposure: >-
+      OTel API root required by go.mod; only subpackages are imported. Exact row (in addition to the family rule) so the
+      dependency-admission report has a pinned version.
+    replacement_strategy: OBS-002 decides OTel SDK adoption; transitive-only until then.
+
+  - path: go.opentelemetry.io/otel/trace
+    version: v1.46.0
+    role: INFRASTRUCTURE_MECHANIC
+    semantic_owner: platform-foundation
+    license_owner: platform-foundation
+    security_owner: platform-foundation
+    allowed_import_roots: [internal/platform/telemetry/otel, internal/intent/app]
+    direct_import_expected: true
+    upgrade_sla: Tracks google.golang.org/grpc's transitive pin; security patch within 14 days.
+    exposure: >-
+      OTel trace API for span context propagation. Exact row (in addition to the family rule) so the
+      dependency-admission report has a pinned version.
+    replacement_strategy: OBS-002 decides OTel SDK adoption; transitive-only until then.
+
+  - path: go.opentelemetry.io/otel/metric
+    version: v1.46.0
+    role: INFRASTRUCTURE_MECHANIC
+    semantic_owner: platform-foundation
+    license_owner: platform-foundation
+    security_owner: platform-foundation
+    allowed_import_roots: [internal/platform/telemetry/otel]
+    direct_import_expected: true
+    upgrade_sla: Tracks google.golang.org/grpc's transitive pin; security patch within 14 days.
+    exposure: >-
+      OTel metric API imported by internal/platform/telemetry/otel (OBS-002). Exact row (in addition to the family rule) so the
+      dependency-admission report has a pinned version.
+    replacement_strategy: OBS-002 decides OTel SDK adoption; transitive-only until then.
+
+  - path: go.opentelemetry.io/otel/sdk
+    version: v1.46.0
+    role: INFRASTRUCTURE_MECHANIC
+    semantic_owner: platform-foundation
+    license_owner: platform-foundation
+    security_owner: platform-foundation
+    allowed_import_roots: []
+    direct_import_expected: false
+    upgrade_sla: Tracks google.golang.org/grpc's transitive pin; security patch within 14 days.
+    exposure: >-
+      OTel SDK parent required by go.mod; only subpackages are imported. Exact row (in addition to the family rule) so the
+      dependency-admission report has a pinned version.
+    replacement_strategy: OBS-002 decides OTel SDK adoption; transitive-only until then.
+
+  - path: go.opentelemetry.io/otel/exporters/otlp/otlptrace
+    version: v1.46.0
+    role: INFRASTRUCTURE_MECHANIC
+    semantic_owner: platform-foundation
+    license_owner: platform-foundation
+    security_owner: platform-foundation
+    allowed_import_roots: []
+    direct_import_expected: false
+    upgrade_sla: Tracks google.golang.org/grpc's transitive pin; security patch within 14 days.
+    exposure: >-
+      OTLP trace exporter parent required by go.mod; only the HTTP subpackage is imported. Exact row (in addition to the family
+      rule) so the dependency-admission report has a pinned version.
+    replacement_strategy: OBS-002 decides OTel SDK adoption; transitive-only until then.
+
+  - path: go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp
+    version: v1.46.0
+    role: INFRASTRUCTURE_MECHANIC
+    semantic_owner: platform-foundation
+    license_owner: platform-foundation
+    security_owner: platform-foundation
+    allowed_import_roots: [internal/platform/telemetry/otel]
+    direct_import_expected: true
+    upgrade_sla: Tracks google.golang.org/grpc's transitive pin; security patch within 14 days.
+    exposure: >-
+      OTLP HTTP trace exporter imported by internal/platform/telemetry/otel (OBS-002). Exact row (in addition to the family
+      rule) so the dependency-admission report has a pinned version.
+    replacement_strategy: OBS-002 decides OTel SDK adoption; transitive-only until then.
+
+  - path: go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetrichttp
+    version: v1.46.0
+    role: INFRASTRUCTURE_MECHANIC
+    semantic_owner: platform-foundation
+    license_owner: platform-foundation
+    security_owner: platform-foundation
+    allowed_import_roots: [internal/platform/telemetry/otel]
+    direct_import_expected: true
+    upgrade_sla: Tracks google.golang.org/grpc's transitive pin; security patch within 14 days.
+    exposure: >-
+      OTLP HTTP metric exporter imported by internal/platform/telemetry/otel (OBS-002). Exact row (in addition to the family
+      rule) so the dependency-admission report has a pinned version.
+    replacement_strategy: OBS-002 decides OTel SDK adoption; transitive-only until then.
+
+  - path: go.opentelemetry.io/otel/exporters/stdout/stdouttrace
+    version: v1.46.0
+    role: INFRASTRUCTURE_MECHANIC
+    semantic_owner: platform-foundation
+    license_owner: platform-foundation
+    security_owner: platform-foundation
+    allowed_import_roots: [internal/platform/telemetry/otel]
+    direct_import_expected: true
+    upgrade_sla: Tracks google.golang.org/grpc's transitive pin; security patch within 14 days.
+    exposure: >-
+      Stdout trace exporter imported by internal/platform/telemetry/otel (OBS-002). Exact row (in addition to the family
+      rule) so the dependency-admission report has a pinned version.
+    replacement_strategy: OBS-002 decides OTel SDK adoption; transitive-only until then.
+
+  - path: go.opentelemetry.io/proto/otlp
+    version: v1.11.0
+    role: INFRASTRUCTURE_MECHANIC
+    semantic_owner: platform-foundation
+    license_owner: platform-foundation
+    security_owner: platform-foundation
+    allowed_import_roots: []
+    direct_import_expected: false
+    upgrade_sla: Tracks google.golang.org/grpc's transitive pin; security patch within 14 days.
+    exposure: >-
+      OTLP protobuf types required by the exporters; never imported directly. Exact row (in addition to the family rule) so the
+      dependency-admission report has a pinned version.
+    replacement_strategy: OBS-002 decides OTel SDK adoption; transitive-only until then.
+
+  - path: go.opentelemetry.io/auto/sdk
+    version: v1.2.1
+    role: INFRASTRUCTURE_MECHANIC
+    semantic_owner: platform-foundation
+    license_owner: platform-foundation
+    security_owner: platform-foundation
+    allowed_import_roots: []
+    direct_import_expected: false
+    upgrade_sla: Tracks google.golang.org/grpc's transitive pin; security patch within 14 days.
+    exposure: >-
+      OTel auto-instrumentation SDK required by go.mod; never imported directly. Exact row (in addition to the family rule) so
+      the dependency-admission report has a pinned version.
+    replacement_strategy: OBS-002 decides OTel SDK adoption; transitive-only until then.
+
+  - path: google.golang.org/genproto/googleapis/api
+    version: v0.0.0-20260819154853-08b0e4226688
+    role: INFRASTRUCTURE_MECHANIC
+    semantic_owner: platform-foundation
+    license_owner: platform-foundation
+    security_owner: platform-foundation
+    allowed_import_roots: []
+    direct_import_expected: false
+    upgrade_sla: Tracks google.golang.org/grpc and google.golang.org/protobuf's own pins; security patch within 7 days.
+    exposure: >-
+      Generated Google API types required by gRPC; never imported directly. Exact row (in addition to the family rule) so the
+      dependency-admission report has a pinned version.
+    replacement_strategy: Tracks the qualified gRPC/Protobuf toolchain decision (TOOL-002, TOOL-008).
+
   - path: github.com/cenkalti/backoff/v5
     version: v5.0.3
     role: INFRASTRUCTURE_MECHANIC

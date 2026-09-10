@@ -2,6 +2,10 @@
 
 ## 2026-09-10
 
+- Pin exact dependency-roles rows for the OTel and genproto modules so
+  the admission gate passes with vuln evidence required; no dependency
+  versions change.
+
 - Fix four staticcheck findings the merge introduced (struct conversion,
   raw regexp literal, two dead helpers) so the quality gate failure set
   matches pre-merge main; the remaining findings are pre-existing debt.
