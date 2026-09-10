@@ -2,6 +2,11 @@
 
 ## 2026-09-10
 
+- Land configuration rollback (CP-009): the exact prior bundle is
+  revalidated by digest, re-signed through the caller's capability and
+  activated at a new epoch with receipts — history intact, mutable
+  labels, revoked digests and pinned live-workflow versions refused.
+
 - Land the legal-name kernel (CONF-019): structured multilingual names
   with NFC normalization and single-script parts, scanned evidence
   cites, jurisdiction obligations, exact approval digests and one
