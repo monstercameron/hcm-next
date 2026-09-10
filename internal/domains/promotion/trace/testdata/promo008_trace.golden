@@ -1,0 +1,25 @@
+T1 intent intent/promo-8 OPEN rev=1 digest=sha256:41abde95d prev= worker=jane
+T2 snapshot snapshot/intent/promo-8 FROZEN rev=1 digest=sha256:668c7cba5 prev=sha256:41abde95d digest=sha256:snapshot
+T3 simulation simulation/intent/promo-8 ZERO_EFFECT rev=1 digest=sha256:47ab474bb prev=sha256:668c7cba5 digest=sha256:simulation
+T4 proposal proposal/intent/promo-8 FILED rev=1 digest=sha256:7f5c31935 prev=sha256:47ab474bb rev=1 digest=sha256:proposal
+T5 approval approval/alice GRANTED rev=1 digest=sha256:e42765ffa prev=sha256:7f5c31935 proposal=sha256:proposal
+T6 approval approval/hrbp GRANTED rev=1 digest=sha256:f6c236c6b prev=sha256:e42765ffa proposal=sha256:proposal
+T7 revalidation revalidation/intent/promo-8 CURRENT rev=1 digest=sha256:478830ced prev=sha256:f6c236c6b proposal=sha256:proposal graph=7 authority=3
+T8 reservation hold/budget HELD rev=1 digest=sha256:e211d9d54 prev=sha256:478830ced proposal=sha256:proposal
+T9 reservation hold/capacity HELD rev=1 digest=sha256:e8534ab98 prev=sha256:e211d9d54 proposal=sha256:proposal
+T10 position_edge edge/jane/old SUPERSEDED rev=1 digest=sha256:a44feab43 prev=sha256:e8534ab98 manager=alice
+T11 position_edge edge/jane/new ACTIVE rev=1 digest=sha256:41c36d0d5 prev=sha256:a44feab43 manager=bob
+T12 comp_component comp/jane/base-pay ACTIVE rev=1 digest=sha256:362996587 prev=sha256:41c36d0d5 proposal=sha256:proposal
+T13 ledger_entry ledger/promotion APPENDED rev=1 digest=sha256:e0d7de166 prev=sha256:362996587 commit=commit-1
+T14 ledger_entry ledger/compensation APPENDED rev=1 digest=sha256:af7567801 prev=sha256:e0d7de166 commit=commit-1
+T15 observation obs/manager-edge APPLIED rev=1 digest=sha256:f84584173 prev=sha256:af7567801 external=hris-1
+T16 observation obs/base-pay APPLIED rev=1 digest=sha256:691214ae3 prev=sha256:f84584173 external=hris-2
+T17 observation obs/iam FAILED rev=1 digest=sha256:18129026f prev=sha256:691214ae3 external=iam-1
+T18 reconciliation recon/intent/promo-8 REPAIR_REQUIRED rev=1 digest=sha256:64fb8db74 prev=sha256:18129026f effect=obs/iam
+T19 intent intent/promo-8 DEGRADED rev=2 digest=sha256:77744d028 prev=sha256:64fb8db74 repair-required
+T20 repair repair/iam REDIVEN rev=1 digest=sha256:8c95451f7 prev=sha256:77744d028 effect=obs/iam
+T21 observation obs/iam-retry APPLIED rev=1 digest=sha256:c17b68ee7 prev=sha256:8c95451f7 external=iam-2
+T22 intent intent/promo-8 REPAIRED rev=3 digest=sha256:20855fc05 prev=sha256:c17b68ee7 repair=repair/iam
+T23 closure closure/intent/promo-8 CLOSED rev=1 digest=sha256:dd7a32414 prev=sha256:20855fc05 terminal=closed
+T24 intent intent/promo-8 CLOSED rev=4 digest=sha256:3dc1ccecd prev=sha256:dd7a32414 terminal=closed
+seal: sha256:3dc1ccecd4658a320c0751fabb627906c9351f81f17b9472e18c75381586b2c8

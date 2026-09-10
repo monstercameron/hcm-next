@@ -1,0 +1,7 @@
+ceremony=cer-1
+state=SIGNED
+artifact=sha256:artifact
+signer=signer:s1
+receipt=provider:ok
+journal=t0:REQUESTED:requested|t1:DELIVERED:delivered|t2:ACKNOWLEDGED:acknowledged|t3:SIGNED:signed
+digest=sha256:32bf97045cd0940260b03375aad6cf3ca5108353cc1904dd1d2624998fe66165

@@ -1,0 +1,87 @@
+{
+  "tenant": "tenant-a",
+  "intent_ref": "intent/promo-15",
+  "lineage_digest": "sha256:lineage-seal",
+  "authority_lineage": [
+    "auth/hrbp",
+    "auth/ledger"
+  ],
+  "dimensions": [
+    {
+      "name": "intent",
+      "status": "PRESENT",
+      "digest": "sha256:intent"
+    },
+    {
+      "name": "request",
+      "status": "PRESENT",
+      "digest": "sha256:request"
+    },
+    {
+      "name": "snapshot",
+      "status": "PRESENT",
+      "digest": "sha256:snapshot"
+    },
+    {
+      "name": "simulation",
+      "status": "PRESENT",
+      "digest": "sha256:simulation"
+    },
+    {
+      "name": "proposal",
+      "status": "PRESENT",
+      "digest": "sha256:proposal"
+    },
+    {
+      "name": "workflow-version",
+      "status": "PRESENT",
+      "digest": "sha256:workflow-promote-v1"
+    },
+    {
+      "name": "approvals",
+      "status": "PRESENT",
+      "digest": "sha256:approvals"
+    },
+    {
+      "name": "transaction-heads",
+      "status": "PRESENT",
+      "digest": "sha256:heads"
+    },
+    {
+      "name": "domain-revisions",
+      "status": "PRESENT",
+      "digest": "sha256:revisions"
+    },
+    {
+      "name": "effects",
+      "status": "PRESENT",
+      "digest": "sha256:effects"
+    },
+    {
+      "name": "observations",
+      "status": "PRESENT",
+      "digest": "sha256:d2c8804bb84bb9566a920bc1ee9cb0806ed575acfd4cab32e2439dd777e8e44c"
+    },
+    {
+      "name": "reconciliation",
+      "status": "PRESENT",
+      "digest": "sha256:reconciliation"
+    },
+    {
+      "name": "repair",
+      "status": "NOT_APPLICABLE",
+      "note": "no repair was required"
+    },
+    {
+      "name": "obligations",
+      "status": "PRESENT",
+      "digest": "sha256:obligations"
+    },
+    {
+      "name": "terminal",
+      "status": "PRESENT",
+      "digest": "sha256:terminal-closed"
+    }
+  ],
+  "digest": "sha256:c90e4b7616c52d0498e4acedeb92bd687946c074abd0d95c367159bc06a29579"
+}

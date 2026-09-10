@@ -2,6 +2,13 @@
 
 ## 2026-09-10
 
+- Land the domain kernels (CONF-006, PROMO-008, DATA-015, EVIDENCE-001,
+  OPS-006, DOC-SIGN-001, ARCH-GO-024): payroll correction with
+  bitemporal repair, promotion persistence traces, transaction lineage,
+  business execution receipts, epoch-fenced workload drain, proof-bound
+  e-signature ceremonies and the configuration kernel — all pure,
+  deterministic and matrix-tested.
+
 - Land the planning and policy tooling (GOV-003, GOV-021, GOV-026,
   GOV-028, GOV-029, GOV-030, CLOSE-001, WF-DISC-001 through WF-DISC-010,
   ROLLOUT-001, IAC-001, ARCH-GO-024): design-closure and ownership
