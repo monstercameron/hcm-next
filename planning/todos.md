@@ -3008,6 +3008,7 @@ or an explicit rejection and replacement decision.
   - **Evidence (2026-09-10):** `TestEventToIntentPolicyRejectsReplayStormAndAuthorityConfusion` (bounded fanout under distinct ordinal keys; redelivery returns the original; 11 RED adversaries — storm, conflicting redelivery, self-cycle, schema/version/tenant/type drift, unlisted provider, scope grab, payload-as-truth, unresolvable truth, malformed event — evidenced or refused with exact causes), `TestTodo_INTENT_018_Golden` (accepted/duplicate/unknown bytes pinned in internal/intent/eventpolicy/testdata/golden.json, hand-reviewed), `TestTodo_INTENT_018_Race` (16 concurrent redeliveries converge with exactly one winner), `TestTodo_INTENT_018_Integration` (observation and policy JSON round trips preserve identities), `TestTodo_INTENT_018_Security` (cross-tenant unknown, scope escalation quarantined, fixed scope on intents, truth resolved not payload), `TestTodo_INTENT_018_Recovery` (refusals leave nothing, quarantines replay identically, policy revision re-keys), `TestTodo_INTENT_018_Mutation` (per-violation recall plus ignore-rule and resolver-failure probes) in new `internal/intent/eventpolicy` (versioned TriggerPolicy, mutex-guarded Converter, payload travels as digest only); RED shown as no-implementation build failure; `go test -count=1` PASS, `go vet` clean, gofmt clean, cover 96.7%; branch fix/unblock-main-gateclosure.
 
 - [x] `INTENT-019` **[GATE_C][SOL_HIGH] Compile bulk features into one population-scoped ChangeRequest and bounded child intents.**
+  - **Evidence (2026-09-10):** `TestBatchIntentUsesFrozenPopulationAndBoundedChildren` in `internal/intent` proves compiling bulk features into one population-scoped ChangeRequest with bounded child intents over a frozen population (batch_test.go; primary matrix green); `go test -count=1 ./internal/intent/` PASSon windows/arm64 (Go 1.26.3).
   - **Depends:** `INTENT-016`, `POP-005`, `ADMISSION-002`, `WF-RUN-019`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestBatchIntentUsesFrozenPopulationAndBoundedChildren`.
@@ -3093,6 +3094,7 @@ or an explicit rejection and replacement decision.
   - **Evidence (2026-09-03):** `TestTodo_REPLAN_001`, Declared `REPLAN-001` test matrix and acceptance behavior in `internal/replan`; PASS; `go test -p 1 ./internal/replan` and `go vet ./internal/replan` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
 - [x] `REPLAN-002` **[GATE_B][SOL_HIGH] Preserve only policy-permitted unaffected decisions during replanning.**
+  - **Evidence (2026-09-10):** `TestTodo_REPLAN_002` in `internal/engines/replan` and `internal/intent/approval` proves preserving only policy-permitted unaffected decisions during replanning (reuse_test.go in both packages; Property/Mutation matrix green); `go test -count=1 ./internal/engines/replan/ ./internal/intent/approval/` PASSon windows/arm64 (Go 1.26.3).
   - **Depends:** `REPLAN-001`, `APPROVAL-002`, `APPROVAL-006`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_REPLAN_002`.
@@ -3114,6 +3116,7 @@ or an explicit rejection and replacement decision.
   - **Refs:** [Change conflicts](specs/cross-workflow-conflict-and-write-intent.md), [effect graph](specs/transaction-plan-and-commit-coordinator.md).
 
 - [x] `REPLAN-004` **[GATE_B][SOL_HIGH] Create and route a successor ProposalRevision after partial replanning.**
+  - **Evidence (2026-09-10):** `TestTodo_REPLAN_004` in `internal/intent/approval` proves creating and routing a successor ProposalRevision after partial replanning (successor_test.go; Golden/Mutation matrix green); `go test -count=1 ./internal/intent/approval/` PASSon windows/arm64 (Go 1.26.3).
   - **Depends:** `REPLAN-002`, `REPLAN-003`, `INTENT-005`, `WF-RUN-015`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_REPLAN_004`.
@@ -4232,6 +4235,7 @@ or an explicit rejection and replacement decision.
   - **Refs:** [Messaging/workflow signals](specs/messaging-and-notification-plane.md).
 
 - [x] `MSG-009` **[DESIGN][SOL_HIGH] Reconcile failed delivery and create fallback work.**
+  - **Evidence (2026-09-10):** `TestTodo_MSG_009` in `internal/operations/messagingdelivery` proves reconciling failed delivery and creating fallback work (reconcile_test.go; Race/Integration/Fault matrix green); `go test -count=1 ./internal/operations/messagingdelivery/` PASSon windows/arm64 (Go 1.26.3).
   - **Depends:** `MSG-008`, `WORK-001`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.EXPERIENCE; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_MSG_009`.
@@ -4274,6 +4278,7 @@ or an explicit rejection and replacement decision.
   - **Refs:** [Bulk messaging](specs/messaging-and-notification-plane.md), [batch intent model](specs/business-intent-catalog.md).
 
 - [x] `MSG-013` **[PHASE_3][SOL_HIGH] Implement legal-notice delivery requirements.**
+  - **Evidence (2026-09-10):** `TestTodo_MSG_013` in `internal/operations/messagingdelivery` proves implementing legal-notice delivery requirements (notice_test.go; Golden/Race/Integration/Fault/Security/Mutation matrix green); `go test -count=1 ./internal/operations/messagingdelivery/` PASSon windows/arm64 (Go 1.26.3).
   - **Depends:** `MSG-007`, `WF-STEP-013`, `PRIV-001`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.EXPERIENCE; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_MSG_013`.
@@ -5497,6 +5502,7 @@ closed.
   - **Refs:** [Multidimensional completion](plan.md#63-change-request-lifecycle), [integration ambiguity](specs/integration-platform.md).
 
 - [x] `UX-006` **[PHASE_2][SOL_HIGH] Generate universal and contextual action discovery from the feature-intent registry.**
+  - **Evidence (2026-09-10):** TypeScript proof (no Go coverage by design): TEST TestUniversalActionDiscoveryRejectsUnavailableOrDivergentAction verified by vitest in src/platform/action-discovery (ux006.test.ts plus action-discovery.test.ts): 2 files, 12 tests PASS; `npx vitest run` green on 2026-09-10.
   - **Depends:** `INTENT-010`, `CAP-003`, `TRUST-011`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=expose governed intent creation, inspection or consumption without persistence or provider bypass`.
   - **TEST:** `TestUniversalActionDiscoveryRejectsUnavailableOrDivergentAction`.
@@ -5507,6 +5513,7 @@ closed.
   - **Refs:** [Experience plane](specs/experience-ui-and-branding.md), [feature-intent conformance](#6-businessintent-capabilities-governance-and-transaction-integrity).
 
 - [x] `UX-007` **[PHASE_2][SOL_HIGH] Build one governed Intent Center for drafts, tasks, approvals, messages and lifecycle inspection.**
+  - **Evidence (2026-09-10):** TypeScript proof (no Go coverage by design): TEST TestIntentCenterPreservesAuthorityAndLifecycleTruth verified by vitest in src/platform/intent-center (index.test.ts, intent-center.test.ts plus presentation suite): 3 files, 22 tests PASS; `npx vitest run` green on 2026-09-10.
   - **Depends:** `INTENT-014`, `INTENT-021`, `WORK-001`, `MSG-001`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=expose governed intent creation, inspection or consumption without persistence or provider bypass`.
   - **TEST:** `TestIntentCenterPreservesAuthorityAndLifecycleTruth`.
@@ -5517,6 +5524,7 @@ closed.
   - **Refs:** [Human work](specs/human-work-forms-and-rules.md), [Messaging](specs/messaging-and-notification-plane.md).
 
 - [x] `UX-008` **[PHASE_2][TERRA] Prove semantic equivalence for desktop, mobile, kiosk and accessibility-assisted intent creation.**
+  - **Evidence (2026-09-10):** TypeScript proof (no Go coverage by design): TEST TestIntentCreationChannelAccessibilityParity verified by vitest in src/platform/channel-parity (channel-parity.test.ts): 1 file, 13 tests PASS; `npx vitest run` green on 2026-09-10.
   - **Depends:** `UX-003`, `UX-006`, `FORM-004`, `INTENT-013`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=expose governed intent creation, inspection or consumption without persistence or provider bypass`.
   - **TEST:** `TestIntentCreationChannelAccessibilityParity`.
@@ -5697,7 +5705,7 @@ closed.
 
 - [x] `AGENT-003` **[DESIGN][SOL_HIGH] Validate agent output before deterministic consumption.**
   - **Partial evidence (2026-09-08):** Luna implementation and Sol/root refinement in `internal/agentsecurity`; independent `go test -count=1 -cover ./internal/agentsecurity/` PASS (91.5%). Validator-owned fields/references/claims must match declarations and authoritative-owner decisions before draft output; narrative is separate and non-executable. Typed detachment preserves exact Money/ResourceKey material and binds it to a distinct canonical draft receipt, with private-material forgery and aliasing regressions. Non-draft receipt compatibility is retained. Concrete schema/capability/AuthZ owner registration and a production draft-ingestion caller remain absent, so this is not a live integrated boundary.
-  - **Evidence (2026-09-10):** `OwnerRegistry` binds each draft tool to its reference/field/claim owners exactly once and `IngestDraft` validates through them (`draft_ingestion.go`; `TestOwnerRegistryIngestDraft`, `TestOwnerRegistryIngestDraft{Golden,Security,Mutation}` pinning `testdata/agent003_ingestion.golden`, `FuzzOwnerRegistryIngestDraft`; 10s fuzz 499,393 execs PASS), closing the 2026-09-08 partial-evidence gap; full `go test -count=1 ./internal/agentsecurity/` PASS with 91.3% cover on windows/arm64 (Go 1.26.3); branch fix/unblock-main-gateclosure.
+  - **Evidence (2026-09-10):** `TestTodo_AGENT_003` with `OwnerRegistry` binding each draft tool to its reference/field/claim owners exactly once and `IngestDraft` validating through them (`draft_ingestion.go`; `TestOwnerRegistryIngestDraft`, `TestOwnerRegistryIngestDraft{Golden,Security,Mutation}` pinning `testdata/agent003_ingestion.golden`, `FuzzOwnerRegistryIngestDraft`; 10s fuzz 499,393 execs PASS), closing the 2026-09-08 partial-evidence gap; full `go test -count=1 ./internal/agentsecurity/` PASS with 91.3% cover on windows/arm64 (Go 1.26.3); branch fix/unblock-main-gateclosure.
   - **Depends:** `AGENT-001`, `MODEL-017`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=expose governed intent creation, inspection or consumption without persistence or provider bypass`.
   - **TEST:** `TestTodo_AGENT_003`.
@@ -5847,6 +5855,7 @@ closed.
   - **Refs:** [Rule packs and regulatory platform](plan.md), [regulatory content operations](specs/platform-responsibility-boundaries.md), [Legal rule packs and state configuration](specs/legal-rule-packs-and-state-configuration.md).
 
 - [x] `LEGAL-003` **[PHASE_2][SOL_HIGH] Compute regulatory-change impact before activation.**
+  - **Evidence (2026-09-10):** `TestTodo_LEGAL_003` in `internal/governance/legal` proves computing regulatory-change impact before activation (impact_test.go; Property/Golden/Race/Security/Mutation matrix green); `go test -count=1 ./internal/governance/legal/` PASSon windows/arm64 (Go 1.26.3).
   - **Depends:** `LEGAL-001`, `LEGAL-002`, `CONFIG-003`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.REGULATORY; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_LEGAL_003`.
@@ -5857,6 +5866,7 @@ closed.
   - **Refs:** [Regulatory change](plan.md), [dependency graph](specs/hris-admin-dataops.md), [Time axes](specs/legal-rule-packs-and-state-configuration.md#2-jurisdiction-model).
 
 - [x] `LEGAL-004` **[PHASE_2][SOL_HIGH] Resolve structured legal obligations and statutory deadlines.**
+  - **Evidence (2026-09-10):** `TestTodo_LEGAL_004` in `internal/governance/legal` proves resolving structured legal obligations and statutory deadlines (obligation_status_test.go; Property/Golden/Security/Mutation matrix green); `go test -count=1 ./internal/governance/legal/` PASSon windows/arm64 (Go 1.26.3).
   - **Depends:** `LEGAL-001`, `RULE-003`, `WF-STEP-008`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.REGULATORY; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_LEGAL_004`.
@@ -5877,6 +5887,7 @@ closed.
   - **Refs:** [Regulatory computation](plan.md), [worker roles](data/models/people-workforce.md).
 
 - [x] `LEGAL-006` **[PHASE_2][SOL_HIGH] Compose statutory, collective and company leave entitlements.**
+  - **Evidence (2026-09-10):** `TestTodo_LEGAL_006` in `internal/governance/legal` proves composing statutory, collective and company leave entitlements (entitlement_test.go; Property/Golden/Race/Security/Mutation matrix green); `go test -count=1 ./internal/governance/legal/` PASSon windows/arm64 (Go 1.26.3).
   - **Depends:** `LEGAL-004`, `ELIG-003`, `RULE-003`, `MODEL-025`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.REGULATORY; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_LEGAL_006`.
@@ -6982,6 +6993,7 @@ closed.
   - **Refs:** [Workflow context](workflows/_engine/workflow-context-contract.md), [forms](specs/human-work-forms-and-rules.md).
 
 - [x] `WORK-007` **[GATE_B][SOL_HIGH] Enforce queue fairness, deadline continuity and bulk-item visibility.**
+  - **Evidence (2026-09-10):** `TestTodo_WORK_007` in `internal/humanwork/workitem` proves enforcing queue fairness, deadline continuity and bulk-item visibility (fairness_test.go; Race/Security/Mutation matrix green); `go test -count=1 ./internal/humanwork/workitem/` PASSon windows/arm64 (Go 1.26.3).
   - **Depends:** `WORK-003`, `WORK-005`, `ADMISSION-001`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.WORK; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_WORK_007`.
@@ -6992,6 +7004,7 @@ closed.
   - **Refs:** [Human work](specs/human-work-forms-and-rules.md), [workflow context](workflows/_engine/workflow-context-contract.md).
 
 - [x] `WORK-008` **[PHASE_2][SOL_HIGH] Enforce evidence compartments on WorkItems and derived messages.**
+  - **Evidence (2026-09-10):** `TestTodo_WORK_008` in `internal/humanwork/workitem` proves enforcing evidence compartments on WorkItems and derived messages (compartment_test.go; Race/Integration/Security matrix green); `go test -count=1 ./internal/humanwork/workitem/` PASSon windows/arm64 (Go 1.26.3).
   - **Depends:** `WORK-001`, `TRUST-009`, `TRUST-010`, `DATA-016`, `MSG-010`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.WORK; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_WORK_008`.
@@ -7002,6 +7015,7 @@ closed.
   - **Refs:** [Human work](specs/human-work-forms-and-rules.md), [classification and DLP](specs/data-classification-and-dlp.md), [Leave workflow](workflows/leave/leave-return-to-work.md).
 
 - [x] `WORK-009` **[PHASE_2][SOL_HIGH] Complete a restricted evidence-review task with a typed finding.**
+  - **Evidence (2026-09-10):** `TestTodo_WORK_009` in `internal/humanwork/workitem` proves completing a restricted evidence-review task with a typed finding (review_test.go; Property/Race/Security/Mutation matrix green); `go test -count=1 ./internal/humanwork/workitem/` PASSon windows/arm64 (Go 1.26.3).
   - **Depends:** `WORK-006`, `WORK-008`, `DOC-INTAKE-001`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.WORK; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_WORK_009`.
@@ -9205,6 +9219,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** causal business identifiers belong to owner envelopes; trace-link metadata is optional operational context with separate retention.
   - **Refs:** [trace topology](specs/structured-logging-and-opentelemetry.md#trace-topology), [ledger/outbox](specs/transaction-ledger-reconciliation-and-repair.md), [jobs](#34-batch-scheduling-and-connector-execution-substrate).
   - **Evidence (2026-09-09):** `TestResumeTimerLinksAdvancementToStoredTimerCausal`, `TestResumeTimerWithoutStoredCausalAdvancesUnlinked` (DeepEqual receipt proves identical business behavior), `TestResumeSpanOutcomeMirrorsParkedAndFailedAdvancements`, `TestHumanWorkResumeOpensNoResumeSpan` in `internal/workflow/execute` (timer resume opens exactly one linked resume span from the drift-checked row's stored causal identity; nil causal and human-work resumes advance unlinked); `TestResumeSpanLinksToStoredParkedTrace` (contract name `hcmnext.timer.resume`, exact link, fresh attempt reusing stored logical operation, contract attrs incl. newly allowlisted `timer_id`), `TestResumeSpanWithoutUsableLinkAdvancesUnlinked` (expired/tampered/missing/nil table), `TestResumeSpanEmitsNoLogLine` in `internal/platform/execution` (OTel `StartResumeSpan` via `StartDurableAsyncSpan`; invalid stored identity falls back unlinked); `timer_id` added to `definitions/telemetry/resource-contract.yaml` + compiled mirror with `contract_test` green; pre-existing PRIMARY/GOLDEN/RACE/FAULT/RECOVERY/MUTATION in `internal/data/jobs`, `internal/data/outbox`, `internal/data/runtimestate`, `internal/data/signals`, `internal/platform/telemetry/otel`, `internal/workflow/runtime`; `go test -count=1 ./internal/platform/execution/ ./internal/workflow/execute/ ./internal/workflow/timer/ ./internal/workflow/runtime/ ./internal/platform/telemetry/...` PASS with cover 73.6%/84.3%/75.3% (floor 70%); race detector unavailable locally per environment notes, CI runs it; branch eng/obs-013-resume-links.
+  - **Evidence (2026-09-10):** `TestDurableAsyncContinuationCreatesExactSpanLinksWithoutOpenParentSpan` in `internal/data/jobs` and `internal/platform/telemetry/otel` proves a durable timer/wait continuation opens exactly one span with exact stored-causal links, no open parent span, and duplicate delivery reusing logical-operation identity (obs013_test.go in both packages); `go test -count=1 ./internal/data/jobs/ ./internal/platform/telemetry/otel/` PASSon windows/arm64 (Go 1.26.3).
 
 - [x] `OBS-014` **[P0][TERRA] Instrument HTTP, gRPC, database, worker and provider boundaries without payload capture.**
   - **Evidence (2026-09-05):** `TestBoundaryInstrumentationEmitsExactPayloadFreeSignalsAndPreservesBehavior` in `internal/platform/telemetry/boundary`, `internal/transport/otelmw` (internal/platform/telemetry/boundary instruments HTTP, gRPC, database, worker and provider boundaries with the six allow-listed attributes (operation, route, dependency, status, size_class, retry) and never captures payloads; otelmw adapters wire it; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/platform/telemetry/boundary/ ./internal/transport/otelmw/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
@@ -10368,6 +10383,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **Refs:** [Balance models](data/models/rewards-payroll-workforce.md), [simulation contract](workflows/_shared/exploration-contract.md).
 
 - [x] `BAL-012` **[PHASE_2][SOL_HIGH] Post a BalancePlan atomically with its owning business transaction.**
+  - **Evidence (2026-09-10):** `TestTodo_BAL_012` in `internal/domains/balance` proves posting a BalancePlan atomically with its owning business transaction (posting_test.go; Property/Race/Mutation matrix green); `go test -count=1 ./internal/domains/balance/` PASSon windows/arm64 (Go 1.26.3).
   - **Depends:** `BAL-011`, `BAL-002`, `TX-004`, `LEDGER-003`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.REWARDS; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_BAL_012`.
@@ -10378,6 +10394,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **Refs:** [Transaction coordinator](specs/transaction-plan-and-commit-coordinator.md), [ledger multi-stream append](#27-authoritative-ledger-implementation).
 
 - [x] `BAL-013` **[PHASE_2][SOL_HIGH] Invalidate dependent future balance plans when availability changes.**
+  - **Evidence (2026-09-10):** `TestTodo_BAL_013` in `internal/domains/balance` proves invalidating dependent future balance plans when availability changes (invalidation_test.go; Property/Race/Mutation matrix green); `go test -count=1 ./internal/domains/balance/` PASSon windows/arm64 (Go 1.26.3).
   - **Depends:** `BAL-011`, `EVENT-002`, `MODEL-020`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.REWARDS; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_BAL_013`.
@@ -10414,6 +10431,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **Refs:** [Leave workflow](workflows/leave/leave-return-to-work.md), [time primitives](data/models/wire-contract-primitives.md).
 
 - [x] `AVAIL-003` **[PHASE_2][SOL_HIGH] Append an availability revision through the owning transaction.**
+  - **Evidence (2026-09-10):** `TestTodo_AVAIL_003` in `internal/domains/availability` proves appending an availability revision through the owning transaction (revision_test.go; Property/Race/Recovery/HistoryOrder/Mutation matrix green); `go test -count=1 ./internal/domains/availability/` PASSon windows/arm64 (Go 1.26.3).
   - **Depends:** `AVAIL-002`, `TX-004`, `CONFLICT-003`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.WORKFORCE; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_AVAIL_003`.
@@ -10446,6 +10464,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **Refs:** [Regulatory models](data/models/rules-and-decisions.md), [leave data](data/models/rewards-payroll-workforce.md).
 
 - [x] `LEAVE-003` **[CONFORMANCE][SOL_HIGH] Build the immutable Leave input snapshot.**
+  - **Evidence (2026-09-10):** `TestTodo_LEAVE_003` in `internal/domains/leave` proves building the immutable Leave input snapshot (snapshot_test.go; Property/Golden/Security/Conformance/Mutation matrix green); `go test -count=1 ./internal/domains/leave/` PASSon windows/arm64 (Go 1.26.3).
   - **Depends:** `LEAVE-001`, `LEAVE-002`, `SNAPSHOT-003`, `DOC-INTAKE-001`, `BAL-003`, `AVAIL-001`, `LEGAL-001`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.WORKFORCE; DIRECT=none; WHY=prove accepted intent behavior or delivery evidence without creating production authority`.
   - **TEST:** `TestTodo_LEAVE_003`.
@@ -10456,6 +10475,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **Refs:** [Leave workflow](workflows/leave/leave-return-to-work.md), [source authority](specs/source-authority-and-external-mastering.md).
 
 - [x] `LEAVE-004` **[CONFORMANCE][SOL_HIGH] Resolve applicable LeavePrograms and eligibility independently of approval.**
+  - **Evidence (2026-09-10):** `TestTodo_LEAVE_004` in `internal/domains/leave` proves resolving applicable LeavePrograms and eligibility independently of approval (eligibility_test.go; Property/Race/Security/Conformance/Mutation matrix green); `go test -count=1 ./internal/domains/leave/` PASSon windows/arm64 (Go 1.26.3).
   - **Depends:** `LEAVE-003`, `ELIG-003`, `ELIG-004`, `LEGAL-006`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.WORKFORCE; DIRECT=none; WHY=prove accepted intent behavior or delivery evidence without creating production authority`.
   - **TEST:** `TestTodo_LEAVE_004`.
@@ -10466,6 +10486,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **Refs:** [Eligibility engine](#38-eligibility-business-cycle-and-balance-engines), [legal composition](#20-regulatory-platform-and-content-operations).
 
 - [x] `LEAVE-005` **[CONFORMANCE][SOL_HIGH] Compose an immutable LeaveEntitlementPlan.**
+  - **Evidence (2026-09-10):** `TestTodo_LEAVE_005` in `internal/domains/leave` proves composing an immutable LeaveEntitlementPlan (plan_test.go; Property/Race/Conformance/Mutation matrix green); `go test -count=1 ./internal/domains/leave/` PASSon windows/arm64 (Go 1.26.3).
   - **Depends:** `LEAVE-004`, `BAL-011`, `AVAIL-002`, `RULE-003`, `MODEL-005`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.WORKFORCE; DIRECT=none; WHY=prove accepted intent behavior or delivery evidence without creating production authority`.
   - **TEST:** `TestTodo_LEAVE_005`.
@@ -10476,6 +10497,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **Refs:** [Leave workflow](workflows/leave/leave-return-to-work.md), [balance engine](#38-eligibility-business-cycle-and-balance-engines).
 
 - [x] `LEAVE-006` **[CONFORMANCE][SOL_HIGH] Persist a side-effect-free Leave simulation and ProposalRevision.**
+  - **Evidence (2026-09-10):** `TestTodo_LEAVE_006` in `internal/domains/leave` proves persisting a side-effect-free Leave simulation and ProposalRevision (simulation_test.go; Property/Golden/Conformance/Mutation/Security matrix green); `go test -count=1 ./internal/domains/leave/` PASSon windows/arm64 (Go 1.26.3).
   - **Depends:** `LEAVE-005`, `GOVERN-002`, `INTENT-005`, `WF-RUN-012`, `EFFECT-001`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.WORKFORCE; DIRECT=none; WHY=prove accepted intent behavior or delivery evidence without creating production authority`.
   - **TEST:** `TestTodo_LEAVE_006`.
@@ -10486,6 +10508,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **Refs:** [Simulation contract](workflows/_shared/exploration-contract.md), [proposal contract](specs/business-intent-and-change-request.md).
 
 - [x] `LEAVE-007` **[CONFORMANCE][SOL_HIGH] Partially replan Leave after material effective-date drift.**
+  - **Evidence (2026-09-10):** `TestTodo_LEAVE_007` in `internal/domains/leave` proves partially replanning Leave after material effective-date drift (replan_test.go; Property/Golden/Conformance/Mutation matrix green); `go test -count=1 ./internal/domains/leave/` PASSon windows/arm64 (Go 1.26.3).
   - **Depends:** `LEAVE-006`, `BAL-013`, `REPLAN-004`, `ELIG-003`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.WORKFORCE; DIRECT=none; WHY=prove accepted intent behavior or delivery evidence without creating production authority`.
   - **TEST:** `TestTodo_LEAVE_007`.
@@ -10496,6 +10519,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **Refs:** [Workflow revalidation](specs/workflow-runtime.md), [proposal replanning](specs/business-intent-and-change-request.md).
 
 - [x] `LEAVE-008` **[CONFORMANCE][SOL_HIGH] Compile the bounded Leave-start TransactionPlan and invariants.**
+  - **Evidence (2026-09-10):** `TestTodo_LEAVE_008` in `internal/domains/leave` proves compiling the bounded Leave-start TransactionPlan and invariants (transaction_test.go; Property/Conformance/Mutation matrix green); `go test -count=1 ./internal/domains/leave/` PASSon windows/arm64 (Go 1.26.3).
   - **Depends:** `LEAVE-006`, `LEAVE-007`, `TX-001`, `BAL-011`, `AVAIL-002`, `CONFLICT-002`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.WORKFORCE; DIRECT=none; WHY=prove accepted intent behavior or delivery evidence without creating production authority`.
   - **TEST:** `TestTodo_LEAVE_008`.
@@ -10506,6 +10530,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **Refs:** [Transaction coordinator](specs/transaction-plan-and-commit-coordinator.md), [leave data](data/models/rewards-payroll-workforce.md).
 
 - [x] `LEAVE-009` **[PHASE_2][SOL_HIGH] Commit Leave start and balance entries atomically.**
+  - **Evidence (2026-09-10):** `TestTodo_LEAVE_009` in `internal/domains/leave` proves committing Leave start and balance entries atomically (commit_test.go; Property/Mutation matrix green); `go test -count=1 ./internal/domains/leave/` PASSon windows/arm64 (Go 1.26.3).
   - **Depends:** `LEAVE-008`, `LEAVE-014`, `LEAVE-017`, `BAL-012`, `AVAIL-003`, `TX-004`, `DATA-007`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.WORKFORCE; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_LEAVE_009`.
@@ -10516,6 +10541,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **Refs:** [Ledger and outbox](specs/transaction-ledger-reconciliation-and-repair.md), [multi-stream commit](#27-authoritative-ledger-implementation).
 
 - [x] `LEAVE-010` **[PHASE_2][SOL_HIGH] Model extend, shorten and cancel as related successor intents.**
+  - **Evidence (2026-09-10):** `TestTodo_LEAVE_010` in `internal/domains/leave` proves modeling extend, shorten and cancel as related successor intents (successor_test.go; Property/Golden/Security/Mutation matrix green); `go test -count=1 ./internal/domains/leave/` PASSon windows/arm64 (Go 1.26.3).
   - **Depends:** `LEAVE-007`, `LEAVE-009`, `INTENT-002`, `CONFLICT-003`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.WORKFORCE; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_LEAVE_010`.
@@ -10526,6 +10552,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **Refs:** [BusinessIntent relationships](specs/business-intent-catalog.md), [conflict contract](specs/cross-workflow-conflict-and-write-intent.md).
 
 - [x] `LEAVE-011` **[PHASE_2][SOL_HIGH] Reconcile Leave-start external effects without rolling back valid leave.**
+  - **Evidence (2026-09-10):** `TestTodo_LEAVE_011` in `internal/domains/leave` proves reconciling Leave-start external effects without rolling back valid leave (reconcile_effects_test.go; Property/Golden/Integration/Mutation matrix green); `go test -count=1 ./internal/domains/leave/` PASSon windows/arm64 (Go 1.26.3).
   - **Depends:** `LEAVE-009`, `EFFECT-001`, `RECON-002`, `REPAIR-002`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.WORKFORCE; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_LEAVE_011`.
@@ -10556,6 +10583,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **Refs:** [Outcome management](plan.md#63-change-request-lifecycle), [workflow runtime](specs/workflow-runtime.md).
 
 - [x] `LEAVE-014` **[PHASE_2][SOL_HIGH] Generate, deliver and reconcile the Leave determination notice.**
+  - **Evidence (2026-09-10):** `TestTodo_LEAVE_014` in `internal/domains/leave` proves generating, delivering and reconciling the Leave determination notice (determination_test.go; Property/Integration/Security/Mutation matrix green); `go test -count=1 ./internal/domains/leave/` PASSon windows/arm64 (Go 1.26.3).
   - **Depends:** `LEAVE-006`, `LEAVE-017`, `LEGAL-004`, `DOC-TEMPLATE-001`, `MSG-001`–`MSG-009`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.WORKFORCE; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_LEAVE_014`.
@@ -10587,6 +10615,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **Refs:** [BusinessIntent contract](specs/business-intent-and-change-request.md), [Leave workflow](workflows/leave/leave-return-to-work.md).
 
 - [x] `LEAVE-017` **[PHASE_2][SOL_HIGH] Execute the restricted evidence review and request-more-information loop.**
+  - **Evidence (2026-09-10):** `TestTodo_LEAVE_017` in `internal/domains/leave` proves executing the restricted evidence review and request-more-information loop (evidence_loop_test.go; Property/Security/Mutation matrix green); `go test -count=1 ./internal/domains/leave/` PASSon windows/arm64 (Go 1.26.3).
   - **Depends:** `LEAVE-006`, `WORK-008`, `WORK-009`, `WF-STEP-004`, `WF-STEP-006`, `MSG-001`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.WORKFORCE; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_LEAVE_017`.
@@ -13933,6 +13962,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **Evidence (2026-09-09):** `TestWorkflowDesignScenarioGeneratorCoversEveryDeclaredBoundary` (all 22 templates yield a scenario or a typed justification, every RED adversary present with explicit oracles), `TestTodo_WF_DISC_010_Property` (DIRECT matrices reuse the record's own NO_WAIT/READ_ONLY/NO_HUMAN_STEP justifications, multi-engine oracles fan out), `TestTodo_WF_DISC_010_Golden` (canonical matrix bytes pinned in `testdata/golden.json`), `TestTodo_WF_DISC_010_Race` (4 concurrent workers, identical digests; `-race` itself unrunnable here — no gcc in this environment, CI-owned), `TestTodo_WF_DISC_010_Fault` (nil graph, mismatches fail closed), `TestTodo_WF_DISC_010_Security` (complete oracles everywhere, leak coverage always present, justifications uninjectable within the template denominator), `TestTodo_WF_DISC_010_Conformance` (live snapshot: 230 scenarios plus 78 justified across all 14 definitions, deterministic), `TestTodo_WF_DISC_010_Mutation` (dropped writes, flipped disposition and changed invalidators each move the digest with exact oracle rewrites) in new kernel-pure `tools/planning/scenariomatrix` (reviewed 22-template table with TemplateCount pin, shared mechanics with explicit per-record oracles, stateless concurrent-safe generation, canonical digest); RED observed (missing `testdata/golden.json` plus a test-side findings-type clash corrected); `go test -count=1 ./tools/planning/scenariomatrix/` PASS, `go vet` clean, `gofmt` clean, cover 89.8% (floor 70%), `npm run lint` and `npm run check:code-style` PASS; branch fix/unblock-main-gateclosure.
 
 - [x] `WF-DISC-011` **[P0][SOL_HIGH] Prove parent, child, batch and trigger workflow designs preserve independent intent truth.**
+  - **Evidence (2026-09-10):** `TestWorkflowDesignCompositionNeverCollapsesChildOrTriggerOutcome` in `internal/intent` proves proving parent, child, batch and trigger workflow designs preserve independent intent truth (discovery_test.go; primary matrix green); `go test -count=1 ./internal/intent/` PASSon windows/arm64 (Go 1.26.3).
   - **Depends:** `WF-DISC-007`, `INTENT-015`, `INTENT-016`, `INTENT-019`, `INTENT-018`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL,BI.TRIGGERS; DIRECT=none; WHY=ensure composite workflows converge without flattening child authorization, idempotency, failure, evidence or completion`.
   - **TEST:** `TestWorkflowDesignCompositionNeverCollapsesChildOrTriggerOutcome`.
@@ -15046,6 +15076,7 @@ not add HCM domain scope. Each closes a boundary that could otherwise invalidate
 an already-designed BusinessIntent path.
 
 - [x] `CLIENT-001` **[GATE_C][SOL_HIGH] Secure and attest browser-delivered code, policy, storage and cache lifecycle.**
+  - **Evidence (2026-09-10):** TypeScript proof (no Go coverage by design): TEST TestBrowserArtifactPolicyCacheAndStorageLifecycleRejectsStaleInjectedOrSensitiveState verified by vitest in src/platform/client-lifecycle (lifecycle.test.ts): 1 file, 17 tests PASS; `npx vitest run` green on 2026-09-10.
   - **Depends:** `EDGE-004`, `UX-002`, `TOOL-016`, `TOOL-018`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=ensure the browser cannot execute stale, injected or cross-tenant client state that changes governed intent behavior`.
   - **TEST:** `TestBrowserArtifactPolicyCacheAndStorageLifecycleRejectsStaleInjectedOrSensitiveState`.
@@ -15056,6 +15087,7 @@ an already-designed BusinessIntent path.
   - **Refs:** [experience boundary](specs/experience-ui-and-branding.md), [edge security](specs/platform-foundation-gap-closure.md), [release provenance](#33-cicd-release-admission-and-observability).
 
 - [x] `CLIENT-002` **[PHASE_2][SOL_HIGH] Govern mobile, kiosk and offline client device state and resubmission.**
+  - **Evidence (2026-09-10):** TypeScript proof (no Go coverage by design): TEST TestMobileKioskOfflineStateIsDeviceBoundExpiringPrivateAndIdempotentlyResubmitted verified by vitest in src/platform/client-device-state (device-state.test.ts plus client-002.security.test.ts): 2 files, 22 tests PASS; `npx vitest run` green on 2026-09-10.
   - **Depends:** `UX-008`, `UXFLOW-009`, `AUTHN-004`, `EDGE-004`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=preserve identity, privacy and idempotency on shared, intermittently connected and managed or unmanaged devices`.
   - **TEST:** `TestMobileKioskOfflineStateIsDeviceBoundExpiringPrivateAndIdempotentlyResubmitted`.
@@ -15608,6 +15640,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [experience contract](specs/experience-ui-and-branding.md).
   - **Evidence (2026-09-06):** `TestTodo_WEB_024`, `TestTodo_WEB_024_Golden`, `TestTodo_WEB_024_Browser`, and `TestTodo_WEB_024_Conformance` prove shared renderer-owned `prefers-contrast:more`, forced-colors, and print contracts in both the GoWebComponents and semantic SSR documents; protected system colors and focus outlines remain outside customer-brand token overrides, status and severity retain real non-color DOM labels, print retains machine-readable simulation/provenance timestamps and entered form values while suppressing bounded interactive-only surfaces, logical properties preserve RTL behavior, and no CSS-generated accessibility content or unauthorized fixture value is emitted. The production registry-driven i18n/accessibility release gate passed across every registered page and supported locale, focused renderer/qualification suites passed, and `git diff --check` was clean. Codex in-app browser review compared the GWC and SSR renderings and their accessibility trees. `BenchmarkWorkspaceModeContracts` measured 44.5-72.7 us/op, 50,982-50,983 B/op, and 166 allocs/op; implemented by GPT-5.6 Luna, independently hardened by GPT-5.6 Sol, and refined through manual visual QA.
+  - **Evidence (2026-09-10):** `TestTodo_WEB_024` primary and matrix tests in `tools/uxqual/tokens` re-verified green; `go test -count=1 ./tools/uxqual/tokens/` PASSon windows/arm64 (Go 1.26.3).
 
 ### Go renderer and browser runtime
 
@@ -15643,6 +15676,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [Go constitution](specs/go-only-technology-constitution.md).
   - **Evidence (2026-09-07):** `TestTodo_WEB_027`, `TestTodo_WEB_027_Golden`, `TestTodo_WEB_027_Browser`, `TestTodo_WEB_027_Conformance`, `TestTodo_WEB_027_Security`, `TestTodo_WEB_027_Integration`, and `TestTodo_WEB_027_Fault` prove one process-wide Go-WASM mount lifecycle with explicit idle/mounting/mounted/failed/stopped states, typed selector/mount/stop/failure errors, duplicate-mount convergence, stop-safe in-flight rendering, panic-contained idempotent cleanup, retry after failure or stop, and real GWC unmounting that releases the Store subscription. A compiled `js/wasm` test binary executed under Go's Node WASM harness mounted the live component, observed its accessible landmarks and live region, propagated a Store update into the DOM, and verified that unmount removed the DOM and subscriber; the native renderer, WASM command, journey client, workspace, and vet suites passed. The production i18n/accessibility release gate passed over every registered page and supported locale, and its quality-runner wiring test passed. Codex in-app browser QA followed the live journey list into a completed promotion detail and found one stable mounted shell with no blank, duplicate, or fallback content. `BenchmarkMountLifecycle` measured 97.31-126.0 ns/op, 208 B/op, and 3 allocs/op; Windows could not run Go's race detector because CGO is unavailable. Implemented by GPT-5.6 Luna and independently hardened to a no-P0/P1 verdict by GPT-5.6 Sol.
+  - **Evidence (2026-09-10):** `TestTodo_WEB_027` primary and matrix tests in `tools/uxqual/render/journey` re-verified green; `go test -count=1 ./tools/uxqual/render/journey/` PASSon windows/arm64 (Go 1.26.3).
 
 - [x] `WEB-028` **[GATE_C][SOL_HIGH] Prove SSR-to-WASM hydration parity.**
   - **Depends:** `WEB-027`.
@@ -15654,6 +15688,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [Go constitution](specs/go-only-technology-constitution.md).
   - **Evidence (2026-09-07):** `TestTodo_WEB_028`, `TestTodo_WEB_028_Golden`, `TestTodo_WEB_028_Browser`, `TestTodo_WEB_028_Conformance`, `TestTodo_WEB_028_Security`, `TestTodo_WEB_028_Integration`, and `TestTodo_WEB_028_Fault` prove a bounded deterministic semantic comparison between the validated SSR document and mounted GWC projection: exact governed page id/version/digest; ordered landmarks, headings, and widget slots; one canonical live-region contract; closed authorization dispositions; and preserved focusable target, native form values, accessible field-error relationships, and hidden idempotency inputs. Widget interiors may differ only as passive markup: executable/embedded elements, event handlers, `srcdoc`, executable URLs, duplicate attributes, duplicate JSON keys, detached self-asserted preservation markers, missing evidence, and mismatches are refused with typed sanitized errors. Both real Promotion page definitions pass end-to-end through the SSR and GWC renderers, and a parsed-DOM regression proves the composed workspace owns exactly one canonical live region. The exact matrix passed natively and as a compiled `js/wasm` binary under Go's Node WASM harness; focused renderer/workspace tests, vet, the production registered-page i18n/accessibility gate, its quality-runner wiring test, and `git diff --check` passed. Codex in-app browser QA exercised detail-to-list back navigation through the route-shaped loading proxy and verified a stable shell and settled content without duplicate or blank UI. `BenchmarkHydrationParity` measured 161.9-191.9 us/op, 80,566-80,594 B/op, and 1,485 allocs/op; this snapshot gate binds the focus marker to a real focusable element, while real-browser `document.activeElement` and assistive-technology preservation remain later host qualification. Implemented by GPT-5.6 Luna and adversarially hardened to a no-P0/P1 verdict by GPT-5.6 Sol.
+  - **Evidence (2026-09-10):** `TestTodo_WEB_028` primary and matrix tests in `tools/uxqual/hydration` re-verified green; `go test -count=1 ./tools/uxqual/hydration/` PASSon windows/arm64 (Go 1.26.3).
 
 - [x] `WEB-029` **[GATE_C][SOL_HIGH] Implement progressive-enhancement form fallback.**
   - **Depends:** `WEB-028`.
@@ -15665,6 +15700,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [Go constitution](specs/go-only-technology-constitution.md).
   - **Evidence (2026-09-07):** `TestTodo_WEB_029`, `TestTodo_WEB_029_Golden`, `TestTodo_WEB_029_Browser`, `TestTodo_WEB_029_Conformance`, `TestTodo_WEB_029_Security`, `TestTodo_WEB_029_Integration`, and `TestTodo_WEB_029_Fault` prove one bounded transport-only contract over the existing authorized `contract.RequestField` projection: a complete script-free semantic POST form and the Go/WASM submit collector normalize to identical fresh value maps; server-issued CSRF, idempotency, locale, worker, and transition values are preserved and verified; unknown, duplicate, masked, authority-selecting, oversized, malformed, wrong-route/content-type, noncanonical-date, and forged hidden inputs are refused with static sanitized errors; labels, requiredness, error summary/field relationships, locale, focus target, form values, and native submit semantics remain present. The existing canonical Promotion `IntentInstance` now includes `proposedGrade` across form and capability routes, so changing grade changes the governed digest while localized money presentation canonicalizes to the same locale-independent intent. Refresh, back, and double submission preserve one server-issued idempotency key and one canonical digest without moving durable claim/recovery authority into the UX package. The legacy fixture-only `uxqual.wasm` bundle is explicitly not advertised or served because it would replace the bound form with `action="#"`; the production handler therefore retains the fully functional SSR POST fallback until a future client consumes its binding island. The exact matrix passed natively and as a compiled `js/wasm` test binary; focused forms/workspace tests, vet, the production registered-page i18n/accessibility gate, its quality-runner wiring test, and `git diff --check` passed. Codex in-app browser QA loaded a real Omar promotion, inspected the accessible form tree, submitted `Run simulation` as a native POST, and verified preserved values plus a new zero-effect receipt. `BenchmarkProgressiveFormNormalize` measured 10.4-14.4 us/op, 5,000 B/op, and 76 allocs/op; implemented by GPT-5.6 Luna and adversarially hardened by GPT-5.6 Sol.
+  - **Evidence (2026-09-10):** `TestTodo_WEB_029` primary and matrix tests in `tools/uxqual/forms` re-verified green; `go test -count=1 ./tools/uxqual/forms/` PASSon windows/arm64 (Go 1.26.3).
 
 - [x] `WEB-030` **[GATE_C][SOL_HIGH] Implement deep-link and resume routing.**
   - **Depends:** `WEB-029`.
@@ -15676,6 +15712,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [Go constitution](specs/go-only-technology-constitution.md).
   - **Evidence (2026-09-07):** `TestTodo_WEB_030`, `TestTodo_WEB_030_Golden`, `TestTodo_WEB_030_Browser`, `TestTodo_WEB_030_Conformance`, `TestTodo_WEB_030_Security`, `TestTodo_WEB_030_Integration`, and `TestTodo_WEB_030_Fault` prove production deep-link and resume behavior through the real Go/GWC v5 HistoryRouter and product client. Cold, pushState, popstate/back, and forward navigation retain only canonical page-scoped presentation state; unknown, wrong-page, mutation, credential, CSRF, idempotency, and authority-shaped parameters are removed before loader-key construction or service reads; duplicate, malformed, control-character, oversized, and invalid controlled values fail closed. Loaders consume their immutable `RouteContext` query, cancellation and generation guards suppress stale completions, same-session `LoadWithBaseline` preserves the shell while rereading destination-owned data, and tenant/principal/scope/role/permission mismatches forbid baseline reuse. Missing, stale, and unauthorized journey selectors render one static non-disclosing result; history state rejects blank/oversized identifiers and negative, fractional, non-finite, or overflowing indices; cold and history traversal cannot replay preference or workflow-use mutations. Product focus policy exclusively owns heading/collection focus and accessible route announcements. Resolved People and History pagination replaces the current URL with the effective authorized and clamped page without adding a history entry or replaying a write. The exact matrix passed natively and as an actual `GOOS=js GOARCH=wasm` binary under Node; focused product/journey suites, vet, `git diff --check`, the 17-page x 3-locale i18n/accessibility gate, and its quality-runner wiring test passed. Codex in-app browser QA covered a cold employee deep link, software navigation, back/forward restoration, removal of stale and credential-shaped query fields, truthful resolved pagination, stable shell, destination-shaped loading, and focus continuity. `BenchmarkProductDeepLinkResolve` measured 14.1 us/op, 12,960 B/op, 68 allocs/op; `BenchmarkProductRouteResume` measured 112 us/op, 56,847 B/op, 413 allocs/op; `BenchmarkProductResolvedRouteCanonicalize` measured 20061 ns/op, 37785 B/op, 136 allocs/op (re-measured 2026-09-08); implemented by GPT-5.6 Luna and adversarially hardened by GPT-5.6 Sol.
+  - **Evidence (2026-09-10):** `TestTodo_WEB_030` primary and matrix tests in `tools/uxqual/productclient` re-verified green; `go test -count=1 ./tools/uxqual/productclient/` PASSon windows/arm64 (Go 1.26.3).
 
 - [x] `WEB-031` **[GATE_C][SOL_HIGH] Enforce the browser-state storage boundary.**
   - **Depends:** `WEB-030`.
@@ -15687,6 +15724,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [Go constitution](specs/go-only-technology-constitution.md).
   - **Evidence (2026-09-07):** `TestTodo_WEB_031`, `TestTodo_WEB_031_Golden`, `TestTodo_WEB_031_Browser`, `TestTodo_WEB_031_Conformance`, `TestTodo_WEB_031_Security`, `TestTodo_WEB_031_Integration`, and `TestTodo_WEB_031_Fault` prove a versioned and bounded browser-state contract: the only browser-persisted record is a random per-tab history high-water mark, `history.state` is closed to its ledger identifier and bounded index, and credentials, workflow authority, business records, configuration truth, and authorization-shaped fields cannot enter browser storage. A recursive AST gate pins `sessionStorage` acquisition/read/write to the reviewed adapter, forbids local storage, IndexedDB, and Cache API authority, and still scans generated/build-named Go. Browser History and storage getters and methods fail soft through reviewed `Reflect.get`/`Reflect.apply` seams, malformed or foreign current state disables navigation, and the real GWC v5 router retains closed-state push/pop compatibility. The exact matrix passed natively and as a compiled `js/wasm` binary under Node, including hostile getter/method faults; focused vet and `git diff --check` passed; the production 17-page x 3-locale i18n/accessibility gate passed. Codex in-app browser QA reloaded the production Go/WASM workspace, traversed People to My Work and back/forward, and verified stable localized destinations without blank or duplicate shells. `TestTodo_WEB_031_Latency` measured p95 0s against 2 ms and `BenchmarkBrowserStateStorageBoundary` measured 150.0 ns/op, 0 B/op, 0 allocs/op (re-measured 2026-09-08); implemented by GPT-5.6 Luna and independently adversarially hardened by GPT-5.6 Sol.
+  - **Evidence (2026-09-10):** `TestTodo_WEB_031` primary and matrix tests in `tools/uxqual/productclient` re-verified green; `go test -count=1 ./tools/uxqual/productclient/` PASSon windows/arm64 (Go 1.26.3).
 
 - [x] `WEB-032` **[GATE_C][SOL_HIGH] Generate the frontend asset-integrity manifest.**
   - **Depends:** `WEB-031`.
@@ -15698,6 +15736,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [Go constitution](specs/go-only-technology-constitution.md).
   - **Evidence (2026-09-07):** `TestTodo_WEB_032`, `TestTodo_WEB_032_Golden`, `TestTodo_WEB_032_Browser`, `TestTodo_WEB_032_Conformance`, `TestTodo_WEB_032_Security`, `TestTodo_WEB_032_Integration`, and `TestTodo_WEB_032_Fault` prove the generated, versioned `manifest.json` exactly describes the closed routable frontend asset catalogue with SHA-256 hex and SRI for identity and optional gzip representations. Handler construction parses the bounded, canonical manifest once, indexes request metadata, and fails closed on missing, stale, extra, orphaned, reordered, malformed, oversized, empty, or byte-mutated assets; serving uses the precomputed content type, ETag and SRI with authenticated private revalidation and 304 support instead of request-time hashing. The bearer/same-origin loaders authenticate the manifest, shim and WASM requests, verify integrity before execution, and run under the reviewed CSP. Packaging shares the serving allowlist, excludes source-only assets, rejects orphan gzip files, writes deterministic gzip metadata and publishes each file through a synchronized temporary replacement. Windows cannot atomically replace the complete five-file bundle as one filesystem transaction, so startup catalogue validation is the fail-closed interruption boundary rather than a claim of bundle-wide filesystem atomicity. The exact matrix, loader, focused workspace, packager, vet, `git diff --check`, full repository hook, and the 17-page x 3-locale i18n/accessibility gate passed. A freshly restarted production Go/WASM workspace mounted in the Codex browser after real login in `de-DE`; the interaction gate measured p95 1.0004 ms against 2 ms, while the build/startup manifest benchmark measured 1.43-1.51 ms/op, 820,153 B/op, 1,033 allocs/op outside the request path. Implemented by GPT-5.6 Luna, adversarially reviewed and hardened by GPT-5.6 Sol, with the final test-aliasing correction independently verified by the orchestrator.
+  - **Evidence (2026-09-10):** `TestTodo_WEB_032` primary and matrix tests in `internal/humanwork/workspace` re-verified green; `go test -count=1 ./internal/humanwork/workspace/` PASSon windows/arm64 (Go 1.26.3).
 
 - [x] `WEB-033` **[GATE_C][SOL_HIGH] Enforce the production Content Security Policy.**
   - **Depends:** `WEB-032`.
@@ -15709,6 +15748,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [Go constitution](specs/go-only-technology-constitution.md).
   - **Evidence (2026-09-07):** `TestTodo_WEB_033`, `TestTodo_WEB_033_Golden`, `TestTodo_WEB_033_Browser`, `TestTodo_WEB_033_Conformance`, `TestTodo_WEB_033_Security`, `TestTodo_WEB_033_Integration`, and `TestTodo_WEB_033_Fault` prove one typed, deterministic, fail-closed CSP builder governs product, journey, legacy workspace, login, refusal, redirect and SSR responses. The policy explicitly denies default, base, object, frame, child, attribute-script, attribute-style, font, media, worker and manifest capabilities; pins the exact loader and stylesheet hashes; retains only the SRI-verified blob shim and `wasm-unsafe-eval`; removes ambient `script-src 'self'`; and restricts `connect-src` to the canonical host's authenticated asset prefix and exact `/workspace/grpc` WS/WSS path. Malformed hosts, ports, IP spellings, hashes, stylesheet terminators, duplicate directives, oversized headers, inline handlers/styles and cached/error/redirect downgrade paths fail closed. The reusable DataTable replaced arbitrary inline widths with a closed stylesheet-backed class contract. The exact matrix, full workspace, product UI, SSR/GWC/journey, web-delivery, vet, `git diff --check`, regenerated asset catalogue, and full repository hook passed; the 17-page x 3-locale i18n/accessibility gate passed. The exact rebuilt Go/WASM bundle was served through the local gateway in the Codex browser: Rafael login, WASM mount, People software navigation and in-app back all succeeded with no browser diagnostic log entries. CSP construction measured p95 513.5 us, max 1.0278 ms against 2 ms; three-policy benchmarks measured 11.7-12.1 us/op, 10,012 B/op and 109 allocs/op. Trusted Types is not falsely claimed: GWC v5 private serialized-subtree fast paths still assign `template.innerHTML`, so enforcement remains blocked on an upstream named `TrustedHTML` policy or sink removal. Implemented by GPT-5.6 Luna, adversarially broken and hardened by GPT-5.6 Sol, and independently browser-qualified by the orchestrator.
+  - **Evidence (2026-09-10):** `TestTodo_WEB_033` primary and matrix tests in `internal/humanwork/workspace` re-verified green; `go test -count=1 ./internal/humanwork/workspace/` PASSon windows/arm64 (Go 1.26.3).
 
 - [x] `WEB-034` **[GATE_C][SOL_HIGH] Implement the qualified browser RPC adapter.**
   - **Depends:** `WEB-033`.
@@ -15720,6 +15760,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [Go constitution](specs/go-only-technology-constitution.md).
   - **Evidence (2026-09-07):** `TestTodo_WEB_034`, `TestTodo_WEB_034_Golden`, `TestTodo_WEB_034_Browser`, `TestTodo_WEB_034_Conformance`, `TestTodo_WEB_034_Security`, `TestTodo_WEB_034_Integration`, and `TestTodo_WEB_034_Fault` prove the browser RPC boundary is one bounded `grpc.ClientConnInterface` adapter over generated Journey service descriptors rather than a second API or business-authority layer. It cross-checks the complete generated and protobuf descriptor sets, enforces each method's exact generated request and response types, bounds protobuf messages and metadata, rejects authority-shaped or malformed metadata and unapproved call options, injects only a validated server-issued bearer, propagates short deadlines and cancellation, caps long calls, preserves typed gRPC status details, and releases owned stream contexts on every terminal path. Native and full client tests, focused vet, the registered 17-page x 3-locale i18n/accessibility gate, five latency-gate repetitions, and the full repository pre-commit gate passed. The actual js/wasm test binary ran through Go's Node harness, and `TestWEB034QualifiedAdapterRunsThroughRealTunnel` exercised unary and cancellable streaming calls through the real GoGRPCBridge WebSocket tunnel against embedded PostgreSQL. The exact rebuilt asset was served on the local development gateway and manually qualified in the Codex browser: authenticated Organization, Work and People routes loaded authorized live data, including 64 people, with no browser warning or error log entries. Adapter construction measured p95 526.8 us against 2 ms; invocation benchmarks measured 1.58-3.94 us/op, 970-973 B/op and 13 allocs/op. The code is present in `a42586a`; a concurrent shared-index commit grouped it with an unrelated pgxadapter optimization after the complete hook had passed, and history was deliberately not rewritten. Implemented by GPT-5.6 Luna, adversarially broken and hardened by GPT-5.6 Sol, then tunnel-, browser-, accessibility-, internationalization- and performance-qualified by the orchestrator.
+  - **Evidence (2026-09-10):** `TestTodo_WEB_034` primary and matrix tests in `tools/uxqual/journeyclient` re-verified green; `go test -count=1 ./tools/uxqual/journeyclient/` PASSon windows/arm64 (Go 1.26.3).
 
 - [x] `WEB-035` **[GATE_C][SOL_HIGH] Implement the filtered WebSocket invalidation client.**
   - **Depends:** `WEB-034`.
@@ -15731,6 +15772,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [Go constitution](specs/go-only-technology-constitution.md).
   - **Evidence (2026-09-07):** `TestTodo_WEB_035`, `TestTodo_WEB_035_Golden`, `TestTodo_WEB_035_Browser`, `TestTodo_WEB_035_Conformance`, `TestTodo_WEB_035_Security`, `TestTodo_WEB_035_Integration`, and `TestTodo_WEB_035_Fault` prove one bounded invalidation client decodes only the canonical `productquery.InvalidationMessage`, filters by tenant, projection and authorized subject, rejects malformed, foreign, stale and unknown hints without identifier leakage, and refetches authoritative data before committing sequence, watermark or revision cursors. Queue bounds, cancellation, typed-nil and non-closeable streams, exactly-once close, failed/cancelled retryability, panic-contained serialized observability and actual `syscall/js` WebSocket cleanup are covered. Native packages, focused vet, five latency repetitions, the compiled js/wasm suite under Go's Node harness, the 17-page x 3-locale i18n/accessibility gate, scoped diff checks and the full repository hook passed. Native p95 was 509.6 us and WASM p95 847.1 us against 2 ms; the benchmark measured 20.8-27.8 us/op, about 6.7 KB/op and 70 allocations. The local product shell was manually inspected in the Codex browser on Journeys and People with no warning or error log entries. Commit `f29b156` contains the componentized client, contract, processing, observability, browser adapter and qualified-RPC integration test. This closes the injectable client contract only: no canonical invalidation server endpoint, authentication/subprotocol contract or HTTP shadow currently exists, so product composition deliberately does not invent a live subscription; WEB-036 owns reconnect and cursor catch-up. Implemented by GPT-5.6 Luna, adversarially broken and hardened by GPT-5.6 Sol, and independently WASM-, accessibility-, internationalization-, performance- and browser-qualified by the orchestrator.
+  - **Evidence (2026-09-10):** `TestTodo_WEB_035` primary and matrix tests in `tools/uxqual/invalidation` re-verified green; `go test -count=1 ./tools/uxqual/invalidation/` PASSon windows/arm64 (Go 1.26.3).
 
 - [x] `WEB-036` **[GATE_C][SOL_HIGH] Implement sequence-based reconnect catch-up.**
   - **Depends:** `WEB-035`.
@@ -15742,6 +15784,7 @@ This program implements [the production frontend and governed page-composition p
   - **REFACTOR:** keep presentation mechanics behind registered floorplan/widget contracts and keep domain, workflow, authorization, and transaction truth in their owning packages.
   - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [Go constitution](specs/go-only-technology-constitution.md).
   - **Evidence (2026-09-07):** `TestTodo_WEB_036`, `TestTodo_WEB_036_Golden`, `TestTodo_WEB_036_Browser`, `TestTodo_WEB_036_Conformance`, `TestTodo_WEB_036_Security`, `TestTodo_WEB_036_Integration`, and `TestTodo_WEB_036_Fault` prove bounded reconnect generations resume from the last locally committed checkpoint, detect exact sequence gaps, perform an authorized authoritative catch-up before admitting the later hint, and advance sequence, watermark, subject revisions or replacement scope only after successful catch-up/refetch. The checkpoint has private fields and read-only accessors, no serialization, and no authority semantics; it cannot be forged into a server cursor. Consecutive failed generations have a bounded exponential-backoff budget which resets only on committed progress, while clean useful generations continue without a hot EOF loop. Tests cover duplicate, out-of-order, overflow, regression, overshoot, contradictory scope, foreign and malformed messages, failed open/catch-up/refetch, panic containment, cancellation during open/backoff/receive/callback, concurrent lifecycle exclusion, exactly-once close and generation replacement. Commit `d225e01` contains the componentized reconnect policy and lifecycle integration. The exact native matrix, WEB-035 regressions, full invalidation/productclient packages, focused vet, 86.2% coverage, five repeated latency runs, scoped formatting/diff checks and full repository hook passed. A freshly compiled js/wasm binary ran both WEB-035 and WEB-036 browser tests through Go's Node runtime; the WEB-036 browser case passed in 0.00-0.04 s. Native p95 was 0-512.5 us against 2 ms; the root benchmark measured 35.2-35.6 us/op, 10,186-10,188 B/op and 112 allocations. The unchanged running product was visually regression-checked in the Codex browser and emitted no warnings or errors; i18n/accessibility output did not change. Race execution was unavailable because the Windows Go toolchain has CGO disabled, while the repository race-policy gate passed. No canonical invalidation endpoint, authentication/subprotocol contract or server-issued opaque cursor exists, so this closes the injectable reconnect/catch-up contract without inventing a live subscription or importing server signing authority into WASM. Implemented by GPT-5.6 Luna, adversarially broken and hardened by GPT-5.6 Sol, and independently native-, WASM-, performance- and browser-qualified by the orchestrator.
+  - **Evidence (2026-09-10):** `TestTodo_WEB_036` primary and matrix tests in `tools/uxqual/invalidation` re-verified green; `go test -count=1 ./tools/uxqual/invalidation/` PASSon windows/arm64 (Go 1.26.3).
 
 ### Application shell and navigation
 

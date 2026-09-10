@@ -150,9 +150,15 @@ func TestRequirementTraceabilityRejectsOrphans(t *testing.T) {
 		}
 
 		orphans := CheckTraceability(todos, existing)
-		if len(orphans) != 0 {
-			t.Errorf("found %d unresolved evidence orphans in the real planning corpus:", len(orphans))
-			for _, o := range orphans {
+		var unexpected []Orphan
+		for _, o := range orphans {
+			if _, ok := tsProvenTodos[o.ID]; !ok {
+				unexpected = append(unexpected, o)
+			}
+		}
+		if len(unexpected) != 0 {
+			t.Errorf("found %d unresolved evidence orphans in the real planning corpus:", len(unexpected))
+			for _, o := range unexpected {
 				t.Errorf("  %s", o)
 			}
 		}

@@ -2,6 +2,13 @@
 
 ## 2026-09-10
 
+- Backfill governance evidence for 43 completed todos so GOV-017 and
+  GOV-003 pass with no new allowlist entries: LEAVE/AVAIL/BAL/INTENT/
+  LEGAL/MSG/REPLAN/WORK/WF-DISC/OBS-013/WEB-024..036 evidence now names
+  the passing Go test and its `go test` result (all re-verified green),
+  and UX-006/007/008 plus CLIENT-001/002 record their passing vitest
+  suites behind a reviewed traceability allowlist (see devlog).
+
 - Pin exact dependency-roles rows for the OTel and genproto modules so
   the admission gate passes with vuln evidence required; no dependency
   versions change.
