@@ -2,6 +2,12 @@
 
 ## 2026-09-10
 
+- Land the legal-name kernel (CONF-019): structured multilingual names
+  with NFC normalization and single-script parts, scanned evidence
+  cites, jurisdiction obligations, exact approval digests and one
+  atomic revision — downstream effects authorize separately, never
+  implicitly.
+
 - Land the admission provisioner (ADMISSION-002): durable retry-budget
   provisioning per logical operation with replay-safe attempt
   identities, bounded refunds and one stable repair route — the
