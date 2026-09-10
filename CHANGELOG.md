@@ -1,5 +1,10 @@
 # Changelog
 
+- Land the balance kernels (BAL-012, BAL-013): the atomic posting
+  transaction (one head per account, idempotent receipts, failpoint
+  rollback) and the availability dependency index that emits typed
+  REPLAN_REQUIRED findings instead of editing approved plans.
+
 ## 2026-09-10
 
 - Land the legal entitlement kernels (LEGAL-003, LEGAL-004, LEGAL-006):
