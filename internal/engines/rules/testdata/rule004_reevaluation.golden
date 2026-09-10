@@ -1,0 +1,10 @@
+verdict: CONFIRMED
+tier: STANDARD row: otherwise-standard
+original: hcmnext.rules.promotion_approval_threshold@2026.1
+current: hcmnext.rules.promotion_approval_threshold@2026.1
+moved-input: false moved-table: false
+verdict: INVALIDATED
+tier: FINANCE_REQUIRED row: increase-exceeds-finance-threshold
+original: hcmnext.rules.promotion_approval_threshold@2026.1
+current: hcmnext.rules.promotion_approval_threshold@2026.1
+moved-input: true moved-table: false

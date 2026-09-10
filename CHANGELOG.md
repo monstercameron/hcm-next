@@ -2,6 +2,12 @@
 
 ## 2026-09-10
 
+- Land the rule re-evaluation kernel (RULE-004): approved promotion
+  plans re-run their rules at execution time — identical inputs confirm,
+  moved inputs require re-approval even when the tier holds, moved tiers
+  and unknown inputs invalidate, and every verdict cites both rule
+  versions with tamper-evident input digests.
+
 - Land the schedule kernels (INTENT-017, SCHED-003): frozen occurrences
   convert to exactly one intent with DST-fold twins named apart and
   replay/leader-overlap/post-crash convergence, and the dispatcher
