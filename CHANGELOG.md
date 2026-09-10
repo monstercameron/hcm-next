@@ -2,6 +2,12 @@
 
 ## 2026-09-10
 
+- Land the admission provisioner (ADMISSION-002): durable retry-budget
+  provisioning per logical operation with replay-safe attempt
+  identities, bounded refunds and one stable repair route — the
+  provisioner owns the counters, the pure policy stays the only
+  decision.
+
 - Land the runtime kernels (WF-RUN-006, WF-RUN-007): the immediate-caller
   retry policy (capped backoff, shared budget, DO_NOT_RETRY honored
   above all) and poison-node quarantine that never drops work and never
