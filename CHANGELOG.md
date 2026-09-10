@@ -1,7 +1,213 @@
 # Changelog
 
+## 2026-09-10
+
+- Persist Medical Leave and Return-to-Work domain state (DB-023): migration
+  00281 adds twelve tenant-scoped tables — request/record revisions, program
+  eligibility, entitlement segments, absence and availability links, balance
+  postings, evidence refs, work restrictions, obligations, intent links and
+  role-gated medical detail — with CAS revisions, FK/idempotency/overlap/
+  employment/compartment guards under RLS.
+
+- Add the idempotent Leave process anchor (LEAVE-016): one capability
+  invocation persists the `RequestLeave` intent as `CHANGE_REQUEST` with its
+  child bindings, the requested revision and the `LeaveRequested` provenance;
+  replays return the stored anchor, conflicting client-request reuse refuses,
+  and no workforce mutation or external effect is performed.
+
 ## 2026-09-09
 
+- Give promotion comparisons full content width so desktop pay deltas remain visible.
+
+- Show promotion change comparisons before request metadata in the review panel.
+
+- Keep promotion confirmation cancellation accessible and clear inherited primary
+  gradients from secondary journey buttons.
+
+- Correct promotion effective-date guidance: simulation applies promotion policy,
+  rather than universally forbidding past dates.
+
+- Reconcile shell golden fixtures with verified non-modal launcher accessibility;
+  the full product UI package passes again.
+
+- Make Help task-oriented and permission-aware, with self-service destinations
+  and localized access guidance instead of inaccessible promotion instructions.
+
+- Correct profile workflow empty-state advice for users without create permission;
+  job-ladder remediation is reserved for authorized requesters.
+
+- Align action-launcher dialog/combobox accessibility with non-modal keyboard
+  behavior and distinguish unmatched searches from unavailable authorized actions.
+
+- Make Insights totals use the same discoverable workflow population as the
+  other metrics; cover denied and missing-verdict records in regression tests.
+
+- Seed menu queries in the production loading shell so hydrated search inputs
+  agree with filtered results after reload; cover escaping and whitespace.
+
+- Promote matching support pages into menu search results without duplicates,
+  retain recovery links and show an explicit no-results state. Restore the full
+  product UI test suite with current localized Settings expectations.
+
+- Preserve incomplete worker-ID numeric edits, disable invalid submissions with
+  localized guidance, and apply theme-aware native disabled-button styling.
+
+- Make worker-ID examples follow unsaved form edits using shared non-allocating
+  formatting. Replace unbounded reserved-range scanning with increment-aligned
+  range jumps; add draft, exhaustion and large-range regression coverage.
+
+- Refine Admin navigation and role-visibility layout: omit unconfigured hero
+  actions and collapse the role summary behind a localized native disclosure,
+  preserving the visible policy boundary and role-filtered configuration cards.
+  Add focused rendering regressions and verify the updated desktop UI.
+
+- Tick WF-DISC-010: new kernel-pure `tools/planning/scenariomatrix`
+  generates adversarial scenario matrices from every workflow design
+  (22-template table; live snapshot yields 230 scenarios plus 78 typed
+  justifications across all 14 definitions); package tests PASS
+  (incl. concurrent race test), vet clean, cover 89.8%.
+
+- Tick WF-DISC-009: new kernel-pure `tools/planning/designownership`
+  validates every workflow design against model/engine/authority
+  ownership with exact resolutions plus atomic CONTRACTED-blocking todo
+  candidates (live snapshot: 8 resolutions, 46 candidates, full
+  reference coverage); package tests PASS, vet clean, cover 83.0%.
+
+- Tick WF-DISC-008: new kernel-pure `tools/planning/directcapability`
+  proves DIRECT dispositions hold no durable machinery or state mutation
+  and that executions pin authorization, return honest typed results and
+  promote actions only as new unexecuted intents (live snapshot: all 5
+  DIRECT designs prove pure); package tests PASS, vet clean, cover 92.0%.
+
+- Tick WF-DISC-007: new kernel-pure `tools/planning/workflowexpansion`
+  compiles archetype recipes plus domain profiles plus intent deltas into
+  complete ordered responsibility graphs with typed nodes, sequence plus
+  repair edges, ordered effects and stable digests (live snapshot expands
+  all 14 definitions); package tests PASS, vet clean, cover 90.4%.
+
+- Tick WF-DISC-006: new kernel-pure `tools/planning/workflowdesignjoin`
+  joins each drafted definition to exactly one design disposition by
+  versioned definition ref (live snapshot joins 14/14 with zero missing,
+  duplicate or alias-only records); extends `tools/planning/workflowdesign`
+  records with the optional validated `definition` field and grows the
+  seed corpus to the 14 accepted definitions; both suites PASS, vet
+  clean, cover 84.6% plus 84.3%.
+
+- Tick CLOSE-001: new kernel-pure `tools/planning/designclosure`
+  compiles the design-closure register joining every accepted scope item
+  to source, owner, phase, decision state, artifact, todos, tests,
+  evidence digest and expiry with gated blockers and reconciling totals;
+  live snapshot resolves 14 rows over 14 accepted intents; package tests
+  PASS, vet clean, cover 94.0%.
+
+- Tick GOV-028: new kernel-pure `tools/planning/oraclespecificity`
+  rejects placeholder RED/GREEN oracles (`PLACEHOLDER_RED_ORACLE`,
+  `PLACEHOLDER_GREEN_ORACLE`) and unbounded persistence/ledger/outbox/
+  human-work/provider claims (`MISSING_PROHIBITED_EFFECT_ORACLE`) with
+  live-backlog conformance and fuzz coverage; package tests PASS
+  (incl. a 60s 3.27M-exec fuzz run), vet clean, cover 90.2%.
+
+- Tick GOV-021: new kernel-pure `tools/planning/oraclestrength`
+  classifies todo oracles as `WEAK_ORACLE` when they assert only
+  execution signals, lean on a coverage percentage, omit
+  prohibited-effect bounds, snapshot unstable output, accept either/or
+  alternatives or name no concrete failing case; package tests PASS
+  (incl. fourteen oracle mutations), vet clean, cover 84.0%.
+
+- Tick WF-DISC-005: new kernel-pure `tools/planning/workflowdesign`
+  defines the machine-readable WorkflowDesignRecord contract with closed
+  DIRECT/WORKFLOW dispositions, explicit NOT_APPLICABLE reason codes,
+  canonical digests and stable Go/Protobuf registries regenerated by
+  `cmd/workflowdesign`; package tests PASS (incl. sixteen seeded
+  single-gap mutations each yielding their exact code), vet clean,
+  cover 85.7% plus 83.3% for the command.
+
+- Surface promotion actions ahead of supporting details and simplify stage
+  descriptions. Keep established quiet journey feeds reconnecting after normal
+  transport deadlines, while retaining bounded retries for immediate failures.
+
+- Correct Jane's demo promotion baseline to her declared reference inputs;
+  prevent other workers from inheriting Omar's compensation. Add safe OTel
+  baseline-source events and worker-specific regression coverage.
+
+- Add safe bounded request-error diagnostics for promotion troubleshooting;
+  distinguish schema mismatch, database conflicts, cancellation and deadlines
+  without logging internal payloads. Fix stale approval success notices when
+  live promotion updates deliver a recorded ledger outcome, with regression tests.
+
+- Tick IAC-002: new kernel-pure `tools/policy/iacstack` builds the four
+  isolated stacks (dev/test/stage/production-cell) from one pinned module
+  graph with reviewed variables, per-stack credentials, explicit bounds and
+  redacted deterministic plan summaries; package tests PASS (incl. a
+  seeded-mutant sensitivity probe), vet clean, cover 87.8%.
+
+- Tick WF-DISC-001: new kernel-pure `tools/planning/workflowregistry`
+  registers the 42-file workflow research corpus with truthful discovery
+  states, unique ids, index-link integrity and accepted-intent resolution
+  (live gaps reported as exact findings: 12 missing owners, 4 missing
+  intents, 3 missing kernel families, 5 unregistered samples, 3 non-catalog
+  targets); package tests PASS (incl. a seeded-mutant probe), vet clean,
+  cover 92.9%.
+
+- Tick WF-DISC-002: new kernel-pure `tools/planning/workflowarchetypes`
+  proves the six HR catalogs (198 rows) name only defined archetypes with
+  explicit dependencies, data and step deltas and no duplicate intent
+  placement; package tests PASS (incl. a seeded-mutant probe), vet clean,
+  cover 88.4%.
+
+- Tick WF-DISC-003: new kernel-pure `tools/planning/workflowdecisions`
+  turns the eight register questions into owned safe boundaries (closed
+  safe defaults executed against negative fixtures, strict deadlines,
+  decision revisions); package tests PASS (incl. a seeded-mutant probe),
+  vet clean, cover 89.9%.
+
+- Tick WF-DISC-004: new kernel-pure `tools/planning/workflowpromotion`
+  gates exploratory-to-contracted promotion on the complete closure set
+  with ed25519 signed receipts (tamper-evident, expiry-enforced);
+  package tests PASS (incl. a seeded-mutant probe), vet clean, cover
+  86.5%.
+
+- Tick IAC-001: the provider-neutral infrastructure resource contract in
+  `tools/policy/iac` lands verified (nine-kind catalog, seeded fault/security/
+  recovery oracles, race plus benchmark; package tests PASS, vet clean, cover
+  94.6% against the 70% floor).
+
+- Tick NEXT-008: the gate-dependency and assurance-closure checker in
+  `tools/policy/phaseone` lands verified (later-phase/cycle/self-certification
+  rejection with shortest witnesses, golden closure bytes, Gate B independent
+  assurance plus verified cross-store restore; package tests PASS, vet clean,
+  cover 87.2% against the 70% floor).
+
+- Tick GOV-027: the intent-gap compiler in `tools/planning/intentmanifests`
+  lands verified (23-dimension property suite, golden digest, live-catalog
+  conformance at 238 gaps, duplicate-contract mutation oracles, fuzz seed
+  corpus; package tests PASS, vet clean, cover 70.7% against the 70% floor).
+
+- Refine workforce exploration: full-width team disclosures, readable worker
+  cards, native reporting-line expanders, localized counts and safe handling of
+  ambiguous manager names. Workforce now precedes supporting business metadata.
+
+- Fix Journeys remaining on its loading screen when data arrives before the
+  render subscription mounts; add a deterministic WASM lifecycle regression.
+
+- Fix Start an action dismissal when focus leaves or the user clicks outside;
+  preserve internal focus navigation and clean up browser listeners and timers.
+
+- UX refinement (uncommitted): truthful explicit-role assignment display,
+  worker-number disambiguation, published promotion-eligibility checks shared
+  with the workflow form, and permission-aware task links in Help.
+
+- UX refinement (uncommitted): separate breadcrumbs from page headings, clarify
+  organization-wide appearance, simplify Home promotion entry and empty-work
+  guidance, improve navigation label space, and explain unavailable page editing.
+
+- OBS-013 timer-resume span links (branch eng/obs-013-resume-links): timer
+  wake advancements open a finite `hcmnext.timer.resume` span linked to the
+  parked trace from the drift-checked row's stored causal identity, with a
+  fresh attempt reusing the stored logical operation; nil/expired/invalid
+  links advance unlinked with byte-identical receipts. `timer_id` joins the
+  telemetry attribute allowlist (contract + compiled mirror). Stale OBS-012
+  fallback comment corrected to the landed topology contract.
 - Rebrand to Human Capital Management Suite (uncommitted batch, this
   change): Go module `github.com/monstercameron/hcm-next` becomes
   `github.com/monstercameron/human-capital-management-suite` (go.mod, all

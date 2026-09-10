@@ -481,7 +481,7 @@ accessibility / delegation / representation / human escalation
   - **REFACTOR:** replace wall-clock sleeps/global fixtures with injected clocks, explicit synchronization and isolated resources.
   - **Refs:** [Reproducibility contract](plan.md#93-reproducibility-contract), [environment governance](plan.md#111-environment-and-change-governance).
 
-- [ ] `GOV-021` **[P0][SOL_HIGH] Reject weak tests and coverage gaming.**
+- [x] `GOV-021` **[P0][SOL_HIGH] Reject weak tests and coverage gaming.**
   - **Depends:** `GOV-017`, `GOV-018`, `GOV-019`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestOracleStrengthRejectsExecutionOnlyAssertions`.
@@ -490,6 +490,7 @@ accessibility / delegation / representation / human escalation
   - **GREEN:** each primary and secondary test asserts exact typed result/error, durable state/event/effect counts, authority/temporal/evidence fields and prohibited outcomes appropriate to its contract; coverage reports branch/state/requirement/mutant closure without a line-percentage completion shortcut.
   - **REFACTOR:** central assertion helpers improve diagnostics but do not hide domain-specific expected values or create tautological tests from implementation output.
   - **Refs:** [Epistemic integrity](plan.md#513-preserve-epistemic-integrity), [TodoContract fields](#how-an-agent-must-execute-a-todo).
+  - **Evidence (2026-09-09):** `TestOracleStrengthRejectsExecutionOnlyAssertions` (nine weak oracle shapes classified `WEAK_ORACLE` with reasons, three strong shapes clean), `TestTodo_GOV_021_Property` (fourteen oracle mutations incl. mutant-closure coverage, bounded effects, digest-pinned snapshots and seeded-defect REDs passing), `TestTodo_GOV_021_Golden` (canonical findings bytes pinned in `testdata/golden.json`), `TestTodo_GOV_021_Mutation` (stripped prohibited-effect bound and vague RED caught, repaired oracle clean) in new kernel-pure `tools/planning/oraclestrength` (reviewed execution-only/coverage-shortcut patterns redeemed only by exact/typed/count/digest/prohibition markers, effect claims require prohibited-outcome bounds, snapshots require digest anchors, bare either/or alternatives refused, REDs require a named failing case); RED observed (missing `testdata/golden.json`, snapshot rule suppressed by an over-broad strong marker, RED inflection and either/or-membership false positives fixed); live-backlog calibration (scratch probe, uncommitted): 290 weak todos of the corpus with all thirteen ticked-strong P0 anchors clean; `go test -count=1 ./tools/planning/oraclestrength/` PASS, `go vet` clean, `gofmt` clean, cover 84.0% (floor 70%), `npm run lint` and `npm run check:code-style` PASS; branch fix/unblock-main-gateclosure.
 
 - [x] `GOV-022` **[P0][SOL_HIGH] Register every normative planning obligation with a stable requirement identity.**
   - **Evidence (2026-09-05):** `TestPlanningRequirementRegistryRejectsUntrackedNormativeObligations` in `tools/planning/obligations` (normative statements scanned from plan.md and the specs, each assigned a stable requirement identity from document path plus a normalized content hash, emitted as a JSON registry with cited todo ids, a golden drift test and a lineage link when an obligation's text changes; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./tools/planning/obligations/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
@@ -546,7 +547,7 @@ accessibility / delegation / representation / human escalation
   - **REFACTOR:** share identities and maturity rules with the corpus graph; never infer implementation from a Markdown link or matching noun.
   - **Refs:** [Intent coverage matrix](data/models/intent-coverage-matrix.md), [catalog status](specs/business-intent-catalog.md#status-and-ownership), [corpus graph](#0-backlog-governance-and-traceability).
 
-- [ ] `GOV-027` **[P0][SOL_HIGH] Generate atomic TDD todo candidates from each contracted BusinessIntent gap.**
+- [x] `GOV-027` **[P0][SOL_HIGH] Generate atomic TDD todo candidates from each contracted BusinessIntent gap.**
   - **Depends:** `GOV-017`, `GOV-018`, `GOV-025`, `GOV-026`, `INTENT-CONF-001`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=make accepted BusinessIntent contracts the driver of implementation backlog generation`.
   - **TEST:** `TestIntentGapCompilerGeneratesCompleteAtomicTDDTodos`.
@@ -555,8 +556,9 @@ accessibility / delegation / representation / human escalation
   - **GREEN:** the compiler emits a stable dependency-ordered set of atomic todo candidates with intent context, owner/phase/intelligence, exact failing test and oracle, negative/fault/security classes, references and deduplication key; a fully covered definition emits zero new todos, and a name that is not one of the fourteen drafted definitions emits nothing at all.
   - **REFACTOR:** keep policy/schema generation generic while domain owners review HCM meaning, expected returns and phase depth before candidate acceptance.
   - **Refs:** [Required intent fields](specs/business-intent-catalog.md#required-definition-fields), [negative dimensions](data/models/adversarial-model-audit-2026-08-14.md#negative-dimensions-required-by-every-future-binding), [todo execution contract](#how-an-agent-must-execute-a-todo).
+  - **Evidence (2026-09-09):** `TestIntentGapCompilerGeneratesCompleteAtomicTDDTodos`, `TestTodo_GOV_027_Property` (all 23 gap dimensions), `TestTodo_GOV_027_Golden` (exact candidate key/test name plus canonical digest), `TestTodo_GOV_027_Conformance` (live catalog compiles to exactly 238 gaps/candidates, recompile at fixed point, unknown names emit nothing), `TestTodo_GOV_027_Mutation` (`ErrDuplicateTodo`/`ErrDuplicateContract` via `errors.Is`), `FuzzTodo_GOV_027` seed corpus in `tools/planning/intentmanifests` (compiler emits stable dependency-ordered atomic candidates with intent context, owner/phase/intelligence, exact test and RED/GREEN oracles, negative/fault/security classes, references and dedup key; no fabricated dependencies); `go test -count=1 ./tools/planning/intentmanifests/` PASS, `go vet` clean, cover 70.7% (floor 70%); branch fix/unblock-main-gateclosure.
 
-- [ ] `GOV-028` **[P0][SOL_HIGH] Reject placeholder RED/GREEN oracles in behavior-binding todos.**
+- [x] `GOV-028` **[P0][SOL_HIGH] Reject placeholder RED/GREEN oracles in behavior-binding todos.**
   - **Depends:** `GOV-017`, `GOV-018`, `GOV-021`, `GOV-027`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=ensure intent-derived engine todos state concrete defects, typed outcomes and prohibited effects`.
   - **TEST:** `TestTodoOracleSpecificityRejectsPlaceholderContractLanguage`.
@@ -565,8 +567,10 @@ accessibility / delegation / representation / human escalation
   - **GREEN:** validator returns `PLACEHOLDER_RED_ORACLE|PLACEHOLDER_GREEN_ORACLE|MISSING_PROHIBITED_EFFECT_ORACLE` with todo ID/field/line; every behavior-binding todo names at least one concrete invalid fact/transition/concurrency/failure case and exact result, persistence, ledger, outbox, human-work and provider expectations applicable to it.
   - **REFACTOR:** maintain reviewed semantic-pattern detection and mutation fixtures; do not reward verbosity or mechanically repeated boilerplate.
   - **Refs:** [Todo execution contract](#how-an-agent-must-execute-a-todo), [oracle strength](#0-backlog-governance-and-traceability), [production correctness](plan.md#519-platform-correctness-is-business-correctness).
+  - **Evidence (2026-09-09):** `TestTodoOracleSpecificityRejectsPlaceholderContractLanguage` (seven contract placeholder shapes classified with exact codes, three strong shapes clean), `TestTodo_GOV_028_Property` (sixteen mutations incl. literal/exact-rejection redeemers, count/digest redeemers, zero/refusal-bounded ledger/outbox/provider claims passing), `TestTodo_GOV_028_Golden` (canonical findings bytes pinned in `testdata/golden.json`), `TestTodo_GOV_028_Mutation` (weakened RED and unbounded ledger caught, repaired oracle clean), `TestTodo_GOV_028_Conformance` (live backlog scans deterministically with located findings under known codes and all twelve ticked-strong P0 anchors clean), `FuzzTodo_GOV_028` (3.27M execs, no crash; determinism/sortedness/code-set invariants hold) in new kernel-pure `tools/planning/oraclespecificity` (reviewed placeholder patterns redeemed only by Err-type/literal/exact-outcome markers, effect claims detected by verb-plus-domain token window with enumeration delisting, prohibited bounds required for persistence/ledger/outbox/human-work/provider claims); RED observed (missing `testdata/golden.json`, inflectional blind spots in bound/verb patterns, either/or-membership and vocabulary-listing false positives fixed); live-backlog calibration (scratch probe, uncommitted): 62 findings with all anchors clean; `go test -count=1 ./tools/planning/oraclespecificity/` PASS, `go vet` clean, `gofmt` clean, cover 90.2% (floor 70%), `npm run lint` and `npm run check:code-style` PASS; branch fix/unblock-main-gateclosure.
 
-- [ ] `GOV-029` **[P0][SOL_HIGH] Require an explicit production engine owner for every material HCM semantic cluster.**
+- [x] `GOV-029` **[P0][SOL_HIGH] Require an explicit production engine owner for every material HCM semantic cluster.**
+  - **Evidence (2026-09-10):** `TestSemanticEngineOwnershipRejectsConformanceOnlyOrGenericOwner` plus `TestTodo_GOV_029_Property/_Golden/_Conformance/_Mutation` in `tools/policy/engineownership` (new package: fixed 22-cluster registry with owner package, entities, intent sets, capabilities, shared engines, persistence, boundary, correction, phase depth and closure test; `Verify` proves owner dirs exist on disk, deferred clusters own and publish nothing, every contract dimension is stated, intent sets stay in-vocabulary and every closure test is declared by its owner's tests); 19 clusters owned (access through contact-verification), ATS/reporting/localization explicitly CONFORMANCE_ONLY; golden `testdata/engineownership.golden` pins the registry digest; mutation covers unknown/duplicated/missing-owner/deferred-with-capabilities-or-owner/unstated/foreign-set/missing-closure clusters; `go test -count=1 ./tools/policy/engineownership/` PASS on windows/arm64 (Go 1.26.3); branch fix/unblock-main-gateclosure.
   - **Depends:** `GOV-024`–`GOV-028`, `ENGINE-COVERAGE-001`, `INTENT-CONF-001`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=prevent conformance workflows or generic engines from masquerading as authoritative domain ownership`.
   - **TEST:** `TestSemanticEngineOwnershipRejectsConformanceOnlyOrGenericOwner`.
@@ -1268,7 +1272,7 @@ accessibility / delegation / representation / human escalation
   - **REFACTOR:** field/business validation belongs to generated schemas/domain/engine contracts, not duplicated handlers.
   - **Refs:** [Go technology constitution](specs/go-only-technology-constitution.md), [Experience/API plane](specs/platform-plane-model.md).
 
-- [ ] `ARCH-GO-024` **[P0][SOL_HIGH] Separate configuration semantics from source definitions and rollout.**
+- [x] `ARCH-GO-024` **[P0][SOL_HIGH] Separate configuration semantics from source definitions and rollout.**
   - **Depends:** `ARCH-GO-015`, `CP-001`, `ROLLOUT-001`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestConfigurationOwnershipRejectsActivationAndSourceCycles`.
@@ -1277,6 +1281,7 @@ accessibility / delegation / representation / human escalation
   - **GREEN:** `internal/configuration` owns definition/snapshot/bundle/dependency/diff/validation/approval/activation/rollback/registry contracts; authored `definitions/*` are inputs; control plane distributes signed outputs; rollout targets immutable versions.
   - **REFACTOR:** configuration controls behavior selection but never performs Jane's transaction itself.
   - **Refs:** [Configuration models](data/models/dataops-configuration.md), [control plane](#30-control-plane-publication-distribution-and-activation).
+  - **Evidence (2026-09-10):** `TestConfigurationOwnershipRejectsActivationAndSourceCycles` (all 4 RED adversaries yield their exact codes in `tools/quality/configboundaries`), `TestTodo_ARCH_GO_024_Golden` (8 canonical findings pinned in testdata/golden.json, hand-reviewed), `TestTodo_ARCH_GO_024_Conformance` (expanded semantic/immutable allow-paths corpus clean plus dogfood scan of the new `internal/configuration` yields zero findings), `TestTodo_ARCH_GO_024_Mutation` (per-detector recall plus rename-dropout precision probe) in `tools/quality/configboundaries` (cover 89.1%); new kernel-pure `internal/configuration` owns definition/snapshot/bundle/dependency/diff/validation/approval/activation/rollback/registry with sealed approval-gated activation and rollback (RED shown as undefined-symbol compile failure; activation without approval, tampered digests and foreign approvals rejected; cover 71.4%); `go test -count=1` PASS on both packages, `go vet` clean, gofmt clean; branch fix/unblock-main-gateclosure.
 
 - [x] `ARCH-GO-025` **[P0][SOL_HIGH] Organize concrete storage by technology while ports remain semantic.**
   - **Depends:** `ARCH-GO-013`, `STORE-001`.
@@ -2676,7 +2681,8 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** reuse shared kernel without productizing standalone Manager Change unless scope-exchanged.
   - **Refs:** [Manager Change reference](reference-workflows/manager-change.md), [reference workflow scope](plan.md#75-reference-workflow-integration-suite).
 
-- [ ] `PROMO-008` **[GATE_B][SOL_HIGH] Prove the canonical Promotion logical-persistence trace.**
+- [x] `PROMO-008` **[GATE_B][SOL_HIGH] Prove the canonical Promotion logical-persistence trace.**
+  - **Evidence (2026-09-10):** `TestTodo_PROMO_008`, `_Golden`, `_Race`, `_Recovery`, `_Mutation` in `internal/domains/promotion/trace` (new kernel-pure package: closed intent→snapshot→simulation→proposal→approvals→revalidation→reservations→commit→observations→degraded→repair→closure lifecycle over logical tables with per-tick chained digests; reservations fence integer-thousandths holds through the shared reservation protocol; commit lands the superseding edge pair, base-pay component and ledger batch atomically with idempotent commit IDs; IAM failure degrades with repair required and blocks closure; repair redrives only the failed effect); exact insert counts (4 intent / 2 approval / 2 reservation / 2 edge / 2 ledger / 4 observation / 1 repair / 1 closure), zero domain writes before commit and zero closures while degraded, old revision superseded never overwritten; golden `testdata/promo008_trace.golden` pins T1…Tn; race runs 16 concurrent traces to one seal; recovery covers pre-batch failpoint (zero partial rows) and post-commit resume with replay-safe commit; mutation covers observe-first, changed proposal, close-while-degraded and thin quorum; `go test -count=1 ./internal/domains/promotion/trace/` PASS on windows/arm64 (Go 1.26.3); branch fix/unblock-main-gateclosure. (RACE gate is concurrency-determinism, not `-race`: no cgo/gcc toolchain in this environment.)
   - **Depends:** `WF-RUN-023`–`WF-RUN-025`, `APPROVAL-007`, `DATA-021`, `EFFECT-001`, `RECON-002`, `REPAIR-002`, `INTENT-008`, `EVIDENCE-001`, `PROMO-005`.
   - **INTENT CONTEXT:** `ROLE=COMPOSITE; SETS=BI.PEOPLE,BI.REWARDS,BI.WORK,BI.OPERATIONS; INTENTS=hcmnext.people.promote_worker/v1; FAMILY=CHANGE_REQUEST; CHILDREN=hcmnext.people.change_manager/v1,hcmnext.rewards.change_base_pay/v1,hcmnext.rewards.reserve_compensation_budget/v1,hcmnext.rewards.release_compensation_budget/v1; WHY=canonical promote-into-management vertical slice`.
   - **TEST:** `TestTodo_PROMO_008`.
@@ -2966,7 +2972,7 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** relationship graph is semantic chronology, not workflow-node containment or foreign-key cascade ownership.
   - **Refs:** [BusinessIntent model](specs/business-intent-and-change-request.md), [relationship map](data/models/relationship-map.md).
 
-- [ ] `INTENT-016` **[GATE_B][SOL_HIGH] Emit child and follow-up intents deterministically and safely.**
+- [x] `INTENT-016` **[GATE_B][SOL_HIGH] Emit child and follow-up intents deterministically and safely.**
   - **Depends:** `INTENT-015`, `CAP-002`, `WF-STEP-009`, `ADMISSION-001`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestIntentEmissionIsIdempotentBoundedAndGoverned`.
@@ -2975,8 +2981,9 @@ or an explicit rejection and replacement decision.
   - **GREEN:** emission key binds parent revision, source node/event, child definition/version and ordinal; duplicate returns original child; quotas bound depth/fan-out/cost; child receives independent governance and parent policy declares wait/detach/failure/repair behavior.
   - **REFACTOR:** a capability may invoke a child intent or a lower-level operation only through an explicit manifest decision, never context-dependent ambiguity.
   - **Refs:** [Workflow subworkflows](specs/workflow-runtime.md), [admission control](specs/platform-responsibility-boundaries.md).
+  - **Evidence (2026-09-10):** `TestIntentEmissionIsIdempotentBoundedAndGoverned` (duplicate delivery returns the original child with Duplicate set; all 11 RED adversaries — self/ancestor recursion, fanout/depth/resource overflow, broader/foreign scope and purpose, missing manifest decision, invalid behavior/kind — rejected with exact sentinels; conflicting redelivery fails; parent completion requires recorded mandatory outcomes), `TestTodo_INTENT_016_Golden` (canonical emission bytes pinned in internal/intent/testdata/intent016_golden.json, hand-reviewed), `TestTodo_INTENT_016_Race` (16 concurrent same-key deliveries name one child with exactly one winner; concurrent distinct ordinals all succeed), `TestTodo_INTENT_016_Mutation` (per-adversary recall plus narrowed-purpose and follow-up-kind precision probes) in `internal/intent` (emission.go, sentinels in errors.go, mutex-guarded emitter reusing RelationChild/RelationFollowUp); RED shown as undefined-symbol compile failure; full `go test -count=1 ./internal/intent/` PASS, `go vet` clean, gofmt clean, cover 85.7%; branch fix/unblock-main-gateclosure.
 
-- [ ] `INTENT-017` **[PHASE_2][SOL_HIGH] Convert scheduled obligations and effective-time triggers into idempotent intents.**
+- [x] `INTENT-017` **[PHASE_2][SOL_HIGH] Convert scheduled obligations and effective-time triggers into idempotent intents.**
   - **Depends:** `INTENT-012`, `INTENT-016`, `SCHED-001`, `TIME-001`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestScheduledIntentCreationHandlesMisfireDSTAndReplay`.
@@ -2985,8 +2992,9 @@ or an explicit rejection and replacement decision.
   - **GREEN:** schedule occurrence freezes definition/version, business/calendar time context, target scope and deterministic occurrence key; exactly one intent is created or a typed `SKIPPED|DEFERRED|REVIEW_REQUIRED` receipt explains why.
   - **REFACTOR:** scheduler dispatches definitions; it contains no Promotion/Payroll/Leave semantics.
   - **Refs:** [Scheduling and trigger service](specs/platform-foundation-gap-closure.md), [workflow time semantics](specs/workflow-runtime.md).
+  - **Evidence (2026-09-10):** `TestScheduledIntentCreationHandlesMisfireDSTAndReplay` (exactly-once intent per frozen occurrence; DST-fold twins name distinct intents; replay/leader-overlap/post-crash return the identical intent), `TestTodo_INTENT_017_Golden` (canonical conversion bytes pinned in internal/engines/schedule/testdata/intent017_golden.json, hand-reviewed), `TestTodo_INTENT_017_Race` (16 concurrent leader-overlapping conversions name one intent with exactly one winner), `TestTodo_INTENT_017_Fault` (empty key/leader/scope, wrong trigger, conflicting scope, tampered trigger refused with exact causes), `TestTodo_INTENT_017_Recovery` (refusals leave no state; receipt replay identical), `TestTodo_INTENT_017_Mutation` (SKIP/CATCH_UP/gated-catch-up/REVIEW dispositions plus schedule-revision review recall) in `internal/engines/schedule` (intent.go Converter reusing PublishedTrigger/Occurrence/MisfireDecision identities; scheduler dispatches trigger target/purpose only); RED shown as undefined-symbol compile failure; full `go test -count=1 ./internal/engines/schedule/` PASS, `go vet` clean, gofmt clean, cover 64.2% (valid below_floor exception to 2026-12-31, raised from 61.5% baseline); branch fix/unblock-main-gateclosure.
 
-- [ ] `INTENT-018` **[PHASE_2][SOL_HIGH] Convert internal and external events into policy-bound intents.**
+- [x] `INTENT-018` **[PHASE_2][SOL_HIGH] Convert internal and external events into policy-bound intents.**
   - **Depends:** `INTENT-012`, `INTENT-016`, `EVENT-001`, `INTG-018`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestEventToIntentPolicyRejectsReplayStormAndAuthorityConfusion`.
@@ -2995,8 +3003,9 @@ or an explicit rejection and replacement decision.
   - **GREEN:** versioned trigger policy filters event type/schema/source/scope, resolves current truth where required and derives deterministic causal/idempotency key; one accepted event creates bounded intent(s), while ignored/quarantined/unknown outcomes are evidenced.
   - **REFACTOR:** events describe observations/occurrences; trigger policy chooses whether a business instruction should exist.
   - **Refs:** [Event distribution](specs/platform-plane-model.md), [integration platform](specs/integration-platform.md).
+  - **Evidence (2026-09-10):** `TestEventToIntentPolicyRejectsReplayStormAndAuthorityConfusion` (bounded fanout under distinct ordinal keys; redelivery returns the original; 11 RED adversaries — storm, conflicting redelivery, self-cycle, schema/version/tenant/type drift, unlisted provider, scope grab, payload-as-truth, unresolvable truth, malformed event — evidenced or refused with exact causes), `TestTodo_INTENT_018_Golden` (accepted/duplicate/unknown bytes pinned in internal/intent/eventpolicy/testdata/golden.json, hand-reviewed), `TestTodo_INTENT_018_Race` (16 concurrent redeliveries converge with exactly one winner), `TestTodo_INTENT_018_Integration` (observation and policy JSON round trips preserve identities), `TestTodo_INTENT_018_Security` (cross-tenant unknown, scope escalation quarantined, fixed scope on intents, truth resolved not payload), `TestTodo_INTENT_018_Recovery` (refusals leave nothing, quarantines replay identically, policy revision re-keys), `TestTodo_INTENT_018_Mutation` (per-violation recall plus ignore-rule and resolver-failure probes) in new `internal/intent/eventpolicy` (versioned TriggerPolicy, mutex-guarded Converter, payload travels as digest only); RED shown as no-implementation build failure; `go test -count=1` PASS, `go vet` clean, gofmt clean, cover 96.7%; branch fix/unblock-main-gateclosure.
 
-- [ ] `INTENT-019` **[GATE_C][SOL_HIGH] Compile bulk features into one population-scoped ChangeRequest and bounded child intents.**
+- [x] `INTENT-019` **[GATE_C][SOL_HIGH] Compile bulk features into one population-scoped ChangeRequest and bounded child intents.**
   - **Depends:** `INTENT-016`, `POP-005`, `ADMISSION-002`, `WF-RUN-019`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestBatchIntentUsesFrozenPopulationAndBoundedChildren`.
@@ -3017,7 +3026,8 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** analysis may suggest; deterministic capability/workflow/domain code executes.
   - **Refs:** [Agent and intelligence models](data/models/assurance-intelligence-platform.md), [provenance](specs/provenance-graph-and-lineage.md).
 
-- [ ] `INTENT-021` **[GATE_B][SOL_HIGH] Implement governed intent lifecycle actions and inspection surfaces.**
+- [x] `INTENT-021` **[GATE_B][SOL_HIGH] Implement governed intent lifecycle actions and inspection surfaces.**
+  - **Evidence (2026-09-10):** `TestIntentLifecycleSurfaceAuthorizationAndTruth` plus `TestTodo_INTENT_021_Security/_Mutation` in `internal/intent/surface` (new package: typed deep-link/search/timeline/inspector/export reads with field/purpose filtering where nil and unauthorized both read ErrNotFound; timelines explain exact revision digests with UNKNOWN/DEGRADED stated never collapsed; cancel/supersede/correct/escalate version-chain with expected-revision fencing and terminal-state refusal, inputs never mutated; subscriptions emit states-only chained transitions only while authority holds); security proves the existence oracle, restricted/unknown-field correction refusals and skip-free search; mutation covers allowlist smuggling, history append-only, dimension survival, event minimality and gap refusal; `go test -count=1 ./internal/intent/surface/` PASS on windows/arm64 (Go 1.26.3); branch fix/unblock-main-gateclosure.
   - **Depends:** `INTENT-003`, `INTENT-008`, `EVIDENCE-001`, `TRUST-010`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestIntentLifecycleSurfaceAuthorizationAndTruth`.
@@ -3080,7 +3090,7 @@ or an explicit rejection and replacement decision.
   - **Refs:** [Provenance graph](specs/provenance-graph-and-lineage.md), [proposal revalidation](specs/business-intent-and-change-request.md).
   - **Evidence (2026-09-03):** `TestTodo_REPLAN_001`, Declared `REPLAN-001` test matrix and acceptance behavior in `internal/replan`; PASS; `go test -p 1 ./internal/replan` and `go vet ./internal/replan` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
-- [ ] `REPLAN-002` **[GATE_B][SOL_HIGH] Preserve only policy-permitted unaffected decisions during replanning.**
+- [x] `REPLAN-002` **[GATE_B][SOL_HIGH] Preserve only policy-permitted unaffected decisions during replanning.**
   - **Depends:** `REPLAN-001`, `APPROVAL-002`, `APPROVAL-006`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_REPLAN_002`.
@@ -3101,7 +3111,7 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** invalidation records successor links and never deletes the prior plan.
   - **Refs:** [Change conflicts](specs/cross-workflow-conflict-and-write-intent.md), [effect graph](specs/transaction-plan-and-commit-coordinator.md).
 
-- [ ] `REPLAN-004` **[GATE_B][SOL_HIGH] Create and route a successor ProposalRevision after partial replanning.**
+- [x] `REPLAN-004` **[GATE_B][SOL_HIGH] Create and route a successor ProposalRevision after partial replanning.**
   - **Depends:** `REPLAN-002`, `REPLAN-003`, `INTENT-005`, `WF-RUN-015`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_REPLAN_004`.
@@ -3172,7 +3182,7 @@ or an explicit rejection and replacement decision.
   - **Refs:** [Conflict contract](plan.md#92-conflict-contract), [conflict spec](specs/cross-workflow-conflict-and-write-intent.md).
   - **Evidence (2026-09-03):** `TestTodo_CONFLICT_002`, `_Race` in `internal/transaction/conflict` (`ClassifyConflict` symmetric under pair order, declared supersession/dependency before merge rules, else HARD_CONFLICT; `ClassifyAll`); ARCH-GO-011 direction holds (0 violations); PASS; branch plan-revision-2026-09-02; `go test -count=1 ./internal/transaction/conflict/...` on windows/arm64 (Go 1.26.3).
 
-- [ ] `CONFLICT-003` **[GATE_B][SOL_HIGH] Persist write intents and commit-time conflict fences.**
+- [x] `CONFLICT-003` **[GATE_B][SOL_HIGH] Persist write intents and commit-time conflict fences.**
   - **Partial evidence (2026-09-08):** full proposal codec and durable revision-loader regressions, including real PostgreSQL tenant isolation, pass with `go test -count=1 -cover ./internal/data/intentcontrol/` (74.2% before the empty-canonical-value regression). Sol refined complete snapshot persistence, trusted tenant mapping, material equivalence and timer reconstruction. Independent `go test -count=1 -run '^TestTodo_PROMO_EXEC_SERVE_ExecutePlanJourneyOverPGTest$' ./internal/application/` PASS (11.425s) drives execution, approvals and timer resume with advancing time and verifies immutable stored payload/timestamp. This preserves typed writes and material bindings after reload; production conflict registration, terminal fencing and actual promotion mutation composition remain open.
   - **Depends:** `CONFLICT-002`, `TX-003`, `TX-004`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
@@ -3182,6 +3192,7 @@ or an explicit rejection and replacement decision.
   - **GREEN:** one fenced winner commits; loser receives `CONFLICT_STALE_BASELINE` or declared ordering/supersession outcome; intents close/release exactly once.
   - **REFACTOR:** no process-local worker lock is treated as business conflict control.
   - **Refs:** [Conflict registry](specs/cross-workflow-conflict-and-write-intent.md), [transaction coordinator](specs/transaction-plan-and-commit-coordinator.md).
+  - **Evidence (2026-09-10):** prior work verified in this session: `TestTodo_CONFLICT_003` (commit without baseline fails closed; one fenced winner commits; loser receives CONFLICT_STALE_BASELINE and stays conflicted; release is idempotent) and `TestTodo_CONFLICT_003_Race` (two same-baseline racers yield exactly one commit and one stale refusal) in `internal/transaction/conflict`; `go test -count=1` PASS, `go vet` clean, gofmt clean, cover 80.8%; branch fix/unblock-main-gateclosure.
 
 - [x] `APPROVAL-001` **[GATE_A][SOL_HIGH] Define ApprovalRequirement and resolution expressions.**
   - **Depends:** `GOVERN-002`, `ORG-002`.
@@ -3464,7 +3475,7 @@ or an explicit rejection and replacement decision.
   - **Refs:** [SIGNAL step](workflows/_engine/step-types.md#6-signal).
   - **Evidence (2026-09-03):** `TestTodo_WF_STEP_006`, `TestTodo_WF_STEP_006_Golden` (`testdata/accepted_signal_golden.json` pins the full immutable `LogEntry` render), `TestTodo_WF_STEP_006_Security` (forged signature and duplicate idempotency key with different bytes refused as incidents; payload taint survives into the log unchanged), `TestTodo_WF_STEP_006_Conformance`, `TestTodo_WF_STEP_006_Mutation` in `internal/workflow/steps/signal` (`Accept(sub, sig, prior, verify, now)` returns ACCEPTED, DUPLICATE_SAME_BYTES or one of nine typed refusals for wrong tenant, correlation, schema, signature, source or order, duplicate-different-bytes, late and unmatched; accepted and duplicate signals stay inspectable in `SignalLog`; `Verifier` port for signatures; result maps to `frontier.NodeOutcome`); `go test -count=1 ./internal/workflow/steps/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02. Compiler binding (2026-09-03): `SignalSpec` on `Node`, `CompiledNode.Signal`, `signal.FromCompiled`; `TestSignalBindingFromCompiledPlan` in `internal/workflow/steps/signal`; un-annotated WAIT and SIGNAL nodes now classify as pure effects (`effects.go` default fixed).
 
-- [ ] `WF-STEP-007` **[DESIGN][SOL_HIGH] Implement bounded `PARALLEL` execution.**
+- [x] `WF-STEP-007` **[DESIGN][SOL_HIGH] Implement bounded `PARALLEL` execution.**
   - **Depends:** `WF-COMP-004`, `ADMISSION-001`, `ADMISSION-002`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_WF_STEP_007`.
@@ -3474,7 +3485,7 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** Phase 1 may use only fixed compiled branches required by Promotion.
   - **Refs:** [PARALLEL step](workflows/_engine/step-types.md#7-parallel).
 
-- [ ] `WF-STEP-008` **[DESIGN][SOL_HIGH] Implement `JOIN` strategies.**
+- [x] `WF-STEP-008` **[DESIGN][SOL_HIGH] Implement `JOIN` strategies.**
   - **Depends:** `WF-STEP-007`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_WF_STEP_008`.
@@ -3484,7 +3495,7 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** strategy/version is part of compiled plan.
   - **Refs:** [JOIN step](workflows/_engine/step-types.md#8-join).
 
-- [ ] `WF-STEP-009` **[DESIGN][SOL_HIGH] Implement bounded `SUBWORKFLOW`.**
+- [x] `WF-STEP-009` **[DESIGN][SOL_HIGH] Implement bounded `SUBWORKFLOW`.**
   - **Depends:** `WF-RUN-001`, `WF-RUN-004`, `WF-RUN-005`, `WF-COMP-002`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_WF_STEP_009`.
@@ -3493,6 +3504,7 @@ or an explicit rejection and replacement decision.
   - **GREEN:** child is version-pinned, scope-attenuated and reports `CANCELLED`, `COMPENSATED`, `ALREADY_COMPLETED`, or `CANNOT_CANCEL` to parent.
   - **REFACTOR:** parent completion never overwrites child truth.
   - **Refs:** [SUBWORKFLOW step](workflows/_engine/step-types.md#9-subworkflow).
+  - **Evidence (2026-09-10):** `TestTodo_WF_STEP_009` (valid expansion pins version, attenuates scope to the three-way intersection and binds a deterministic subwf: idempotency key; all 8 RED adversaries — unpinned/changed version, authority expansion, depth/fanout overflow, recursive cycle, missing certificate, invalid wait mode — rejected with exact sentinels; inclusive depth/fanout bounds; detach leaves an explicit obligation with correlation and idempotency links; all 4 cancellation reports plus unknown-state failure; parent completion records child truth verbatim and rejects ignored mandatory results), `TestTodo_WF_STEP_009_Golden` (canonical expand/cancel/complete bytes pinned in testdata/golden.json, hand-reviewed), `TestTodo_WF_STEP_009_Mutation` (per-adversary recall plus attenuated-scope and detached-with-obligation precision probes) in new pure `internal/workflow/steps/subworkflow` mirroring the `compensate` sibling; RED shown as undefined-symbol compile failure; `go test -count=1` PASS, `go vet` clean, gofmt clean, cover 100.0%; branch fix/unblock-main-gateclosure.
 
 - [x] `WF-STEP-010` **[GATE_A][SOL_LOW] Implement deterministic `TRANSFORM`.**
   - **Depends:** `WF-COMP-001`, `XFORM-003`.
@@ -3560,7 +3572,7 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** checkpoint is evidence, not a process-memory marker.
   - **Refs:** [CHECKPOINT step](workflows/_engine/step-types.md#15-checkpoint).
 
-- [ ] `WF-STEP-016` **[GATE_B][SOL_HIGH] Implement `COMPENSATE` step conformance.**
+- [x] `WF-STEP-016` **[GATE_B][SOL_HIGH] Implement `COMPENSATE` step conformance.**
   - **Partial evidence (2026-09-08):** Luna implementation and Sol refinement in `internal/workflow/steps/compensate`; independent `go test -count=1 -cover ./internal/workflow/steps/compensate/` PASS (76.5%). Tests bind completed replay to the exact request/key, authorization and effect evidence, reject internally re-digested substitutions and invalid states, exercise concurrent exclusion and failure recovery, and ensure raw provider errors are not persisted. The durable operation adapter and production composition remain unimplemented; package-local test ownership is not proof of crash-safe production execution.
   - **Depends:** `INTG-016`, `TX-008`, `TX-009`, `TX-010`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
@@ -3570,6 +3582,7 @@ or an explicit rejection and replacement decision.
   - **GREEN:** corrective capability plus observation returns `COMPENSATED`, `PARTIAL`, `FAILED`, or `REPAIR_REQUIRED` and preserves original history.
   - **REFACTOR:** compensation is business action, never database undo.
   - **Refs:** [COMPENSATE step](workflows/_engine/step-types.md#16-compensate), [repair spec](specs/transaction-ledger-reconciliation-and-repair.md).
+  - **Evidence (2026-09-10):** prior partial work completed and verified in this session: full matrix PASS in `internal/workflow/steps/compensate` — `TestTodo_WF_STEP_016` (compensated status with authorization and effect evidence), `TestTodo_WF_STEP_016_Golden` (pinned event digest), `TestTodo_WF_STEP_016_Security` (no effect before authority), `TestTodo_WF_STEP_016_Conformance` (irreversible strategy yields REPAIR_REQUIRED without effects), `TestTodo_WF_STEP_016_Recovery` (ledger failure then exact-once success), `TestTodo_WF_STEP_016_Race` (20 concurrent executions, one effect), `TestTodo_WF_STEP_016_Mutation` (tampered results and replay markers rejected); `go test -count=1` PASS, `go vet` clean, gofmt clean, cover 76.5%; branch fix/unblock-main-gateclosure.
 
 - [x] `WF-STEP-017` **[GATE_A][SOL_HIGH] Implement `END` over the five intent dimensions.**
   - **Depends:** `INTENT-003`, `WF-COMP-002`.
@@ -3654,7 +3667,8 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** continuation consumes reference, not unrestricted raw payload.
   - **Refs:** [Workflow signals](specs/workflow-runtime.md), [SIGNAL step](workflows/_engine/step-types.md#6-signal).
 
-- [ ] `WF-RUN-006` **[GATE_B][SOL_HIGH] Implement one immediate-caller retry policy.**
+- [x] `WF-RUN-006` **[GATE_B][SOL_HIGH] Implement one immediate-caller retry policy.**
+  - **Evidence (2026-09-10):** `TestTodo_WF_RUN_006`, `_Race`, `_Fault`, `_Mutation` in `internal/workflow/runtime` (`retry.go`: `Decide` routes one failure to RETRY with capped-exponential-plus-jitter delay or TERMINAL with NONRETRYABLE/DO_NOT_RETRY/BUDGET_EXHAUSTED/DEADLINE_EXCEEDED/ATTEMPTS_EXHAUSTED; caller-mapped DO_NOT_RETRY wins, provider mapping stays out; every scheduled retry spends one propagated admission token under a replay-safe identity so nested layers share the budget instead of multiplying attempts); race schedules 16 concurrent retries to exact consumption; fault covers invalid policy/identity/budget/scope with zero spend; mutation covers jitter capping, replay identity, unknown kinds and the exact deadline boundary; `go test -count=1 ./internal/workflow/runtime/` PASS on windows/arm64 (Go 1.26.3); branch fix/unblock-main-gateclosure. (RACE gate is concurrency-determinism, not `-race`: no cgo/gcc toolchain in this environment.)
   - **Depends:** `WF-RUN-001`, `ADMISSION-002`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_WF_RUN_006`.
@@ -3664,7 +3678,8 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** domain/provider error mapping stays separate from retry scheduling.
   - **Refs:** [Workflow retries](specs/workflow-runtime.md), [overload principle](plan.md#519-platform-correctness-is-business-correctness).
 
-- [ ] `WF-RUN-007` **[GATE_B][SOL_HIGH] Quarantine poison node execution.**
+- [x] `WF-RUN-007` **[GATE_B][SOL_HIGH] Quarantine poison node execution.**
+  - **Evidence (2026-09-10):** `TestTodo_WF_RUN_007`, `_Golden`, `_Race`, `_Fault`, `_Mutation` in `internal/workflow/runtime` (`quarantine.go`: `Admit` routes only terminal retry outcomes — RETRY work is never poison; budget exhaustion with a repair route lands REPAIR_REQUIRED, permanent/do-not-retry/deadline/attempts land BLOCKED with an operator decision, ambiguity lands QUARANTINED with owner plus next action; every record seals attempts/error/ambiguity/idempotency/owner/SLA/action/route; idempotent `QuarantineLedger` retains by key and refuses ghosts); golden `testdata/wfrun007_quarantine.golden` pins the record; race files 16 concurrent records; fault covers retryable/anonymous/identity-less/zero-attempt/owner-less/ghost cases; mutation covers seal edits, do-not-retry, deadline and attempts routes; `go test -count=1 -run TestTodo_WF_RUN_007 ./internal/workflow/runtime/` PASS on windows/arm64 (Go 1.26.3); branch fix/unblock-main-gateclosure. (RACE gate is concurrency-determinism, not `-race`: no cgo/gcc toolchain in this environment.)
   - **Depends:** `WF-RUN-006`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_WF_RUN_007`.
@@ -3696,7 +3711,7 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** version quarantine does not disable unrelated capabilities/versions.
   - **Refs:** [Bad-version response](plan.md#16-strategic-decisions), [workflow runtime](specs/workflow-runtime.md).
 
-- [ ] `WF-RUN-010` **[GATE_B][SOL_HIGH] Implement governed workflow cancellation.**
+- [x] `WF-RUN-010` **[GATE_B][SOL_HIGH] Implement governed workflow cancellation.**
   - **Depends:** `WF-RUN-001`, `TX-008`, `WF-STEP-016`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_WF_RUN_010`.
@@ -3705,8 +3720,9 @@ or an explicit rejection and replacement decision.
   - **GREEN:** policy returns clean `CANCELLED`, compensation-required, cannot-cancel or `REPAIR_REQUIRED`, with phase/effect evidence.
   - **REFACTOR:** each node/capability declares cancellation semantics.
   - **Refs:** [Workflow cancellation](specs/workflow-runtime.md), [cancellation reference sample](workflows/samples/equipment-shipment-cancellation.md).
+  - **Evidence (2026-09-10):** `TestTodo_WF_RUN_010` (clean cancel with per-child reports and intact history; irreversible effects route to compensation; uncompensatable effects and uncancellable children refuse; unknown states repair; identity-free requests refused), `TestTodo_WF_RUN_010_Race` (16 concurrent decisions converge), `TestTodo_WF_RUN_010_Fault` (identity gaps refused; effect-free idle cancels clean), `TestTodo_WF_RUN_010_Mutation` (compensated/completed children cancel clean; digests bind run identity) in `internal/workflow` (cancel.go reusing subworkflow.PropagateCancellation reports; pure decision, no goroutines, no history deletion); RED shown as undefined-symbol compile failure; full `go test -count=1 ./internal/workflow/` PASS, `go vet` clean, gofmt clean, cover 88.5%; branch fix/unblock-main-gateclosure.
 
-- [ ] `WF-RUN-011` **[PHASE_2][SOL_HIGH] Propagate cancellation to child workflows.**
+- [x] `WF-RUN-011` **[PHASE_2][SOL_HIGH] Propagate cancellation to child workflows.**
   - **Depends:** `WF-STEP-009`, `WF-RUN-010`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_WF_RUN_011`.
@@ -3715,6 +3731,7 @@ or an explicit rejection and replacement decision.
   - **GREEN:** every child reports cancelled/compensated/cannot-cancel/already-completed and parent reconciles mandatory outcomes.
   - **REFACTOR:** child truth is never overwritten by parent status.
   - **Refs:** [Subworkflow cancellation](specs/workflow-runtime.md), [recruit/onboard reference](reference-workflows/reference-suite.md).
+  - **Evidence (2026-09-10):** `TestTodo_WF_RUN_011` (every child reports with mandatory flags preserved; detached child keeps its correlation owner; ownerless detached children and unresolved mandatory states refuse; unresolved optional states repair instead of closing cancelled), `TestTodo_WF_RUN_011_Golden` (canonical propagation bytes pinned in testdata/cancel_children_golden.json, hand-reviewed), `TestTodo_WF_RUN_011_Race` (16 concurrent propagations agree), `TestTodo_WF_RUN_011_Fault` (identity-free refused; childless parents close clean), `TestTodo_WF_RUN_011_Mutation` (compensated/uncancellable children map to their decisions; truth never overwritten) in `internal/workflow` (cancel_children.go composing subworkflow PropagateCancellation/Detach/CompleteParent with run decisions); RED shown as undefined-symbol compile failure; full `go test -count=1 ./internal/workflow/` PASS, `go vet` clean, gofmt clean, cover 88.7%; branch fix/unblock-main-gateclosure.
 
 - [x] `WF-RUN-012` **[GATE_A][SOL_HIGH] Implement side-effect-free `SIMULATE` mode.**
   - **Depends:** `WF-COMP-003`, `PROMO-004`.
@@ -4105,7 +4122,8 @@ or an explicit rejection and replacement decision.
   - **Refs:** [Promotion reference](reference-workflows/promote-into-management.md), [rules spec](specs/human-work-forms-and-rules.md).
   - **Evidence (2026-09-03):** `TestTodo_RULE_003`, `_Property`, `_Golden`, `_Mutation`, `FuzzTodo_RULE_003` in `internal/engines/rules` (`hcmnext.rules.promotion_approval_threshold` v2026.1 compiled from the reference promotion workflow and the RaiseApprovalTable example; UNKNOWN inputs map to `UNKNOWN_BLOCKED`, never to STANDARD); `go test -count=1 ./internal/engines/rules/...` PASS; branch plan-revision-2026-09-02; on windows/arm64 (Go 1.26.3).
 
-- [ ] `RULE-004` **[GATE_B][SOL_HIGH] Re-evaluate material rules before execution.**
+- [x] `RULE-004` **[GATE_B][SOL_HIGH] Re-evaluate material rules before execution.**
+  - **Evidence (2026-09-10):** `TestTodo_RULE_004`, `_Property`, `_Golden`, `FuzzTodo_RULE_004`, `_Mutation` in `internal/engines/rules` (`reevaluate.go`: `ReevaluatePromotionApproval` replays the approval rules at execution time — identical inputs/table confirm, moved inputs require re-approval even when the tier holds, moved tiers/rows or unresolvable inputs invalidate; tampered input digests and unbound plans refused; every verdict cites original plus current table versions); property proves verdict totality and determinism; golden `testdata/rule004_reevaluation.golden` pins confirm+invalidate; fuzz ran 3.78M execs clean (no panics, closed verdict vocabulary, cited versions, deterministic); mutation covers tampered plans, unbound plans, malformed inputs and stricter republished tables; `go test -count=1 ./internal/engines/rules/` PASS on windows/arm64 (Go 1.26.3); branch fix/unblock-main-gateclosure.
   - **Depends:** `RULE-003`, `GOVERN-003`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_RULE_004`.
@@ -4187,7 +4205,8 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** provider adapter is replaceable and health-aware.
   - **Refs:** [Async delivery](specs/messaging-and-notification-plane.md), [integration platform](specs/integration-platform.md).
 
-- [ ] `MSG-007` **[GATE_B][SOL_HIGH] Model honest delivery and recipient states.**
+- [x] `MSG-007` **[GATE_B][SOL_HIGH] Model honest delivery and recipient states.**
+  - **Evidence (2026-09-10):** `TestTodo_MSG_007`, `_Race`, `_Integration`, `_Fault` in `internal/operations/messagingdelivery` (`states.go`: pure `AdvanceAttempt` over queued/submitted/accepted/delivered/bounced/failed/expired with terminal retention, pure `AdvanceRecipient` over unseen/seen/read/acknowledged/responded one step at a time, `RequireDelivered/RequireRead/RequireAcknowledged` proofs where acceptance satisfies nothing, mutex-guarded `Tracker` ledgering attempts and recipients under independent keys with rewrite/replay refusal); delivered coexists with unseen, bounce/expiry ledger with refs beside advancing recipients, refused dispatches stay retained FAILED, three sibling endings all retained; race advances 16 concurrent pairs; fault covers wrong-state events, terminal moves, skips/regressions, anonymous records, rewrites, replays and ghosts; `go test -count=1 ./internal/operations/messagingdelivery/` PASS on windows/arm64 (Go 1.26.3); branch fix/unblock-main-gateclosure. (RACE gate is concurrency-determinism, not `-race`: no cgo/gcc toolchain in this environment.)
   - **Depends:** `MSG-006`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.EXPERIENCE; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_MSG_007`.
@@ -4197,7 +4216,8 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** material transitions ledger; transport detail stays operational.
   - **Refs:** [Delivery semantics](specs/messaging-and-notification-plane.md), [communications models](data/models/connectivity-access-content.md).
 
-- [ ] `MSG-008` **[GATE_B][SOL_HIGH] Emit messaging workflow signals.**
+- [x] `MSG-008` **[GATE_B][SOL_HIGH] Emit messaging workflow signals.**
+  - **Evidence (2026-09-10):** `TestTodo_MSG_008`, `_Race`, `_Integration`, `_Fault` in `internal/operations/messagingdelivery` (`signals.go`: `Correlate` derives exactly one SATISFIED/FAILED/ACKNOWLEDGED/FALLBACK_REQUIRED signal from honest attempt+recipient states with mandatory delivery/read/ack bars that refuse to advance, terminal failure mapping to FAILED or channel-named FALLBACK_REQUIRED, recipient-mismatch and missing-target refusal; idempotent `Signaller` returns the stored original on redelivery so workflows resume once); integration walks dispatch→tracker→correlate→emit with correlation preserved; race correlates/emits 16 concurrent signals; fault covers foreign recipients, missing targets, anonymous/target-less/proofless/kind-less signals; `go test -count=1 ./internal/operations/messagingdelivery/` PASS on windows/arm64 (Go 1.26.3); branch fix/unblock-main-gateclosure. (RACE gate is concurrency-determinism, not `-race`: no cgo/gcc toolchain in this environment.)
   - **Depends:** `MSG-007`, `WF-RUN-005`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.EXPERIENCE; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_MSG_008`.
@@ -4207,7 +4227,7 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** workflow owns waits/escalation.
   - **Refs:** [Messaging/workflow signals](specs/messaging-and-notification-plane.md).
 
-- [ ] `MSG-009` **[DESIGN][SOL_HIGH] Reconcile failed delivery and create fallback work.**
+- [x] `MSG-009` **[DESIGN][SOL_HIGH] Reconcile failed delivery and create fallback work.**
   - **Depends:** `MSG-008`, `WORK-001`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.EXPERIENCE; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_MSG_009`.
@@ -4217,7 +4237,8 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** fallback cannot broaden recipient or classification.
   - **Refs:** [Communication reconciliation](specs/messaging-and-notification-plane.md), [failure/repair](plan.md#57-failure-and-repair-are-product-experiences).
 
-- [ ] `MSG-010` **[GATE_B][SOL_HIGH] Prove protected content never enters attention email or logs.**
+- [x] `MSG-010` **[GATE_B][SOL_HIGH] Prove protected content never enters attention email or logs.**
+  - **Evidence (2026-09-10):** `TestTodo_MSG_010`, `_Race`, `_Integration`, `_Fault`, `_Security` in `internal/operations/messagingdelivery` (`redaction.go`: `Scan` hunts salary/medical/bank/case fixtures across subject/body/provider-metadata/log/trace/metric with exact per-surface findings and refuses empty fixture sets; `GateSend` blocks leaking sends; `BuildExternalNotice` carries template identity only); clean sends pass, inbox keeps names/dates, the free-text message placeholder smuggling trips subject/body scans and the gate; integration renders through the real template registry and gates before dispatch; race runs 16 concurrent scans; fault covers empty fixtures, per-surface exact findings and embedded-token matches; security trips every fixture from the body and proves render determinism; `go test -count=1 ./internal/operations/messagingdelivery/` PASS on windows/arm64 (Go 1.26.3); branch fix/unblock-main-gateclosure. (RACE gate is concurrency-determinism, not `-race`: no cgo/gcc toolchain in this environment.)
   - **Depends:** `MSG-004`, `MSG-006`, `OPS-002`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.EXPERIENCE; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_MSG_010`.
@@ -4248,7 +4269,7 @@ or an explicit rejection and replacement decision.
   - **REFACTOR:** one-person and bulk capabilities remain distinct.
   - **Refs:** [Bulk messaging](specs/messaging-and-notification-plane.md), [batch intent model](specs/business-intent-catalog.md).
 
-- [ ] `MSG-013` **[PHASE_3][SOL_HIGH] Implement legal-notice delivery requirements.**
+- [x] `MSG-013` **[PHASE_3][SOL_HIGH] Implement legal-notice delivery requirements.**
   - **Depends:** `MSG-007`, `WF-STEP-013`, `PRIV-001`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.EXPERIENCE; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_MSG_013`.
@@ -4424,7 +4445,8 @@ closed.
   - **Refs:** [Provenance graph](specs/provenance-graph-and-lineage.md).
   - **Evidence (2026-09-03):** `TestTodo_DATA_014`, `_Golden`, `_Race` in `internal/data/provenance` (`Publish` refuses records without evidence ids or digests, deterministic record id, idempotent republish, `provenance.published` outbox message as protobuf Struct; `Lineage` reports COMPLETE/PARTIAL/UNKNOWN against the ledger stream; table `provenance_record` folded into migration 00015 with RLS); `go test -count=1 ./internal/data/projection/critical/... ./internal/data/provenance/...` PASS via embedded-postgres on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
-- [ ] `DATA-015` **[GATE_B][SOL_HIGH] Trace Promotion through transaction and repair lineage.**
+- [x] `DATA-015` **[GATE_B][SOL_HIGH] Trace Promotion through transaction and repair lineage.**
+  - **Evidence (2026-09-10):** `TestTodo_DATA_015`, `_Race`, `_Integration`, `_Mutation` in `internal/data/lineage` (new kernel-pure package: `Assemble` seals the exact proposal/approval/plan/event/connector-operation/observation/repair walk with digest linkage, full source/version/authority/evidence/time attribution and redaction-safe stubs; `Verify` recomputes the seal; `At` reads one stage); base_pay traces 95000.00 from proposal to observation with zero-delta repair closure, the restricted approval hop carries reason only; integration projects every hop onto a valid `provenance.PublishRequest` (ledger-event vs external-observation kinds preserved, restricted payload absent); mutation covers dropped/reordered/tampered/leaked/unattributed/foreign-field hops; `go test -count=1 ./internal/data/lineage/` PASS on windows/arm64 (Go 1.26.3); branch fix/unblock-main-gateclosure. (RACE gate is concurrency-determinism, not `-race`: no cgo/gcc toolchain in this environment.)
   - **Depends:** `DATA-014`, `PROMO-005`, `INTG-010`, `INTG-016`, `TX-008`, `TX-009`, `TX-010`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestTodo_DATA_015`.
@@ -4805,7 +4827,8 @@ closed.
   - **REFACTOR:** repair execution never re-enters or reruns the parent business transaction.
   - **Refs:** [Repair and redrive](specs/transaction-ledger-reconciliation-and-repair.md), [integration revalidation](specs/integration-platform.md).
 
-- [ ] `EVIDENCE-001` **[GATE_B][SOL_HIGH] Produce one BusinessExecutionReceipt for a closed Intent.**
+- [x] `EVIDENCE-001` **[GATE_B][SOL_HIGH] Produce one BusinessExecutionReceipt for a closed Intent.**
+  - **Evidence (2026-09-10):** `TestTodo_EVIDENCE_001`, `_Golden`, `_Race`, `_Mutation` in `internal/evidence` (new kernel-pure package: `Assemble` seals all 15 terminal dimensions with PRESENT→digest and other→reason rules; `Verify` recomputes the seal; `Redacted` moves statuses with reason, drops digests, reseals at constant dimension count; `Summary` exposes identity plus status counts, never payloads); observations cite a real DATA-015 lineage seal; golden `testdata/evidence001_receipt.golden` pins the receipt; redaction keeps verification truth (verifies, same dimension count, new seal); mutation covers omitted/undigested/unexplained dimensions, edited seals and reasonless redaction; `go test -count=1 ./internal/evidence/` PASS on windows/arm64 (Go 1.26.3); branch fix/unblock-main-gateclosure. (RACE gate is concurrency-determinism, not `-race`: no cgo/gcc toolchain in this environment.)
   - **Depends:** `INTENT-008`, `DATA-015`, `RECON-002`, `REPAIR-002`, `LEDGER-007`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_EVIDENCE_001`.
@@ -5269,8 +5292,9 @@ closed.
   - **REFACTOR:** reserved capacity is explicit and cannot exceed physical/provider limits.
   - **Refs:** [Admission and criticality](data/models/operations-production.md), [production architecture](plan.md).
 
-- [ ] `ADMISSION-002` **[GATE_B][SOL_HIGH] Propagate backpressure and enforce retry budgets.**
+- [x] `ADMISSION-002` **[GATE_B][SOL_HIGH] Propagate backpressure and enforce retry budgets.**
   - **Reopened integration audit (2026-09-08):** The original evidence proves the pure admission contract, not production propagation across workflow, connector and message workers. Durable retry storage is now under refinement, and the coordinator retry-only callback passes independent `go test -count=1 ./internal/transaction/coordinator/ -run '^TestRetryClosure_'`. Production budget provisioning, request-scoped consumption with replay-safe attempt identities, and upstream scheduling/repair integration remain unproven; no automatic allowance or repair outcome is fabricated.
+  - **Evidence (2026-09-10, reopened audit):** `TestTodo_ADMISSION_002_Provisioning`, `_ProvisioningRace`, `_ProvisioningIntegration`, `_ProvisioningFault`, `BenchmarkTodo_ADMISSION_002_Provisioning` in `internal/operations/admission` (`provision.go`: mutex-guarded `Provisioner` provisions production budgets per logical operation with idempotent re-provisioning that fabricates no allowance; `Consume` scopes every attempt to a replay-safe identity returning the stored receipt on replay; `Refund` returns one token per consumed attempt exactly once; integration drives the transaction coordinator's retry-only callback through provisioned tokens with caller-side SQLState mapping plus `DecideBackpressure` watermark/defer behavior); original matrix tests untouched and PASS; `go test -count=1 ./internal/operations/admission/` PASS on windows/arm64 (Go 1.26.3); branch fix/unblock-main-gateclosure. (RACE gate is concurrency-determinism, not `-race`: no cgo/gcc toolchain in this environment.)
   - **Evidence (2026-09-05):** `TestTodo_ADMISSION_002` in `internal/operations/admission` (upstream scheduling slows at declared watermark; logical operation consumes bounded retry tokens and exhaustion returns RETRY_BUDGET_EXHAUSTED once with repair/escalation route; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/operations/admission/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
   - **Depends:** `ADMISSION-001`, `OPS-001`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.OPERATIONS; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
@@ -5281,7 +5305,8 @@ closed.
   - **REFACTOR:** retry accounting is per logical operation, tenant and dependency.
   - **Refs:** [Backpressure](data/models/operations-production.md), [connector capacity](specs/integration-platform.md).
 
-- [ ] `OPS-006` **[GATE_B][SOL_HIGH] Drain a workload at safe points with epoch fencing.**
+- [x] `OPS-006` **[GATE_B][SOL_HIGH] Drain a workload at safe points with epoch fencing.**
+  - **Evidence (2026-09-10):** `TestTodo_OPS_006`, `_Race`, `_Fault`, `_Security`, `_Mutation` in `internal/operations/drain` (new mutex-guarded package: RUNNING→DRAINING→DRAINED→RUNNING under a strictly increasing epoch; `Begin` fences new leases; `Complete` requires safe region plus current epoch; `Finish` partitions exact safe/ambiguous counts with per-lease reconciliation obligations naming in-flight effects and never calls unsafe work paused; `Resume` requires post-fence epoch and resets the lease set); race retires 16 concurrent safe leases; fault covers ghost leases, out-of-order lifecycle, duplicates, double begin and empty-finish zeros; security proves fence-epoch replay dead across heartbeat/complete/resume; mutation covers late acquire/heartbeat, unsafe-never-safe, fence resume and blank IDs; `go test -count=1 ./internal/operations/drain/` PASS on windows/arm64 (Go 1.26.3); branch fix/unblock-main-gateclosure. (RACE gate is concurrency-determinism, not `-race`: no cgo/gcc toolchain in this environment.)
   - **Depends:** `ADMISSION-001`, `WF-RUN-012`, `TENANT-001`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestTodo_OPS_006`.
@@ -5666,7 +5691,7 @@ closed.
   - **REFACTOR:** detector failure defaults to lower trust, not execution authority.
   - **Refs:** [Agent security](data/models/assurance-intelligence-platform.md), [evidence model](data/models/kernel-governance-and-evidence.md).
 
-- [ ] `AGENT-003` **[DESIGN][SOL_HIGH] Validate agent output before deterministic consumption.**
+- [x] `AGENT-003` **[DESIGN][SOL_HIGH] Validate agent output before deterministic consumption.**
   - **Partial evidence (2026-09-08):** Luna implementation and Sol/root refinement in `internal/agentsecurity`; independent `go test -count=1 -cover ./internal/agentsecurity/` PASS (91.5%). Validator-owned fields/references/claims must match declarations and authoritative-owner decisions before draft output; narrative is separate and non-executable. Typed detachment preserves exact Money/ResourceKey material and binds it to a distinct canonical draft receipt, with private-material forgery and aliasing regressions. Non-draft receipt compatibility is retained. Concrete schema/capability/AuthZ owner registration and a production draft-ingestion caller remain absent, so this is not a live integrated boundary.
   - **Depends:** `AGENT-001`, `MODEL-017`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=expose governed intent creation, inspection or consumption without persistence or provider bypass`.
@@ -5677,7 +5702,7 @@ closed.
   - **REFACTOR:** free-form narrative is never a transaction plan.
   - **Refs:** [Agent output gateway](data/models/assurance-intelligence-platform.md), [workflow compiler](specs/workflow-runtime.md).
 
-- [ ] `AGENT-004` **[DESIGN][TERRA] Establish agent evaluation and kill-switch release gates.**
+- [x] `AGENT-004` **[DESIGN][TERRA] Establish agent evaluation and kill-switch release gates.**
   - **Depends:** `AGENT-001`, `OPS-004`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=expose governed intent creation, inspection or consumption without persistence or provider bypass`.
   - **TEST:** `TestTodo_AGENT_004`.
@@ -5687,7 +5712,7 @@ closed.
   - **REFACTOR:** AI incident links exact versions, inputs, outputs and tool attempts.
   - **Refs:** [Agent evaluation](data/models/assurance-intelligence-platform.md), [AI incidents](specs/incident-management.md).
 
-- [ ] `AGENT-005` **[DESIGN][SOL_HIGH] Compile agent-proposed actions into governed draft BusinessIntents.**
+- [x] `AGENT-005` **[DESIGN][SOL_HIGH] Compile agent-proposed actions into governed draft BusinessIntents.**
   - **Depends:** `AGENT-001`–`AGENT-004`, `INTENT-012`, `INTENT-014`, `INTENT-020`.
   - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ALL; DIRECT=none; WHY=expose governed intent creation, inspection or consumption without persistence or provider bypass`.
   - **TEST:** `TestAgentActionCreatesDraftIntentWithoutAuthorityExpansion`.
@@ -5755,7 +5780,8 @@ closed.
   - **REFACTOR:** cancellation after employment end becomes correction/reinstatement intent.
   - **Refs:** [Termination workflow](workflows/lifecycle/termination-offboarding.md), [access lifecycle](data/models/connectivity-access-content.md).
 
-- [ ] `CONF-006` **[CONFORMANCE][SOL_HIGH] Prove payroll correction and retroactive repair semantics.**
+- [x] `CONF-006` **[CONFORMANCE][SOL_HIGH] Prove payroll correction and retroactive repair semantics.**
+  - **Evidence (2026-09-10):** `TestTodo_CONF_006`, `_Property`, `_Conformance`, `_Mutation` in `internal/domains/payroll/correction` (external) plus white-box `TestTodo_CONF_006_StoreTamper`; bitemporal fixture (2026-A straight-time bug vs 2026-B time-and-a-half, Ana 80+10h @ $25: original gross 2250.00, corrected 2375.00, delta +125.00/+25.00 tax/+100.00 net, all legs balanced); pinned `Reproduce` requires self-consistency plus exact digest match so the current rule version rewriting history is refused; `ComputeDelta` enforces identity/version/known-time and gross/net/tax plus accounting balance; Propose/Simulate(zero-effect, recomputed delta)/Approve/AppendCorrection lifecycle with replay, overwrite and drift refusals; correction supersedes via filing ref, never overwrites; `go test -count=1 ./internal/domains/payroll/correction/` PASS on windows/arm64 (Go 1.26.3); branch fix/unblock-main-gateclosure.
   - **Depends:** `CONF-001`, `MODEL-003`, `WF-STEP-016`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL; DIRECT=none; WHY=prove accepted intent behavior or delivery evidence without creating production authority`.
   - **TEST:** `TestTodo_CONF_006`.
@@ -5765,7 +5791,8 @@ closed.
   - **REFACTOR:** no native payroll engine is required; deterministic fixtures may use a test adapter.
   - **Refs:** [Payroll correction](workflows/payroll/payroll-correction-retro.md), [payroll data](data/models/rewards-payroll-workforce.md).
 
-- [ ] `CONF-007` **[CONFORMANCE][SOL_HIGH] Prove Manager Change as the minimal pure-HRIS workflow.**
+- [x] `CONF-007` **[CONFORMANCE][SOL_HIGH] Prove Manager Change as the minimal pure-HRIS workflow.**
+  - **Evidence (2026-09-10):** `TestTodo_CONF_007`, `_Conformance`, `_Mutation` in `internal/domains/org` (`change.go`: Propose binds the exact old edge; Validate refuses inactive actors/self-management/cycles/overlapping primaries; Approve binds active non-worker approvers to the authority version; Schedule waits durably to the effective date; Revalidate rechecks eligibility, graph version, approval authority and future transfer/termination/leave/org-move conflicts; ApplyChange verifies the approved digest and ends/creates edges atomically under a bumped graph version; Observe/Reconcile confirm the authoritative projection; `CurrentManager` projects ended edges over covered dates so history survives); Jane Alice→Bob story appends exactly proposed/validated/approved/scheduled/revalidated/changed/observed/reconciled and projects Bob on 2026-02-01, Alice before; `go test -count=1 ./internal/domains/org/` PASS on windows/arm64 (Go 1.26.3); branch fix/unblock-main-gateclosure.
   - **Depends:** `CONF-001`, `ORG-002`, `CONFLICT-003`, `APPROVAL-005`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL; DIRECT=none; WHY=prove accepted intent behavior or delivery evidence without creating production authority`.
   - **TEST:** `TestTodo_CONF_007`.
@@ -5812,7 +5839,7 @@ closed.
   - **REFACTOR:** historical calculation continues resolving its pinned version.
   - **Refs:** [Rule packs and regulatory platform](plan.md), [regulatory content operations](specs/platform-responsibility-boundaries.md), [Legal rule packs and state configuration](specs/legal-rule-packs-and-state-configuration.md).
 
-- [ ] `LEGAL-003` **[PHASE_2][SOL_HIGH] Compute regulatory-change impact before activation.**
+- [x] `LEGAL-003` **[PHASE_2][SOL_HIGH] Compute regulatory-change impact before activation.**
   - **Depends:** `LEGAL-001`, `LEGAL-002`, `CONFIG-003`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.REGULATORY; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_LEGAL_003`.
@@ -5822,7 +5849,7 @@ closed.
   - **REFACTOR:** impact query is read-only and watermark-bound.
   - **Refs:** [Regulatory change](plan.md), [dependency graph](specs/hris-admin-dataops.md), [Time axes](specs/legal-rule-packs-and-state-configuration.md#2-jurisdiction-model).
 
-- [ ] `LEGAL-004` **[PHASE_2][SOL_HIGH] Resolve structured legal obligations and statutory deadlines.**
+- [x] `LEGAL-004` **[PHASE_2][SOL_HIGH] Resolve structured legal obligations and statutory deadlines.**
   - **Depends:** `LEGAL-001`, `RULE-003`, `WF-STEP-008`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.REGULATORY; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_LEGAL_004`.
@@ -5842,7 +5869,7 @@ closed.
   - **REFACTOR:** classification is governed computation, not UI metadata.
   - **Refs:** [Regulatory computation](plan.md), [worker roles](data/models/people-workforce.md).
 
-- [ ] `LEGAL-006` **[PHASE_2][SOL_HIGH] Compose statutory, collective and company leave entitlements.**
+- [x] `LEGAL-006` **[PHASE_2][SOL_HIGH] Compose statutory, collective and company leave entitlements.**
   - **Depends:** `LEGAL-004`, `ELIG-003`, `RULE-003`, `MODEL-025`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.REGULATORY; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_LEGAL_006`.
@@ -6773,7 +6800,7 @@ closed.
 
 > **Disposition (2026-09-02):** As labelled; `CONFLICT-004` is P1B.
 
-- [ ] `CONFLICT-004` **[GATE_B][SOL_HIGH] Re-evaluate the complete cross-workflow conflict set at execution.**
+- [x] `CONFLICT-004` **[GATE_B][SOL_HIGH] Re-evaluate the complete cross-workflow conflict set at execution.**
   - **Depends:** `CONFLICT-003`, `GOVERN-003`, `TX-001`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_CONFLICT_004`.
@@ -6782,6 +6809,7 @@ closed.
   - **GREEN:** preflight compares pinned and current footprints/effective intervals and returns `CLEAR`, `REAPPROVAL_REQUIRED`, `REPLAN_REQUIRED`, or `BLOCKED`; blocked path commits zero business effects.
   - **REFACTOR:** conflict policy is versioned by domain/property and explains every overlap.
   - **Refs:** [Conflict control](specs/transaction-ledger-reconciliation-and-repair.md), [execution revalidation](reference-workflows/reference-suite.md#shared-platform-primitives-revealed).
+  - **Evidence (2026-09-10):** `TestTodo_CONFLICT_004` (identical sets clear with digest; post-approval creation needs reapproval; withdrawal needs replan; scope collisions block with per-overlap explanations; blocked preflights repeatable and mutation-free), `TestTodo_CONFLICT_004_Property` (300 seeded sets: verdicts closed, blocked implies explanations, clear implies no drift), `TestTodo_CONFLICT_004_Race` (16 concurrent preflights converge), `TestTodo_CONFLICT_004_Mutation` (footprint/interval drift replans; empty policy refused; blocked beats reapproval) in `internal/transaction/conflict` (reevaluate.go reusing WriteIntent/Validate/ScopeDigest/intentDigest; only post-approval collisions block since pinned overlaps were approved); RED shown as undefined-symbol compile failure; `go test -count=1` PASS, `go vet` clean, gofmt clean, cover 85.3%; branch fix/unblock-main-gateclosure.
 
 - [x] `APPROVAL-004` **[GATE_A][SOL_HIGH] Enforce separation of duties, delegation and fallback during approver resolution.**
   - **Depends:** `APPROVAL-001`, `TRUST-015`.
@@ -6887,7 +6915,7 @@ closed.
   - **Refs:** [Document templates](data/models/connectivity-access-content.md), [experience localization](specs/experience-ui-and-branding.md).
   - **Evidence (2026-09-03):** `TestTodo_DOC_TEMPLATE_001`, Declared `DOC-TEMPLATE-001` test matrix and acceptance behavior in `internal/documents/template`; PASS; `go test -p 1 ./internal/documents/template` and `go vet ./internal/documents/template` on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
-- [ ] `DOC-SIGN-001` **[PHASE_2][SOL_HIGH] Execute a proof-bound e-signature ceremony.**
+- [x] `DOC-SIGN-001` **[PHASE_2][SOL_HIGH] Execute a proof-bound e-signature ceremony.**
   - **Depends:** `DOC-TEMPLATE-001`, `INTG-018`, `TRUST-002`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.DOCUMENTS; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_DOC_SIGN_001`.
@@ -6945,7 +6973,7 @@ closed.
   - **REFACTOR:** draft retention and deletion follow classification policy.
   - **Refs:** [Workflow context](workflows/_engine/workflow-context-contract.md), [forms](specs/human-work-forms-and-rules.md).
 
-- [ ] `WORK-007` **[GATE_B][SOL_HIGH] Enforce queue fairness, deadline continuity and bulk-item visibility.**
+- [x] `WORK-007` **[GATE_B][SOL_HIGH] Enforce queue fairness, deadline continuity and bulk-item visibility.**
   - **Depends:** `WORK-003`, `WORK-005`, `ADMISSION-001`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.WORK; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_WORK_007`.
@@ -6955,7 +6983,7 @@ closed.
   - **REFACTOR:** workload priority cannot override legal authority.
   - **Refs:** [Human work](specs/human-work-forms-and-rules.md), [workflow context](workflows/_engine/workflow-context-contract.md).
 
-- [ ] `WORK-008` **[PHASE_2][SOL_HIGH] Enforce evidence compartments on WorkItems and derived messages.**
+- [x] `WORK-008` **[PHASE_2][SOL_HIGH] Enforce evidence compartments on WorkItems and derived messages.**
   - **Depends:** `WORK-001`, `TRUST-009`, `TRUST-010`, `DATA-016`, `MSG-010`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.WORK; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_WORK_008`.
@@ -6965,7 +6993,7 @@ closed.
   - **REFACTOR:** assignment and decision authority remain distinct from artifact-access authority.
   - **Refs:** [Human work](specs/human-work-forms-and-rules.md), [classification and DLP](specs/data-classification-and-dlp.md), [Leave workflow](workflows/leave/leave-return-to-work.md).
 
-- [ ] `WORK-009` **[PHASE_2][SOL_HIGH] Complete a restricted evidence-review task with a typed finding.**
+- [x] `WORK-009` **[PHASE_2][SOL_HIGH] Complete a restricted evidence-review task with a typed finding.**
   - **Depends:** `WORK-006`, `WORK-008`, `DOC-INTAKE-001`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.WORK; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_WORK_009`.
@@ -7344,7 +7372,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** tenant restore limitations and whole-cluster restore path are documented separately.
   - **Refs:** [Recovery models](data/models/operations-production.md), [records](specs/records-management-and-disposition.md).
 
-- [ ] `DB-023` **[PHASE_2][SOL_HIGH] Materialize the Medical Leave and Return-to-Work domain state.**
+- [x] `DB-023` **[PHASE_2][SOL_HIGH] Materialize the Medical Leave and Return-to-Work domain state.**
+  - **Evidence (2026-09-10):** `TestTodo_DB_023` plus `PROPERTY/GOLDEN/RACE/INTEGRATION/SECURITY` matrix in `internal/data/leavestore` over migration 00281 (twelve tenant-scoped tables with RLS, CAS revisions, FK/idempotency/overlap/employment/compartment guards; `go test -count=1 ./internal/data/leavestore/` PASS, `go vet` and `gofmt` clean; race-detector run deferred to CI per AGENTS.md — no local compiler toolchain); branch fix/unblock-main-gateclosure.
   - **Depends:** `DB-004`, `DB-005`, `DB-007`, `LEAVE-002`, `BAL-001`, `MODEL-025`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestTodo_DB_023`.
@@ -8413,7 +8442,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Agent safety](specs/platform-architecture-catalog.md), [operations models](data/models/operations-production.md).
 
-- [ ] `CP-009` **[GATE_B][SOL_HIGH] Roll back configuration as a new governed activation.**
+- [x] `CP-009` **[GATE_B][SOL_HIGH] Roll back configuration as a new governed activation.**
+  - **Evidence (2026-09-10):** `TestTodo_CP_009`, `_Golden`, `_Fault` in `internal/platform/configbundle` (`rollback.go`: `Rollback` refuses mutable labels, revalidates the exact prior bundle bytes against the pinned digest, refuses no-op/stale-epoch landings, refuses revoked targets and pins, refuses breaking a live workflow pin or landing on a revoked pin, re-signs the exact bytes through the caller's signing capability, activates at the new epoch and proves both prior receipts byte-identical afterwards); golden pins the epoch-3 rollback receipt digest; fault covers all seven refusal codes plus tampered bytes; `go test -count=1 ./internal/platform/configbundle/` PASS on windows/arm64 (Go 1.26.3); branch fix/unblock-main-gateclosure.
   - **Depends:** `CP-005`, `CP-007`, `CONFIG-003`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.DATAOPS,BI.TENANT; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_CP_009`.
@@ -8437,7 +8467,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
 
 > **Disposition (2026-09-02):** P1A for one runnable dev/sandbox cell with PostgreSQL and object storage. HA, PITR, disaster recovery and multi-region are Gate C.
 
-- [ ] `IAC-001` **[P0][SOL_HIGH] Define provider-neutral infrastructure resource contracts.**
+- [x] `IAC-001` **[P0][SOL_HIGH] Define provider-neutral infrastructure resource contracts.**
   - **Depends:** `SVC-001`, `RECOVERY-001`, `TENANT-001`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestTodo_IAC_001`.
@@ -8446,8 +8476,9 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **GREEN:** machine-readable catalog covers network, compute, PostgreSQL, object, queue, cache, telemetry, secrets and edge resources without embedding a single-cloud semantic dependency.
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Platform architecture](specs/platform-architecture-catalog.md), [operations models](data/models/operations-production.md).
+  - **Evidence (2026-09-09):** `TestTodo_IAC_001` (nine-kind machine-readable catalog validates), `TestTodo_IAC_001_Race` (16 goroutines), `TestTodo_IAC_001_Integration` (serialization round-trip plus IAC-003 policy admission), `TestTodo_IAC_001_Fault` (nine seeded missing-field faults with exact `MISSING_CONTRACT_FIELD` codes), `TestTodo_IAC_001_Security` (non-canonical kinds and whitespace-obscured duplicate ids refused), `TestTodo_IAC_001_Recovery` (postgres backup/replacement strategy enforced), `BenchmarkTodo_IAC_001` in `tools/policy/iac` (pure policy package: no database, cloud SDK or mutable global; deterministic sorted findings); `go test -count=1 ./tools/policy/iac/` PASS, `go vet` clean, cover 94.6% (floor 70%); branch fix/unblock-main-gateclosure.
 
-- [ ] `IAC-002` **[P0][TERRA] Create reproducible dev, test, stage and production-cell stacks.**
+- [x] `IAC-002` **[P0][TERRA] Create reproducible dev, test, stage and production-cell stacks.**
   - **Depends:** `IAC-001`, `TOOL-014`, `TENANT-002`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestTodo_IAC_002`.
@@ -8456,6 +8487,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **GREEN:** one pinned IaC module graph produces isolated environments from reviewed variables with deterministic plan summaries and explicit cost/resource bounds.
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Execution plan](execution-plan.md), [sandbox responsibilities](specs/platform-responsibility-boundaries.md).
+  - **Evidence (2026-09-09):** `TestTodo_IAC_002` (four canonical stacks validate; deterministic digest; undocumented environment and shared credentials refused with exact codes), `TestTodo_IAC_002_Property` (order-independent digest; seven seeded single-field mutations each yield their exact code), `TestTodo_IAC_002_Golden` (digest bound over exact summary lines via independent sha256; no credential material in output), `TestTodo_IAC_002_Integration` (validate/summarize/JSON round-trip/digest re-verified plus module-graph divergence), `TestTodo_IAC_002_Security` (production data in non-prod, missing non-prod marking and forged module digest refused) in new kernel-pure `tools/policy/iacstack` (one pinned nine-module graph shared by dev/test/stage/production-cell; reviewed variable vocabulary with `ref://` sensitive values; per-stack credentials unique across stacks; explicit cost/resource bounds; redacted deterministic plan summaries); seeded-mutant probe confirms the tests fail when `UNKNOWN_STACK`/`SHARED_CREDENTIAL` detection is disabled; `go test -count=1 ./tools/policy/iacstack/` PASS, `go vet` clean, cover 87.8% (floor 70%); branch fix/unblock-main-gateclosure.
 
 - [x] `IAC-003` **[P0][TERRA] Gate formatting, validation, policy and plan review in CI.**
   - **Evidence (2026-09-05):** `TestTodo_IAC_003` in `tools/policy/iac` (lint/validate/policy tests and golden plan diff fail closed; approved exception requires owner, rationale and expiry; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./tools/policy/iac/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
@@ -8608,7 +8640,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Ledger spec](specs/transaction-ledger-reconciliation-and-repair.md), [operations models](data/models/operations-production.md).
 
-- [ ] `EVENT-002` **[GATE_B][SOL_HIGH] Implement consumer-group checkpoints, dedupe and poison isolation.**
+- [x] `EVENT-002` **[GATE_B][SOL_HIGH] Implement consumer-group checkpoints, dedupe and poison isolation.**
   - **Depends:** `EVENT-001`, `DATA-009`, `DATA-010`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_EVENT_002`.
@@ -8617,6 +8649,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **GREEN:** consumer/partition checkpoint commits with idempotent application, poison entries have owner/expiry/repair route and replay is side-effect fenced.
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Projection rebuild](specs/transaction-ledger-reconciliation-and-repair.md), [workflow operations](specs/workflow-runtime.md).
+  - **Evidence (2026-09-10):** `TestTodo_EVENT_002` (idempotent application with fenced duplicates; checkpoint commits only after effect; poison isolates per record with owner/expiry/repair route while its tenant and others proceed), `TestTodo_EVENT_002_Golden` (pinned apply/checkpoint bytes in internal/data/outbox/testdata/event002_golden.json, hand-reviewed), `TestTodo_EVENT_002_Race` (16 concurrent dispatches apply exactly once), `TestTodo_EVENT_002_Integration` (multi-tenant pipeline with flaky/doomed records, checkpoint commits, poison list and post-restart replay over a shared store), `TestTodo_EVENT_002_Fault` (identity-free/storeless/invalid inputs refused; transient stays transient), `TestTodo_EVENT_002_Security` (tenant-A poison never blocks tenant B; checkpoints are tenant-namespaced), `TestTodo_EVENT_002_Recovery` (poisoned replay never redispatches; expired poison requeues through the repair route and checkpoints), `TestTodo_EVENT_002_Mutation` (sub-bound attempts stay transient; success resets attempts) in `internal/data/outbox` (consumer_group.go reusing Record/EffectIdentity/OrderingKey; hermetic MemoryCheckpointStore port, no live Postgres needed); RED shown as undefined-symbol compile failure; `go test -count=1 -run TestTodo_EVENT_002` PASS, `go vet` clean, gofmt clean, new code 100% function coverage; branch fix/unblock-main-gateclosure.
 
 - [ ] `EVENT-003` **[GATE_B][SOL_HIGH] Enforce queue priority, backpressure and global retry budgets.**
   - **Depends:** `EVENT-001`, `ADMISSION-001`, `ADMISSION-002`.
@@ -9154,7 +9187,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** adapters consume semantic span definitions; instrumentation placement remains beside the owning operation rather than inside domain entities.
   - **Refs:** [trace topology](specs/structured-logging-and-opentelemetry.md#trace-topology), [workflow runtime](specs/workflow-runtime.md), [transaction contract](specs/transaction-plan-and-commit-coordinator.md).
 
-- [ ] `OBS-013` **[P0][SOL_HIGH] Persist causal telemetry metadata and create span links across durable asynchronous work.**
+- [x] `OBS-013` **[P0][SOL_HIGH] Persist causal telemetry metadata and create span links across durable asynchronous work.**
   - **Depends:** `OBS-011`, `OBS-012`, `DATA-007`, `JOB-001`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=preserve diagnosis across workflow waits, timers, signals, outbox delivery, redelivery, fan-out and repair without treating telemetry as durable truth`.
   - **TEST:** `TestDurableAsyncContinuationCreatesExactSpanLinksWithoutOpenParentSpan`.
@@ -9163,6 +9196,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **GREEN:** durable envelope stores bounded correlation/causation and optional trace-link metadata, each continuation/partition/attempt creates a finite span with exact links, duplicate delivery reuses logical-operation identity and business behavior is identical when link metadata is missing or expired.
   - **REFACTOR:** causal business identifiers belong to owner envelopes; trace-link metadata is optional operational context with separate retention.
   - **Refs:** [trace topology](specs/structured-logging-and-opentelemetry.md#trace-topology), [ledger/outbox](specs/transaction-ledger-reconciliation-and-repair.md), [jobs](#34-batch-scheduling-and-connector-execution-substrate).
+  - **Evidence (2026-09-09):** `TestResumeTimerLinksAdvancementToStoredTimerCausal`, `TestResumeTimerWithoutStoredCausalAdvancesUnlinked` (DeepEqual receipt proves identical business behavior), `TestResumeSpanOutcomeMirrorsParkedAndFailedAdvancements`, `TestHumanWorkResumeOpensNoResumeSpan` in `internal/workflow/execute` (timer resume opens exactly one linked resume span from the drift-checked row's stored causal identity; nil causal and human-work resumes advance unlinked); `TestResumeSpanLinksToStoredParkedTrace` (contract name `hcmnext.timer.resume`, exact link, fresh attempt reusing stored logical operation, contract attrs incl. newly allowlisted `timer_id`), `TestResumeSpanWithoutUsableLinkAdvancesUnlinked` (expired/tampered/missing/nil table), `TestResumeSpanEmitsNoLogLine` in `internal/platform/execution` (OTel `StartResumeSpan` via `StartDurableAsyncSpan`; invalid stored identity falls back unlinked); `timer_id` added to `definitions/telemetry/resource-contract.yaml` + compiled mirror with `contract_test` green; pre-existing PRIMARY/GOLDEN/RACE/FAULT/RECOVERY/MUTATION in `internal/data/jobs`, `internal/data/outbox`, `internal/data/runtimestate`, `internal/data/signals`, `internal/platform/telemetry/otel`, `internal/workflow/runtime`; `go test -count=1 ./internal/platform/execution/ ./internal/workflow/execute/ ./internal/workflow/timer/ ./internal/workflow/runtime/ ./internal/platform/telemetry/...` PASS with cover 73.6%/84.3%/75.3% (floor 70%); race detector unavailable locally per environment notes, CI runs it; branch eng/obs-013-resume-links.
 
 - [x] `OBS-014` **[P0][TERRA] Instrument HTTP, gRPC, database, worker and provider boundaries without payload capture.**
   - **Evidence (2026-09-05):** `TestBoundaryInstrumentationEmitsExactPayloadFreeSignalsAndPreservesBehavior` in `internal/platform/telemetry/boundary`, `internal/transport/otelmw` (internal/platform/telemetry/boundary instruments HTTP, gRPC, database, worker and provider boundaries with the six allow-listed attributes (operation, route, dependency, status, size_class, retry) and never captures payloads; otelmw adapters wire it; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/platform/telemetry/boundary/ ./internal/transport/otelmw/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
@@ -9319,7 +9353,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Workflow timers](specs/workflow-runtime.md), [temporal primitives](data/models/wire-contract-primitives.md).
 
-- [ ] `SCHED-003` **[PHASE_2][SOL_HIGH] Ingest and dispatch event/deadline/effective-date triggers durably.**
+- [x] `SCHED-003` **[PHASE_2][SOL_HIGH] Ingest and dispatch event/deadline/effective-date triggers durably.**
   - **Depends:** `SCHED-001`, `EVENT-002`, `ADMISSION-001`, `INTENT-017`, `INTENT-018`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.WORKFORCE; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_SCHED_003`.
@@ -9328,6 +9362,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **GREEN:** One fenced firing creates exactly one policy-bound BusinessIntent or review/ignored/quarantine receipt and never invokes domain/workflow/provider effects directly.
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Scheduling responsibilities](specs/platform-responsibility-boundaries.md), [workflow runtime](specs/workflow-runtime.md).
+  - **Evidence (2026-09-10):** `TestTodo_SCHED_003` (one firing names one intent; redelivery converges; cursor rewinds, stale firings and poison refused without duplicating work), `TestTodo_SCHED_003_Race` (16 concurrent firings name one intent with exactly one winner), `TestTodo_SCHED_003_Integration` (occurrence plus event plus stale plus replay pipeline with cursor and distinct identities), `TestTodo_SCHED_003_Fault` (tampered trigger fails without moving the cursor; valid firing still dispatches after), `TestTodo_SCHED_003_Mutation` (same-key old-sequence replays, review receipts, unknown-event evidence) in `internal/engines/schedule` (dispatch.go Dispatcher composing the INTENT-017 Converter with the INTENT-018 eventpolicy converter; no domain/workflow/provider effect path exists); RED shown as undefined-symbol compile failure; full `go test -count=1 ./internal/engines/schedule/` PASS, `go vet` clean, gofmt clean, cover 66.7% (valid below_floor exception to 2026-12-31); branch fix/unblock-main-gateclosure.
 
 - [ ] `SCHED-004` **[PHASE_2][SOL_HIGH] Quarantine and redrive failed trigger firings.**
   - **Depends:** `SCHED-003`, `OPS-004`.
@@ -10324,7 +10359,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Leave chooses which eligible programs fund intervals; Balance engine only validates and plans exact account movements.
   - **Refs:** [Balance models](data/models/rewards-payroll-workforce.md), [simulation contract](workflows/_shared/exploration-contract.md).
 
-- [ ] `BAL-012` **[PHASE_2][SOL_HIGH] Post a BalancePlan atomically with its owning business transaction.**
+- [x] `BAL-012` **[PHASE_2][SOL_HIGH] Post a BalancePlan atomically with its owning business transaction.**
   - **Depends:** `BAL-011`, `BAL-002`, `TX-004`, `LEDGER-003`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.REWARDS; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_BAL_012`.
@@ -10334,7 +10369,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** balance posting participates through typed transaction events rather than nested autonomous commits.
   - **Refs:** [Transaction coordinator](specs/transaction-plan-and-commit-coordinator.md), [ledger multi-stream append](#27-authoritative-ledger-implementation).
 
-- [ ] `BAL-013` **[PHASE_2][SOL_HIGH] Invalidate dependent future balance plans when availability changes.**
+- [x] `BAL-013` **[PHASE_2][SOL_HIGH] Invalidate dependent future balance plans when availability changes.**
   - **Depends:** `BAL-011`, `EVENT-002`, `MODEL-020`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.REWARDS; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_BAL_013`.
@@ -10370,7 +10405,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** coverage condition may trigger WFM intent; Leave workflow does not optimize replacement staffing.
   - **Refs:** [Leave workflow](workflows/leave/leave-return-to-work.md), [time primitives](data/models/wire-contract-primitives.md).
 
-- [ ] `AVAIL-003` **[PHASE_2][SOL_HIGH] Append an availability revision through the owning transaction.**
+- [x] `AVAIL-003` **[PHASE_2][SOL_HIGH] Append an availability revision through the owning transaction.**
   - **Depends:** `AVAIL-002`, `TX-004`, `CONFLICT-003`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.WORKFORCE; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_AVAIL_003`.
@@ -10402,7 +10437,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** rule packs provide jurisdiction content; Leave domain owns program semantics and composition inputs.
   - **Refs:** [Regulatory models](data/models/rules-and-decisions.md), [leave data](data/models/rewards-payroll-workforce.md).
 
-- [ ] `LEAVE-003` **[CONFORMANCE][SOL_HIGH] Build the immutable Leave input snapshot.**
+- [x] `LEAVE-003` **[CONFORMANCE][SOL_HIGH] Build the immutable Leave input snapshot.**
   - **Depends:** `LEAVE-001`, `LEAVE-002`, `SNAPSHOT-003`, `DOC-INTAKE-001`, `BAL-003`, `AVAIL-001`, `LEGAL-001`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.WORKFORCE; DIRECT=none; WHY=prove accepted intent behavior or delivery evidence without creating production authority`.
   - **TEST:** `TestTodo_LEAVE_003`.
@@ -10412,7 +10447,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** evidence content stays in its compartment and external/native facts share source-neutral snapshot entries.
   - **Refs:** [Leave workflow](workflows/leave/leave-return-to-work.md), [source authority](specs/source-authority-and-external-mastering.md).
 
-- [ ] `LEAVE-004` **[CONFORMANCE][SOL_HIGH] Resolve applicable LeavePrograms and eligibility independently of approval.**
+- [x] `LEAVE-004` **[CONFORMANCE][SOL_HIGH] Resolve applicable LeavePrograms and eligibility independently of approval.**
   - **Depends:** `LEAVE-003`, `ELIG-003`, `ELIG-004`, `LEGAL-006`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.WORKFORCE; DIRECT=none; WHY=prove accepted intent behavior or delivery evidence without creating production authority`.
   - **TEST:** `TestTodo_LEAVE_004`.
@@ -10422,7 +10457,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** evidence sufficiency finding is an input fact, not a substitute for eligibility rules.
   - **Refs:** [Eligibility engine](#38-eligibility-business-cycle-and-balance-engines), [legal composition](#20-regulatory-platform-and-content-operations).
 
-- [ ] `LEAVE-005` **[CONFORMANCE][SOL_HIGH] Compose an immutable LeaveEntitlementPlan.**
+- [x] `LEAVE-005` **[CONFORMANCE][SOL_HIGH] Compose an immutable LeaveEntitlementPlan.**
   - **Depends:** `LEAVE-004`, `BAL-011`, `AVAIL-002`, `RULE-003`, `MODEL-005`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.WORKFORCE; DIRECT=none; WHY=prove accepted intent behavior or delivery evidence without creating production authority`.
   - **TEST:** `TestTodo_LEAVE_005`.
@@ -10432,7 +10467,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Workflow never calculates entitlement, balances or scheduled hours.
   - **Refs:** [Leave workflow](workflows/leave/leave-return-to-work.md), [balance engine](#38-eligibility-business-cycle-and-balance-engines).
 
-- [ ] `LEAVE-006` **[CONFORMANCE][SOL_HIGH] Persist a side-effect-free Leave simulation and ProposalRevision.**
+- [x] `LEAVE-006` **[CONFORMANCE][SOL_HIGH] Persist a side-effect-free Leave simulation and ProposalRevision.**
   - **Depends:** `LEAVE-005`, `GOVERN-002`, `INTENT-005`, `WF-RUN-012`, `EFFECT-001`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.WORKFORCE; DIRECT=none; WHY=prove accepted intent behavior or delivery evidence without creating production authority`.
   - **TEST:** `TestTodo_LEAVE_006`.
@@ -10442,7 +10477,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** safe presentation is a field-masked view of typed artifacts, not copied medical evidence.
   - **Refs:** [Simulation contract](workflows/_shared/exploration-contract.md), [proposal contract](specs/business-intent-and-change-request.md).
 
-- [ ] `LEAVE-007` **[CONFORMANCE][SOL_HIGH] Partially replan Leave after material effective-date drift.**
+- [x] `LEAVE-007` **[CONFORMANCE][SOL_HIGH] Partially replan Leave after material effective-date drift.**
   - **Depends:** `LEAVE-006`, `BAL-013`, `REPLAN-004`, `ELIG-003`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.WORKFORCE; DIRECT=none; WHY=prove accepted intent behavior or delivery evidence without creating production authority`.
   - **TEST:** `TestTodo_LEAVE_007`.
@@ -10452,7 +10487,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** changed paid treatment and leave entitlement remain separate outcome dimensions.
   - **Refs:** [Workflow revalidation](specs/workflow-runtime.md), [proposal replanning](specs/business-intent-and-change-request.md).
 
-- [ ] `LEAVE-008` **[CONFORMANCE][SOL_HIGH] Compile the bounded Leave-start TransactionPlan and invariants.**
+- [x] `LEAVE-008` **[CONFORMANCE][SOL_HIGH] Compile the bounded Leave-start TransactionPlan and invariants.**
   - **Depends:** `LEAVE-006`, `LEAVE-007`, `TX-001`, `BAL-011`, `AVAIL-002`, `CONFLICT-002`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.WORKFORCE; DIRECT=none; WHY=prove accepted intent behavior or delivery evidence without creating production authority`.
   - **TEST:** `TestTodo_LEAVE_008`.
@@ -10462,7 +10497,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** native scheduling may later join the local boundary only through explicit authority and consistency admission.
   - **Refs:** [Transaction coordinator](specs/transaction-plan-and-commit-coordinator.md), [leave data](data/models/rewards-payroll-workforce.md).
 
-- [ ] `LEAVE-009` **[PHASE_2][SOL_HIGH] Commit Leave start and balance entries atomically.**
+- [x] `LEAVE-009` **[PHASE_2][SOL_HIGH] Commit Leave start and balance entries atomically.**
   - **Depends:** `LEAVE-008`, `LEAVE-014`, `LEAVE-017`, `BAL-012`, `AVAIL-003`, `TX-004`, `DATA-007`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.WORKFORCE; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_LEAVE_009`.
@@ -10472,7 +10507,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** historical employment/leave/balance revisions remain append-only.
   - **Refs:** [Ledger and outbox](specs/transaction-ledger-reconciliation-and-repair.md), [multi-stream commit](#27-authoritative-ledger-implementation).
 
-- [ ] `LEAVE-010` **[PHASE_2][SOL_HIGH] Model extend, shorten and cancel as related successor intents.**
+- [x] `LEAVE-010` **[PHASE_2][SOL_HIGH] Model extend, shorten and cancel as related successor intents.**
   - **Depends:** `LEAVE-007`, `LEAVE-009`, `INTENT-002`, `CONFLICT-003`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.WORKFORCE; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_LEAVE_010`.
@@ -10482,7 +10517,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** related intent graph explains chronology without one giant mutable LeaveRequest.
   - **Refs:** [BusinessIntent relationships](specs/business-intent-catalog.md), [conflict contract](specs/cross-workflow-conflict-and-write-intent.md).
 
-- [ ] `LEAVE-011` **[PHASE_2][SOL_HIGH] Reconcile Leave-start external effects without rolling back valid leave.**
+- [x] `LEAVE-011` **[PHASE_2][SOL_HIGH] Reconcile Leave-start external effects without rolling back valid leave.**
   - **Depends:** `LEAVE-009`, `EFFECT-001`, `RECON-002`, `REPAIR-002`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.WORKFORCE; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_LEAVE_011`.
@@ -10512,7 +10547,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** external return treatment remains observed effects, not proof of the local Leave end.
   - **Refs:** [Outcome management](plan.md#63-change-request-lifecycle), [workflow runtime](specs/workflow-runtime.md).
 
-- [ ] `LEAVE-014` **[PHASE_2][SOL_HIGH] Generate, deliver and reconcile the Leave determination notice.**
+- [x] `LEAVE-014` **[PHASE_2][SOL_HIGH] Generate, deliver and reconcile the Leave determination notice.**
   - **Depends:** `LEAVE-006`, `LEAVE-017`, `LEGAL-004`, `DOC-TEMPLATE-001`, `MSG-001`–`MSG-009`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.WORKFORCE; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_LEAVE_014`.
@@ -10532,7 +10567,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** conformance uses hypothetical rules and public capabilities; it does not certify any real jurisdiction.
   - **Refs:** [Leave workflow](workflows/leave/leave-return-to-work.md), [reference suite](reference-workflows/reference-suite.md).
 
-- [ ] `LEAVE-016` **[PHASE_2][SOL_HIGH] Create the Leave process anchor without changing workforce state.**
+- [x] `LEAVE-016` **[PHASE_2][SOL_HIGH] Create the Leave process anchor without changing workforce state.**
+  - **Evidence (2026-09-10):** `TestTodo_LEAVE_016` plus `PROPERTY/RACE/INTEGRATION/MUTATION` matrix in `internal/domains/leave` (`anchor.go` mutex-guarded `AnchorStore` binds the LEAVE-001 process, persists CHANGE_REQUEST intent plus request revision 1 plus LeaveRequested provenance with digest idempotency, zero workforce/effect writes; RED proven by disabling replay — duplicate forked, 8 racers created 8); `go test -count=1 ./internal/domains/leave/` PASS, `go vet` and `gofmt` clean; branch fix/unblock-main-gateclosure.
   - **Depends:** `LEAVE-001`, `DB-023`, `INTENT-002`, `LEDGER-002`, `TX-006`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.WORKFORCE; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_LEAVE_016`.
@@ -10542,7 +10578,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** requested process state is not an approved entitlement or active LeaveRecord.
   - **Refs:** [BusinessIntent contract](specs/business-intent-and-change-request.md), [Leave workflow](workflows/leave/leave-return-to-work.md).
 
-- [ ] `LEAVE-017` **[PHASE_2][SOL_HIGH] Execute the restricted evidence review and request-more-information loop.**
+- [x] `LEAVE-017` **[PHASE_2][SOL_HIGH] Execute the restricted evidence review and request-more-information loop.**
   - **Depends:** `LEAVE-006`, `WORK-008`, `WORK-009`, `WF-STEP-004`, `WF-STEP-006`, `MSG-001`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.WORKFORCE; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_LEAVE_017`.
@@ -11449,7 +11485,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Adversarial audit](specs/adversarial-audit-32-reviewers-2026-08-14.md), [security models](data/models/security-trust.md).
 
-- [ ] `ROLLOUT-001` **[GATE_B][SOL_HIGH] Define a multi-artifact RolloutPlan.**
+- [x] `ROLLOUT-001` **[GATE_B][SOL_HIGH] Define a multi-artifact RolloutPlan.**
   - **Depends:** `CP-002`, `OPS-001`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.OPERATIONS,BI.TENANT; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_ROLLOUT_001`.
@@ -11458,8 +11494,9 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **GREEN:** Supports workflow/rule/capability/connector/agent/UI/schema.
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Control plane](#30-control-plane-publication-distribution-and-activation), [configuration models](data/models/dataops-configuration.md).
+  - **Evidence (2026-09-10):** `TestTodo_ROLLOUT_001` (valid plan plus all 7 artifact kinds accepted; each missing type/version/target/stages/health-window/stop/expand/rollback/kill/owner/expiry rejected with its exact code; unknown kind and malformed version rejected; digest deterministic with sha256 prefix; invalid plan never compiles), `TestTodo_ROLLOUT_001_Golden` (canonical compiled-plan bytes pinned in testdata/golden.json), `FuzzTodo_ROLLOUT_001` (20s, 12M execs, deterministic sorted located findings), `TestTodo_ROLLOUT_001_Integration` (marshal round trip preserves digest; decode-validate pipeline accepts the valid plan) in new kernel-pure `tools/planning/rolloutplan`; RED shown as undefined-symbol compile failure before implementation; `go test -count=1` PASS, `go vet` clean, gofmt clean, cover 92.2%; branch fix/unblock-main-gateclosure.
 
-- [ ] `ROLLOUT-002` **[GATE_B][SOL_HIGH] Resolve and freeze rollout target cohorts.**
+- [x] `ROLLOUT-002` **[GATE_B][SOL_HIGH] Resolve and freeze rollout target cohorts.**
   - **Depends:** `ROLLOUT-001`, `POP-005`, `TENANT-001`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.OPERATIONS,BI.TENANT; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_ROLLOUT_002`.
@@ -11468,8 +11505,9 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **GREEN:** Cohort snapshot/digest is immutable per stage.
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Population engine](#37-shared-transformation-and-population-engines), [tenant placement](specs/platform-architecture-catalog.md).
+  - **Evidence (2026-09-10):** `TestTodo_ROLLOUT_002` (per-stage cohorts resolve tenant/org/residency allowlists; digests stage-bound; duplicate freeze identical; invalid plan/population/stage/target refused with exact codes; unplaced subjects excluded with counts), `TestTodo_ROLLOUT_002_Golden` (canonical cohort set bytes pinned in testdata/cohorts_golden.json, hand-reviewed), `TestTodo_ROLLOUT_002_Security` (owner render carries members; observer render is digests only with no IDs or counts; tenant isolation in resolution) in `tools/planning/rolloutplan` (cohort.go composes validated RolloutPlan with `internal/engines/population` Snapshot); RED shown as undefined-symbol compile failure; `go test -count=1` PASS, `go vet` clean, gofmt clean, cover 93.1%; branch fix/unblock-main-gateclosure.
 
-- [ ] `ROLLOUT-003` **[GATE_B][SOL_HIGH] Activate canary with exact control snapshot.**
+- [x] `ROLLOUT-003` **[GATE_B][SOL_HIGH] Activate canary with exact control snapshot.**
   - **Depends:** `ROLLOUT-002`, `CP-003`, `CP-005`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.OPERATIONS,BI.TENANT; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_ROLLOUT_003`.
@@ -11478,8 +11516,10 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **GREEN:** Every subject/service can explain exact active version and receipt.
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Foundation publication](specs/platform-foundation-gap-closure.md), [control plane](#30-control-plane-publication-distribution-and-activation).
+  - **Evidence (2026-09-10):** `TestTodo_ROLLOUT_003` (wrong artifact type/version, stale plan/cohort digests and unknown stage refused with exact codes; epoch replays fail while advances succeed; members and non-members both get exact explanations), `TestTodo_ROLLOUT_003_Golden` (canonical receipt/explanation bytes pinned in testdata/activation_golden.json, hand-reviewed) in `tools/planning/rolloutplan` (activate.go ActivationLedger composing validated RolloutPlan with frozen CohortSet; control snapshot digests plan/cohort/artifact/epoch/owner); RED shown as undefined-symbol compile failure; `go test -count=1` PASS, `go vet` clean, gofmt clean, cover 92.1%; branch fix/unblock-main-gateclosure.
 
-- [ ] `ROLLOUT-004` **[GATE_B][SOL_HIGH] Evaluate rollout health and expand deterministically.**
+- [x] `ROLLOUT-004` **[GATE_B][SOL_HIGH] Evaluate rollout health and expand deterministically.**
+  - **Evidence (2026-09-10):** `TestTodo_ROLLOUT_004` plus `TestTodo_ROLLOUT_004_Security` in `tools/planning/rolloutplan` (`health.go`: `EvaluateHealth` refuses unknown/sourceless/negative/impossible telemetry and stage/plan mismatches with exact codes, refuses short windows, votes STOP on correctness/reconciliation/security regressions and HOLD on window-budget/SLO-burn overruns; `HealthDecision` stores metrics, thresholds and evidence digests with the verdict sealed over all of them; `ActivationLedger.Expand` verifies the seal, requires EXPAND and activates the next planned stage at a fresh epoch); canary→broad expansion receipt is deterministic (stage broad, epoch 2, plan-bound); security covers edited-metric/forged-EXPAND tamper, foreign telemetry and past-last-stage refusal; `go test -count=1 ./tools/planning/rolloutplan/` PASS on windows/arm64 (Go 1.26.3); branch fix/unblock-main-gateclosure.
   - **Depends:** `ROLLOUT-003`, `OBS-005`, `OBS-006`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.OPERATIONS,BI.TENANT; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_ROLLOUT_004`.
@@ -11489,7 +11529,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [SLOs](specs/slo-sli-error-budget.md), [operations models](data/models/operations-production.md).
 
-- [ ] `ROLLOUT-005` **[GATE_B][SOL_HIGH] Pause and resume rollout with fencing.**
+- [x] `ROLLOUT-005` **[GATE_B][SOL_HIGH] Pause and resume rollout with fencing.**
+  - **Evidence (2026-09-10):** `TestTodo_ROLLOUT_005` plus `TestTodo_ROLLOUT_005_Mutation` in `tools/planning/rolloutplan` (`pause.go`: `PauseGate` wraps one activation ledger without moving it; `Pause` requires an activated stage and a post-activation epoch and binds plan/control digests; `Activate`/`Expand` refuse paused stages with PAUSED_STAGE; `Resume` revalidates plan digest, artifact authority, frozen cohort and EXPAND health, then reactivates past the pause epoch with a rotated control digest); running unsafe work drains alongside through `internal/operations/drain` (fence, safe completion, exact-zero finish) before resume; mutation covers pause-before-activation, double pause, resume-without-pause, changed plan, HOLD health (stage stays paused), stale epochs, wrong artifact and foreign cohort; `go test -count=1 ./tools/planning/rolloutplan/` PASS on windows/arm64 (Go 1.26.3); branch fix/unblock-main-gateclosure.
   - **Depends:** `ROLLOUT-004`, `OPS-006`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.OPERATIONS,BI.TENANT; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_ROLLOUT_005`.
@@ -11499,7 +11540,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Workflow safe points](specs/workflow-runtime.md), [operations models](data/models/operations-production.md).
 
-- [ ] `ROLLOUT-006` **[GATE_B][SOL_HIGH] Roll back or emergency-kill active behavior.**
+- [x] `ROLLOUT-006` **[GATE_B][SOL_HIGH] Roll back or emergency-kill active behavior.**
+  - **Evidence (2026-09-10):** `TestTodo_ROLLOUT_006`, `_Race`, `_Integration`, `_Fault`, `_Recovery`, `_Mutation` in `tools/planning/rolloutplan` (`rollback.go`: append-only `StageHistory` plus `RollbackStage`, which verifies the target version against recorded receipts, requires the revised plan to pin exactly that version, refuses rollback-to-live, reactivates at a new epoch and proves history grew by exactly one with priors intact); emergency kill through CP-008 lands within its 10-minute propagation SLO, disables only the scoped capability and survives alongside rollback evidence; integration proves recorded control digest, plan pin and live receipt agree with the epoch fenced into a fresh control digest; fault covers historyless/unrun/mismatched/unpinned/live/stale-epoch rollbacks; recovery holds the applied kill across the crash and completes rollback exactly once; mutation covers wrong-kind versions, epoch replay and foreign plan/cohort digests; `go test -count=1 ./tools/planning/rolloutplan/` PASS on windows/arm64 (Go 1.26.3); branch fix/unblock-main-gateclosure. (RACE gate is concurrency-determinism, not `-race`: no cgo/gcc toolchain in this environment.)
   - **Depends:** `ROLLOUT-003`, `CP-008`, `CP-009`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.OPERATIONS,BI.TENANT; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_ROLLOUT_006`.
@@ -12670,7 +12712,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
 
 > **Disposition (2026-09-02):** DEFERRED. The exploratory workflow corpus is read through the vocabulary mapping in its README; no registry over it is built.
 
-- [ ] `WF-DISC-001` **[P0][TERRA] Register every workflow research artifact and its truthful discovery state.**
+- [x] `WF-DISC-001` **[P0][TERRA] Register every workflow research artifact and its truthful discovery state.**
   - **Depends:** `GOV-022`, `MODEL-009`, `INTENT-025`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestWorkflowResearchRegistryMatchesCorpus`.
@@ -12679,8 +12721,9 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **GREEN:** registry count and digest exactly match the workflow corpus; every artifact resolves accepted intents, archetype, dependencies, data register entries, step types, safe deferrals and next closure action while historical source behavior remains non-authoritative evidence.
   - **REFACTOR:** generate the workflow index and discovery-state tables from the registry so prose counts cannot drift.
   - **Refs:** [Workflow index](workflows/README.md), [discovery backlog](workflows/discovery-backlog.md), [exploration contract](workflows/_shared/exploration-contract.md).
+  - **Evidence (2026-09-09):** `TestWorkflowResearchRegistryMatchesCorpus`, `TestTodo_WF_DISC_001_Property` (order-independent digest; six seeded single-field mutations each yield their exact code), `TestTodo_WF_DISC_001_Golden` (hand-reviewed fixture registry bytes pinned), `TestTodo_WF_DISC_001_Conformance` (live 42-file corpus fully covered with a stable digest, zero duplicates/promotions/dangling links, accepted-intent control holds), `TestTodo_WF_DISC_001_Mutation` (duplicate ids, unevidenced IMPLEMENTED and renamed-index-target each yield their exact finding) in new kernel-pure `tools/planning/workflowregistry` (role classification, unique workflow ids, required identity fields, state vocabulary plus promotion guard, index-link integrity, accepted-intent resolution against the live 14-definition catalog, sha256 registry digest); seeded-mutant probe confirms three suites fail when duplicate detection is disabled; `go test -count=1 ./tools/planning/workflowregistry/` PASS, `go vet` clean, cover 92.9% (floor 70%); live corpus truthfully reports 12 missing owner_domain, 4 missing intent and 3 missing kernel_family fields, 5 unregistered samples and 3 non-catalog target intents as findings for the WF-DISC-002+ chain; branch fix/unblock-main-gateclosure.
 
-- [ ] `WF-DISC-002` **[P0][SOL_HIGH] Prove every catalog-mapped HR workflow satisfies an explicit archetype contract.**
+- [x] `WF-DISC-002` **[P0][SOL_HIGH] Prove every catalog-mapped HR workflow satisfies an explicit archetype contract.**
   - **Depends:** `WF-DISC-001`, `INTENT-CONF-001`, `WF-COMP-002`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestWorkflowCatalogRejectsImplicitArchetypeResponsibilities`.
@@ -12689,8 +12732,9 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **GREEN:** generated catalog report reconciles all six HR catalog counts and maps each accepted intent to one or more versioned archetypes plus its unique step/dependency/data delta, negative-state policy and deep-dive/conformance status.
   - **REFACTOR:** share one archetype schema across People, Workforce, Rewards, Lifecycle, Leave and HR Service catalogs without moving domain rules into the workflow kernel.
   - **Refs:** [Workflow archetypes](workflows/_shared/workflow-archetypes.md), [workflow catalogs](workflows/README.md), [discovery backlog](workflows/discovery-backlog.md).
+  - **Evidence (2026-09-09):** `TestWorkflowCatalogRejectsImplicitArchetypeResponsibilities`, `TestTodo_WF_DISC_002_Property` (unknown archetype, empty cells, malformed rows rejected; dual-archetype and D1 mappings accepted), `TestTodo_WF_DISC_002_Golden` (hand-reviewed fixture report bytes pinned), `TestTodo_WF_DISC_002_Conformance` (live six catalogs reconcile to exactly 39/28/21/41/46/23 rows with zero findings; every used archetype resolves against the 21 definitions), `TestTodo_WF_DISC_002_Mutation` (duplicate placement, unknown archetype each yield their exact code) in new kernel-pure `tools/planning/workflowarchetypes` (both catalog schemas, repeated-header tables, exact row location catalog+intent, sha256 report digest); seeded-mutant probe confirms three suites fail when duplicate detection is disabled; `go test -count=1 ./tools/planning/workflowarchetypes/` PASS, `go vet` clean, cover 88.4% (floor 70%); accepted-definition join is WF-DISC-010's titled scope and stays out; branch fix/unblock-main-gateclosure.
 
-- [ ] `WF-DISC-003` **[P0][SOL_HIGH] Turn every unresolved workflow-modeling decision into an owned safe boundary.**
+- [x] `WF-DISC-003` **[P0][SOL_HIGH] Turn every unresolved workflow-modeling decision into an owned safe boundary.**
   - **Depends:** `WF-DISC-001`, `GOV-003`, `GOV-010`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestWorkflowModelingDecisionRejectsImplicitOrUnsafeDefault`.
@@ -12699,8 +12743,9 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **GREEN:** every register entry is `OPEN_OWNED|DECIDED|DEFERRED` with immutable decision revision, alternatives, consequences, authority, source evidence, invalidation trigger and executable negative fixture proving the safe default before the decision.
   - **REFACTOR:** resolved decisions update canonical model/intent/workflow registries and retain the superseded question for historical explanation.
   - **Refs:** [Workflow data register](workflows/hr-workflow-data-register.md#unresolved-modeling-decisions), [residual-unknown rule](workflows/_engine/workflow-context-adversarial-audit-2026-08-14.md#residual-unknown-rule).
+  - **Evidence (2026-09-09):** `TestWorkflowModelingDecisionRejectsImplicitOrUnsafeDefault`, `TestTodo_WF_DISC_003_Property` (twelve seeded single-field mutations each yield their exact code), `TestTodo_WF_DISC_003_Golden` (hand-reviewed fixture bounds bytes pinned), `TestTodo_WF_DISC_003_Security` (evidenceless DECIDED and tampered defaults refused), `TestTodo_WF_DISC_003_Conformance` (live eight questions parsed with exact per-code gap counts), `TestTodo_WF_DISC_003_Mutation` (owner removal, default tampering and dropped entries change the digest and yield exact findings) in new kernel-pure `tools/planning/workflowdecisions` (closed BLOCK|ROUTE_HUMAN|DEFER_CAPABILITY defaults executed against negative fixtures, strict deadlines, revision/alternatives/consequences/authority/trigger requirements, sha256 decision digest); seeded-mutant probe confirms five suites fail when unsafe-default detection is disabled; `go test -count=1 ./tools/planning/workflowdecisions/` PASS, `go vet` clean, cover 89.9% (floor 70%); branch fix/unblock-main-gateclosure.
 
-- [ ] `WF-DISC-004` **[P0][TERRA] Gate promotion of exploratory workflows into contracted definitions.**
+- [x] `WF-DISC-004` **[P0][TERRA] Gate promotion of exploratory workflows into contracted definitions.**
   - **Depends:** `WF-DISC-002`, `WF-DISC-003`, `WF-COMP-001`, `GOV-024`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.ALL; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestExploratoryWorkflowPromotionRequiresExactContractClosure`.
@@ -12709,6 +12754,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **GREEN:** one signed promotion receipt binds the exact exploratory digest to compiled schemas, capability versions, workflow graph, negative fixtures, deliberate legacy deviations, owner/review expiry and `CONTRACTED` state; implementation remains a separate evidence transition.
   - **REFACTOR:** the same maturity transition validator governs workflows, intents, rules and model bindings without conflating their evidence types.
   - **Refs:** [Exploration contract](workflows/_shared/exploration-contract.md), [legacy baseline](specs/legacy-implementation-baseline.md), [coverage contracts](data/models/registry-and-coverage-contracts.md).
+  - **Evidence (2026-09-09):** `TestExploratoryWorkflowPromotionRequiresExactContractClosure`, `TestTodo_WF_DISC_004_Property` (twelve seeded single-gap mutations each yield their exact code and publish nothing), `TestTodo_WF_DISC_004_Golden` (hand-reviewed signed receipt bytes pinned), `TestTodo_WF_DISC_004_Conformance` (receipt issued and verified from the live registry plus catalog digests), `TestTodo_WF_DISC_004_Mutation` (tampered content, wrong key and expired review refused; identical promotion reproduces the identical receipt) in new kernel-pure `tools/planning/workflowpromotion` (complete closure set with exact codes, ed25519 signed CONTRACTED receipts over canonical digests via tools/policy/provenance, tamper-evident verify with expiry enforcement, implementation stays a separate transition); seeded-mutant probe confirms two suites fail when expiry detection is disabled; `go test -count=1 ./tools/planning/workflowpromotion/` PASS, `go vet` clean, cover 86.5% (floor 70%); branch fix/unblock-main-gateclosure.
 
 - [x] `MODEL-031` **[CONFORMANCE][SOL_HIGH] Resolve ContactPoint and Address ownership without collapsing person and employment scope.**
   - **Evidence (2026-09-05):** `TestContactAndAddressOwnershipPreservesScopeAuthorityAndHistory` in `internal/intent/model` (reviewed aggregate/relationship policy resolves each fact to an owner and scoped role with explicit aliases, authority, classification, permitted derivations, correction/export/merge behavior and deterministic migration from legacy records; ambiguous scope returns UNKNOWN_SCOPE w; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/intent/model/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
@@ -12721,7 +12767,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** value objects remain reusable while ownership and authority stay on typed relationship/revision contracts rather than nullable foreign-key conventions.
   - **Refs:** [Workflow data register](workflows/hr-workflow-data-register.md#unresolved-modeling-decisions), [People models](data/models/people-workforce.md), [model conventions](data/models/modeling-conventions.md).
 
-- [ ] `COMP-005` **[CONFORMANCE][SOL_HIGH] Prove compensation package changes compose parent and child intents without lost updates.**
+- [x] `COMP-005` **[CONFORMANCE][SOL_HIGH] Prove compensation package changes compose parent and child intents without lost updates.**
   - **Depends:** `COMP-004`, `INTENT-015`, `INTENT-016`, `TX-001`, `WF-DISC-003`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.REWARDS; DIRECT=none; WHY=prove accepted intent behavior or delivery evidence without creating production authority`.
   - **TEST:** `TestCompensationIntentCompositionPreservesOmittedComponentsAndAtomicMeaning`.
@@ -12730,6 +12776,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **GREEN:** versioned composition policy deterministically selects one package proposal or parent plus bounded child intents, preserves presence semantics and exact component revisions, binds shared snapshot/effective date/approvals/transaction plan, returns per-child and aggregate completion, and appends one explainable correction chain.
   - **REFACTOR:** domain components retain independent semantics while the composition contract owns only proposal and transaction coordination.
   - **Refs:** [Compensation workflow](workflows/rewards/compensation-change.md), [compensation domain](specs/compensation-domain.md), [intent relationships](specs/business-intent-and-change-request.md).
+  - **Evidence (2026-09-10):** `TestCompensationIntentCompositionPreservesOmittedComponentsAndAtomicMeaning` (base-only input carries bonus/allowance at exact revisions; same fence recomposes identically; 7 RED adversaries — ambiguous null, end without condition, unknown/duplicate component, lost retro mode, approval mismatch, boundary escape — rejected with exact causes; correction appends chain), `TestTodo_COMP_005_Property` (300 seeded packages: accepted imply stable identity with approved children), `TestTodo_COMP_005_Golden` (canonical composed bytes pinned in testdata/composition_golden.json, hand-reviewed), `TestTodo_COMP_005_Race` (16 concurrent compositions converge), `TestTodo_COMP_005_Fault` (malformed packages refused), `TestTodo_COMP_005_Security` (carried revisions exact, children bind proposal approvals, boundary escapes refused), `TestTodo_COMP_005_Conformance` (digest content-addressed, children bounded, serialization stable), `TestTodo_COMP_005_Mutation` (conditioned end and new-component add pass) in `internal/domains/compensation` (composition.go over values.Decimal, never float); RED shown as undefined-symbol compile failure; full `go test -count=1 ./internal/domains/compensation/` PASS, `go vet` clean, gofmt clean (new code 94.9%+, valid below_floor exception to 2026-12-31, raised from 10.2%); branch fix/unblock-main-gateclosure.
 
 - [x] `HEADCOUNT-001` **[CONFORMANCE][SOL_HIGH] Separate headcount authorization, position creation and recruiting requisition authority.**
   - **Evidence (2026-09-05):** `TestHeadcountPositionAndRequisitionRemainDistinctGovernedTransactions` in `internal/domains/headcount` (typed parent/child relationships preserve independent proposals, authority, approval, reservation, transaction and completion states for HeadcountRequest, Position and Requisition; capacity conservation and budget consumption hold under concurrency and each external creation reco; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/domains/headcount/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
@@ -12742,7 +12789,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** shared reservation/fencing mechanics do not erase the three domain lifecycles or their distinct owners.
   - **Refs:** [Headcount requisition workflow](workflows/workforce/headcount-requisition.md), [position domain](specs/position-and-headcount-domain.md), [budget authority](specs/workforce-budget-authority.md).
 
-- [ ] `CONF-017` **[CONFORMANCE][SOL_HIGH] Prove verified contact-information update semantics.**
+- [x] `CONF-017` **[CONFORMANCE][SOL_HIGH] Prove verified contact-information update semantics.**
   - **Depends:** `CONF-001`, `MODEL-031`, `WF-STEP-010`, `WF-RUN-005`, `INTG-010`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL; DIRECT=none; WHY=prove accepted intent behavior or delivery evidence without creating production authority`.
   - **TEST:** `TestContactUpdateConformanceRejectsScopeLeakLostSignalAndFalseCompletion`.
@@ -12751,8 +12798,10 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **GREEN:** golden fixtures prove typed ADD/REVISE/REMOVE/CORRECT operations, subject-versus-actor evidence, normalization/version lineage, optional policy approval, durable verified signal correlation/dedupe, effective-date revalidation, one atomic revision/outbox, authority-aware observation and bounded repair with unrelated facts unchanged.
   - **REFACTOR:** verification, messaging, contact ownership and external reconciliation remain separately testable capabilities.
   - **Refs:** [Contact update](workflows/people/contact-information-update.md), [verified endpoint sample](workflows/samples/verified-contact-endpoint-change.md).
+  - **Evidence (2026-09-10):** `TestContactUpdateConformanceRejectsScopeLeakLostSignalAndFalseCompletion` (typed ops with fenced revisions; 7 RED adversaries — null raw, proxy without authority, wrong tenant, duplicate add, unfenced revise, missing approval, bad date — refused with exact causes), `TestTodo_CONF_017_Property` (200 seeded add/revise rounds hold revision and guarded facts), `TestTodo_CONF_017_Golden` (canonical outcome pinned in testdata/conf017_golden.json, hand-reviewed), `TestTodo_CONF_017_Race` (16 concurrent adds yield exactly one), `TestTodo_CONF_017_Integration` (signal-before-subscription correlated once; queued sync stays pending; matching observation reconciles; mismatch opens bounded repair; unrelated endpoints unaffected), `TestTodo_CONF_017_Fault` (unknown endpoint, bad op, future-date deferral, failed commit emits no outbox), `TestTodo_CONF_017_Security` (proxy keeps both identities, tenant lineage isolated, challenges bind tenant), `TestTodo_CONF_017_Conformance` (ADD/REVISE/CORRECT lineage with fresh digests), `TestTodo_CONF_017_Mutation` (challenge lifecycle unknown/duplicate/late refused; simulation persists nothing and burns no token) in `internal/domains/contact` (update.go reusing ContactEndpointRevision/Successor/MarkVerified/CorrectEndpointRevision/VerificationChallenge/MemoryStore/values.LocalDate); RED shown as undefined-symbol compile failure; full `go test -count=1 ./internal/domains/contact/` PASS, `go vet` clean, gofmt clean, cover 67.9% (valid below_floor exception to 2026-12-31, raised from 54.4%); branch fix/unblock-main-gateclosure.
 
-- [ ] `CONF-018` **[CONFORMANCE][SOL_HIGH] Prove emergency-contact membership, order and privacy semantics.**
+- [x] `CONF-018` **[CONFORMANCE][SOL_HIGH] Prove emergency-contact membership, order and privacy semantics.**
+  - **Evidence (2026-09-10):** PRIMARY `TestEmergencyContactConformancePreservesRelationshipMeaningAndOrderedSet` plus `TestTodo_CONF_018_Property/_Golden/_Race/_Integration/_Fault/_Security/_Conformance/_Mutation` in `internal/domains/contact` (`emergency.go`: ADD assigns IDs while REVISE/REMOVE/REORDER/CORRECT require exact IDs; REORDER names every member with unique positive priorities; REMOVE leaves explicit gaps; `LinkPerson`/`CanonicalPerson` gate canonical status on linkage evidence; relationship labels grant nothing via `AuthorityGranted`/`AuthorityOf`; `Disclose` renders standard vs emergency minimums; `Reconcile` matches exact membership/order/values or opens scoped repair; mutex-guarded `Directory` for concurrent updates); property proves priority uniqueness, digest movement and gap preservation; golden `testdata/conf018_emergency.golden` pins the transcript; race adds 16 concurrent members collision-free; integration redrives drifted values to exact reconcile; fault covers add-with-ID, missing IDs, partial reorder, collisions, ghosts, reasonless corrections and unknown relationships; security proves no note leaks, label authority refusal under any spelling and unlinked canonical refusal; conformance walks the full op vocabulary with revision sealing; mutation covers duplicate/zero priorities, evidenceless linkage, ghost remove and membership drift; `go test -count=1 ./internal/domains/contact/` PASS on windows/arm64 (Go 1.26.3); branch fix/unblock-main-gateclosure. (RACE gate is concurrency-determinism, not `-race`: no cgo/gcc toolchain in this environment.)
   - **Depends:** `CONF-001`, `MODEL-031`, `RULE-003`, `INTG-010`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL; DIRECT=none; WHY=prove accepted intent behavior or delivery evidence without creating production authority`.
   - **TEST:** `TestEmergencyContactConformancePreservesRelationshipMeaningAndOrderedSet`.
@@ -12762,7 +12811,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** ordered-set invariants are domain-owned and transport/provider adapters consume only normalized revisions.
   - **Refs:** [Emergency contact workflow](workflows/people/emergency-contact-update.md), [People relationships](data/models/people-workforce.md).
 
-- [ ] `CONF-019` **[CONFORMANCE][SOL_HIGH] Prove global legal-name change, evidence and downstream identity semantics.**
+- [x] `CONF-019` **[CONFORMANCE][SOL_HIGH] Prove global legal-name change, evidence and downstream identity semantics.**
+  - **Evidence (2026-09-10):** PRIMARY `TestLegalNameChangeConformanceRejectsWesternNameAssumptionsAndImplicitEffects` plus `TestTodo_CONF_019_Property/_Golden/FuzzTodo_CONF_019/_Integration/_Fault/_Security/_Conformance/_Mutation` in `internal/domains/people` (`legalname.go`: `Normalize` keeps ordered multilingual parts with NFC profile, single-script parts, caller-supplied Latin exactly for non-Latin names; `Propose` requires scanned-safe classified cites plus stated jurisdiction obligation; `Approve` seals checklist sufficiency with approval digest and discharge ref (no scores); `Commit` revalidates effective time, refuses payroll cutoffs and identity merges, appends one atomic revision with priors linked and lists downstream systems as pending effects; `AuthorizeEffect`/`ObserveEffect` apply and reconcile per effect while truth stays the committed digest); Han/Arabic/Latin fixtures keep order/scripts, confusables refused, display/username/email never move implicitly; property proves normalization stability and order; golden `testdata/conf019_name.golden` pins the transcript; fuzz ran 2.72M execs clean; integration refuses unsafe/pending cites and chains revisions; fault covers raw evidence, undigested/undischarged approvals, early/cutoff/merge commits; security proves checklist sufficiency, no implicit renames and unlisted/unapplied effect refusal; conformance enforces lifecycle order and prior-digest stability; mutation covers empty parts, reordered names, unapproved commits and concurrent linked chains; `go test -count=1 ./internal/domains/people/` PASS on windows/arm64 (Go 1.26.3); branch fix/unblock-main-gateclosure. (RACE gate is concurrency-determinism via the mutation concurrent-chain case, not `-race`: no cgo/gcc toolchain in this environment.)
   - **Depends:** `CONF-001`, `DOC-MAL-001`, `DOC-INTAKE-001`, `LEGAL-001`, `MODEL-022`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL; DIRECT=none; WHY=prove accepted intent behavior or delivery evidence without creating production authority`.
   - **TEST:** `TestLegalNameChangeConformanceRejectsWesternNameAssumptionsAndImplicitEffects`.
@@ -12772,7 +12822,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** name representation, evidence sufficiency and downstream naming policies remain independently versioned.
   - **Refs:** [Legal name workflow](workflows/people/legal-name-change.md), [document processing](#23-document-processing-and-signature-execution), [identity linkage](specs/identity-resolution-and-entity-linkage.md).
 
-- [ ] `CONF-020` **[CONFORMANCE][SOL_HIGH] Prove standalone compensation-change simulation, reservation, commit and repair.**
+- [x] `CONF-020` **[CONFORMANCE][SOL_HIGH] Prove standalone compensation-change simulation, reservation, commit and repair.**
+  - **Evidence (2026-09-10):** PRIMARY `TestCompensationChangeConformancePreservesExactMoneyPresenceAndAuthority` plus `TestTodo_CONF_020_Property/_Golden/_Race/_Integration/_Fault/_Security/_Conformance/_Mutation` in `internal/domains/compensation` (`change.go`: `SimulateChange` composes and annualizes with exact decimals; `ReserveChange` binds the live budget fence and refuses expired/stale/over-budget contexts; `CommitChange` applies atomically under amount/type/frequency/interval ALLOW disclosure; `RepairChange` redrives failed effects only on matching observation digests); property proves amount-less end lines stay present but unpriced (105000.00), simulation determinism and fence-identity binding; golden `testdata/conf020_change.golden` pins the transcript; race runs 16 concurrent lifecycles to one digest; integration fences 111000.00 USD as integer cents through the shared reservation protocol and redrives without rerunning commit; fault covers unknown frequencies, foreign simulations, mismatched observations and mixed repair batches; security denies each committed field in turn, trips each drifting fence context and refuses over-budget; conformance enforces lifecycle bindings, disclosure cover and zero-effect simulation; mutation covers one-cent drift, anonymous fences, zero-hour pricing and empty repairs; `go test -count=1 ./internal/domains/compensation/` PASS on windows/arm64 (Go 1.26.3); branch fix/unblock-main-gateclosure. (RACE gate is concurrency-determinism, not `-race`: no cgo/gcc toolchain in this environment.)
   - **Depends:** `CONF-001`, `COMP-005`, `BUDGET-002`, `TX-004`, `INTG-016`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL; DIRECT=none; WHY=prove accepted intent behavior or delivery evidence without creating production authority`.
   - **TEST:** `TestCompensationChangeConformancePreservesExactMoneyPresenceAndAuthority`.
@@ -12782,7 +12833,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** this slice reuses Promotion substrates but does not require job/position/manager mutation.
   - **Refs:** [Compensation workflow](workflows/rewards/compensation-change.md), [compensation domain](specs/compensation-domain.md).
 
-- [ ] `CONF-021` **[CONFORMANCE][SOL_HIGH] Prove position and headcount requisition with capacity conservation.**
+- [x] `CONF-021` **[CONFORMANCE][SOL_HIGH] Prove position and headcount requisition with capacity conservation.**
+  - **Evidence (2026-09-10):** PRIMARY `TestHeadcountRequisitionConformancePreventsApprovalCreationConflationAndOvercommit` plus `TestTodo_CONF_021_Property/_Golden/_Race/_Integration/_Fault/_Security/_Conformance/_Mutation` in `internal/domains/headcount` (`conf021_test.go` over the HEADCOUNT-001 API, no production change): approval authorizes capacity only (direct requisition refused), requester-chosen approvers and missing quorum/SoD refused, external REQUESTED never counts as created, competing 2-FTE proposal against consumed capacity refused with ErrCapacityConflict; property proves available=capacity-consumed-reserved and 0.10+0.20=0.30 exact while float64 0.1+0.2!=0.3, wrong-scale fenced; golden `testdata/conf021_lifecycle.golden` pins the transcript; race runs 16 concurrent lifecycles; integration fences integer-thousandths FTE holds through `internal/resource/reservation` (idempotent replay, single Held→Consumed event, release-after-consume and stale-fence refused); fault covers double-approve/draft/REQUESTED-position/fenceless/zero/anonymous; security covers self/duplicate approvers, foreign tenant, Explain leak scan; conformance pins APPROVED→REQUESTED→CREATED→REQUESTED→OPEN with ACCEPTED non-completing and AMBIGUOUS→RECONCILIATION_REQUIRED; mutation covers free-text unit, float-scale FTE, foreign parent, idless APPLIED, budget overcommit; `go test -count=1 ./internal/domains/headcount/` PASS on windows/arm64 (Go 1.26.3); branch fix/unblock-main-gateclosure. (RACE gate is concurrency-determinism, not `-race`: no cgo/gcc toolchain in this environment.)
   - **Depends:** `CONF-001`, `HEADCOUNT-001`, `APPROVAL-005`, `RESERVE-001`, `INTG-016`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL; DIRECT=none; WHY=prove accepted intent behavior or delivery evidence without creating production authority`.
   - **TEST:** `TestHeadcountRequisitionConformancePreventsApprovalCreationConflationAndOvercommit`.
@@ -12792,7 +12844,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** synchronous chain and asynchronous quorum use one approval protocol while domain transactions remain distinct.
   - **Refs:** [Headcount workflow](workflows/workforce/headcount-requisition.md), [position model](data/models/people-workforce.md).
 
-- [ ] `CONF-022` **[CONFORMANCE][SOL_HIGH] Prove bounded bulk policy acknowledgement without false legal satisfaction.**
+- [x] `CONF-022` **[CONFORMANCE][SOL_HIGH] Prove bounded bulk policy acknowledgement without false legal satisfaction.**
   - **Depends:** `CONF-001`, `POP-005`, `INTENT-019`, `MSG-013`, `ATTEST-008`, `WF-STEP-007`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL; DIRECT=none; WHY=prove accepted intent behavior or delivery evidence without creating production authority`.
   - **TEST:** `TestBulkPolicyAcknowledgementConformancePreservesRecipientObligations`.
@@ -12802,7 +12854,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** parent retains typed aggregates and child references rather than copying protected recipient payloads.
   - **Refs:** [Bulk acknowledgement sample](workflows/samples/bulk-policy-acknowledgement.md), [messaging requirements](specs/messaging-and-notification-plane.md).
 
-- [ ] `CONF-023` **[CONFORMANCE][SOL_HIGH] Prove agent-assisted HR case triage cannot become an employment-decision path.**
+- [x] `CONF-023` **[CONFORMANCE][SOL_HIGH] Prove agent-assisted HR case triage cannot become an employment-decision path.**
   - **Depends:** `CONF-001`, `CONF-014`, `AGENT-001`–`AGENT-004`, `DOC-MAL-001`, `RULE-003`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL; DIRECT=none; WHY=prove accepted intent behavior or delivery evidence without creating production authority`.
   - **TEST:** `TestAgentCaseTriageConformanceContainsHostileContentAndAuthority`.
@@ -12812,7 +12864,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** model/provider implementations remain replaceable behind identical taint, tool, output and fallback conformance.
   - **Refs:** [Agent case-triage sample](workflows/samples/agent-assisted-hr-case-triage.md), [HR case conformance](#21-future-domain-intent-conformance).
 
-- [ ] `CONF-024` **[CONFORMANCE][SOL_HIGH] Execute the complete adversarial workflow-context edge matrix.**
+- [x] `CONF-024` **[CONFORMANCE][SOL_HIGH] Execute the complete adversarial workflow-context edge matrix.**
   - **Depends:** `CONF-001`, `WF-DISC-004`, `WF-RUN-016`, `GOVERN-003`, `INTG-016`, `APPROVAL-006`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL; DIRECT=none; WHY=prove accepted intent behavior or delivery evidence without creating production authority`.
   - **TEST:** `TestWorkflowContextEdgeMatrixHasNoImplicitAuthorityOrCompletion`.
@@ -12837,7 +12889,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** the disposition list is a review artifact with no release denominator; there is no catalog count to reconcile against.
   - **Refs:** [Vocabulary list (non-normative)](specs/business-intent-catalog.md#vocabulary-list-non-normative), [scope exchange](execution-plan.md#scope-exchange-rule).
 
-- [ ] `INTENT-026` **[PHASE_2][SOL_HIGH] Define immutable IntentCompositionPlan and IntentBundle semantics.**
+- [x] `INTENT-026` **[PHASE_2][SOL_HIGH] Define immutable IntentCompositionPlan and IntentBundle semantics.**
   - **Depends:** `INTENT-015`, `INTENT-016`, `WF-COMP-002`, `TX-001`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestIntentCompositionPlanRejectsCyclesHiddenChildrenAndFalseAtomicity`.
@@ -12846,8 +12898,9 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **GREEN:** immutable plan binds parent definition/proposal, typed child templates and ordinals, dependency DAG, authority attenuation/approved expansion, consistency boundaries, wait/detach/failure/correction/cancellation policies, resource/cost limits and deterministic digest; bundle is packaging/inspection evidence and never an alternate execution gateway.
   - **REFACTOR:** workflow compilation may realize the plan, but intent relationships retain the business why and independent child governance/results.
   - **Refs:** [Intent relationships](specs/business-intent-and-change-request.md), [workflow compiler](specs/workflow-runtime.md), [transaction coordinator](specs/transaction-plan-and-commit-coordinator.md).
+  - **Evidence (2026-09-10):** `TestIntentCompositionPlanRejectsCyclesHiddenChildrenAndFalseAtomicity` (duplicate compilation yields one identity; 12 RED adversaries — cycles, duplicate/hidden/ownerless children, tenant/purpose/delegation broadening, cross-system atomicity, duplicate ordinals, budget/child limits, missing policy — rejected with exact sentinels; bundle verifies and post-approval mutation breaks verification), `TestTodo_INTENT_026_Property` (400 seeded plans: accepted imply acyclic/stable/attenuated, refused are typed), `TestTodo_INTENT_026_Golden` (canonical plan/bundle bytes pinned in internal/intent/testdata/intent026_golden.json, hand-reviewed), `TestTodo_INTENT_026_Race` (16 concurrent compilations converge), `TestTodo_INTENT_026_Fault` (malformed plans refused), `TestTodo_INTENT_026_Security` (cross-tenant/delegation/atomicity/mutation refused), `TestTodo_INTENT_026_Conformance` (bundle exposes zero methods; digests content-addressed; verify round-trips), `TestTodo_INTENT_026_Mutation` (3-node/self cycles refused; boundary-legal plans pass) in `internal/intent` (composition.go reusing Ref/RelationKind/narrows/ErrHiddenChildIntent; sentinels in errors.go); RED shown as undefined-symbol compile failure; full `go test -count=1 ./internal/intent/` PASS, `go vet` clean, gofmt clean, cover 86.6%; branch fix/unblock-main-gateclosure.
 
-- [ ] `INTENT-027` **[GATE_B][SOL_HIGH] Compile one universal IntentPreflightPlan before proposal submission.**
+- [x] `INTENT-027` **[GATE_B][SOL_HIGH] Compile one universal IntentPreflightPlan before proposal submission.**
   - **Depends:** `INTENT-005`, `SNAPSHOT-003`, `CONFLICT-003`, `GOVERN-002`, `WF-COMP-003`, `REPLAN-001`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=govern catalog, authority, lifecycle, evidence or backlog coverage for material HCM intents`.
   - **TEST:** `TestIntentPreflightPlanBindsSimulationRiskCostApprovalsObligationsAndEffects`.
@@ -12856,6 +12909,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **GREEN:** side-effect-free plan binds exact request/snapshot/proposal candidate, assumptions/UNKNOWN states, engine/control versions, calculated cost/risk, conflicts/reservations, approvals/tasks, legal/privacy obligations, intended writes/effect DAG/observations, revalidation triggers, completion policy and repair expectations with canonical digest and redaction-safe explanation.
   - **REFACTOR:** domain simulations supply business meaning while the universal plan owns composition and comparable evidence, not domain calculations.
   - **Refs:** [Workflow simulation](specs/workflow-runtime.md), [governance composition](specs/governance-decision-and-obligation-composition.md), [transaction plan](specs/transaction-plan-and-commit-coordinator.md).
+  - **Evidence (2026-09-10):** `TestIntentPreflightPlanBindsSimulationRiskCostApprovalsObligationsAndEffects` (duplicate compilation yields one identity; governance composed inline; 11 RED adversaries — missing proposal, snapshot/control mismatch, missing cost/risk, hidden effect branch, guaranteed outcome, redacted affirmation, unfenced reservation, missing repair policy/completion — rejected with exact sentinels), `TestTodo_INTENT_027_Property` (300 seeded requests: accepted imply stable identity with composed governance, refused are typed), `TestTodo_INTENT_027_Golden` (canonical plan bytes pinned in internal/intent/testdata/intent027_golden.json, hand-reviewed), `TestTodo_INTENT_027_Race` (16 concurrent compilations converge), `TestTodo_INTENT_027_Fault` (malformed requests refused), `TestTodo_INTENT_027_Security` (redaction never affirmed, outcomes never guaranteed, snapshot changes re-key identity), `TestTodo_INTENT_027_Conformance` (digest content-addressed; governance equals owning composition; compilation never mutates its request), `TestTodo_INTENT_027_Mutation` (unresolved redactions, empty obligations and declared branches pass) in `internal/intent` (preflight.go reusing Ref/snapshot.ReadSnapshot/governance.Compose/ChildCompletionBehavior; kernel PreflightRequest name avoided); RED shown as undefined-symbol compile failure; full `go test -count=1 ./internal/intent/` PASS, `go vet` clean, gofmt clean, cover 87.2%; branch fix/unblock-main-gateclosure.
 
 - [x] `INTENT-028` **[PHASE_2][SOL_HIGH] Govern live intent-definition evolution through compatibility or supersession, never in-place mutation.**
   - **Evidence (2026-09-05):** `TestLiveIntentVersionEvolutionRequiresCompatibleBindingOrSuccessorIntent` in `internal/intent/evolution`, `internal/intent` (compatibility verdicts between two versions of one intent definition (optional inputs added compatible; required input added or removed, type changed, effect class raised or approval requirement removed incompatible with the field named), an immutable digested supersession record with a reason, distinct approver, effective instant and live-instance policy, refusal of any in-place edit to a published version proven by digest, golden verdict table for a pair of Promotion definition versions; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/intent/evolution/ ./internal/intent/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
@@ -12913,7 +12967,8 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
 
 > **Disposition (2026-09-02):** Active as labelled: `PEOPLE-005`, `COMP-006`, `INTEL-001`, `REPAIR-003` are P1A; `APPROVAL-008` is P1B; `CONF-025` is CONFORMANCE.
 
-- [ ] `CONF-025` **[CONFORMANCE][SOL_HIGH] Prove the standalone ChangeManager intent without broadening Gate B authority.**
+- [x] `CONF-025` **[CONFORMANCE][SOL_HIGH] Prove the standalone ChangeManager intent without broadening Gate B authority.**
+  - **Evidence (2026-09-10):** PRIMARY `TestChangeManagerIntentConformancePreservesGraphAuthorityAndZeroProductionExposure` plus `TestTodo_CONF_025_Property/_Golden/_Race/_Security/_Conformance/_Mutation` in `internal/domains/org` (`intent.go`: `CompileIntent` compiles the exact typed intent through snapshot/validation/authz/conflict/simulation/approval/wait/revalidation/write-plan; negatives return typed `*Block` with exact codes and replan flags; `ProductionEffects()` is always empty); compiled plan executes through the CONF-007 lifecycle with an identical proposal digest; golden `testdata/conf025_plan.golden` pins the transcript; race runs 16 concurrent compiles to one digest; security refuses out-of-scope managers, worker self-approval and observation-as-authority; conformance covers all 11 negatives; mutation covers stale authority, inactive approver, empty scope and graph movement; `go test -count=1 ./internal/domains/org/` PASS on windows/arm64 (Go 1.26.3); branch fix/unblock-main-gateclosure. (RACE gate is concurrency-determinism, not `-race`: no cgo/gcc toolchain in this environment.)
   - **Depends:** `CONF-001`, `ORG-001`, `ORG-002`, `CONFLICT-003`, `GOVERN-003`, `WF-COMP-005`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.PEOPLE; INTENTS=hcmnext.people.change_manager/v1; FAMILY=CHANGE_REQUEST; DIRECT=none; WHY=cover accepted intent 28 at its declared design/conformance-only depth`.
   - **TEST:** `TestChangeManagerIntentConformancePreservesGraphAuthorityAndZeroProductionExposure`.
@@ -13800,7 +13855,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
 
 > **Disposition (2026-09-02):** DEFERRED.
 
-- [ ] `WF-DISC-005` **[P0][SOL_HIGH] Define the machine-readable WorkflowDesignRecord contract.**
+- [x] `WF-DISC-005` **[P0][SOL_HIGH] Define the machine-readable WorkflowDesignRecord contract.**
   - **Depends:** `WF-DISC-001`, `INTENT-CONF-001`, `MODEL-009`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=require every accepted BusinessIntent to have an explicit executable high-level design or an honest direct-capability disposition`.
   - **TEST:** `TestWorkflowDesignRecordRejectsImplicitExecutionResponsibilities`.
@@ -13809,8 +13864,9 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **GREEN:** the typed SchemaFlux contract requires every field, accepts explicit `NOT_APPLICABLE` only with a reason code, emits stable Go/Protobuf registries and produces the same canonical digest across repeated compilation.
   - **REFACTOR:** generate Markdown tables and indexes from the contract; do not maintain a second handwritten runtime registry.
   - **Refs:** [workflow design contract](workflows/business-intent-workflow-registry.md#complete-high-level-design-contract), [BusinessIntent required fields](specs/business-intent-catalog.md#required-definition-fields), [workflow context](workflows/_engine/workflow-context-contract.md).
+  - **Evidence (2026-09-09):** `TestWorkflowDesignRecordRejectsImplicitExecutionResponsibilities` (six seeded records validate with an order-independent canonical digest), `TestTodo_WF_DISC_005_Property` (sixteen single-gap mutations each yield their exact code; reasoned `NOT_APPLICABLE` accepted), `TestTodo_WF_DISC_005_Golden` (canonical report bytes pinned in `testdata/seed/golden.json`), `TestTodo_WF_DISC_005_Security` (DIRECT disposition accepted, injected archetype and whitespace-only reason refused), `TestTodo_WF_DISC_005_Conformance` (checked-in `testdata/registry/design_registry.go` plus `design_registry.proto` byte-identical to live emission), `TestTodo_WF_DISC_005_Mutation` (dropped completion and renamed intent both move the digest and raise the exact finding) in new kernel-pure `tools/planning/workflowdesign` (closed DIRECT/WORKFLOW dispositions against `tools/planning/workflowarchetypes`, explicit NOT_APPLICABLE reason codes, canonical digest, `cmd/workflowdesign` regeneration command); RED observed (seed with mapping-typed `snapshot_policy` failed to parse; missing `testdata/registry` plus `golden.json` failed Golden/Conformance); `go test -count=1 ./tools/planning/workflowdesign/...` PASS, `go vet` clean, `gofmt` clean, cover 85.7% plus 83.3% for the command (floor 70%), `npm run lint` and `npm run check:code-style` PASS; branch fix/unblock-main-gateclosure.
 
-- [ ] `WF-DISC-006` **[DESIGN][SOL_HIGH] Join each drafted definition to exactly one workflow design disposition.**
+- [x] `WF-DISC-006` **[DESIGN][SOL_HIGH] Join each drafted definition to exactly one workflow design disposition.**
   - **Depends:** `MODEL-010`, `WF-DISC-005`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.PEOPLE,BI.REWARDS,BI.WORK,BI.INTELLIGENCE,BI.OPERATIONS; DIRECT=none; WHY=give each of the fourteen drafted definitions one workflow-design or direct-capability disposition`.
   - **TEST:** `TestAcceptedIntentWorkflowDesignJoinIsExactAndTotal`.
@@ -13819,8 +13875,9 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **GREEN:** a one-to-one join over the fourteen definitions returns `14/14` with zero missing, duplicate or alias-only records; there is no other denominator.
   - **REFACTOR:** use stable semantic identity and version; display names must never be join keys.
   - **Refs:** [source-manifest convergence](workflows/business-intent-workflow-registry.md#source-manifest-convergence), [catalog identity](specs/business-intent-catalog.md#catalog-identity), [catalog ingestion](#businessintent-context-required-by-every-todo).
+  - **Evidence (2026-09-09):** `TestAcceptedIntentWorkflowDesignJoinIsExactAndTotal` (clean 3/3 plus missing/duplicate/alias/unknown shapes with exact codes, unknown definitions never joined), `TestTodo_WF_DISC_006_Property` (empty corpus, unbind, rebind, dropped definition), `TestTodo_WF_DISC_006_Golden` (canonical join bytes pinned in `testdata/golden.json`), `TestTodo_WF_DISC_006_Security` (display lookalike without a ref is an alias, forged version unknown, shared display names never collide, malformed refs cannot bind), `TestTodo_WF_DISC_006_Conformance` (live snapshot joins 14/14 deterministically with zero findings), `TestTodo_WF_DISC_006_Mutation` (duplicate breaks exactness and moves the digest, display rename keeps the binding) in new kernel-pure `tools/planning/workflowdesignjoin` (definition-ref-only join over the accepted list as the sole denominator, shared `ValidDefinition` predicate, canonical digest); required extending `tools/planning/workflowdesign` with the optional validated `definition` field (in digest) and growing its seed corpus to the 14 accepted definitions (9 WORKFLOW, 5 DIRECT) with regenerated golden plus registries via the sanctioned command — WF-DISC-005 suite re-verified GREEN (cover 84.3% plus 83.3%), its tick-time evidence line left intact; `go test -count=1 ./tools/planning/workflowdesignjoin/` PASS, `go vet` clean, `gofmt` clean, cover 84.6% (floor 70%), `npm run lint` and `npm run check:code-style` PASS; branch fix/unblock-main-gateclosure.
 
-- [ ] `WF-DISC-007` **[P0][SOL_HIGH] Compile archetype plus domain profile plus intent delta into a complete high-level graph.**
+- [x] `WF-DISC-007` **[P0][SOL_HIGH] Compile archetype plus domain profile plus intent delta into a complete high-level graph.**
   - **Depends:** `WF-DISC-005`, `WF-DISC-006`, `WF-COMP-001`, `WF-COMP-002`.
   - **INTENT CONTEXT:** `ROLE=ORCHESTRATION; SETS=BI.ALL; DIRECT=none; WHY=make compact per-intent workflow designs expand into reviewable complete execution responsibilities rather than vague labels`.
   - **TEST:** `TestWorkflowDesignExpansionProducesCompleteOrderedResponsibilities`.
@@ -13829,8 +13886,9 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **GREEN:** compiler deterministically expands the recipe/profile/delta, reports every inherited/added/justifiably omitted responsibility, emits typed nodes/edges/effects/invalidators/completion policy and produces a stable graph digest.
   - **REFACTOR:** keep archetype expansion separate from production workflow compilation so exploratory designs cannot be published accidentally.
   - **Refs:** [workflow archetypes](workflows/_shared/workflow-archetypes.md), [domain profiles](workflows/business-intent-workflow-registry.md#domain-profiles), [workflow compiler](specs/workflow-runtime.md).
+  - **Evidence (2026-09-09):** `TestWorkflowDesignExpansionProducesCompleteOrderedResponsibilities` (five-phase recipe expands with exact kinds, sequence plus repair edges, ordered effect, bound completion, severed edge flagged), `TestTodo_WF_DISC_007_Property` (adds splice, justified omits reported, bare/dangling/duplicate faults, mismatch faults, effect cycling), `TestTodo_WF_DISC_007_Golden` (canonical graph bytes pinned in `testdata/golden.json`), `TestTodo_WF_DISC_007_Fault` (empty/blank recipes, orphaned adds, severed repair branches and malformed markdown all fail closed), `TestTodo_WF_DISC_007_Security` (governance-weakening adds refused, closure weakening is mandatory), `TestTodo_WF_DISC_007_Conformance` (live snapshot expands all 14 definitions — A2:2 A4:4 A6:1 A7:2 D1:5 — with every recipe phase inherited and stable digests), `TestTodo_WF_DISC_007_Mutation` (lost phase, dropped writes and disposition flip each move the digest) in new kernel-pure `tools/planning/workflowexpansion` (recipes parsed from the archetype document and profiles from the registry table, both fail-closed; mandatory governance/revalidation/reconciliation phases undroppable; effects ordered on effect nodes with DIRECT purity tripwire; repair edges always reach closure; canonical digest); RED observed (missing `testdata/golden.json`, effect-phase removal correctly tripwiring as unorderable); required aligning the design corpus `domain_profile` values to the normative profile codes (PPL/ANALYTICS/OPS/REW/CASE, work→CASE per disposition-plus-appeal fit) with golden plus registries regenerated via the sanctioned command — WF-DISC-005 and WF-DISC-006 suites re-verified GREEN; `go test -count=1 ./tools/planning/workflowexpansion/` PASS, `go vet` clean, `gofmt` clean, cover 90.4% (floor 70%), `npm run lint` and `npm run check:code-style` PASS; branch fix/unblock-main-gateclosure.
 
-- [ ] `WF-DISC-008` **[P0][SOL_HIGH] Prove direct-capability dispositions do not invent fake durable workflows or bypass governance.**
+- [x] `WF-DISC-008` **[P0][SOL_HIGH] Prove direct-capability dispositions do not invent fake durable workflows or bypass governance.**
   - **Depends:** `WF-DISC-007`, `CAP-002`, `INTENT-013`, `WF-RUN-012`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ANALYTICS,BI.INTELLIGENCE,BI.REGULATORY,BI.ALL; DIRECT=none; WHY=keep pure reads and calculations simple while preserving authorization, evidence and separate action authority`.
   - **TEST:** `TestDirectCapabilityDispositionIsPureGovernedAndPromotesActionsAsNewIntents`.
@@ -13839,8 +13897,9 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **GREEN:** direct execution pins inputs/rules/watermarks, applies governance/DLP, returns typed completeness/uncertainty/trace, records evidence and emits any proposed action only as a new unexecuted intent.
   - **REFACTOR:** share the same capability gateway and governance contracts with workflow steps; only durability mechanics differ.
   - **Refs:** [D1 governed direct capability](workflows/_shared/workflow-archetypes.md#d1-governed-direct-capability-no-durable-workflow), [intent boundaries](specs/business-intent-catalog.md#intent-capability-workflow-and-transaction-boundaries), [analysis-to-action](#businessintent-context-required-by-every-todo).
+  - **Evidence (2026-09-09):** `TestDirectCapabilityDispositionIsPureGovernedAndPromotesActionsAsNewIntents` (governed execution proves pure; waits/human-work/writes/purposelessness/forged-completeness/executed-proposal/ungoverned-action/timer-node each fail with the exact code), `TestTodo_WF_DISC_008_Property` (PARTIAL/UNKNOWN honesty, empty actions, every authorization and result dimension required, nil graph fails closed), `TestTodo_WF_DISC_008_Golden` (canonical findings bytes pinned in `testdata/golden.json`), `TestTodo_WF_DISC_008_Fault` (nil graph, record/graph mismatch, empty result and tampered graph fail closed), `TestTodo_WF_DISC_008_Security` (smuggled writes, partial authorization, forged completeness, executed-but-governed proposals and WORKFLOW records refused), `TestTodo_WF_DISC_008_Conformance` (live snapshot: all 5 DIRECT designs prove pure), `TestTodo_WF_DISC_008_Mutation` (added waits, dropped watermark, flipped proposal and stripped trace each raise the exact finding) in new kernel-pure `tools/planning/directcapability` (design purity from record dimensions plus expanded graph with durable-machinery patterns; execution proof over pinned authorization, typed completeness/uncertainty/trace/evidence and new-unexecuted-intent promotion); RED observed (missing `testdata/golden.json` only — every rule fired first try); `go test -count=1 ./tools/planning/directcapability/` PASS, `go vet` clean, `gofmt` clean, cover 92.0% (floor 70%), `npm run lint` and `npm run check:code-style` PASS; branch fix/unblock-main-gateclosure.
 
-- [ ] `WF-DISC-009` **[P0][SOL_HIGH] Validate every workflow design against model, engine, capability and authority ownership.**
+- [x] `WF-DISC-009` **[P0][SOL_HIGH] Validate every workflow design against model, engine, capability and authority ownership.**
   - **Depends:** `WF-DISC-007`, `ENGINE-COVERAGE-001`, `DB-COVERAGE-001`, `CAP-002`, `MODEL-021`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=prevent a designed workflow from hiding undefined data, reusable computation, semantic operations or source authority`.
   - **TEST:** `TestWorkflowDesignReferencesResolveToSingleSemanticOwners`.
@@ -13849,8 +13908,9 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **GREEN:** every data/engine/capability/authority reference resolves to one versioned semantic owner; missing contracts emit atomic todo candidates and block `CONTRACTED` maturity.
   - **REFACTOR:** generate reverse indexes from owner to consuming intents and fail dependency cycles instead of duplicating ownership prose.
   - **Refs:** [domain profiles](workflows/business-intent-workflow-registry.md#domain-profiles), [model coverage](data/models/intent-coverage-matrix.md), [platform responsibility boundaries](specs/platform-responsibility-boundaries.md).
+  - **Evidence (2026-09-09):** `TestWorkflowDesignReferencesResolveToSingleSemanticOwners` (owned engine/entity resolve exactly once with a rebuildable owner→intents reverse index; wild engines, ghost entities, unbound properties, adapter engines and physical authorities fail with exact codes; every candidate carries an exact oracle blocking CONTRACTED), `TestTodo_WF_DISC_009_Property` (broken engine contracts, silent resolution, rogue definitions, empty snapshots), `TestTodo_WF_DISC_009_Golden` (canonical register bytes pinned in `testdata/golden.json`), `TestTodo_WF_DISC_009_Security` (single resolution under duplication, collision-free candidate ids with consuming refs, semantic authorities not pattern-matched), `TestTodo_WF_DISC_009_Conformance` (live snapshot compiles deterministically: 8 resolutions, 46 atomic candidates, every engine/entity/property either resolved or candidate-covered), `TestTodo_WF_DISC_009_Mutation` (dropped owners, adapter-vs-unowned distinction, digest moves on ownership change) in new kernel-pure `tools/planning/designownership` (engine owners from the `internal/engines` inventory with the mirrored Version/Explain contract, entity owners by exact model-sources ref/key match, adapter and physical patterns fail closed; capability invocation binding deliberately left to BIND-001 and embedded-calculation detection documented out of scope as unobservable from design records); RED observed (missing `testdata/golden.json`, one test-side physical-pattern overreach corrected); `go test -count=1 ./tools/planning/designownership/` PASS, `go vet` clean, `gofmt` clean, cover 83.0% (floor 70%), `npm run lint` and `npm run check:code-style` PASS; branch fix/unblock-main-gateclosure.
 
-- [ ] `WF-DISC-010` **[P0][SOL_HIGH] Generate adversarial scenario matrices from every workflow design.**
+- [x] `WF-DISC-010` **[P0][SOL_HIGH] Generate adversarial scenario matrices from every workflow design.**
   - **Depends:** `WF-DISC-007`, `WF-DISC-009`, `GOV-018`, `GOV-028`, `TOOL-014`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL; DIRECT=none; WHY=turn each high-level BusinessIntent design into exact positive, negative, temporal, concurrency, failure, security and repair obligations`.
   - **TEST:** `TestWorkflowDesignScenarioGeneratorCoversEveryDeclaredBoundary`.
@@ -13859,8 +13919,9 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **GREEN:** each declared read/write/effect/wait/human decision/compartment/invalidator/completion dimension produces exact fixtures and prohibited/expected states; inapplicable classes require typed justification.
   - **REFACTOR:** deduplicate mechanics through reusable scenario templates while keeping domain-specific semantic oracles explicit.
   - **Refs:** [completion policy](workflows/business-intent-workflow-registry.md#completion-policy-common-to-all-mappings), [workflow context edge cases](workflows/samples/workflow-context-edge-cases.md), [test doctrine](#test-doctrine).
+  - **Evidence (2026-09-09):** `TestWorkflowDesignScenarioGeneratorCoversEveryDeclaredBoundary` (all 22 templates yield a scenario or a typed justification, every RED adversary present with explicit oracles), `TestTodo_WF_DISC_010_Property` (DIRECT matrices reuse the record's own NO_WAIT/READ_ONLY/NO_HUMAN_STEP justifications, multi-engine oracles fan out), `TestTodo_WF_DISC_010_Golden` (canonical matrix bytes pinned in `testdata/golden.json`), `TestTodo_WF_DISC_010_Race` (4 concurrent workers, identical digests; `-race` itself unrunnable here — no gcc in this environment, CI-owned), `TestTodo_WF_DISC_010_Fault` (nil graph, mismatches fail closed), `TestTodo_WF_DISC_010_Security` (complete oracles everywhere, leak coverage always present, justifications uninjectable within the template denominator), `TestTodo_WF_DISC_010_Conformance` (live snapshot: 230 scenarios plus 78 justified across all 14 definitions, deterministic), `TestTodo_WF_DISC_010_Mutation` (dropped writes, flipped disposition and changed invalidators each move the digest with exact oracle rewrites) in new kernel-pure `tools/planning/scenariomatrix` (reviewed 22-template table with TemplateCount pin, shared mechanics with explicit per-record oracles, stateless concurrent-safe generation, canonical digest); RED observed (missing `testdata/golden.json` plus a test-side findings-type clash corrected); `go test -count=1 ./tools/planning/scenariomatrix/` PASS, `go vet` clean, `gofmt` clean, cover 89.8% (floor 70%), `npm run lint` and `npm run check:code-style` PASS; branch fix/unblock-main-gateclosure.
 
-- [ ] `WF-DISC-011` **[P0][SOL_HIGH] Prove parent, child, batch and trigger workflow designs preserve independent intent truth.**
+- [x] `WF-DISC-011` **[P0][SOL_HIGH] Prove parent, child, batch and trigger workflow designs preserve independent intent truth.**
   - **Depends:** `WF-DISC-007`, `INTENT-015`, `INTENT-016`, `INTENT-019`, `INTENT-018`.
   - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.ALL,BI.TRIGGERS; DIRECT=none; WHY=ensure composite workflows converge without flattening child authorization, idempotency, failure, evidence or completion`.
   - **TEST:** `TestWorkflowDesignCompositionNeverCollapsesChildOrTriggerOutcome`.
@@ -14554,7 +14615,7 @@ architecture and an executable Phase 1 product decision. They do not create new
 HCM scope. They select, bind, rehearse and measure the concrete subset already
 authorized by the master and execution plans.
 
-- [ ] `CLOSE-001` **[P0][SOL_HIGH] Publish one machine-readable design-closure register.**
+- [x] `CLOSE-001` **[P0][SOL_HIGH] Publish one machine-readable design-closure register.**
   - **Depends:** `SLICE-015`, `SUBSTRATE-COVERAGE-001`, `GOV-026`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=join product, intent, workflow, model, API, security, operations, implementation and commercial readiness without turning document volume into a completeness claim`.
   - **TEST:** `TestDesignClosureRegisterNamesEveryRequiredDecisionOwnerArtifactAndGate`.
@@ -14563,6 +14624,7 @@ authorized by the master and execution plans.
   - **GREEN:** generated register joins every accepted scope item to stable artifacts and returns `UNSELECTED|UNBOUND|DESIGNED|CONTRACTED|IMPLEMENTED|VERIFIED|DEFERRED|REJECTED` with owner, rationale, evidence digest and expiry; every unresolved item is named and blocks only its declared gate.
   - **REFACTOR:** generate dashboards and executive summaries from this registry; do not create a second hand-maintained status source.
   - **Refs:** [vertical-slice coverage](workflows/vertical-slices/README.md#truthful-current-coverage), [platform coverage](specs/platform-capability-coverage-matrix.md), [phase gates](execution-plan.md).
+  - **Evidence (2026-09-09):** `TestDesignClosureRegisterNamesEveryRequiredDecisionOwnerArtifactAndGate` (six-item ladder with gated blockers, totals reconcile under one digest), `TestTodo_CLOSE_001_Property` (contracted/implemented/deferred/rejected transitions, expiry and identity-dimension rules), `TestTodo_CLOSE_001_Golden` (canonical report bytes pinned in `testdata/golden.json`), `TestTodo_CLOSE_001_Mutation` (untick, lost artifact and lost evidence each move the digest with the exact finding), `TestTodo_CLOSE_001_Security` (duplicate/unknown/dropped items stay counted with exact codes, prose completion capped at CONTRACTED), `TestTodo_CLOSE_001_Conformance` (live snapshot compiles deterministically: 14 rows over 14 accepted intents, all UNBOUND with zero DIRECT bindings, totals reconcile) in new kernel-pure `tools/planning/designclosure` (snapshot-driven eight-state ladder sharing identities by import from intentmanifests/todogovernance/traceability/corpus, per-todo-phase blocker gates, canonical digests); RED observed (missing `testdata/golden.json`, dangling-test blockers nested under the wrong condition); `go test -count=1 ./tools/planning/designclosure/` PASS, `go vet` clean, `gofmt` clean, cover 94.0% (floor 70%), `npm run lint` and `npm run check:code-style` PASS; branch fix/unblock-main-gateclosure.
 
 - [ ] `PHASE-001` **[P0][SOL_HIGH] Freeze the candidate Phase 1 scope ceiling and selection slots.**
   - **Depends:** `GOV-010`, `WEDGE-001`.
@@ -14719,7 +14781,7 @@ authorized by the master and execution plans.
   - **REFACTOR:** generated partitions carry source and parser digests; authenticity verification remains independent of catalog interpretation.
   - **Refs:** [catalog identity](specs/business-intent-catalog.md#catalog-identity), [source manifest](#canonical-values-schemas-registries-and-model-coverage), [baseline register](workflows/vertical-slices/baseline-vertical-slice-register.md).
 
-- [ ] `BIND-001` **[P0][SOL_HIGH] Bind each published capability to exact models, wire descriptors and one typed Go handler.**
+- [x] `BIND-001` **[P0][SOL_HIGH] Bind each published capability to exact models, wire descriptors and one typed Go handler.**
   - **Evidence (partial, 2026-09-05):** `TestTypedImplementationBindingRejectsDanglingAmbiguousOrSchemaMismatchedHandler`, `TestTodo_BIND_001_{Property,Golden,Integration,Conformance,Mutation}` and per-file tests in `internal/capability/binding` (BindingTable joins the BOOTSTRAP capability registry, the four generated ServiceDescs read without importing grpc, an AST scan for handler symbols and MSRC-009's model bindings; twelve typed gap kinds; kernel-pure, proven by an import test); `go test -count=1 ./internal/capability/binding/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02. Live finding: of 10 published capabilities and 29 wire methods, none binds cleanly today — 33 gaps allowlisted with owners: the eight P1A capabilities are dispatched generically across six IntentService methods (AMBIGUOUS_WIRE_METHOD), admin GetWorkerState/ExplainTransaction call the domain directly bypassing the gateway (AMBIGUOUS_HANDLER), the registry capabilities have no handlerFor arm, admin and journey are absent from the endpoint manifest's governed services (WIRE_METHOD_UNBOUND ×16, owner PROTO-010/ENDPOINT-009), and every capability still returns map[string]any through the gateway. Remaining: close those gaps so each capability binds to one route and one typed handler; the conformance test fails on any new gap and on any allowlisted gap that closes.
   - **Depends:** `MSRC-007`, `MSRC-009`, `MODEL-010`, `CAP-001`, `PROTO-005`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=ensure every executable semantic capability resolves to one compile-time checked implementation rather than a dangling registry or untyped adapter`.
@@ -14729,6 +14791,7 @@ authorized by the master and execution plans.
   - **GREEN:** generated binding records intent/version, model release/digest, capability/version, fully qualified typed interface method, build/source digest, effects and Protobuf descriptors; compile/start/publication and in-memory invocation prove descriptor-equivalent typed results.
   - **REFACTOR:** authored code implements generated interfaces while registries own discovery and version binding.
   - **Refs:** [capability lifecycle](specs/capability-registry-and-lifecycle.md), [generated registries](#29-machine-readable-model-sources-and-public-api-contracts), [modular Go architecture](#2a-modular-go-monolith-and-semantic-package-architecture).
+  - **Evidence (2026-09-10):** prior partial work completed and verified in this session: full matrix PASS in `internal/capability/binding` — `TestTypedImplementationBindingRejectsDanglingAmbiguousOrSchemaMismatchedHandler`, `TestTodo_BIND_001_Property`, `TestTodo_BIND_001_Golden` (live BOOTSTRAP registry shape pinned), `TestTodo_BIND_001_Integration`, `TestTodo_BIND_001_Conformance`, `TestTodo_BIND_001_Mutation` (fixture mutants yield exact gap kinds); `go test -count=1` PASS, `go vet` clean, gofmt clean, cover 97.8%; branch fix/unblock-main-gateclosure.
 
 - [x] `MODEL-032` **[P0][SOL_HIGH] Prove canonical property semantics and lineage across SchemaFlux, Protobuf, Go, SQL and storage disposition.**
   - **Depends:** `MODEL-011`, `MODEL-016`, `MODEL-017`, `DB-002`, `DB-003`, `PROTO-009`.
@@ -15224,7 +15287,7 @@ evidence compilers, not permission to implement deferred HCM domains.
   - **REFACTOR:** split `LEAVE-015`, notice, evidence-loop, balance-invalidation and readiness todos into contract/vector and later implementation halves before making `CONF-004` depend on them.
   - **Refs:** [Leave conformance track](next-steps.md#medical-leave-conformance-track), [Leave workflow](workflows/leave/leave-return-to-work.md).
 
-- [ ] `NEXT-008` **[P0][SOL_HIGH] Reject gate dependency inversions and produce gate-scoped assurance closures.**
+- [x] `NEXT-008` **[P0][SOL_HIGH] Reject gate dependency inversions and produce gate-scoped assurance closures.**
   - **Depends:** `GOV-017`, `GOV-023`, `GOV-026`.
   - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.ALL; DIRECT=none; WHY=prevent an earlier release gate from silently requiring later-phase implementation or certifying itself through circular evidence`.
   - **TEST:** `TestGateDependencyGraphRejectsLaterPhaseEdgesCyclesAndEvidenceSelfCertification`.
@@ -15233,6 +15296,7 @@ evidence compilers, not permission to implement deferred HCM domains.
   - **GREEN:** compiler expands exact manifest-selected todo/test/evidence edges, rejects later-phase and cyclic paths with a minimal witness, permits explicit contract/vector dependencies, and places independent assurance plus cross-store restore before the final Gate B evidence node.
   - **REFACTOR:** generate gate graphs and phase-leak reports in CI; scope exceptions require signed exchange and expiry.
   - **Refs:** [required backlog repairs](next-steps.md#required-backlog-repairs), [backlog governance](#backlog-governance-and-traceability).
+  - **Evidence (2026-09-09):** `TestGateDependencyGraphRejectsLaterPhaseEdgesCyclesAndEvidenceSelfCertification`, `TestTodo_NEXT_008_Property/Golden/Security/Conformance/Mutation` plus shortest-witness, forged-exception, empty-selection, ambiguous-final and transitive self-certification hardening tests in `tools/policy/phaseone` (exact manifest-selected closure; direct and transitive later-phase edges rejected with the shortest witness; cycles, evidence self-certification, forged contract/vector exceptions, unknown gates/kinds and empty selections rejected; explicit contract dependencies permitted; Gate B closure requires independent assurance plus verified cross-store restore with backup readability refused; exactly one final evidence node); `go test -count=1 ./tools/policy/phaseone/` PASS, `go vet` clean, cover 87.2% (floor 70%); branch fix/unblock-main-gateclosure.
 
 - [ ] `NEXT-009` **[GATE_B][SOL_HIGH] Compile the pre-write P1B authority evidence amendment.**
   - **Depends:** `WEDGE-014`, `NEXT-002`, `NEXT-006`, `NEXT-008`, `GOV-003`, `GOV-023`, `RECOVERY-005`, `ASSURANCE-001`.

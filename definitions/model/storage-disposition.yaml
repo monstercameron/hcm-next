@@ -132,6 +132,7 @@ migrationfiles:
   - 00278_safety_conformance_records.sql
   - 00279_balance_correction_lineage.sql
   - 00280_admission_retry_budgets.sql
+  - 00281_medical_leave_return_to_work.sql
 entities:
   - entityref: ApprovalBinding/v1
     key: approval_binding

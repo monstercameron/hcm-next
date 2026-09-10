@@ -20,7 +20,7 @@
 schema_version: 1
 release: P1A
 todo_id: NEXT-002
-signed_date: "2026-09-09"
+signed_date: "2026-09-10"
 freshness_window_days: 30
 workflow: promotion.preflight-simulate-observe/v1
 
@@ -541,6 +541,9 @@ migrations:
     - version: 280
       name: 00280_admission_retry_budgets.sql
       checksum: "sha256:74bf9a4c02a583899dcb7958b726518ad54f2631c4066b6237dd7d3531b20afe"
+    - version: 281
+      name: 00281_medical_leave_return_to_work.sql
+      checksum: "sha256:568b928ec1e6374a256c74b79858d764cd81fd1322818265a6b2cad276108575"
   gaps:
     - version: 9
       reason: "No 00009_*.sql file exists under migrations/. Not documented anywhere in planning/todos.md, migrations/migrations.go or the DB-* todo evidence as of 2026-09-03. Recorded here as a NEXT-002 finding rather than silently renumbered or hidden; migrations.Files() (the Goose loader) is unaffected because Goose numbers by version, not by contiguous sequence."
@@ -900,4 +903,4 @@ signature:
   algorithm: ed25519
   public_key: 93019e7b15fc44dbfb7f36e105e465486e5d5a6ddec109abda44507e0d45332b
   key_fixture: tools/planning/gateevidence/testdata/dev-signing-key.yaml
-  value: "d10bd337f0026838fde046f81fddd3b5bee53bbf693cd0a71e8f8f5927843cd058c5be39b786c4896687482864ec558a658f370e43eec37ab78632d2c6b6510f"
+  value: "5c89efdb161cdc4c079a64f33d06a815496f1b00598912bee63ce0a8561b9b38c791a418c0af88915efd7120ef9f12d9a0f82eb1106c3a1e94d799b7865bc607"
