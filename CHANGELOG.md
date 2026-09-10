@@ -1,11 +1,18 @@
 # Changelog
 
+## 2026-09-10
+
+- Land the delivery kernels (MSG-007, MSG-008, MSG-009, MSG-010,
+  MSG-013): honest attempt/recipient lifecycles, typed workflow
+  signals, bounded failure reconciliation, content-gated redaction
+  scanning and legal-notice assessment — provider acceptance alone
+  never proves delivery, and protected content never reaches an
+  operational surface.
+
 - Land the balance kernels (BAL-012, BAL-013): the atomic posting
   transaction (one head per account, idempotent receipts, failpoint
   rollback) and the availability dependency index that emits typed
   REPLAN_REQUIRED findings instead of editing approved plans.
-
-## 2026-09-10
 
 - Land the legal entitlement kernels (LEGAL-003, LEGAL-004, LEGAL-006):
   entitlement composition that never lets company policy narrow statutory
@@ -19,8 +26,6 @@
   rendering, effect reconciliation, replan, successor intents and the
   restricted evidence-review loop — kernel-pure, digest-sealed, zero
   workforce mutation outside the governed commit path.
-
-## 2026-09-10
 
 - Persist Medical Leave and Return-to-Work domain state (DB-023): migration
   00281 adds twelve tenant-scoped tables — request/record revisions, program
