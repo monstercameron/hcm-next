@@ -2,6 +2,11 @@
 
 ## 2026-09-10
 
+- Land the outbox consumer group (EVENT-002): idempotent dispatch with
+  per-partition checkpoints, fenced duplicates and per-record poison
+  isolation with expiry requeue; checkpoints commit with application,
+  never ahead of it.
+
 - Land the contact kernels (CONF-017, CONF-018): typed endpoint updates
   with tenant isolation, stale-revision refusal and verification
   challenges, plus ordered emergency-contact sets with priority

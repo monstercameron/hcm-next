@@ -1,0 +1,9 @@
+{
+  "outcome": "APPLIED",
+  "checkpoint": {
+    "Group": "projection-rebuild",
+    "Partition": "0196a3f1-8f2e-7c4d-9b1a-2d3e4f5a6b7c\u0000golden-partition",
+    "Offset": "golden-effect",
+    "AppliedCount": 1
+  }
+}
