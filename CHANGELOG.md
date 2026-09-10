@@ -2,6 +2,14 @@
 
 ## 2026-09-10
 
+- Land the governed cancellation kernels (WF-RUN-010, WF-RUN-011,
+  WF-STEP-009): pure cancellation decisions over pinned subworkflow
+  children — clean cancel keeps per-child reports and intact history,
+  irreversible effects route to compensation or refuse, unknown states
+  repair, detached children keep accountable owners, and expansion
+  pins versions, attenuates scope, bounds depth/fanout and rejects
+  cycles with sentinel-typed errors.
+
 - Land the headcount requisition proof (CONF-021): approval authorizes
   capacity only over the HEADCOUNT-001 API with no production change —
   requester-chosen approvers and missing quorum/SoD refuse, external

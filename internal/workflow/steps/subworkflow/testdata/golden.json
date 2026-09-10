@@ -1,0 +1,26 @@
+{
+  "child": {
+    "child": {
+      "workflow": "leave.approval",
+      "version": "v1.4.0"
+    },
+    "pinned_version": "v1.4.0",
+    "effective_scope": [
+      "leave:read"
+    ],
+    "idempotency_key": "subwf:04106b50614a715d053863801976b8b65def799125088f3cc97f7745d336f90d"
+  },
+  "report": "CANCELLED",
+  "completion": {
+    "children": [
+      {
+        "child": {
+          "workflow": "leave.approval",
+          "version": "v1.4.0"
+        },
+        "outcome": "CANCELLED",
+        "mandatory": true
+      }
+    ]
+  }
+}

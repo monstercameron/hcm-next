@@ -1,0 +1,40 @@
+{
+  "decision": "CANCELLED",
+  "reports": [
+    {
+      "ref": {
+        "workflow": "notify.send",
+        "version": "v2.0.0"
+      },
+      "report": "CANCELLED"
+    },
+    {
+      "ref": {
+        "workflow": "schedule.interview",
+        "version": "v1.0.0"
+      },
+      "report": "ALREADY_COMPLETED"
+    }
+  ],
+  "completion": {
+    "children": [
+      {
+        "child": {
+          "workflow": "notify.send",
+          "version": "v2.0.0"
+        },
+        "outcome": "CANCELLED",
+        "mandatory": true
+      },
+      {
+        "child": {
+          "workflow": "schedule.interview",
+          "version": "v1.0.0"
+        },
+        "outcome": "ALREADY_COMPLETED",
+        "mandatory": true
+      }
+    ]
+  },
+  "obligations": null
+}
