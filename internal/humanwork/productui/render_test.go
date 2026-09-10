@@ -422,14 +422,6 @@ func TestPersonPageShowsServerFactsAndFilterableWorkflowLaunchers(t *testing.T) 
 	}
 }
 
-func bodyAriaCurrentCount(document string) int {
-	_, body, found := strings.Cut(document, "</style>")
-	if !found {
-		body = document
-	}
-	return strings.Count(body, `aria-current="page"`)
-}
-
 // primaryNavAriaCurrentCount scopes the single-active-leaf contract to the
 // primary navigation landmark. Breadcrumb trails carry their own
 // aria-current marker by design, so a document-wide count can no longer

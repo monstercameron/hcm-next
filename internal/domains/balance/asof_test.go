@@ -226,7 +226,7 @@ func TestTodo_BAL_003_Property(t *testing.T) {
 			t.Fatalf("known-at %s: %v", k, err)
 		}
 		current := keysOf(res)
-		if previous != nil {
+		{
 			for key := range previous {
 				if !current[key] {
 					t.Fatalf("known-at %s dropped previously-counted entry %s", k, key)
@@ -254,7 +254,7 @@ func TestTodo_BAL_003_Property(t *testing.T) {
 			t.Fatalf("as-of %s: %v", asOf, err)
 		}
 		current := keysOf(res)
-		if previous != nil {
+		{
 			for key := range previous {
 				if !current[key] {
 					t.Fatalf("as-of %s dropped previously-counted entry %s", asOf, key)

@@ -45,7 +45,7 @@ func declareHistoryNavigationStyles() {
 			),
 		),
 		disabledRule(
-			gwccss.Raw("cursor", "not-allowed"), gwccss.Opacity(0.38),
+			gwccss.Raw("cursor", "not-allowed"), gwccss.OpacityNum(gwccss.Num(0.38)),
 			gwccss.Bg(gwccss.Var("surface-subtle")), gwccss.TextColor(gwccss.Var("muted")),
 		),
 	)
@@ -93,7 +93,7 @@ func declareHistoryNavigationStyles() {
 	declareGlobal(".history-navigation-button",
 		mediaRule(gwccss.RawMedia("(forced-colors:active)"),
 			disabledRule(
-				gwccss.TextColor(gwccss.Color("GrayText")), gwccss.Opacity(1),
+				gwccss.TextColor(gwccss.Color("GrayText")), gwccss.OpacityNum(gwccss.Num(1)),
 			),
 		),
 	)
@@ -119,8 +119,8 @@ func declarePermissionBoundaryStyles() {
 		gwccss.Raw("transform", "none"), gwccss.Raw("box-shadow", "none"),
 	)
 	declareGlobal(".appearance-edit-boundary,.worker-id-edit-boundary", gwccss.Raw("display", "contents"))
-	declareGlobal(".appearance-edit-boundary:disabled", gwccss.Opacity(0.82))
-	declareGlobal(".worker-id-edit-boundary:disabled", gwccss.Opacity(0.82))
+	declareGlobal(".appearance-edit-boundary:disabled", gwccss.OpacityNum(gwccss.Num(0.82)))
+	declareGlobal(".worker-id-edit-boundary:disabled", gwccss.OpacityNum(gwccss.Num(0.82)))
 	declareGlobal(".appearance-edit-boundary:disabled :is(input,select,textarea,button)", gwccss.Raw("cursor", "not-allowed"))
 	declareGlobal(".worker-id-edit-boundary:disabled :is(input,select,textarea,button)", gwccss.Raw("cursor", "not-allowed"))
 }
@@ -155,7 +155,7 @@ func declareGlobalSearchStyles() {
 	)
 	declareGlobal(".global-search-input::placeholder",
 		gwccss.TextColor(gwccss.Var("muted")),
-		gwccss.Opacity(.88),
+		gwccss.OpacityNum(gwccss.Num(.88)),
 	)
 	declareGlobal(".global-search-input:hover",
 		gwccss.Raw("border-color", "color-mix(in srgb,var(--accent) 44%,var(--line))"),
@@ -192,8 +192,8 @@ func declareGlobalSearchStyles() {
 		gwccss.Raw("scrollbar-color", "color-mix(in srgb,var(--muted) 55%,transparent) transparent"),
 		gwccss.Raw("transform-origin", "top center"),
 		gwccss.Keyframes("hcm-search-enter",
-			gwccss.At("from", gwccss.Opacity(0), gwccss.Transform(gwccss.TranslateY(gwccss.Px(-5)), gwccss.Scale(.992))),
-			gwccss.At("to", gwccss.Opacity(1), gwccss.Raw("transform", "none")),
+			gwccss.At("from", gwccss.OpacityNum(gwccss.Num(0)), gwccss.Transform(gwccss.TranslateY(gwccss.Px(-5)), gwccss.Scale(.992))),
+			gwccss.At("to", gwccss.OpacityNum(gwccss.Num(1)), gwccss.Raw("transform", "none")),
 		),
 		gwccss.Animation(gwccss.RawDuration("var(--hcm-motion-fast,.14s)"), gwccss.EaseOut),
 		gwccss.Raw("animation-fill-mode", "both"),
@@ -428,7 +428,7 @@ func declareContextSwitcherStyles() {
 	)
 	declareGlobal(".context-switcher-option:disabled",
 		gwccss.Raw("cursor", "default"),
-		gwccss.Opacity(.78),
+		gwccss.OpacityNum(gwccss.Num(.78)),
 	)
 	declareGlobal(".context-switcher-current-mark",
 		gwccss.FontSize(gwccss.Rem(.7)),
@@ -521,8 +521,8 @@ func declarePopoverStyles() {
 	)
 	declareGlobal(".popover-root[open]>.popover-surface",
 		gwccss.Keyframes("hcm-popover-enter",
-			gwccss.At("from", gwccss.Opacity(0), gwccss.Transform(gwccss.TranslateY(gwccss.Px(-4)), gwccss.Scale(.992))),
-			gwccss.At("to", gwccss.Opacity(1), gwccss.Raw("transform", "none")),
+			gwccss.At("from", gwccss.OpacityNum(gwccss.Num(0)), gwccss.Transform(gwccss.TranslateY(gwccss.Px(-4)), gwccss.Scale(.992))),
+			gwccss.At("to", gwccss.OpacityNum(gwccss.Num(1)), gwccss.Raw("transform", "none")),
 		),
 		gwccss.Animation(gwccss.RawDuration("var(--hcm-motion-fast,.14s)"), gwccss.Easing("var(--hcm-motion-easing,ease-out)")),
 		gwccss.Raw("animation-fill-mode", "both"),
@@ -552,8 +552,8 @@ func declarePopoverStyles() {
 	)
 	declareGlobal(":root[data-hcm-motion-preference=\"limited\"] .popover-root[open]>.popover-surface",
 		gwccss.Keyframes("hcm-popover-fade",
-			gwccss.At("from", gwccss.Opacity(.94)),
-			gwccss.At("to", gwccss.Opacity(1)),
+			gwccss.At("from", gwccss.OpacityNum(gwccss.Num(.94))),
+			gwccss.At("to", gwccss.OpacityNum(gwccss.Num(1))),
 		),
 		gwccss.Raw("animation-duration", "1ms"),
 	)

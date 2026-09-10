@@ -90,9 +90,7 @@ func TestTodo_WEB_075_Golden(t *testing.T) {
 func TestTodo_WEB_075_Browser(t *testing.T) {
 	catalog := RegisteredFloorplans()
 	primitives := make([]string, 0)
-	for _, primitive := range RegisteredPrimitives() {
-		primitives = append(primitives, primitive)
-	}
+	primitives = append(primitives, RegisteredPrimitives()...)
 	for _, floorplan := range catalog.Floorplans {
 		composition := PageComposition{Floorplan: floorplan.ID, FloorplanVersion: floorplan.Version, Primitives: primitives}
 		first := ValidateFloorplanCompatibility(composition, catalog)

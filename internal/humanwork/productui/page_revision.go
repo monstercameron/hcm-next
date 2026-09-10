@@ -103,7 +103,7 @@ type persistedRevision struct {
 
 // MarshalRevision encodes one revision into persistable bytes.
 func MarshalRevision(revision PageDefinitionRevision) []byte {
-	encoded, err := json.Marshal(persistedRevision{Snapshot: revision.Snapshot, Version: revision.Version, Digest: revision.Digest})
+	encoded, err := json.Marshal(persistedRevision(revision))
 	if err != nil {
 		return nil
 	}
@@ -121,7 +121,7 @@ func ParseRevision(encoded []byte) (PageDefinitionRevision, error) {
 		return PageDefinitionRevision{}, fmt.Errorf("productui: revision digest mismatch for page %q version %d", stored.Snapshot.Page, stored.Version)
 	}
 	stored.Snapshot.SearchTerms = append([]string(nil), stored.Snapshot.SearchTerms...)
-	return PageDefinitionRevision{Snapshot: stored.Snapshot, Version: stored.Version, Digest: stored.Digest}, nil
+	return PageDefinitionRevision(stored), nil
 }
 
 // PageRevisionLog is the presentation projection of published page

@@ -71,7 +71,7 @@ func NormalizeEndpoint(typ EndpointType, raw string) (normalized, masked string,
 			return "", "", fmt.Errorf("%w: email syntax", ErrInvalidEndpoint)
 		}
 		parts := strings.SplitN(s, "@", 2)
-		if parts[0] == "" || parts[1] == "" || strings.Contains(parts[1], "@") || strings.Contains(parts[1], ".") == false {
+		if parts[0] == "" || parts[1] == "" || strings.Contains(parts[1], "@") || !strings.Contains(parts[1], ".") {
 			return "", "", fmt.Errorf("%w: email syntax", ErrInvalidEndpoint)
 		}
 		for _, r := range s {

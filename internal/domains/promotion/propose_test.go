@@ -48,14 +48,6 @@ func (s *stubEvidence) Record(ctx context.Context, e ProposeEvidence) (string, e
 	return "ev-" + e.IntentID, nil
 }
 
-type countingPreflight struct {
-	mutations int
-}
-
-func (c *countingPreflight) RunPreflight(ctx context.Context, req PromotionProposeRequest, intentID string) error {
-	return nil
-}
-
 func validReq() PromotionProposeRequest {
 	return PromotionProposeRequest{
 		WorkerID:                "worker:abc-123",

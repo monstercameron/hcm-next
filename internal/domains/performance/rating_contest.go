@@ -213,21 +213,20 @@ func (c RatingContest) body() []byte {
 }
 
 func (c RatingContest) validateWithoutDigest() error {
-	copyOf := c
-	copyOf.Digest = ""
-	if strings.TrimSpace(copyOf.ID) == "" || strings.TrimSpace(copyOf.ParticipantID) == "" || !copyOf.Reason.Valid() {
+	// The digest is simply never read here, so there is nothing to blank.
+	if strings.TrimSpace(c.ID) == "" || strings.TrimSpace(c.ParticipantID) == "" || !c.Reason.Valid() {
 		return ErrInvalidContest
 	}
-	if !strings.HasPrefix(copyOf.NarrativeDigest, canonicalbytes.DigestAlgorithm+":") || len(copyOf.NarrativeDigest) <= len(canonicalbytes.DigestAlgorithm)+1 {
+	if !strings.HasPrefix(c.NarrativeDigest, canonicalbytes.DigestAlgorithm+":") || len(c.NarrativeDigest) <= len(canonicalbytes.DigestAlgorithm)+1 {
 		return ErrInvalidContest
 	}
-	if err := copyOf.RaisedAt.Validate(); err != nil {
+	if err := c.RaisedAt.Validate(); err != nil {
 		return err
 	}
-	if len(copyOf.EvidenceRefs) == 0 {
+	if len(c.EvidenceRefs) == 0 {
 		return ErrInvalidContest
 	}
-	return validateEvidenceRefs(copyOf.EvidenceRefs)
+	return validateEvidenceRefs(c.EvidenceRefs)
 }
 
 func (c RatingContest) computedDigest() string { return canonicalbytes.Digest(c.body()) }

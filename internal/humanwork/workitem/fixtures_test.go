@@ -64,14 +64,6 @@ func appConn(t *testing.T, db *pgtest.DB) *pgxadapter.Conn {
 	return conn
 }
 
-// inTx runs fn inside its own transaction on conn and commits it.
-func inTx(t *testing.T, conn *pgxadapter.Conn, fn func(tx dbport.Tx) error) {
-	t.Helper()
-	if err := inTxErr(conn, fn); err != nil {
-		t.Fatalf("transaction: %v", err)
-	}
-}
-
 // inTxErr is inTx for a call whose own error the test wants to inspect. A
 // failing fn rolls the transaction back, so a refused write leaves nothing
 // behind.
@@ -104,8 +96,6 @@ func inTenantTxErr(conn *pgxadapter.Conn, tenant uuid.UUID, fn func(tx dbport.Tx
 		return fn(tx)
 	})
 }
-
-func timePtr(t time.Time) *time.Time { return &t }
 
 // newTaskInput builds a well-formed NewWorkItemInput for a plain TASK work
 // item awaiting an instance's approval_node, ready for [workitem.NewWorkItem].

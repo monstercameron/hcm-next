@@ -84,7 +84,7 @@ func TestTodo_QUAL_001_Property(t *testing.T) {
 	if r.CanonicalDigest != other.CanonicalDigest {
 		t.Fatal("equal requirements have different canonical digests")
 	}
-	if got := r.Canonical(); got == nil || len(got) == 0 {
+	if got := r.Canonical(); len(got) == 0 {
 		t.Fatal("valid requirement has no canonical bytes")
 	}
 }

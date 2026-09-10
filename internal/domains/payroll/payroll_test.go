@@ -130,21 +130,6 @@ func TestTodo_PAYRUN_001_Property(t *testing.T) {
 	}
 }
 
-func (s PayrollRunState) next() PayrollRunState {
-	switch s {
-	case Draft:
-		return Calculated
-	case Calculated:
-		return Released
-	case Released:
-		return Settled
-	case Settled:
-		return Reversed
-	default:
-		return Reversed
-	}
-}
-
 // TestTodo_PAYRUN_001_Race proves independent value transitions are safe and
 // reproducible when many conformance callers advance the same draft value.
 func TestTodo_PAYRUN_001_Race(t *testing.T) {

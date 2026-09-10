@@ -9,9 +9,6 @@ import (
 
 func TestCustodyStoreSatisfiesRepository(t *testing.T) {
 	var repository Repository = NewCustodyStore()
-	if repository == nil {
-		t.Fatal("repository is nil")
-	}
 	at := time.Unix(50, 0).UTC()
 	inventory := InventoryRevision{InventoryID: assetRef("asset", "repository"), Owner: assetRef("organization", "repository-owner"), Classification: "LAPTOP", SerialNumber: "REPO-1", Revision: assetRev(t, "inventory", 1), EffectiveAt: at, Status: Available}
 	if err := repository.RegisterInventory(inventory); err != nil {

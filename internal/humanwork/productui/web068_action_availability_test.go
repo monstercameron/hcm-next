@@ -309,7 +309,8 @@ func TestTodo_WEB_068_Conformance(t *testing.T) {
 			}
 		}
 	}
-	if ResolveActionAvailability(false, true) != ResolveActionAvailability(false, true) {
+	firstAvailability, secondAvailability := ResolveActionAvailability(false, true), ResolveActionAvailability(false, true)
+	if firstAvailability != secondAvailability {
 		t.Fatal("availability resolution is nondeterministic")
 	}
 }

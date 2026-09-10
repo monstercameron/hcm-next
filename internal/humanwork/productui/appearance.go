@@ -193,7 +193,7 @@ func customerThemeStylesheet() string {
 
 func normalizedBrandText(value string, limit int, fallback string, mark bool) string {
 	runes := make([]rune, 0, limit)
-	for _, character := range []rune(strings.TrimSpace(value)) {
+	for _, character := range strings.TrimSpace(value) {
 		if unicode.IsControl(character) || unicode.In(character, unicode.Cf) || mark && !(unicode.IsLetter(character) || unicode.IsDigit(character) || character == '&') {
 			continue
 		}

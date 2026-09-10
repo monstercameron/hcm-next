@@ -140,6 +140,9 @@ func evaluateNode(ir IR, index int, inputs map[string]Value, inputTypes map[stri
 			result = runtimeValue{state: EvalStatePresent, value: BoolValue(!b)}
 		case UnaryOpNegate:
 			result, err = negateRuntime(child)
+			if err != nil {
+				return runtimeValue{}, err
+			}
 		default:
 			return runtimeValue{}, fmt.Errorf("%w: unary operator", ErrExpressionEvaluation)
 		}

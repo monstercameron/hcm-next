@@ -26,7 +26,7 @@ func TestProofingVocabularyAndFieldError(t *testing.T) {
 			t.Fatalf("evidence kind %q invalid", kind)
 		}
 	}
-	if EvidenceKind("RAW").Valid() || EvidenceKind("RAW").Valid() {
+	if EvidenceKind("RAW").Valid() {
 		t.Fatal("unknown evidence kind accepted")
 	}
 	for _, outcome := range []ProofingOutcome{OutcomeVerified, OutcomeReviewRequired, OutcomeRejected, OutcomeExpired, OutcomeUnknown} {
@@ -74,8 +74,6 @@ func TestEvidenceItem_ValidationCanonicalAndCopy(t *testing.T) {
 		t.Fatal(err)
 	}
 }
-
-func recanonicalSession(s *ProofingSession) { s.CanonicalDigest = s.computedDigest() }
 
 func TestProofingSession_ValidationOutcomeExpiryAndExplanation(t *testing.T) {
 	session := proofingSession(t, AssuranceIAL2, AssuranceIAL2)
@@ -148,7 +146,6 @@ func TestProofingSession_ValidationOutcomeExpiryAndExplanation(t *testing.T) {
 		t.Fatal(err)
 	}
 }
-
 func TestWorkAuthorizationEvidence_ValidationAndSuccessor(t *testing.T) {
 	base := proofingAuthorization(t)
 	if len(base.Canonical()) == 0 {

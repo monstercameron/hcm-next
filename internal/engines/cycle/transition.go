@@ -183,7 +183,9 @@ func (c GovernedCycle) Transition(req TransitionRequest) (GovernedCycle, Transit
 		return GovernedCycle{}, TransitionEvent{}, fmt.Errorf("%w: phase %q does not declare %s", ErrTransitionPhase, req.ActivePhase.ID, req.Operation)
 	}
 
-	to := c.State
+	// Every operation arm assigns the target state, so there is no
+	// meaningful initializer; the default arm returns.
+	var to LifecycleState
 	switch req.Operation {
 	case OperationOpen:
 		if c.State != StateUnopened {

@@ -26,6 +26,7 @@ func TestAppendFields_OddArgsPanics(t *testing.T) {
 			t.Fatal("appendFields with an odd argument count did not panic")
 		}
 	}()
+	//lint:ignore SA5012 deliberate odd arity: this test proves appendFields panics on an odd argument count.
 	appendFields(nil, "a")
 }
 

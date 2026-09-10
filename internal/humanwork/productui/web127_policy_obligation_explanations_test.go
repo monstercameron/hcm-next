@@ -82,7 +82,8 @@ func TestTodo_WEB_127_Browser(t *testing.T) {
 	if first != second || firstOK != secondOK {
 		t.Fatal("obligation explanation is nondeterministic")
 	}
-	if ExplainPolicyOutcome(locale, true) != ExplainPolicyOutcome(locale, true) {
+	firstExplanation, secondExplanation := ExplainPolicyOutcome(locale, true), ExplainPolicyOutcome(locale, true)
+	if firstExplanation != secondExplanation {
 		t.Fatal("policy explanation is nondeterministic")
 	}
 }

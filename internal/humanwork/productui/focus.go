@@ -38,14 +38,6 @@ func VisibleFocusIndicator() FocusIndicator {
 // Journey documents still use their own accent fallback; embedded documents
 // inherit the protected product focus color and gap token.
 
-// journeyFocusBridgeStylesheet renders the embedded-Journey focus bridge:
-// the same semantic focus token and ring geometry as the product shell.
-// Standalone Journey documents still use their own accent fallback; embedded
-// documents inherit the protected product focus color and gap token.
-func journeyFocusBridgeStylesheet() string {
-	return buildTypedSheet(declareJourneyFocusBridge)
-}
-
 func declareJourneyFocusBridge() {
 	declareGlobal(".jn-embedded",
 		gwccss.Custom("jn-focus-color", "var(--hcm-color-focus)"),
@@ -58,13 +50,6 @@ func declareJourneyFocusBridge() {
 			gwccss.Custom("jn-focus-color", "Highlight"),
 			gwccss.Custom("jn-ring", "0 0 0 2px Highlight")),
 	)
-}
-
-// focusStylesheet renders the platform visible-focus boundary. It is appended
-// after customer and component styles so component states can style borders
-// and surfaces but cannot accidentally remove the keyboard indicator.
-func focusStylesheet() string {
-	return buildTypedSheet(declareFocusStyles)
 }
 
 func declareFocusStyles() {

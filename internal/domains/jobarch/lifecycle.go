@@ -241,9 +241,6 @@ type ImpactAnalysis struct {
 }
 
 func cloneSubjects(in []ImpactSubject) []ImpactSubject { return append([]ImpactSubject(nil), in...) }
-func cloneDependencies(in []ImpactDependency) []ImpactDependency {
-	return append([]ImpactDependency(nil), in...)
-}
 
 // AnalyzeImpact freezes all supplied dependency classes and emits a review and
 // migration intent for each scoped subject. HistoricalRevision is retained.

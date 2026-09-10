@@ -15,7 +15,7 @@ func matrixStore(t *testing.T) (*Store, *time.Time) {
 		t.Fatal(err)
 	}
 	now := time.Date(2026, 1, 2, 3, 4, 5, 0, time.UTC)
-	if err := s.SetClock(func() time.Time { return *(&now) }); err != nil {
+	if err := s.SetClock(func() time.Time { return now }); err != nil {
 		t.Fatal(err)
 	}
 	return s, &now

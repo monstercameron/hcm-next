@@ -20,7 +20,7 @@ func networkTransitionStylesStylesheet() string {
 func startingStyleNetworkReady() string {
 	return atRule("@starting-style", buildTypedSheet(func() {
 		declareGlobal(".network-stage-ready",
-			gwccss.Opacity(0.94),
+			gwccss.OpacityNum(gwccss.Num(0.94)),
 			gwccss.Transform(gwccss.TranslateY(gwccss.Px(2))),
 		)
 	}))
@@ -28,24 +28,24 @@ func startingStyleNetworkReady() string {
 
 func declarenetworkTransitionStylesPre() {
 	declareGlobal(".network-stage",
-		gwccss.Opacity(1),
+		gwccss.OpacityNum(gwccss.Num(1)),
 		gwccss.Raw("transform", "none"),
 		gwccss.Transition(gwccss.TransitionProps(gwccss.Prop("opacity"), gwccss.Prop("transform")), gwccss.VarDuration("hcm-motion-normal"), gwccss.Easing("var(--hcm-motion-easing)")),
 	)
 	declareGlobal(".network-stage-refreshing",
-		gwccss.Opacity(.985),
+		gwccss.OpacityNum(gwccss.Num(.985)),
 		gwccss.Transform(gwccss.TranslateY(gwccss.Px(1))),
 	)
 	declareGlobal(".network-stage>.page-head,.network-stage>.home-grid,.network-stage>.workbench,.network-stage>.people-page,.network-stage>.person-page,.network-stage>.organization-page,.network-stage>.insights-grid,.network-stage>.admin-grid,.network-stage>.studio-page,.network-stage>.jn-embedded,.network-stage :where(.work-row,.people-row,.history-row,.status,.count),.network-stage .jn-embedded .jn-griditem",
 		gwccss.Raw("animation", "none"),
 	)
 	declareGlobal(".network-slot",
-		gwccss.Opacity(1),
+		gwccss.OpacityNum(gwccss.Num(1)),
 		gwccss.Raw("transform", "none"),
 		gwccss.Transition(gwccss.TransitionProps(gwccss.Prop("border-color"), gwccss.Prop("background-color")), gwccss.VarDuration("hcm-motion-fast"), gwccss.Easing("var(--hcm-motion-easing)")),
 	)
 	declareGlobal(".network-slot-pending",
-		gwccss.Opacity(.72),
+		gwccss.OpacityNum(gwccss.Num(.72)),
 	)
 	declareGlobal(".loading-viewer-profile",
 		gwccss.W(gwccss.Px(40)),
@@ -86,20 +86,20 @@ func declarenetworkTransitionStylesPre() {
 
 func declarenetworkTransitionStylesPost() {
 	declareGlobal(":root[data-hcm-motion-preference=\"limited\"] .network-stage-refreshing",
-		gwccss.Opacity(.995),
+		gwccss.OpacityNum(gwccss.Num(.995)),
 		gwccss.Raw("transform", "none"),
 	)
 	declareGlobal(":root[data-hcm-motion-preference=\"limited\"] .network-slot-pending",
-		gwccss.Opacity(.86),
+		gwccss.OpacityNum(gwccss.Num(.86)),
 	)
 	declareGlobal(".network-stage,.network-slot",
-		mediaRule(gwccss.RawMedia("(prefers-reduced-motion:reduce)"), gwccss.Opacity(1), gwccss.Raw("transform", "none"), gwccss.Raw("transition", "none")),
+		mediaRule(gwccss.RawMedia("(prefers-reduced-motion:reduce)"), gwccss.OpacityNum(gwccss.Num(1)), gwccss.Raw("transform", "none"), gwccss.Raw("transition", "none")),
 	)
 	declareGlobal(".app-shell.is-refreshing .network-progress:after,.people-directory.is-refreshing .people-directory-progress:after",
 		mediaRule(gwccss.RawMedia("(prefers-reduced-motion:reduce)"), gwccss.Raw("animation", "none")),
 	)
 	declareGlobal(".network-stage-refreshing,.network-slot-pending",
-		mediaRule(gwccss.RawMedia("(forced-colors:active)"), gwccss.Opacity(1)),
+		mediaRule(gwccss.RawMedia("(forced-colors:active)"), gwccss.OpacityNum(gwccss.Num(1))),
 	)
 	declareGlobal(".loading-viewer-profile",
 		mediaRule(gwccss.RawMedia("(forced-colors:active)"), gwccss.Border(gwccss.Px(1), gwccss.Color("CanvasText"))),
@@ -147,10 +147,10 @@ func declarenavigationInteractionRefinementsStyles() {
 		mediaRule(gwccss.MinW(761), gwccss.Position.Absolute, gwccss.Top(gwccss.Percent(50)), gwccss.Raw("inset-inline-end", "2px"), gwccss.Raw("translate", "0 -50%")),
 	)
 	declareGlobal(".primary-nav .nav-favorite",
-		mediaRule(gwccss.RawMedia("(min-width:761px) and (hover:hover)"), gwccss.Opacity(0), gwccss.Raw("pointer-events", "none")),
+		mediaRule(gwccss.RawMedia("(min-width:761px) and (hover:hover)"), gwccss.OpacityNum(gwccss.Num(0)), gwccss.Raw("pointer-events", "none")),
 	)
 	declareGlobal(".primary-nav .nav-entry:hover>.nav-favorite,.primary-nav .nav-entry:focus-within>.nav-favorite,.primary-nav .nav-favorite:focus-visible",
-		mediaRule(gwccss.RawMedia("(min-width:761px) and (hover:hover)"), gwccss.Opacity(1), gwccss.Raw("pointer-events", "auto")),
+		mediaRule(gwccss.RawMedia("(min-width:761px) and (hover:hover)"), gwccss.OpacityNum(gwccss.Num(1)), gwccss.Raw("pointer-events", "auto")),
 	)
 	declareGlobal(".primary-nav",
 		mediaRule(gwccss.RawMedia("(forced-colors:active)"), gwccss.Raw("scrollbar-color", "ButtonText Canvas")),
@@ -564,7 +564,7 @@ func declareresponsiveComponentStylesStyles() {
 		mediaRule(gwccss.MaxW(760), gwccss.Display.Flex, gwccss.H(gwccss.RawLength("auto")), gwccss.MaxHeight(gwccss.MinLen(gwccss.RawLength("44dvh"), gwccss.Px(420))), gwccss.PaddingY(gwccss.Px(10)), gwccss.PaddingX(gwccss.Px(14)), gwccss.Raw("border-right", "0"), gwccss.BorderBottom(gwccss.Px(1), gwccss.Var("line")), gwccss.Raw("overflow", "hidden"), gwccss.Raw("visibility", "visible")),
 	)
 	declareGlobal(".app-shell.nav-collapsed .sidebar",
-		mediaRule(gwccss.MaxW(760), gwccss.MaxHeight(gwccss.Zero), gwccss.Raw("padding-block", "0"), gwccss.Raw("border-bottom", "0"), gwccss.Opacity(0), gwccss.Raw("visibility", "hidden"), gwccss.Raw("pointer-events", "none")),
+		mediaRule(gwccss.MaxW(760), gwccss.MaxHeight(gwccss.Zero), gwccss.Raw("padding-block", "0"), gwccss.Raw("border-bottom", "0"), gwccss.OpacityNum(gwccss.Num(0)), gwccss.Raw("visibility", "hidden"), gwccss.Raw("pointer-events", "none")),
 	)
 	declareGlobal(".primary-nav,.sidebar nav:first-of-type",
 		mediaRule(gwccss.MaxW(760), gwccss.Raw("flex", "1"), gwccss.W(gwccss.Percent(100)), gwccss.MinWidth(gwccss.Zero), gwccss.MaxWidth(gwccss.Percent(100)), gwccss.Raw("overflow-x", "hidden!important"), gwccss.Raw("overflow-y", "auto!important"), gwccss.Raw("overscroll-behavior", "contain"), gwccss.Raw("scrollbar-width", "thin"), gwccss.Raw("scrollbar-color", "var(--hcm-nav-scrollbar-thumb) var(--hcm-nav-scrollbar-track)"), gwccss.Raw("scrollbar-gutter", "stable")),

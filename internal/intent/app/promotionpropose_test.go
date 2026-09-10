@@ -264,8 +264,9 @@ func TestTodo_PROMO_007_Golden(t *testing.T) {
 	})
 
 	t.Run("the digest is stable across equal requests", func(t *testing.T) {
-		if PromotionProposeRequestDigest(promotionProposeFixture()) !=
-			PromotionProposeRequestDigest(promotionProposeFixture()) {
+		firstDigest, secondDigest := PromotionProposeRequestDigest(promotionProposeFixture()),
+			PromotionProposeRequestDigest(promotionProposeFixture())
+		if firstDigest != secondDigest {
 			t.Fatal("two equal requests digested differently")
 		}
 	})
@@ -344,7 +345,8 @@ func TestTodo_PROMO_007_Mutation(t *testing.T) {
 	t.Run("the idempotency coordinate is the client request id", func(t *testing.T) {
 		// Two calls carrying the same client request id must key to one
 		// intent; two carrying different ones must not.
-		if promotionProposeIdempotencyKey("req-a") != promotionProposeIdempotencyKey("req-a") {
+		firstKey, secondKey := promotionProposeIdempotencyKey("req-a"), promotionProposeIdempotencyKey("req-a")
+		if firstKey != secondKey {
 			t.Fatal("the same client request id produced two idempotency keys")
 		}
 		if promotionProposeIdempotencyKey("req-a") == promotionProposeIdempotencyKey("req-b") {

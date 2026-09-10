@@ -185,7 +185,9 @@ func TestTodo_ASSET_001_Mutation(t *testing.T) {
 	}
 	h := s.History(inv.InventoryID)
 	h[0].Status = Lost
-	h = append(h, CustodyRevision{Status: Retired})
+	// The append targets the shared backing array on purpose: the
+	// assertion below proves neither mutation leaks into stored state.
+	_ = append(h, CustodyRevision{Status: Retired})
 	current, _ := s.Current(inv.InventoryID)
 	stored := s.History(inv.InventoryID)
 	if current.Status != Assigned || len(stored) != 1 || stored[0].Status != Assigned {
