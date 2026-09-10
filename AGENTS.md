@@ -83,8 +83,6 @@ Implementation is cheap and review is expensive, so route the work that way.
 
 Work is delivered by coding lanes (Codex "Luna" subagents) coordinated by an orchestrator session. The orchestrator owns `planning/`, `definitions/`, `go.mod`, `go.sum`, git, registry ticks, migration numbering and commits. A lane owns only the file roots its brief names, writes additive files, never runs git, never edits planning or definitions, and reports the registry rows, manifest entries and policy edits it needs verbatim.
 
-Front-end surfaces (`WEB-`, `UX-`, `UXFLOW-`, `A11Y-` todos; `internal/humanwork`, `tools/uxqual`, `cmd/frontenddev`) belong to a separate session. Leave those files alone.
-
 ## One artifact root
 
 `.artifacts/` is the only place in the checkout for disposable output, and it is ignored by git. Built binaries go to `.artifacts/bin/` (`scripts/build.sh`), lane briefs, logs and reports to `.artifacts/lanes/` (`scripts/run-lane.sh`), coverage output to `.artifacts/coverage/`, Go temp directories and test binaries to `.artifacts/tmp/`, lane build caches to `.artifacts/gocache/`, and the embedded PostgreSQL binary cache to `.artifacts/pg/`. The pre-commit hook and the lane launcher export `GOTMPDIR`, `TMP`, `TEMP` and `HCMNEXT_TEST_PG_CACHE` to those paths; do the same for any command you run by hand that builds or tests. A scratch directory at the repository root is a bug: delete it and fix the command that made it. Never force-add anything under `.artifacts/`, and never point cleanup at anything broader than a child of it.
