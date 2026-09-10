@@ -2,6 +2,13 @@
 
 ## 2026-09-10
 
+- Land the headcount requisition proof (CONF-021): approval authorizes
+  capacity only over the HEADCOUNT-001 API with no production change —
+  requester-chosen approvers and missing quorum/SoD refuse, external
+  REQUESTED never counts as created, competing proposals fence exact
+  decimal FTE/count/budget with ErrCapacityConflict, and the lifecycle
+  transcript is golden-pinned.
+
 - Land the execution conflict preflight (CONFLICT-004): execution-time
   re-evaluation of the approval-pinned intent set against the current
   set under one versioned policy — post-approval collisions block with
