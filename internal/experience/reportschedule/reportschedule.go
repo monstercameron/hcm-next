@@ -95,7 +95,6 @@ var (
 )
 
 func digest(v string) string { h := sha256.Sum256([]byte(v)); return hex.EncodeToString(h[:]) }
-func validPin(p Pin) bool    { return p.ID != "" && p.Version != "" && p.Digest != "" }
 func validSchedule(s Schedule) bool {
 	return s.ID != "" && s.TenantID != "" && s.Every > 0 && s.State != Paused && s.State != Unavailable && s.Definition.ID != "" && s.Definition.Version != "" && s.Definition.Digest != "" && s.Data.ID != "" && s.Data.Version != "" && s.Data.Digest != "" && s.Control.ID != "" && s.Control.Version != "" && s.Control.Digest != "" && s.Locale.ID != "" && s.Locale.Version != "" && s.Locale.Digest != ""
 }

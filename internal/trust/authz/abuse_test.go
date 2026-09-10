@@ -316,9 +316,7 @@ func TestTodo_TRUST_025_Security(t *testing.T) {
 	leaks := []string{decision.Explain(), decision.SubjectDenialReason, decision.Tenant.Reason}
 	for _, ruling := range decision.Fields {
 		leaks = append(leaks, ruling.RuleID, ruling.Reason)
-		for _, o := range ruling.Obligations {
-			leaks = append(leaks, o)
-		}
+		leaks = append(leaks, ruling.Obligations...)
 	}
 	for _, s := range leaks {
 		if strings.Contains(s, string(tenantVendor)) || strings.Contains(s, subjectOtherID) || strings.Contains(s, foreignSalary) {

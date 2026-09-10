@@ -84,7 +84,8 @@ func TestTenantKeyMapperAgreesWithTheComposedStore(t *testing.T) {
 	if mapper("a") == mapper("b") {
 		t.Error("two tenants derive the same row")
 	}
-	if mapper(tenant) != mapper(tenant) {
+	firstDerivation, secondDerivation := mapper(tenant), mapper(tenant)
+	if firstDerivation != secondDerivation {
 		t.Error("the derivation is not stable")
 	}
 

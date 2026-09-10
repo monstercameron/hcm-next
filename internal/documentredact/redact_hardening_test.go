@@ -53,6 +53,7 @@ func TestPolicyAndSurfaceValidation(t *testing.T) {
 
 func TestGenerate_RequestContextAndPolicyBoundaries(t *testing.T) {
 	valid := request()
+	//lint:ignore SA1012 deliberate nil context: Generate must succeed with a nil context for a valid request.
 	if _, err := Generate(nil, valid); err != nil {
 		t.Fatalf("nil context = %v", err)
 	}

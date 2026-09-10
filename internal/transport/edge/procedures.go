@@ -78,9 +78,7 @@ func Procedures() []string {
 		ProcedureGetIntentDefinition, ProcedureListCapabilities, ProcedureGetCapability,
 	}
 	out := make([]string, 0, len(legacy))
-	for _, p := range legacy {
-		out = append(out, p)
-	}
+	out = append(out, legacy...)
 	sort.Strings(out)
 	return out
 }

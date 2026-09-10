@@ -96,18 +96,6 @@ func assertWorkflowAuthorizationDenied(t *testing.T) {
 	}
 }
 
-func assertWorkflowCursorRejectsNegative(t *testing.T) {
-	t.Helper()
-	cursor, err := encodeSnapshotCursor(snapshotCursor{TenantID: "tenant-a", InstanceID: "workflow-1", InstanceVersion: 1, Index: -1}, []byte("key"))
-	if err != nil {
-		t.Fatalf("encode negative cursor: %v", err)
-	}
-	page := &commonv1.PageRequest{Cursor: cursor}
-	if _, err := decodeSnapshotCursor(page, []byte("key"), "tenant-a", "workflow-1", 1); err == nil {
-		t.Fatal("negative cursor index was accepted")
-	}
-}
-
 type workflowTestReader struct {
 	record Record
 	calls  atomic.Int64

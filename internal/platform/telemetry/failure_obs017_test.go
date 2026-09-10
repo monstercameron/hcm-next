@@ -14,7 +14,7 @@ func (safeTestError) Retryable() bool { return true }
 
 func TestErrorAndPanicTelemetryClassifiesRedactsAndPreservesOwnedFailureBehavior(t *testing.T) {
 	owned := safeTestError{}
-	err, failure := ExecuteWithRecovery(func() error { return owned })
+	failure, err := ExecuteWithRecovery(func() error { return owned })
 	if !errors.Is(err, owned) || failure.Code != "PROVIDER_TIMEOUT" || !failure.Retryable || failure.Type != FailureUnknown {
 		t.Fatalf("returned failure = %v, %+v", err, failure)
 	}
@@ -115,7 +115,7 @@ func TestTodo_OBS_017_CoincidenceGuard(t *testing.T) {
 
 func TestTodo_OBS_017_Fault(t *testing.T) {
 	called := 0
-	err, failure := ExecuteWithRecovery(func() error { called++; panic("failure") })
+	failure, err := ExecuteWithRecovery(func() error { called++; panic("failure") })
 	if !errors.Is(err, ErrPanicRecovered) || !failure.Panic || called != 1 {
 		t.Fatalf("panic disposition = %v, %+v, calls=%d", err, failure, called)
 	}
@@ -133,8 +133,8 @@ func TestTodo_OBS_017_Recovery(t *testing.T) {
 	guard := new(RecoveryGuard)
 	var calls int
 	fn := func() error { calls++; return ErrPanicRecovered }
-	first, _ := guard.Run(fn)
-	second, _ := guard.Run(fn)
+	_, first := guard.Run(fn)
+	_, second := guard.Run(fn)
 	if !errors.Is(first, ErrPanicRecovered) || !errors.Is(second, ErrPanicRecovered) || calls != 1 {
 		t.Fatalf("guard recovery = %v/%v calls=%d", first, second, calls)
 	}

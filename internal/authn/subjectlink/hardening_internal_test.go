@@ -130,8 +130,12 @@ func TestValidationHelpers_ClosedValuesAndDigestBoundaries(t *testing.T) {
 	if subjectKey(ref, goodDigest) == subjectKey(ref, DigestSubject("other")) || identityKey(ref, WorkforceIdentityRef{ID: "a"}) == identityKey(ref, WorkforceIdentityRef{ID: "b"}) {
 		t.Fatalf("store keys do not distinguish their inputs")
 	}
-	if digestParts("ab", "c") == digestParts("a", "bc") || digestParts("x") != digestParts("x") {
-		t.Fatalf("digestParts lacks length framing or determinism")
+	if digestParts("ab", "c") == digestParts("a", "bc") {
+		t.Fatalf("digestParts lacks length framing")
+	}
+	firstParts, secondParts := digestParts("x"), digestParts("x")
+	if firstParts != secondParts {
+		t.Fatalf("digestParts lacks determinism")
 	}
 	decision, err := NewDecision(RuleVerifiedEmail, "resolver", "", "authority", "evidence", hardAt)
 	if err != nil {

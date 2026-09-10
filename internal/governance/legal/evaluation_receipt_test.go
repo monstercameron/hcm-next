@@ -141,7 +141,6 @@ func TestTodo_LEGAL_014_Recovery(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	registry = NewRegistry()
 	if err := receipt.VerifyWithKey(signer.PublicKey()); err != nil {
 		t.Fatalf("offline verification: %v", err)
 	}

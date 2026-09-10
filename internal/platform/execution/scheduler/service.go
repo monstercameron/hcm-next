@@ -298,7 +298,9 @@ func buildRuntime(deps bootstrap.Deps, dispatcher Dispatcher, signalRole SignalR
 	if err != nil {
 		return bootstrap.Runtime{}, err
 	}
-	roles := DefaultRoleConfig()
+	// The default flows through RolesFrom itself; assigning it here would
+	// be overwritten on every branch.
+	var roles RoleConfig
 	if rolesOverride != nil {
 		roles = *rolesOverride
 	} else {

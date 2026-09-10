@@ -132,15 +132,7 @@ func (h HTTPTokenExchanger) Exchange(ctx context.Context, req TokenRequest) (Tok
 	if wire.Error == "" && resp.StatusCode >= 400 {
 		return TokenResponse{}, fmt.Errorf("oidc: token endpoint returned status %d with no error field", resp.StatusCode)
 	}
-	return TokenResponse{
-		AccessToken:      wire.AccessToken,
-		TokenType:        wire.TokenType,
-		ExpiresIn:        wire.ExpiresIn,
-		IDToken:          wire.IDToken,
-		Scope:            wire.Scope,
-		Error:            wire.Error,
-		ErrorDescription: wire.ErrorDescription,
-	}, nil
+	return TokenResponse(wire), nil
 }
 
 var _ TokenExchanger = HTTPTokenExchanger{}

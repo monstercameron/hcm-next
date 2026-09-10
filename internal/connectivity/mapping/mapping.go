@@ -131,7 +131,7 @@ func Execute(ir IR, input map[string]string) (Result, error) {
 		if !ok {
 			diags = append(diags, Diagnostic{r.Target, "source.missing", r.Source})
 			if r.Null == NullError {
-				return Result{}, fmt.Errorf("%w: %s", ErrMissingSource, r.Source)
+				return Result{Diagnostics: diags}, fmt.Errorf("%w: %s", ErrMissingSource, r.Source)
 			}
 			if r.Null == NullDelete {
 				fields = append(fields, Field{Target: r.Target, Deleted: true})
@@ -142,7 +142,7 @@ func Execute(ir IR, input map[string]string) (Result, error) {
 		if err != nil {
 			diags = append(diags, Diagnostic{r.Target, "transform.failed", err.Error()})
 			if r.Null == NullError {
-				return Result{}, fmt.Errorf("%w: %s: %v", ErrTransform, r.Target, err)
+				return Result{Diagnostics: diags}, fmt.Errorf("%w: %s: %v", ErrTransform, r.Target, err)
 			}
 			if r.Null == NullDelete {
 				fields = append(fields, Field{Target: r.Target, Deleted: true})
@@ -152,7 +152,7 @@ func Execute(ir IR, input map[string]string) (Result, error) {
 		if v == "" {
 			if r.Null == NullError {
 				diags = append(diags, Diagnostic{r.Target, "value.empty", "empty output"})
-				return Result{}, fmt.Errorf("%w: %s: empty output", ErrTransform, r.Target)
+				return Result{Diagnostics: diags}, fmt.Errorf("%w: %s: empty output", ErrTransform, r.Target)
 			}
 			if r.Null == NullDelete {
 				fields = append(fields, Field{Target: r.Target, Deleted: true})

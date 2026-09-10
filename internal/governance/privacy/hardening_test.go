@@ -21,6 +21,7 @@ func TestCanonical_EncodingAndDigest_Boundaries(t *testing.T) {
 			t.Fatal("odd field list did not panic")
 		}
 	}()
+	//lint:ignore SA5012 deliberate odd arity: this test proves appendFields panics on an odd argument count.
 	appendFields(nil, "odd")
 }
 
@@ -322,8 +323,9 @@ func TestDisclosurePolicy_ValidateDigestAndQueryDigest_Boundaries(t *testing.T) 
 	if err := base.Validate(); err != nil {
 		t.Fatalf("valid policy rejected: %v", err)
 	}
-	if base.Digest() != base.Digest() || len(base.Digest()) != 64 {
-		t.Fatalf("policy digest is not stable sha256: %q", base.Digest())
+	firstPolicyDigest, secondPolicyDigest := base.Digest(), base.Digest()
+	if firstPolicyDigest != secondPolicyDigest || len(firstPolicyDigest) != 64 {
+		t.Fatalf("policy digest is not stable sha256: %q", firstPolicyDigest)
 	}
 	derived := AnalyticsQuery{TenantID: "t", Principal: "p", Purpose: "x", Dimensions: []string{"b", "a"}}
 	if QueryDigest(derived) != QueryDigest(AnalyticsQuery{TenantID: "t", Principal: "p", Purpose: "x", Dimensions: []string{"a", "b"}}) {

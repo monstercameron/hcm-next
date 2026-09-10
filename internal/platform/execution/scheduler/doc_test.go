@@ -1,9 +1,11 @@
 package scheduler
 
 import (
+	"go/ast"
 	"go/parser"
 	"go/token"
-	"io/fs"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -44,21 +46,32 @@ func TestPackageDocumentsItsContract(t *testing.T) {
 // suite, so the reason sits next to the code.
 func TestPackageNamesNoIdentifierModule(t *testing.T) {
 	fset := token.NewFileSet()
-	pkgs, err := parser.ParseDir(fset, ".", func(info fs.FileInfo) bool {
-		return !strings.HasSuffix(info.Name(), "_test.go")
-	}, 0)
+	// parser.ParseDir is deprecated; a ReadDir plus ParseFile loop collects
+	// the same file set (build-tag precision is irrelevant here).
+	files := map[string]*ast.File{}
+	entries, err := os.ReadDir(".")
 	if err != nil {
 		t.Fatalf("parse package: %v", err)
 	}
-	if len(pkgs) == 0 {
+	for _, entry := range entries {
+		name := entry.Name()
+		if entry.IsDir() || !strings.HasSuffix(name, ".go") || strings.HasSuffix(name, "_test.go") {
+			continue
+		}
+		path := filepath.Join(".", name)
+		file, err := parser.ParseFile(fset, path, nil, 0)
+		if err != nil {
+			t.Fatalf("parse package: %v", err)
+		}
+		files[path] = file
+	}
+	if len(files) == 0 {
 		t.Fatal("parsed no package source at all")
 	}
-	for _, pkg := range pkgs {
-		for name, file := range pkg.Files {
-			for _, imp := range file.Imports {
-				if strings.Trim(imp.Path.Value, `"`) == "github.com/google/uuid" {
-					t.Errorf("%s imports github.com/google/uuid; internal/platform is not one of its allowed roots", name)
-				}
+	for name, file := range files {
+		for _, imp := range file.Imports {
+			if strings.Trim(imp.Path.Value, `"`) == "github.com/google/uuid" {
+				t.Errorf("%s imports github.com/google/uuid; internal/platform is not one of its allowed roots", name)
 			}
 		}
 	}

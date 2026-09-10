@@ -82,7 +82,7 @@ func Recover(fn func()) (failure ClassifiedFailure) {
 // ExecuteWithRecovery preserves an owned returned error and converts a panic
 // into ErrPanicRecovered. The callback is invoked once and the recovery path
 // can be guarded by callers that may receive duplicate worker delivery.
-func ExecuteWithRecovery(fn func() error) (err error, failure ClassifiedFailure) {
+func ExecuteWithRecovery(fn func() error) (failure ClassifiedFailure, err error) {
 	defer func() {
 		if value := recover(); value != nil {
 			failure = ClassifyPanic(value)
@@ -93,7 +93,7 @@ func ExecuteWithRecovery(fn func() error) (err error, failure ClassifiedFailure)
 	if err != nil {
 		failure = ClassifyError(err)
 	}
-	return err, failure
+	return failure, err
 }
 
 // RecoveryGuard makes the recovery disposition idempotent for a boundary
@@ -105,12 +105,12 @@ type RecoveryGuard struct {
 }
 
 // Run calls fn at most once and returns the first disposition on every call.
-func (g *RecoveryGuard) Run(fn func() error) (error, ClassifiedFailure) {
+func (g *RecoveryGuard) Run(fn func() error) (ClassifiedFailure, error) {
 	if g == nil {
 		return ExecuteWithRecovery(fn)
 	}
-	g.once.Do(func() { g.err, g.info = ExecuteWithRecovery(fn) })
-	return g.err, g.info
+	g.once.Do(func() { g.info, g.err = ExecuteWithRecovery(fn) })
+	return g.info, g.err
 }
 
 func stackReference() string {

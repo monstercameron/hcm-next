@@ -54,7 +54,6 @@ type extraScanStruct struct {
 	Bytes     []byte
 	Array     [20]byte
 	Values    []string
-	hidden    string
 }
 
 func TestScan_Check_WalkAllSupportedShapesWithoutEchoingValues(t *testing.T) {

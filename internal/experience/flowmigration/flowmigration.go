@@ -262,8 +262,6 @@ type MigrationReceipt struct {
 	ReceiptDigest                                      string
 }
 
-func (m MigrationReceipt) clone() MigrationReceipt { m.ActionMap = cloneMap(m.ActionMap); return m }
-
 // Migrate returns a new pinned work value; the source is never rewritten.
 func (r *Registry) Migrate(w Work, targetDigest string, review Review) (Work, MigrationReceipt, error) {
 	from, ok := r.Definition(w.FlowID, w.VersionDigest)

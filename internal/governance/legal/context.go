@@ -375,25 +375,3 @@ func Resolve(input LegalContextInput, registry *Registry, signer *Signer, now va
 	ctx.signature = signature
 	return ctx, nil
 }
-
-// resolveJurisdiction applies the remote-work rule to the caller's facts. Work
-// location and employment jurisdiction never contribute a default merge: for
-// non-remote work they must agree exactly, and for remote work the physical
-// work location controls (the majority rule among the seeded state packs —
-// employment law generally follows where the work is physically performed).
-// Any other disagreement is ambiguous and refused, never silently resolved by
-// picking one side.
-func resolveJurisdiction(input LegalContextInput) (Jurisdiction, Confidence, string, error) {
-	if !input.RemoteWork {
-		if !input.WorkLocation.Equal(input.EmploymentJurisdiction) {
-			return Jurisdiction{}, ConfidenceUnspecified, "", fmt.Errorf(
-				"%w: on-site work location %s disagrees with asserted employment jurisdiction %s",
-				ErrLegalContextUnknown, input.WorkLocation, input.EmploymentJurisdiction)
-		}
-		return input.WorkLocation, ConfidenceVerified, "not_remote", nil
-	}
-	if input.WorkLocation.Equal(input.EmploymentJurisdiction) {
-		return input.WorkLocation, ConfidenceVerified, "physical_work_location_controls", nil
-	}
-	return input.WorkLocation, ConfidenceAsserted, "physical_work_location_controls", nil
-}

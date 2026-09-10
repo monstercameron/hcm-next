@@ -173,16 +173,6 @@ type ScheduleEntry struct {
 	ReviewDue time.Time
 }
 
-func (e ScheduleEntry) validate() error {
-	if err := e.Grant.validate(); err != nil {
-		return err
-	}
-	if e.ReviewDue.IsZero() {
-		return refuse("review_due", "required")
-	}
-	return nil
-}
-
 // Schedule is an immutable point-in-time review schedule.
 type Schedule struct {
 	AsOf    time.Time
