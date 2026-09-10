@@ -2,6 +2,12 @@
 
 ## 2026-09-10
 
+- Land the runtime kernels (WF-RUN-006, WF-RUN-007): the immediate-caller
+  retry policy (capped backoff, shared budget, DO_NOT_RETRY honored
+  above all) and poison-node quarantine that never drops work and never
+  reports success — exhausted nodes route to BLOCKED, REPAIR_REQUIRED
+  or QUARANTINED with everything retained.
+
 - Land the intent kernels (INTENT-016, INTENT-018, INTENT-019,
   INTENT-021, INTENT-026, INTENT-027, WF-DISC-011, REPLAN-002,
   REPLAN-004): deterministic child emission, event-to-intent policy
