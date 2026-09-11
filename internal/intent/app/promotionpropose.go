@@ -15,6 +15,7 @@ import (
 	"github.com/monstercameron/human-capital-management-suite/internal/domains/promotion"
 	"github.com/monstercameron/human-capital-management-suite/internal/humanwork/workspace"
 	"github.com/monstercameron/human-capital-management-suite/internal/intent"
+	"github.com/monstercameron/human-capital-management-suite/internal/intent/protomap"
 	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 	"github.com/monstercameron/human-capital-management-suite/internal/transport/envelope"
 )
@@ -438,9 +439,20 @@ func (e *journeyEngine) ProposePromotion(
 	}
 
 	instance := created.GetIntent()
-	artifact, simErr := e.resimulate(ctx, instance.GetIntentId())
+	simulated, simErr := e.resimulateDetailed(ctx, instance.GetIntentId())
 	if simErr != nil {
 		return nil, simErr
+	}
+	artifact := simulated.Artifact
+	// The durable half of the contract: the snapshot the simulation read, the
+	// proposal revision it minted and the result that binds them all survive
+	// this process (journey_candidates.go).
+	stored, convErr := protomap.InstanceFromProto(instance)
+	if convErr != nil {
+		return nil, journeyError(convErr)
+	}
+	if persistErr := e.recordProposalCandidates(ctx, principal, stored, simulated); persistErr != nil {
+		return nil, journeyError(persistErr)
 	}
 	stage := journeyv1.JourneyStage_JOURNEY_STAGE_PROPOSED
 	if artifact.GetProposalRevisionId() == "" {
