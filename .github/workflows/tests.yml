@@ -58,7 +58,32 @@ jobs:
   go-core:
     name: Go tests (root module)
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    # This job runs the root module's suite TWICE and has to budget for both:
+    # once under the race detector (narrowed to the concurrent packages, see
+    # the TOOL-012 step) and once in full under covergate, which shells out to
+    # `go test -count=1 -cover` over every measurable package to compute the
+    # 70% floor. They are separate sweeps because they answer separate
+    # questions, and neither can be dropped.
+    #
+    # Measured on run 34548568659 (ubuntu-latest, 4 cores): the unnarrowed
+    # `-race ./...` sweep burned 11,080 package-seconds over 530 of the 776
+    # packages in 55 minutes of wall clock before the 60-minute wall cancelled
+    # it with ~200 packages still unrun. internal/data alone was 6,803 of those
+    # seconds (101 PostgreSQL-backed packages), and internal/operations/
+    # reliability contributed 600 of them by hanging in an infinite directory
+    # walk until the per-package test timeout fired (fixed in
+    # reliability_test.go). Narrowing the race sweep to the 332 concurrent
+    # packages leaves ~6,700 package-seconds there, and the coverage sweep is
+    # ~7,900 without the detector, which is roughly 33 + 39 minutes of wall
+    # clock at the observed 3.4x package parallelism. 120 leaves real headroom
+    # over that ~80-minute budget; do not lower it without re-measuring.
+    #
+    # If this becomes too slow to live with, the next move is to split the
+    # coverage sweep into its own job so the two run in parallel. That needs a
+    # branch-protection change in the same breath, because "Tests / Go tests
+    # (root module)" is a required status check and a gate moved into a job
+    # that is not required stops being enforced.
+    timeout-minutes: 120
 
     # PostgreSQL runs as an explicit step container rather than a
     # `services:` entry on purpose: service containers start before
@@ -143,13 +168,43 @@ jobs:
       # TOOL-012: the race class only runs for real on Linux CI; the local
       # dev machine (windows/arm64) has no race detector support, so
       # tools/quality's TestTodo_TOOL_012 skips itself there. This is that
-      # promised Linux run, covering every concurrent package under
-      # ./... (transaction, workflow, queue, cache, connector) plus the
-      # deliberately racy fixture in tools/quality/testdata/racefixture,
-      # which TestTodo_TOOL_012 shells out to under -race as its own
-      # RED/GREEN proof.
-      - name: Run root module tests with the race detector (TOOL-012)
-        run: go test -race -count=1 ./...
+      # promised Linux run.
+      #
+      # The package set comes from tools/policy/racepolicy itself (-list),
+      # which is the same scan the policy step below audits: every package
+      # that imports sync/sync/atomic or starts a goroutine (transaction,
+      # workflow, queue, cache, connector, ...). Racing that set instead of
+      # ./... is not a narrowing of the TOOL-012 contract, it IS the contract
+      # written down -- and because both steps read one scan, a package that
+      # becomes concurrent starts being raced without anyone editing this
+      # file, while one that cannot be raced for want of a resolving test file
+      # still fails the policy step. The packages left out are not skipped:
+      # the coverage sweep below runs every measurable package, detector off.
+      #
+      # What this buys is time. `-race ./...` re-ran all 101 PostgreSQL-backed
+      # internal/data packages under the detector for no race-class signal,
+      # and that is most of what blew the old 60-minute wall.
+      #
+      # tools/quality's TestTodo_TOOL_012 keeps its RED/GREEN proof either
+      # way: it shells out to `go test -race` over
+      # tools/quality/testdata/racefixture in a subprocess, so it needs a
+      # race-capable platform (this one) rather than a race-instrumented
+      # parent, and the coverage sweep runs it here.
+      #
+      # xargs, not $(cat ...), so a future list too long for one argv becomes
+      # several `go test` invocations rather than a truncation; xargs still
+      # exits nonzero if any of them fails.
+      - name: Run the race detector over every concurrent package (TOOL-012)
+        run: |
+          mkdir -p .artifacts
+          go run ./tools/policy/racepolicy/cmd/racepolicy -root . -list > .artifacts/race-packages.txt
+          echo "racing $(wc -l < .artifacts/race-packages.txt) concurrent package(s)"
+          xargs -a .artifacts/race-packages.txt go test -race -count=1
+      # This is also the full-suite sweep with the detector off: covergate
+      # -all shells out to `go test -count=1 -cover` over every measurable
+      # package (everything except gen/, src/blocks/go, testdata and dot
+      # directories), so a package outside the concurrent set above still has
+      # to build and pass here.
       - name: Unit-test and coverage floor gate (70%)
         run: go run ./tools/quality/covergate/cmd/covergate -root . -all
       - name: Drift gate (MSRC-010)

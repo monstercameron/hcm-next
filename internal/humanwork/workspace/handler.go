@@ -72,6 +72,13 @@ type Options struct {
 	// RoleAccess resolves durable employee roles and page/action grants for
 	// the product shell. Nil retains the signed-role compatibility policy.
 	RoleAccess roleaccess.Store
+	// PublicOrigin is the canonical http(s) origin (for example
+	// "https://hcm.example.com") this cell is publicly reached at. It is a
+	// deployment fact the request cannot carry: a proxy that terminates TLS
+	// or rewrites Host still hands the page the authority its browser must
+	// dial. Empty derives everything from the request, which is correct for
+	// a listener browsers reach directly.
+	PublicOrigin string
 }
 
 // Handler serves the Promotion workspace over one live cell.
@@ -94,6 +101,11 @@ type Handler struct {
 	devBrowserLogin bool
 	devPersonas     map[string]DevPersona
 	roleAccess      roleaccess.Store
+	// publicScheme and publicAuthority are Options.PublicOrigin resolved:
+	// its scheme and its sanitized host[:port]. Empty means the shell
+	// derives both from each request.
+	publicScheme    string
+	publicAuthority string
 }
 
 // DevPersona is one server-owned local-development sign-in identity. Token is
@@ -142,6 +154,10 @@ func NewHandler(opts Options) (*Handler, error) {
 			personas[persona.ID] = persona
 		}
 	}
+	publicScheme, publicAuthority, err := parsePublicOrigin(opts.PublicOrigin)
+	if err != nil {
+		return nil, err
+	}
 	h := &Handler{
 		cell:              opts.Cell,
 		config:            opts.Config,
@@ -156,6 +172,8 @@ func NewHandler(opts Options) (*Handler, error) {
 		devBrowserLogin:   opts.DevBrowserLogin,
 		devPersonas:       personas,
 		roleAccess:        opts.RoleAccess,
+		publicScheme:      publicScheme,
+		publicAuthority:   publicAuthority,
 	}
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET "+PathPromotion, h.servePromotion)
@@ -368,7 +386,7 @@ func (h *Handler) serveReceipt(w http.ResponseWriter, r *http.Request) {
 		h.writeProblem(w, http.StatusInternalServerError, "Workspace unavailable", err.Error())
 		return
 	}
-	h.writeDocument(w, http.StatusOK, doc, r.Host, false)
+	h.writeDocument(w, http.StatusOK, doc, h.policyHost(r), false)
 }
 
 func (h *Handler) serveAsset(w http.ResponseWriter, r *http.Request) {
@@ -714,7 +732,7 @@ func (h *Handler) renderWorkspace(w http.ResponseWriter, r *http.Request, query 
 	if locale.Fallback != LocaleFallbackNone {
 		w.Header().Set("X-HCM-Workspace-Locale-Fallback", string(locale.Fallback))
 	}
-	h.writeDocument(w, http.StatusOK, doc, r.Host, h.enhanced)
+	h.writeDocument(w, http.StatusOK, doc, h.policyHost(r), h.enhanced)
 }
 
 // writeDocument writes one workspace document under the security headers

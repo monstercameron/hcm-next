@@ -383,9 +383,20 @@ func (e *journeyEngine) Propose(ctx context.Context, in workspace.ProposalInput)
 	if sumErr != nil {
 		return workspace.JourneySummary{}, sumErr
 	}
-	artifact, simErr := e.resimulate(ctx, summary.IntentID)
+	simulated, simErr := e.resimulateDetailed(ctx, summary.IntentID)
 	if simErr != nil {
 		return workspace.JourneySummary{}, simErr
+	}
+	artifact := simulated.Artifact
+	// Same durable candidates the typed ProposePromotion records: the page
+	// form and the typed contract are one capability, so the snapshot,
+	// proposal revision and simulation result persist identically.
+	stored, convErr := protomap.InstanceFromProto(created.GetIntent())
+	if convErr != nil {
+		return workspace.JourneySummary{}, convErr
+	}
+	if persistErr := e.recordProposalCandidates(ctx, principal, stored, simulated); persistErr != nil {
+		return workspace.JourneySummary{}, persistErr
 	}
 	summary.ProposalRevisionID = artifact.GetProposalRevisionId()
 	summary.MaterialDigest = artifact.GetMaterialProposalDigest().GetDigest()

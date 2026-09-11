@@ -2,6 +2,27 @@
 
 ## 2026-09-11
 
+- Add `hcmnext serve -public-origin` (`HCMNEXT_PUBLIC_ORIGIN`): declares the
+  absolute http(s) origin browsers reach the cell at for deployments behind
+  TLS-terminating or Host-rewriting proxies. When set it becomes the only
+  admitted browser origin, normalized cookies carry `Secure` under https, the
+  workspace emits its gRPC tunnel URL and CSP `connect-src` against the
+  declared authority, and tunnel upgrades whose `Origin` host matches it
+  admit. With no flag the same-origin default for localhost and direct VPS
+  serving is unchanged. Ticked as `EDGE-009` (see devlog).
+- Close EP-PROMO-001's reopened gap: a facade propose now records the durable
+  candidates migration 00024 defines instead of leaving the minted proposal
+  in memory only. `internal/intent/app/journey_candidates.go` writes the
+  input snapshot (purpose SIMULATION, the request digest and source
+  baselines in the canonical body), the proposal revision with its
+  EncodeFullProposal payload and produced_by `hcmnext:intent-cell`, the
+  ordinal write/approval item sets, and the READY simulation result binding
+  both - all inside one tenant-scoped transaction from both
+  `journeyEngine.Propose` and `ProposePromotion`. Candidate identities are
+  derived under a fixed namespace rather than allocated, so a replayed
+  request re-derives the same keys and the stores' ON CONFLICT semantics make
+  it a no-op. The generic `SimulateIntent` path still writes none of these
+  rows, keeping the P1A zero-authoritative-mutation contract intact.
 - Serve the human-work queue read surface (EP-WORK-001): `WorkService`'s
   ListWorkItems and GetWorkItem are now composed on the gRPC surface, the
   websocket tunnel and the Connect edge. Membership, visibility

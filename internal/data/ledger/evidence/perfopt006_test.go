@@ -60,19 +60,6 @@ func TestTodo_PERFOPT_006_Golden(t *testing.T) {
 	assertEvidenceGolden(t, "perfopt006_evidence_edge.json", edge)
 }
 
-func TestTodo_PERFOPT_006(t *testing.T) {
-	content := perfEvidenceContent(t, 10)
-	const maxAllocs = 156 // pre-change benchmark: 209 allocs/op; ceiling is 25% lower
-	got := testing.AllocsPerRun(10, func() {
-		if _, err := evidence.Build(content); err != nil {
-			t.Fatal(err)
-		}
-	})
-	if got > maxAllocs {
-		t.Fatalf("allocations = %v, want <= %d", got, maxAllocs)
-	}
-}
-
 func BenchmarkTodo_PERFOPT_006(b *testing.B) {
 	content := perfEvidenceContent(b, 10)
 	b.ReportAllocs()

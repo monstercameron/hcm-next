@@ -283,6 +283,7 @@ func ComposeServe(ctx context.Context, in ServeInput) (*App, error) {
 		Workspace:       &workspaceEnabled,
 		DevBrowserLogin: cfg.DevBrowserLogin,
 		DevPersonas:     composeDevPersonas(verifier, cfg, options.Now),
+		PublicOrigin:    cfg.PublicOrigin,
 		Evidence:        evidence,
 		Telemetry:       telemetryProvider,
 		Inputs:          options.Inputs,
@@ -409,6 +410,7 @@ func ComposeServe(ctx context.Context, in ServeInput) (*App, error) {
 		"tunnel", transportcell.TunnelPath,
 		"workspace", workspacePath,
 		"dev_browser_login", cfg.DevBrowserLogin,
+		"public_origin", cfg.PublicOrigin,
 		"otel_exporter", cfg.OTelExporter,
 		"definitions", cell.Definitions.Len(),
 		"capabilities", len(cell.Capabilities.List()))

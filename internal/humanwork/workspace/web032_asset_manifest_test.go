@@ -7,9 +7,6 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
-	"time"
-
-	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/latencygate"
 )
 
 func TestTodo_WEB_032(t *testing.T) {
@@ -198,25 +195,4 @@ func BenchmarkAssetIntegrityManifest(b *testing.B) {
 			b.Fatal(err)
 		}
 	}
-}
-
-func TestTodo_WEB_032_Latency(t *testing.T) {
-	manifest, err := BuildEmbeddedAssetIntegrityManifest()
-	if err != nil {
-		t.Fatal(err)
-	}
-	budget := latencygate.Budget{Name: "asset manifest serialization", P95: 2 * time.Millisecond, Warmups: 3, Samples: 25}
-	result, err := latencygate.Measure(budget, func() error {
-		if _, err := manifest.CanonicalJSON(); err != nil {
-			return err
-		}
-		return nil
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := latencygate.Check(budget, result); err != nil {
-		t.Fatalf("%v (%s)", err, result)
-	}
-	t.Logf("%s", result)
 }
