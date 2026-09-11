@@ -18,13 +18,14 @@ jobs:
   node:
     name: Node tests
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: "20.x"
           cache: npm
@@ -38,13 +39,14 @@ jobs:
   go:
     name: Go tests (legacy src/blocks/go)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v7
         with:
           go-version-file: src/blocks/go/go.mod
           cache: false
@@ -56,6 +58,7 @@ jobs:
   go-core:
     name: Go tests (root module)
     runs-on: ubuntu-latest
+    timeout-minutes: 60
 
     services:
       postgres:
@@ -67,26 +70,49 @@ jobs:
         ports:
           - 5432:5432
         options: >-
-          --health-cmd pg_isready
+          --shm-size=512m
+          --health-cmd "pg_isready -U postgres -d postgres"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+        volumes:
+          - ${{ github.workspace }}/.github/postgres/:/docker-entrypoint-initdb.d/:ro
 
     env:
       HCMNEXT_TEST_DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
           cache: true
 
       - name: Build root module
         run: go build ./...
+
+      # TOOL-002 pins buf in gen/TOOLS.lock and the generator tests shell
+      # out to it; keep this version identical to the lock file.
+      - name: Set up buf
+        uses: bufbuild/buf-setup-action@v1
+        with:
+          version: 1.72.0
+
+      # The workspace asset manifest (internal/humanwork/workspace) covers
+      # the built wasm bundles, which are git-ignored build outputs, so a
+      # clean checkout must build them before any test reads the manifest.
+      # Order matters: journeywasm generates manifest.json from the files
+      # present, and its packaging allowlist admits uxqual.wasm while the
+      # runtime allowlist never serves it, so uxqual.wasm must land AFTER
+      # the manifest is written. Reversing these two lines bakes a manifest
+      # the validator rejects as stale.
+      - name: Build embedded frontend assets
+        run: |
+          go run ./tools/uxqual/cmd/journeywasm -out internal/humanwork/workspace/assets
+          GOOS=js GOARCH=wasm go build -o internal/humanwork/workspace/assets/uxqual.wasm ./tools/uxqual/cmd/uxqualwasm
 
       - name: Run the quality gate (gofmt, go vet, staticcheck)
         run: go run ./tools/quality
@@ -125,6 +151,7 @@ jobs:
   go-core-ephemeral-pg:
     name: Go tests (ephemeral embedded PostgreSQL, TOOL-014)
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     # No postgres service container here, and HCMNEXT_TEST_DATABASE_URL is
     # deliberately left unset: this job proves the OTHER supported path
@@ -141,10 +168,10 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
           cache: true
@@ -154,7 +181,7 @@ jobs:
       # silently reusing a stale archive under a name embedded-postgres no
       # longer looks for.
       - name: Cache the embedded PostgreSQL binary archive
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ${{ env.HCMNEXT_TEST_PG_CACHE }}
           key: embedded-postgres-linux-amd64-17.5.0
@@ -165,13 +192,14 @@ jobs:
   dependency-admission:
     name: Dependency license & vulnerability admission (TOOL-019/TOOL-024)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
           cache: true
@@ -205,7 +233,7 @@ jobs:
 
       - name: Upload admission report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: dependency-admission-report
           path: |
