@@ -40,6 +40,15 @@
 // this cell publishes no spans or metrics at all. otlphttp requires
 // -otel-endpoint.
 //
+// -public-origin (or HCMNEXT_PUBLIC_ORIGIN) names the absolute http(s)
+// origin browsers reach this cell at - for example
+// https://hcm.example.com. It is needed only when a proxy between the
+// browser and this listener terminates TLS or rewrites Host: the browser's
+// Origin, the gRPC tunnel address the workspace shells emit and their
+// connect-src policy then all have to name the public authority the request
+// no longer carries. Left empty, localhost and direct-VPS deployments derive
+// everything from the request itself, which is the default.
+//
 // -execution-authority=true composes this cell with the P1B execution
 // authority gate (internal/intent/app.ExecutionAuthority) and the real
 // caller-driven promotion approval driver (internal/platform/execution.

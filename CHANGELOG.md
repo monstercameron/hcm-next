@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-09-11
+
+- Add `hcmnext serve -public-origin` (`HCMNEXT_PUBLIC_ORIGIN`): declares the
+  absolute http(s) origin browsers reach the cell at for deployments behind
+  TLS-terminating or Host-rewriting proxies. When set it becomes the only
+  admitted browser origin, normalized cookies carry `Secure` under https, the
+  workspace emits its gRPC tunnel URL and CSP `connect-src` against the
+  declared authority, and tunnel upgrades whose `Origin` host matches it
+  admit. With no flag the same-origin default for localhost and direct VPS
+  serving is unchanged. Ticked as `EDGE-009` (see devlog).
+
 ## 2026-09-10
 
 - Harden the admission retry evidence tables: 00282 scopes both primary

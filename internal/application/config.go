@@ -43,6 +43,10 @@ const EnvHealthAddr = "HCMNEXT_HEALTH_ADDR"
 // evidence issuer allowlist.
 const EnvLegalEvidenceIssuerKeys = "HCMNEXT_LEGAL_EVIDENCE_ISSUER_KEYS"
 
+// EnvPublicOrigin carries the absolute origin the cell is publicly reached
+// at, for deployments behind a TLS-terminating or Host-rewriting proxy.
+const EnvPublicOrigin = "HCMNEXT_PUBLIC_ORIGIN"
+
 // Configuration field names. They are constants because ServeConfigFields
 // declares them and ServeConfigFromValues reads them back: a typo between the
 // two is a startup failure rather than a silently defaulted value.
@@ -82,6 +86,7 @@ const (
 	FieldExecutionRetryVersion            = "execution-retry-version"
 	FieldExecutionRetryMaxAttempts        = "execution-retry-max-attempts"
 	FieldExecutionRetryResolutionAttempts = "execution-retry-resolution-attempts"
+	FieldPublicOrigin                     = "public-origin"
 )
 
 // Serve profiles are named sets of defaults, not alternate implementations.
@@ -197,6 +202,13 @@ type ServeConfig struct {
 	// {"state":...}); empty serves none. It is a separate listener from the
 	// HTTP edge on purpose: a probe must answer while the edge is draining.
 	HealthAddr string
+	// PublicOrigin is the canonical http(s) origin this cell is publicly
+	// reached at, canonicalized by ServeConfigFromValues. Empty means
+	// browsers reach this listener directly and every browser-facing
+	// authority is derived from each request, which is the localhost and
+	// bare-VPS default. Set it for complex deployments: a proxy that
+	// terminates TLS or rewrites Host, a tunnel, a preview gateway.
+	PublicOrigin string
 }
 
 // ServeConfigFields declares every flag/env-backed configuration value the
@@ -233,6 +245,7 @@ func ServeConfigFields() []bootstrap.Field {
 		{Name: FieldExecutionRetryVersion, Usage: "persisted execution retry budget version; required when retries are enabled"},
 		{Name: FieldExecutionRetryMaxAttempts, Usage: "maximum execution START attempts including the initial attempt; required when retries are enabled", Default: "1", Kind: bootstrap.KindInt},
 		{Name: FieldExecutionRetryResolutionAttempts, Usage: "maximum bounded attempts to resolve uncertain retry consumption", Default: "2", Kind: bootstrap.KindInt},
+		{Name: FieldPublicOrigin, Env: EnvPublicOrigin, Usage: "absolute http(s) origin (e.g. https://hcm.example.com) browsers reach this cell at; required behind a TLS-terminating or Host-rewriting proxy"},
 	}
 }
 
@@ -321,6 +334,9 @@ func ServeConfigFromValues(values *bootstrap.Values) (ServeConfig, error) {
 		ExecutionRetryVersion:    values.String(FieldExecutionRetryVersion),
 	}
 	var err error
+	if cfg.PublicOrigin, err = canonicalPublicOrigin(values.String(FieldPublicOrigin)); err != nil {
+		return ServeConfig{}, err
+	}
 	if cfg.MaxDeadline, err = values.Duration(FieldMaxDeadline); err != nil {
 		return ServeConfig{}, err
 	}
@@ -417,6 +433,24 @@ func (c ServeConfig) Validate() error {
 			FieldTimerTzdbVersion, FieldTimerCalendarVersion)
 	}
 	return nil
+}
+
+// canonicalPublicOrigin resolves the declared public origin to its canonical
+// scheme://host form. Anything that is not an absolute http or https origin
+// - no scheme, a path, a query, credentials - is refused: it would still
+// "work" through some proxies while silently shifting which origins the
+// browser policy admits.
+func canonicalPublicOrigin(raw string) (string, error) {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return "", nil
+	}
+	u, err := url.Parse(raw)
+	if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" ||
+		u.User != nil || u.Path != "" || u.RawQuery != "" || u.Fragment != "" {
+		return "", fmt.Errorf("-%s must be an absolute http(s) origin like https://hcm.example.com; got %q", FieldPublicOrigin, raw)
+	}
+	return strings.ToLower(u.Scheme) + "://" + strings.ToLower(u.Host), nil
 }
 
 func parseLegalEvidenceIssuerKeys(raw string) ([][]byte, error) {

@@ -28,6 +28,56 @@ func TestNewEdgeHandlerNilCell(t *testing.T) {
 	}
 }
 
+// TestCellPublicOriginParsesTheDeclaredOrigin pins the boundary check the
+// edge build applies to the value the application root already canonicalized:
+// composed by a caller that skipped that validation, a malformed origin is
+// still refused rather than silently bound.
+func TestCellPublicOriginParsesTheDeclaredOrigin(t *testing.T) {
+	if got, err := cellPublicOrigin(""); err != nil || got != nil {
+		t.Fatalf("empty origin = %v, %v; want nil, nil", got, err)
+	}
+	u, err := cellPublicOrigin("https://hcm.example.com")
+	if err != nil || u.Scheme != "https" || u.Host != "hcm.example.com" {
+		t.Fatalf("cellPublicOrigin = %v, %v", u, err)
+	}
+	for _, raw := range []string{
+		"hcm.example.com", "ftp://hcm.example.com", "https://hcm.example.com/app",
+		"https://hcm.example.com?q=1", "https://user@hcm.example.com", "https://",
+	} {
+		if got, err := cellPublicOrigin(raw); err == nil {
+			t.Errorf("cellPublicOrigin(%q) = %v, want a refusal", raw, got)
+		}
+	}
+}
+
+// TestBrowserPolicyOptionsDerivesTheDeclaredOrigin pins the two boundary
+// facts the option carries: the public origin becomes the only admitted
+// browser origin, and an https public origin makes the cookies it normalizes
+// Secure. With no declared origin the same-origin default stands.
+func TestBrowserPolicyOptionsDerivesTheDeclaredOrigin(t *testing.T) {
+	if got := browserPolicyOptions(nil); len(got.AllowedOrigins) != 0 || got.SecureCookies {
+		t.Fatalf("no public origin = %+v, want the empty default", got)
+	}
+	u, err := cellPublicOrigin("https://hcm.example.com:8443")
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := browserPolicyOptions(u)
+	if len(got.AllowedOrigins) != 1 || got.AllowedOrigins[0] != "https://hcm.example.com:8443" {
+		t.Fatalf("AllowedOrigins = %v, want the declared origin alone", got.AllowedOrigins)
+	}
+	if !got.SecureCookies {
+		t.Fatal("an https public origin must mark normalized cookies Secure")
+	}
+	u, err = cellPublicOrigin("http://hcm.internal:8080")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := browserPolicyOptions(u); got.SecureCookies {
+		t.Fatal("an http public origin must not mark cookies Secure")
+	}
+}
+
 func TestSpliceWorkspaceRoutesEmptyDoc(t *testing.T) {
 	doc := []byte(`{}`)
 	routes := []workspace.Route{{Path: "/workspace", Method: "GET"}}
