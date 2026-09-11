@@ -33,9 +33,7 @@ type AllowlistEntry struct {
 // internal/intent/app.handlerFor at all.
 func Allowlist() []AllowlistEntry {
 	entries := []AllowlistEntry{}
-	for _, e := range genericLifecycleAllowlist() {
-		entries = append(entries, e)
-	}
+	entries = append(entries, genericLifecycleAllowlist()...)
 	entries = append(entries, registryCapabilityAllowlist()...)
 	entries = append(entries, sharedHandlerAllowlist()...)
 	entries = append(entries, unboundWireAllowlist()...)

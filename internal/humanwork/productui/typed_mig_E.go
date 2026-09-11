@@ -485,10 +485,10 @@ func MotionStylesheet() string {
 
 func declareMotionStyles() {
 	declareGlobal(".main>.page-head,.main>.home-grid,.main>.workbench,.main>.people-page,.main>.person-page,.main>.organization-page,.main>.insights-grid,.main>.admin-grid,.main>.studio-page,.main>.jn-embedded",
-		mediaRule(gwccss.RawMedia("(prefers-reduced-motion:no-preference)"), gwccss.Keyframes("hcm-page-enter", gwccss.At("from", gwccss.Opacity(.01), gwccss.Raw("transform", "translateY(var(--hcm-motion-distance))")), gwccss.At("to", gwccss.Opacity(1), gwccss.Raw("transform", "none"))), gwccss.Animation(gwccss.RawDuration("var(--hcm-motion-slow)"), gwccss.Easing("var(--hcm-motion-easing)")), gwccss.Raw("animation-fill-mode", "both")),
+		mediaRule(gwccss.RawMedia("(prefers-reduced-motion:no-preference)"), gwccss.Keyframes("hcm-page-enter", gwccss.At("from", gwccss.OpacityNum(gwccss.Num(.01)), gwccss.Raw("transform", "translateY(var(--hcm-motion-distance))")), gwccss.At("to", gwccss.OpacityNum(gwccss.Num(1)), gwccss.Raw("transform", "none"))), gwccss.Animation(gwccss.RawDuration("var(--hcm-motion-slow)"), gwccss.Easing("var(--hcm-motion-easing)")), gwccss.Raw("animation-fill-mode", "both")),
 	)
 	declareGlobal(".work-row,.people-row,.history-row,.jn-embedded .jn-griditem",
-		mediaRule(gwccss.RawMedia("(prefers-reduced-motion:no-preference)"), gwccss.Keyframes("hcm-item-enter", gwccss.At("from", gwccss.Opacity(.01), gwccss.Raw("transform", "translateY(calc(var(--hcm-motion-distance) * .65))")), gwccss.At("to", gwccss.Opacity(1), gwccss.Raw("transform", "none"))), gwccss.Animation(gwccss.RawDuration("var(--hcm-motion-slow)"), gwccss.Easing("var(--hcm-motion-easing)")), gwccss.Raw("animation-fill-mode", "both")),
+		mediaRule(gwccss.RawMedia("(prefers-reduced-motion:no-preference)"), gwccss.Keyframes("hcm-item-enter", gwccss.At("from", gwccss.OpacityNum(gwccss.Num(.01)), gwccss.Raw("transform", "translateY(calc(var(--hcm-motion-distance) * .65))")), gwccss.At("to", gwccss.OpacityNum(gwccss.Num(1)), gwccss.Raw("transform", "none"))), gwccss.Animation(gwccss.RawDuration("var(--hcm-motion-slow)"), gwccss.Easing("var(--hcm-motion-easing)")), gwccss.Raw("animation-fill-mode", "both")),
 	)
 	declareGlobal(".work-row:nth-child(2),.people-row:nth-child(2),.history-row:nth-child(2),.jn-embedded .jn-griditem:nth-child(2)",
 		mediaRule(gwccss.RawMedia("(prefers-reduced-motion:no-preference)"), gwccss.Raw("animation-delay", "35ms")),
@@ -503,10 +503,10 @@ func declareMotionStyles() {
 		mediaRule(gwccss.RawMedia("(prefers-reduced-motion:no-preference)"), gwccss.Raw("animation-delay", "140ms")),
 	)
 	declareGlobal(".status,.count",
-		mediaRule(gwccss.RawMedia("(prefers-reduced-motion:no-preference)"), gwccss.Keyframes("hcm-status-settle", gwccss.At("0%", gwccss.Transform(gwccss.Scale(.96)), gwccss.Opacity(.2)), gwccss.At("100%", gwccss.Transform(gwccss.Scale(1)), gwccss.Opacity(1))), gwccss.Animation(gwccss.RawDuration("var(--hcm-motion-normal)"), gwccss.Easing("var(--hcm-motion-easing)")), gwccss.Raw("animation-fill-mode", "both")),
+		mediaRule(gwccss.RawMedia("(prefers-reduced-motion:no-preference)"), gwccss.Keyframes("hcm-status-settle", gwccss.At("0%", gwccss.Transform(gwccss.Scale(.96)), gwccss.OpacityNum(gwccss.Num(.2))), gwccss.At("100%", gwccss.Transform(gwccss.Scale(1)), gwccss.OpacityNum(gwccss.Num(1)))), gwccss.Animation(gwccss.RawDuration("var(--hcm-motion-normal)"), gwccss.Easing("var(--hcm-motion-easing)")), gwccss.Raw("animation-fill-mode", "both")),
 	)
 	declareGlobal(".notifications[open] .popover",
-		mediaRule(gwccss.RawMedia("(prefers-reduced-motion:no-preference)"), gwccss.Keyframes("hcm-item-enter", gwccss.At("from", gwccss.Opacity(.01), gwccss.Raw("transform", "translateY(calc(var(--hcm-motion-distance) * .65))")), gwccss.At("to", gwccss.Opacity(1), gwccss.Raw("transform", "none"))), gwccss.Animation(gwccss.RawDuration("var(--hcm-motion-normal)"), gwccss.Easing("var(--hcm-motion-easing)")), gwccss.Raw("animation-fill-mode", "both")),
+		mediaRule(gwccss.RawMedia("(prefers-reduced-motion:no-preference)"), gwccss.Keyframes("hcm-item-enter", gwccss.At("from", gwccss.OpacityNum(gwccss.Num(.01)), gwccss.Raw("transform", "translateY(calc(var(--hcm-motion-distance) * .65))")), gwccss.At("to", gwccss.OpacityNum(gwccss.Num(1)), gwccss.Raw("transform", "none"))), gwccss.Animation(gwccss.RawDuration("var(--hcm-motion-normal)"), gwccss.Easing("var(--hcm-motion-easing)")), gwccss.Raw("animation-fill-mode", "both")),
 	)
 	declareGlobal(".jn-embedded .jn-loading",
 		mediaRule(gwccss.RawMedia("(prefers-reduced-motion:no-preference)"), gwccss.Position.Relative, gwccss.Raw("overflow", "hidden")),
@@ -595,7 +595,7 @@ func declareInteractionMotionStyles() {
 	)
 	declareGlobal(".wordmark-label,.tenant,.nav-label,.nav-count",
 		gwccss.Raw("overflow", "hidden"),
-		gwccss.Opacity(1),
+		gwccss.OpacityNum(gwccss.Num(1)),
 		gwccss.Transform(gwccss.TranslateX(gwccss.Zero)),
 	)
 	declareGlobal(".wordmark-label",
@@ -631,14 +631,14 @@ func declareInteractionMotionStyles() {
 	declareGlobal(".app-shell.nav-collapsed .wordmark-label",
 		gwccss.Display.Block,
 		gwccss.MaxWidth(gwccss.Zero),
-		gwccss.Opacity(0),
+		gwccss.OpacityNum(gwccss.Num(0)),
 		gwccss.Transform(gwccss.TranslateX(gwccss.Px(-4))),
 	)
 	declareGlobal(".sidebar.collapsed .tenant",
 		gwccss.Raw("display", "block!important"),
 		gwccss.MaxHeight(gwccss.Zero),
 		gwccss.Raw("padding-block", "0"),
-		gwccss.Opacity(0),
+		gwccss.OpacityNum(gwccss.Num(0)),
 		gwccss.Raw("overflow", "hidden"),
 		gwccss.Transform(gwccss.TranslateX(gwccss.Px(-4))),
 		gwccss.Raw("pointer-events", "none"),
@@ -646,7 +646,7 @@ func declareInteractionMotionStyles() {
 	declareGlobal(".sidebar.collapsed .nav-label",
 		gwccss.Raw("display", "inline-block!important"),
 		gwccss.MaxWidth(gwccss.Zero),
-		gwccss.Opacity(0),
+		gwccss.OpacityNum(gwccss.Num(0)),
 		gwccss.Transform(gwccss.TranslateX(gwccss.Px(-4))),
 		gwccss.Raw("pointer-events", "none"),
 	)
@@ -655,7 +655,7 @@ func declareInteractionMotionStyles() {
 		gwccss.MaxWidth(gwccss.Zero),
 		gwccss.Margin(gwccss.Zero),
 		gwccss.Raw("padding-inline", "0"),
-		gwccss.Opacity(0),
+		gwccss.OpacityNum(gwccss.Num(0)),
 		gwccss.Transform(gwccss.Scale(.85)),
 		gwccss.Raw("pointer-events", "none"),
 	)
@@ -668,13 +668,13 @@ func declareInteractionMotionStyles() {
 	declareGlobal(".nav-group::details-content",
 		gwccss.Raw("block-size", "0"),
 		gwccss.Raw("overflow", "clip"),
-		gwccss.Opacity(0),
+		gwccss.OpacityNum(gwccss.Num(0)),
 		gwccss.Raw("content-visibility", "hidden"),
 		gwccss.Raw("transition", "block-size var(--hcm-motion-normal) var(--hcm-motion-easing),opacity var(--hcm-motion-fast) linear,content-visibility var(--hcm-motion-normal) allow-discrete"),
 	)
 	declareGlobal(".nav-group[open]::details-content",
 		gwccss.Raw("block-size", "auto"),
-		gwccss.Opacity(1),
+		gwccss.OpacityNum(gwccss.Num(1)),
 		gwccss.Raw("content-visibility", "visible"),
 	)
 	declareGlobal(".nav-chevron",
@@ -732,7 +732,7 @@ func declareInteractionMotionStyles() {
 		mediaRule(gwccss.MaxW(760), gwccss.Raw("justify-content", "flex-start"), gwccss.H(gwccss.Px(65)), gwccss.Raw("padding-left", "16px")),
 	)
 	declareGlobal(".app-shell.nav-collapsed .wordmark-label",
-		mediaRule(gwccss.MaxW(760), gwccss.Display.Inline, gwccss.MaxWidth(gwccss.Px(180)), gwccss.Opacity(1), gwccss.Raw("transform", "none")),
+		mediaRule(gwccss.MaxW(760), gwccss.Display.Inline, gwccss.MaxWidth(gwccss.Px(180)), gwccss.OpacityNum(gwccss.Num(1)), gwccss.Raw("transform", "none")),
 	)
 	declareGlobal(".app-shell.nav-collapsed .wordmark-mark",
 		mediaRule(gwccss.MaxW(760), gwccss.W(gwccss.Px(34)), gwccss.H(gwccss.Px(34))),

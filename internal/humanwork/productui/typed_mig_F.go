@@ -400,7 +400,7 @@ func declarepeopleDirectoryStyles() {
 		gwccss.Bg(gwccss.Hex("f3f5f3")),
 		gwccss.TextColor(gwccss.Hex("8b9690")),
 		gwccss.Raw("cursor", "not-allowed"),
-		gwccss.Opacity(.78),
+		gwccss.OpacityNum(gwccss.Num(.78)),
 	)
 	declareGlobal(".people-filter-control",
 		mediaRule(gwccss.MaxW(760), gwccss.GridCols(gwccss.Fr(1))),

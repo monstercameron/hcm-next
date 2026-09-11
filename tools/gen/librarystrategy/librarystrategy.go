@@ -197,7 +197,7 @@ func Load(root string) (Manifest, error) {
 
 	packages := make([]PackageRoot, 0, len(layout.InternalRoots))
 	for _, p := range layout.InternalRoots {
-		packages = append(packages, PackageRoot{p.Name, p.Owner, p.Layer, p.Phase, p.Description})
+		packages = append(packages, PackageRoot(p))
 	}
 	frameworks := make([]Framework, 0, len(prohibited.Rules))
 	for _, r := range prohibited.Rules {

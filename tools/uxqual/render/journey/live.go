@@ -157,15 +157,16 @@ func liveComponent(s *Store, build func(Page) ui.Node) ui.Node {
 	}
 	return ui.CreateElement(func() ui.Node {
 		revision := ui.UseState(0)
-		// The dependency is a constant rather than an empty list: GWC's
-		// UseEffect takes deps variadically, so "no arguments" cannot be
-		// distinguished from "no dependencies", and a constant dep is
-		// unambiguously equal on every render -- the effect runs once, on
-		// mount, and its cleanup unsubscribes on unmount. Re-subscribing on
-		// every render would leak a subscriber per keystroke.
+		// Subscribe before requesting a catch-up render. An RPC may finish
+		// after Page() was read but before this effect is installed, so a
+		// subscription alone can leave the initial loading snapshot stuck.
+		// The store dependency also releases/rebinds when the source changes.
 		ui.UseEffect(func() func() {
-			return s.Subscribe(func() { revision.Set(revision.Get() + 1) })
-		}, "journey-store-subscription")
+			refresh := func() { revision.Set(revision.Get() + 1) }
+			unsubscribe := s.Subscribe(refresh)
+			refresh()
+			return unsubscribe
+		}, s)
 		return build(s.Page())
 	})
 }

@@ -92,6 +92,33 @@ type Instrumentation interface {
 	StartTerminalSpan(ctx context.Context, attrs SpanAttributes) (context.Context, Span)
 }
 
+// ResumeSpanRequest carries the stored causal identity a timer resume
+// advances from (OBS-013), plus the advancement addressing it. Causal is
+// the drift-checked row's own metadata: correlation, causation and logical
+// operation are preserved verbatim, and the implementation mints a fresh
+// attempt identity for this advancement. At is the advancement instant,
+// used to judge the stored trace link's expiry deterministically.
+type ResumeSpanRequest struct {
+	InstanceID string
+	NodeID     string
+	Attempt    int
+	TimerID    string
+	Causal     *runtime.CausalMetadata
+	At         time.Time
+}
+
+// ResumeSpanStarter is OBS-013's optional extension: it opens the finite
+// resume span that links a timer-wake advancement back to the parked trace.
+// It is a separate interface, asserted like [CausalSpan], so every existing
+// Instrumentation keeps compiling and behaving exactly as before: a driver
+// whose instrumentation does not implement it advances unlinked, which is
+// also what happens when the stored causal identity is absent. The resume
+// span emits no log line of its own — the advancement span still owns the
+// one required per-advancement line.
+type ResumeSpanStarter interface {
+	StartResumeSpan(ctx context.Context, req ResumeSpanRequest) (context.Context, Span)
+}
+
 // NoopInstrumentation is the zero-cost [Instrumentation] a [Driver] uses
 // when none is configured: every method is a true no-op, so a caller that
 // ignores telemetry entirely still runs exactly as it did before OBS-023.
@@ -114,6 +141,12 @@ func (NoopInstrumentation) StartAdvanceSpan(ctx context.Context, _ SpanAttribute
 
 // StartTerminalSpan implements Instrumentation.
 func (NoopInstrumentation) StartTerminalSpan(ctx context.Context, _ SpanAttributes) (context.Context, Span) {
+	return ctx, noopSpan{}
+}
+
+// StartResumeSpan implements ResumeSpanStarter as a true no-op: a caller
+// that ignores telemetry advances exactly as it did before OBS-013.
+func (NoopInstrumentation) StartResumeSpan(ctx context.Context, _ ResumeSpanRequest) (context.Context, Span) {
 	return ctx, noopSpan{}
 }
 

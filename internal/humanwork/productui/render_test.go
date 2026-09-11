@@ -88,7 +88,7 @@ func TestExperienceStudioDoesNotSimulateAnUnpublishedService(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(doc, "No configuration projection is published") || strings.Contains(doc, "Validation passed") || strings.Contains(doc, "Request publication") {
+	if !strings.Contains(doc, "Custom page editing is not enabled") || strings.Contains(doc, "Validation passed") || strings.Contains(doc, "Request publication") {
 		t.Fatal("Studio simulated a configuration service the cell did not publish")
 	}
 }
@@ -420,14 +420,6 @@ func TestPersonPageShowsServerFactsAndFilterableWorkflowLaunchers(t *testing.T) 
 	if !strings.Contains(doc, `href="/workspace/app/person?nav=expanded&amp;person=worker-avery&amp;workflow_q=promotion"`) {
 		t.Fatal("expanding on a person page discarded person or workflow state")
 	}
-}
-
-func bodyAriaCurrentCount(document string) int {
-	_, body, found := strings.Cut(document, "</style>")
-	if !found {
-		body = document
-	}
-	return strings.Count(body, `aria-current="page"`)
 }
 
 // primaryNavAriaCurrentCount scopes the single-active-leaf contract to the

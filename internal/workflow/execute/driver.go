@@ -350,6 +350,10 @@ type runContext struct {
 	// context once, at Execute/Resume entry (OBS-023), and threaded onto
 	// every StepRequest and runtime.AdvanceRequest this run produces.
 	traceID string
+	// timerID is set only on a timer resume (OBS-013): the durable timer
+	// whose stored causal identity links the advancement's resume span.
+	// It is empty on every other path, which advances unlinked.
+	timerID uuid.UUID
 }
 
 func (d *Driver) drainReady(ctx context.Context, run runContext, result Result, ready []string) (Result, error) {
@@ -401,8 +405,8 @@ func (d *Driver) drainReady(ctx context.Context, run runContext, result Result, 
 		nodeSpan.End(nodeOutcome, nil)
 
 		advanced, created, evidenceIDs, timers, err := d.advanceOnce(ctx, run, result.InstanceVersion, at, attempt,
-			func(context.Context, runtime.Executor) (frontier.NodeOutcome, runtime.GovernanceRefs, error) {
-				return outcome, refs, nil
+			func(context.Context, runtime.Executor) (frontier.NodeOutcome, runtime.GovernanceRefs, *runtime.CausalMetadata, error) {
+				return outcome, refs, nil, nil
 			})
 		if err != nil {
 			return Result{}, err
@@ -491,12 +495,16 @@ func (d *Driver) prepareReadyAttempt(
 
 // advanceInputsFunc produces the [frontier.NodeOutcome] and
 // [runtime.GovernanceRefs] one [Driver.advanceOnce] call feeds to
-// [Driver.advance], from inside the same transaction advanceOnce opens.
-// [drainReady] supplies a trivial constant closure over what
-// [StepRunner.Run] already computed outside the transaction; [Driver.Resume]
-// supplies one that loads the durable WorkItem through [WorkItemReader] and
-// derives the outcome from that stored row (WF-RUN-028).
-type advanceInputsFunc func(context.Context, runtime.Executor) (frontier.NodeOutcome, runtime.GovernanceRefs, error)
+// [Driver.advance], from inside the same transaction advanceOnce opens,
+// plus the stored causal identity the resume span links back with
+// (OBS-013), or nil when there is none to link. [drainReady] supplies a
+// trivial constant closure over what [StepRunner.Run] already computed
+// outside the transaction; [Driver.Resume] supplies one that loads the
+// durable WorkItem through [WorkItemReader] and derives the outcome from
+// that stored row (WF-RUN-028); [Driver.ResumeTimer] supplies one that
+// loads the durable timer and returns its stored causal identity, which
+// never governs the advancement it links.
+type advanceInputsFunc func(context.Context, runtime.Executor) (frontier.NodeOutcome, runtime.GovernanceRefs, *runtime.CausalMetadata, error)
 
 func (d *Driver) advanceOnce(
 	ctx context.Context,
@@ -525,10 +533,36 @@ func (d *Driver) advanceOnce(
 		return runtime.AdvanceReceipt{}, nil, nil, nil, err
 	}
 
-	outcome, refs, err := inputs(advCtx, tx)
+	outcome, refs, causal, err := inputs(advCtx, tx)
 	if err != nil {
 		advSpan.End(OutcomeFailure, err)
 		return runtime.AdvanceReceipt{}, nil, nil, nil, err
+	}
+	// OBS-013: when the inputs came from a drift-checked durable timer row
+	// carrying stored causal identity, open the resume span that links this
+	// advancement back to the parked trace. The span is a child of the
+	// advancement span and wraps the remainder of this call; a nil causal
+	// (every non-timer path) or an instrumentation without the extension
+	// keeps the historical unlinked behavior exactly.
+	resumeOutcome := OutcomeSuccess
+	if causal != nil {
+		if starter, ok := d.opts.Instrumentation.(ResumeSpanStarter); ok {
+			var resumeSpan Span
+			advCtx, resumeSpan = starter.StartResumeSpan(advCtx, ResumeSpanRequest{
+				InstanceID: run.instanceID.String(),
+				NodeID:     outcome.NodeID,
+				Attempt:    attempt,
+				TimerID:    run.timerID.String(),
+				Causal:     causal,
+				At:         at,
+			})
+			defer func() {
+				if err != nil {
+					resumeOutcome = OutcomeFailure
+				}
+				resumeSpan.End(resumeOutcome, err)
+			}()
+		}
 	}
 	// A node the plan routed back to (a re-approval returning to its gate)
 	// is on a later attempt than the caller can know before the outcome is
@@ -630,9 +664,14 @@ func (d *Driver) advanceOnce(
 		advSpan.End(OutcomeFailure, err)
 		return runtime.AdvanceReceipt{}, nil, nil, nil, err
 	}
-	if err := tx.Commit(advCtx); err != nil {
-		advSpan.End(OutcomeFailure, err)
-		return runtime.AdvanceReceipt{}, nil, nil, nil, fmt.Errorf("workflow execute: commit advance of %s: %w", outcome.NodeID, err)
+	if commitErr := tx.Commit(advCtx); commitErr != nil {
+		advSpan.End(OutcomeFailure, commitErr)
+		// The commit error binds to the if scope, so publish it through
+		// the function-scoped err the deferred resume-span End reads;
+		// otherwise the span would close FAILURE with a nil error.
+		resumeOutcome = OutcomeFailure
+		err = fmt.Errorf("workflow execute: commit advance of %s: %w", outcome.NodeID, commitErr)
+		return runtime.AdvanceReceipt{}, nil, nil, nil, err
 	}
 	advOutcome := OutcomeSuccess
 	if !advanced.Complete && len(advanced.Continuations) > 0 {
@@ -643,6 +682,7 @@ func (d *Driver) advanceOnce(
 			}
 		}
 	}
+	resumeOutcome = advOutcome
 	advSpan.End(advOutcome, nil)
 	return advanced,
 		append([]workitem.WorkItem(nil), sink.created...),

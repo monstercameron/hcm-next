@@ -93,9 +93,9 @@ func TestComposeServeBuildsTheWholeRoleFromOneConfigValue(t *testing.T) {
 	if !cell.WorkspaceEnabled() {
 		t.Error("the composed cell does not serve the workspace, though -workspace defaulted on")
 	}
-	if got := app.Store(store); got == nil {
-		t.Fatal("the stub store vanished")
-	}
+	// Store returns a struct value, so a nil comparison could never fail;
+	// keep the registration call for its effect.
+	_ = app.Store(store)
 	if len(store.tenants()) != 0 {
 		t.Errorf("the composition registered %v with no -tenant configured", store.tenants())
 	}

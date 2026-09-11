@@ -1,0 +1,11 @@
+intent: sha256:5e9ff5dce4f86d623181af7050360c4689bc071b51bc433f211c6719d375d59e worker=jane current=alice proposed=bob effective=2026-02-01
+stages: snapshot,validation,authz,conflict,simulation,approval,wait,revalidation,write-plan
+approvers: alice,hrbp
+impacted: jane,theo
+wait-until: 2026-02-01
+revalidate: graph-version=7,authority-version=3
+write: end-edge edge=edge/jane worker= manager= start= end=2026-02-01
+write: create-edge edge= worker=jane manager=bob start=2026-02-01 end=
+proposal: sha256:4f0cdb048c94d6c9fd20e13c250dea99c62796d6f4308817278f18be853417c8
+plan: sha256:9bc24066d873e3d5da9205b163e2287e5f454f0403b24bb385a7183894b176f5
+production-effects: 0

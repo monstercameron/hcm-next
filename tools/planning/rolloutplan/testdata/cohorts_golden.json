@@ -1,0 +1,30 @@
+{
+  "owner": "release-captains",
+  "plan_digest": "sha256:ff90f1f1046508f9805be281b4a1fb8785a451e69a3ad53f91b703c2e0170fe2",
+  "population_digest": "sha256:popsnap",
+  "cohorts": [
+    {
+      "stage": "canary",
+      "members": [
+        "sub:1",
+        "sub:2"
+      ],
+      "excluded_count": 0,
+      "digest": "sha256:c3095bdf5e6f9f17b5fb9da1bab1ca28ad4def54f6fb419b4ba02db56ed1f6e4",
+      "population_digest": "sha256:popsnap",
+      "plan_digest": "sha256:ff90f1f1046508f9805be281b4a1fb8785a451e69a3ad53f91b703c2e0170fe2"
+    },
+    {
+      "stage": "broad",
+      "members": [
+        "sub:1",
+        "sub:3"
+      ],
+      "excluded_count": 0,
+      "digest": "sha256:697280f8b922bf3ffe7dc5bdc4a5f56dcfdaaa56df7a1da9ebe1eef9dbe87321",
+      "population_digest": "sha256:popsnap",
+      "plan_digest": "sha256:ff90f1f1046508f9805be281b4a1fb8785a451e69a3ad53f91b703c2e0170fe2"
+    }
+  ],
+  "digest": "sha256:de0fd2c986af1a771dc71a43e19909ff090983d74b1f8142bfbaf484a9e2dc61"
+}

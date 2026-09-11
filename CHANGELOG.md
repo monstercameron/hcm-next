@@ -1,7 +1,477 @@
 # Changelog
 
+## 2026-09-11
+
+- Add `hcmnext serve -public-origin` (`HCMNEXT_PUBLIC_ORIGIN`): declares the
+  absolute http(s) origin browsers reach the cell at for deployments behind
+  TLS-terminating or Host-rewriting proxies. When set it becomes the only
+  admitted browser origin, normalized cookies carry `Secure` under https, the
+  workspace emits its gRPC tunnel URL and CSP `connect-src` against the
+  declared authority, and tunnel upgrades whose `Origin` host matches it
+  admit. With no flag the same-origin default for localhost and direct VPS
+  serving is unchanged. Ticked as `EDGE-009` (see devlog).
+- Close EP-PROMO-001's reopened gap: a facade propose now records the durable
+  candidates migration 00024 defines instead of leaving the minted proposal
+  in memory only. `internal/intent/app/journey_candidates.go` writes the
+  input snapshot (purpose SIMULATION, the request digest and source
+  baselines in the canonical body), the proposal revision with its
+  EncodeFullProposal payload and produced_by `hcmnext:intent-cell`, the
+  ordinal write/approval item sets, and the READY simulation result binding
+  both - all inside one tenant-scoped transaction from both
+  `journeyEngine.Propose` and `ProposePromotion`. Candidate identities are
+  derived under a fixed namespace rather than allocated, so a replayed
+  request re-derives the same keys and the stores' ON CONFLICT semantics make
+  it a no-op. The generic `SimulateIntent` path still writes none of these
+  rows, keeping the P1A zero-authoritative-mutation contract intact.
+- Serve the human-work queue read surface (EP-WORK-001): `WorkService`'s
+  ListWorkItems and GetWorkItem are now composed on the gRPC surface, the
+  websocket tunnel and the Connect edge. Membership, visibility
+  classification and the server-computed permitted-action set are the
+  workitem package's read rules (new `view.go`); a new durable
+  `Store.ListQueue` answers the principal's actionable queue in
+  deadline/identity order behind `tenant_isolation` RLS, and an
+  application-level `WorkItemQueueReader` port hands the transports the
+  raw records. The wire `WorkItem` gains proposal_ref, claimed_by,
+  claim_expires_at and repeated permitted_actions; the queue cursor is an
+  HMAC-signed token bound to principal/tenant/scope, the queue snapshot
+  digest and a five-minute expiry. Absent, invisible and other-tenant
+  reads answer the identical non-disclosing NOT_FOUND, and the four
+  mutating methods refuse FAILED_PRECONDITION on both transports per the
+  P1A contract. Composition golden and conformance rows updated for the
+  new `work-item-queue-reader` port.
+
+## 2026-09-10
+
+- Harden the admission retry evidence tables: 00282 scopes both primary
+  keys by tenant and repairs the cross-boundary foreign key from 00280,
+  and 00283 forces row-level security on both tables (00280 enabled RLS
+  without FORCE, which the parity gate rejects). 00281's Down now refuses
+  with P0001 like its neighbors so the admissionstore evidence wall holds;
+  manifest re-signed and evidence reports regenerated.
+
+- Fence concurrent duplicate outbox delivery: ConsumerGroup.Dispatch now
+  tracks one in-progress dispatch per applied key so two concurrent
+  deliveries of the same record cannot both pass the applied check and run
+  the handler; waiters block until the runner finishes, then re-check.
+  Also give the lease-expiry break test Run its own connection: sharing one
+  connection with the test's read-polling loop failed the first Begin with
+  "conn busy" so Run returned before any delivery (same pattern the
+  idempotency test already documents).
+
+- Clear all 266 staticcheck findings to zero (unused code, deprecated
+  APIs, ineffassign, staticcheck style batch) with no behavior change,
+  except one genuine swallowed error in the rules engine that now
+  returns; quality gate fully green. The todo-traceability scanner now
+  skips dot-directories so lane scratch files never register ghost tests.
+- Repair the gates the sweep's blast radius exposed: add the missing
+  frontenddev ownership row (the rebrand left the dev server without one),
+  correct the release-admission SBOM pin to the checked-in file's digest,
+  fix the P1A manifest's forbidden-import prefixes to the renamed module
+  path, and refresh the Phase 1 manifest golden for the current tree.
+
+- Backfill governance evidence for 43 completed todos so GOV-017 and
+  GOV-003 pass with no new allowlist entries: LEAVE/AVAIL/BAL/INTENT/
+  LEGAL/MSG/REPLAN/WORK/WF-DISC/OBS-013/WEB-024..036 evidence now names
+  the passing Go test and its `go test` result (all re-verified green),
+  and UX-006/007/008 plus CLIENT-001/002 record their passing vitest
+  suites behind a reviewed traceability allowlist (see devlog).
+
+- Pin exact dependency-roles rows for the OTel and genproto modules so
+  the admission gate passes with vuln evidence required; no dependency
+  versions change.
+
+- Fix four staticcheck findings the merge introduced (struct conversion,
+  raw regexp literal, two dead helpers) so the quality gate failure set
+  matches pre-merge main; the remaining findings are pre-existing debt.
+
+- Record the formatting sweep and UX evidence (docs): prettier table
+  rewraps across the rebrand-renamed specs, plan and design mock, the
+  supply-chain provenance array collapse, and the blind UX review log
+  that evidences the UI refinement batch — no content changes.
+
+- Land the product UI refinement (WEB-027, WEB-037, WEB-039, WEB-040,
+  WEB-045, WEB-063): blind-review repairs across shell, navigation,
+  launcher, identity and record pages — popover focus containment,
+  hydration-gated router mount, explicit shell props, worker-ID page
+  previews, i18n and typed-style migrations — with the wasm shell
+  contract holding and embedded journey assets regenerated.
+
+- Land the worker/journey/diagnostic hardening (no dedicated ticks —
+  registry gap, see devlog): bounded worker-ID previews replacing an
+  unbounded exclusion loop, worker-specific declared baselines with
+  unknown-worker refusal, shared declared-baseline fixtures, and
+  bounded error-type diagnostics with a capability grant so log fields
+  never carry payloads — all tested, all above their coverage
+  baselines.
+
+- Land the domain kernels (CONF-006, PROMO-008, DATA-015, EVIDENCE-001,
+  OPS-006, DOC-SIGN-001, ARCH-GO-024): payroll correction with
+  bitemporal repair, promotion persistence traces, transaction lineage,
+  business execution receipts, epoch-fenced workload drain, proof-bound
+  e-signature ceremonies and the configuration kernel — all pure,
+  deterministic and matrix-tested.
+
+- Land the planning and policy tooling (GOV-003, GOV-021, GOV-026,
+  GOV-028, GOV-029, GOV-030, CLOSE-001, WF-DISC-001 through WF-DISC-010,
+  ROLLOUT-001, IAC-001, ARCH-GO-024): design-closure and ownership
+  registers, direct-capability and oracle-strength/specificity gates,
+  engine-ownership and IaC-stack validators, the full workflow-design
+  toolchain, rollout-plan activation, config boundaries and a crosswalk
+  test repair tracking the implemented E-16 control — all matrix-tested
+  above the floor. (The traceability dot-directory test stays unlanded:
+  its package is red on pre-existing evidence-less ticks; see devlog.)
+
+- Land the conformance proofs (CONF-022, CONF-023, CONF-024, WF-STEP-007,
+  WF-STEP-008): bounded bulk acknowledgement with honest legal
+  satisfaction, hostile-content-proof case triage, the twelve-case
+  adversarial edge matrix, and bounded PARALLEL plus typed JOIN
+  strategies — every verdict deterministic, sealed and matrix-tested.
+
+- Land the timer-resume span links (OBS-013): the drift-checked timer
+  row's stored causal identity opens exactly one hcmnext.timer.resume
+  span back to the parked trace — nil, expired, tampered or missing
+  links advance unlinked with identical business behavior, human-work
+  resumes never open one, and the resume span emits no log line.
+
+- Land the agent trust kernels (AGENT-003, AGENT-004, AGENT-005):
+  owner-bound draft ingestion with fuzz-pinned refusals, immutable eval
+  runs gating publication with kill-switch lease revocation and
+  version-bound incidents, and one action compiler emitting attributed
+  receipt-bound drafts for concierge and domain agents — invented
+  definitions, hidden uncertainty and bulk loops refused with zero
+  draft.
+
+- Land the rule re-evaluation kernel (RULE-004): approved promotion
+  plans re-run their rules at execution time — identical inputs confirm,
+  moved inputs require re-approval even when the tier holds, moved tiers
+  and unknown inputs invalidate, and every verdict cites both rule
+  versions with tamper-evident input digests.
+
+- Land the schedule kernels (INTENT-017, SCHED-003): frozen occurrences
+  convert to exactly one intent with DST-fold twins named apart and
+  replay/leader-overlap/post-crash convergence, and the dispatcher
+  ingests occurrence/event firings in sequence with redelivery replay,
+  rewind refusal and stale/poison handling — revisions surface as
+  review receipts, never silent adoption.
+
+- Land the compensation kernels (CONF-020, COMP-005): standalone
+  compensation change with exact-decimal simulation, live-budget-fence
+  reservation, atomic commit and failed-effect-only repair, plus parent
+  and bounded child intent composition with omitted components carried
+  at exact revisions — every negative case sentinel-typed.
+
+- Land the governed cancellation kernels (WF-RUN-010, WF-RUN-011,
+  WF-STEP-009): pure cancellation decisions over pinned subworkflow
+  children — clean cancel keeps per-child reports and intact history,
+  irreversible effects route to compensation or refuse, unknown states
+  repair, detached children keep accountable owners, and expansion
+  pins versions, attenuates scope, bounds depth/fanout and rejects
+  cycles with sentinel-typed errors.
+
+- Land the headcount requisition proof (CONF-021): approval authorizes
+  capacity only over the HEADCOUNT-001 API with no production change —
+  requester-chosen approvers and missing quorum/SoD refuse, external
+  REQUESTED never counts as created, competing proposals fence exact
+  decimal FTE/count/budget with ErrCapacityConflict, and the lifecycle
+  transcript is golden-pinned.
+
+- Land the execution conflict preflight (CONFLICT-004): execution-time
+  re-evaluation of the approval-pinned intent set against the current
+  set under one versioned policy — post-approval collisions block with
+  a per-overlap explanation, post-approval creations need reapproval,
+  drift needs replan, identical sets clear, and the read-only
+  evaluation carries a deterministic digest.
+
+- Land the availability revision (AVAIL-003): append-only per-worker
+  revision log with prepare/commit two-phase recovery — availability
+  never exists without its owning leave event, stale heads, inverted
+  or overlapping incompatible intervals, off-vocabulary states and
+  duplicate leave effects all refuse, recovery commits unfinished
+  prepares exactly once, and zero-padded sequence IDs keep History in
+  append order past the tenth revision.
+
+- Land configuration rollback (CP-009): the exact prior bundle is
+  revalidated by digest, re-signed through the caller's capability and
+  activated at a new epoch with receipts — history intact, mutable
+  labels, revoked digests and pinned live-workflow versions refused.
+
+- Land the legal-name kernel (CONF-019): structured multilingual names
+  with NFC normalization and single-script parts, scanned evidence
+  cites, jurisdiction obligations, exact approval digests and one
+  atomic revision — downstream effects authorize separately, never
+  implicitly.
+
+- Land the admission provisioner (ADMISSION-002): durable retry-budget
+  provisioning per logical operation with replay-safe attempt
+  identities, bounded refunds and one stable repair route — the
+  provisioner owns the counters, the pure policy stays the only
+  decision.
+
+- Land the runtime kernels (WF-RUN-006, WF-RUN-007): the immediate-caller
+  retry policy (capped backoff, shared budget, DO_NOT_RETRY honored
+  above all) and poison-node quarantine that never drops work and never
+  reports success — exhausted nodes route to BLOCKED, REPAIR_REQUIRED
+  or QUARANTINED with everything retained.
+
+- Land the intent kernels (INTENT-016, INTENT-018, INTENT-019,
+  INTENT-021, INTENT-026, INTENT-027, WF-DISC-011, REPLAN-002,
+  REPLAN-004): deterministic child emission, event-to-intent policy
+  conversion, bulk batch compilation, composition with DAG validation,
+  universal preflight, governed lifecycle surfaces, approval reuse and
+  successor proposals — every negative case typed, every digest sealed.
+
+- Land the org kernels (CONF-007, CONF-025): the governed manager-change
+  lifecycle (propose through reconcile, cycles and overlaps refused,
+  tamper-evident approvals) and the conformance-only ChangeManager
+  intent compiler with typed block/replan negatives and zero production
+  exposure.
+
+- Land the outbox consumer group (EVENT-002): idempotent dispatch with
+  per-partition checkpoints, fenced duplicates and per-record poison
+  isolation with expiry requeue; checkpoints commit with application,
+  never ahead of it.
+
+- Land the contact kernels (CONF-017, CONF-018): typed endpoint updates
+  with tenant isolation, stale-revision refusal and verification
+  challenges, plus ordered emergency-contact sets with priority
+  uniqueness, governed person linkage and minimum disclosure.
+
+- Land the work-item kernels (WORK-007, WORK-008, WORK-009): fair
+  queue ordering with legal-authority precedence and reserved tenant
+  capacity, compartment authorization with recorded access decisions,
+  and typed restricted-review findings behind evidence grants.
+
+- Land the delivery kernels (MSG-007, MSG-008, MSG-009, MSG-010,
+  MSG-013): honest attempt/recipient lifecycles, typed workflow
+  signals, bounded failure reconciliation, content-gated redaction
+  scanning and legal-notice assessment — provider acceptance alone
+  never proves delivery, and protected content never reaches an
+  operational surface.
+
+- Land the balance kernels (BAL-012, BAL-013): the atomic posting
+  transaction (one head per account, idempotent receipts, failpoint
+  rollback) and the availability dependency index that emits typed
+  REPLAN_REQUIRED findings instead of editing approved plans.
+
+- Land the legal entitlement kernels (LEGAL-003, LEGAL-004, LEGAL-006):
+  entitlement composition that never lets company policy narrow statutory
+  protection, watermark-bound rule-change impact assessment, and the
+  sealed obligation lifecycle (open/satisfy/waive/block/age) —
+  kernel-pure and digest-sealed.
+
+- Land the Medical Leave domain kernels (LEAVE-002–LEAVE-011, LEAVE-014,
+  LEAVE-017): snapshot intake, eligibility resolution, entitlement planning,
+  simulation/proposal, transaction compile, atomic commit, determination
+  rendering, effect reconciliation, replan, successor intents and the
+  restricted evidence-review loop — kernel-pure, digest-sealed, zero
+  workforce mutation outside the governed commit path.
+
+- Persist Medical Leave and Return-to-Work domain state (DB-023): migration
+  00281 adds twelve tenant-scoped tables — request/record revisions, program
+  eligibility, entitlement segments, absence and availability links, balance
+  postings, evidence refs, work restrictions, obligations, intent links and
+  role-gated medical detail — with CAS revisions, FK/idempotency/overlap/
+  employment/compartment guards under RLS.
+
+- Add the idempotent Leave process anchor (LEAVE-016): one capability
+  invocation persists the `RequestLeave` intent as `CHANGE_REQUEST` with its
+  child bindings, the requested revision and the `LeaveRequested` provenance;
+  replays return the stored anchor, conflicting client-request reuse refuses,
+  and no workforce mutation or external effect is performed.
+
 ## 2026-09-09
 
+- Give promotion comparisons full content width so desktop pay deltas remain visible.
+
+- Show promotion change comparisons before request metadata in the review panel.
+
+- Keep promotion confirmation cancellation accessible and clear inherited primary
+  gradients from secondary journey buttons.
+
+- Correct promotion effective-date guidance: simulation applies promotion policy,
+  rather than universally forbidding past dates.
+
+- Reconcile shell golden fixtures with verified non-modal launcher accessibility;
+  the full product UI package passes again.
+
+- Make Help task-oriented and permission-aware, with self-service destinations
+  and localized access guidance instead of inaccessible promotion instructions.
+
+- Correct profile workflow empty-state advice for users without create permission;
+  job-ladder remediation is reserved for authorized requesters.
+
+- Align action-launcher dialog/combobox accessibility with non-modal keyboard
+  behavior and distinguish unmatched searches from unavailable authorized actions.
+
+- Make Insights totals use the same discoverable workflow population as the
+  other metrics; cover denied and missing-verdict records in regression tests.
+
+- Seed menu queries in the production loading shell so hydrated search inputs
+  agree with filtered results after reload; cover escaping and whitespace.
+
+- Promote matching support pages into menu search results without duplicates,
+  retain recovery links and show an explicit no-results state. Restore the full
+  product UI test suite with current localized Settings expectations.
+
+- Preserve incomplete worker-ID numeric edits, disable invalid submissions with
+  localized guidance, and apply theme-aware native disabled-button styling.
+
+- Make worker-ID examples follow unsaved form edits using shared non-allocating
+  formatting. Replace unbounded reserved-range scanning with increment-aligned
+  range jumps; add draft, exhaustion and large-range regression coverage.
+
+- Refine Admin navigation and role-visibility layout: omit unconfigured hero
+  actions and collapse the role summary behind a localized native disclosure,
+  preserving the visible policy boundary and role-filtered configuration cards.
+  Add focused rendering regressions and verify the updated desktop UI.
+
+- Tick WF-DISC-010: new kernel-pure `tools/planning/scenariomatrix`
+  generates adversarial scenario matrices from every workflow design
+  (22-template table; live snapshot yields 230 scenarios plus 78 typed
+  justifications across all 14 definitions); package tests PASS
+  (incl. concurrent race test), vet clean, cover 89.8%.
+
+- Tick WF-DISC-009: new kernel-pure `tools/planning/designownership`
+  validates every workflow design against model/engine/authority
+  ownership with exact resolutions plus atomic CONTRACTED-blocking todo
+  candidates (live snapshot: 8 resolutions, 46 candidates, full
+  reference coverage); package tests PASS, vet clean, cover 83.0%.
+
+- Tick WF-DISC-008: new kernel-pure `tools/planning/directcapability`
+  proves DIRECT dispositions hold no durable machinery or state mutation
+  and that executions pin authorization, return honest typed results and
+  promote actions only as new unexecuted intents (live snapshot: all 5
+  DIRECT designs prove pure); package tests PASS, vet clean, cover 92.0%.
+
+- Tick WF-DISC-007: new kernel-pure `tools/planning/workflowexpansion`
+  compiles archetype recipes plus domain profiles plus intent deltas into
+  complete ordered responsibility graphs with typed nodes, sequence plus
+  repair edges, ordered effects and stable digests (live snapshot expands
+  all 14 definitions); package tests PASS, vet clean, cover 90.4%.
+
+- Tick WF-DISC-006: new kernel-pure `tools/planning/workflowdesignjoin`
+  joins each drafted definition to exactly one design disposition by
+  versioned definition ref (live snapshot joins 14/14 with zero missing,
+  duplicate or alias-only records); extends `tools/planning/workflowdesign`
+  records with the optional validated `definition` field and grows the
+  seed corpus to the 14 accepted definitions; both suites PASS, vet
+  clean, cover 84.6% plus 84.3%.
+
+- Tick CLOSE-001: new kernel-pure `tools/planning/designclosure`
+  compiles the design-closure register joining every accepted scope item
+  to source, owner, phase, decision state, artifact, todos, tests,
+  evidence digest and expiry with gated blockers and reconciling totals;
+  live snapshot resolves 14 rows over 14 accepted intents; package tests
+  PASS, vet clean, cover 94.0%.
+
+- Tick GOV-028: new kernel-pure `tools/planning/oraclespecificity`
+  rejects placeholder RED/GREEN oracles (`PLACEHOLDER_RED_ORACLE`,
+  `PLACEHOLDER_GREEN_ORACLE`) and unbounded persistence/ledger/outbox/
+  human-work/provider claims (`MISSING_PROHIBITED_EFFECT_ORACLE`) with
+  live-backlog conformance and fuzz coverage; package tests PASS
+  (incl. a 60s 3.27M-exec fuzz run), vet clean, cover 90.2%.
+
+- Tick GOV-021: new kernel-pure `tools/planning/oraclestrength`
+  classifies todo oracles as `WEAK_ORACLE` when they assert only
+  execution signals, lean on a coverage percentage, omit
+  prohibited-effect bounds, snapshot unstable output, accept either/or
+  alternatives or name no concrete failing case; package tests PASS
+  (incl. fourteen oracle mutations), vet clean, cover 84.0%.
+
+- Tick WF-DISC-005: new kernel-pure `tools/planning/workflowdesign`
+  defines the machine-readable WorkflowDesignRecord contract with closed
+  DIRECT/WORKFLOW dispositions, explicit NOT_APPLICABLE reason codes,
+  canonical digests and stable Go/Protobuf registries regenerated by
+  `cmd/workflowdesign`; package tests PASS (incl. sixteen seeded
+  single-gap mutations each yielding their exact code), vet clean,
+  cover 85.7% plus 83.3% for the command.
+
+- Surface promotion actions ahead of supporting details and simplify stage
+  descriptions. Keep established quiet journey feeds reconnecting after normal
+  transport deadlines, while retaining bounded retries for immediate failures.
+
+- Correct Jane's demo promotion baseline to her declared reference inputs;
+  prevent other workers from inheriting Omar's compensation. Add safe OTel
+  baseline-source events and worker-specific regression coverage.
+
+- Add safe bounded request-error diagnostics for promotion troubleshooting;
+  distinguish schema mismatch, database conflicts, cancellation and deadlines
+  without logging internal payloads. Fix stale approval success notices when
+  live promotion updates deliver a recorded ledger outcome, with regression tests.
+
+- Tick IAC-002: new kernel-pure `tools/policy/iacstack` builds the four
+  isolated stacks (dev/test/stage/production-cell) from one pinned module
+  graph with reviewed variables, per-stack credentials, explicit bounds and
+  redacted deterministic plan summaries; package tests PASS (incl. a
+  seeded-mutant sensitivity probe), vet clean, cover 87.8%.
+
+- Tick WF-DISC-001: new kernel-pure `tools/planning/workflowregistry`
+  registers the 42-file workflow research corpus with truthful discovery
+  states, unique ids, index-link integrity and accepted-intent resolution
+  (live gaps reported as exact findings: 12 missing owners, 4 missing
+  intents, 3 missing kernel families, 5 unregistered samples, 3 non-catalog
+  targets); package tests PASS (incl. a seeded-mutant probe), vet clean,
+  cover 92.9%.
+
+- Tick WF-DISC-002: new kernel-pure `tools/planning/workflowarchetypes`
+  proves the six HR catalogs (198 rows) name only defined archetypes with
+  explicit dependencies, data and step deltas and no duplicate intent
+  placement; package tests PASS (incl. a seeded-mutant probe), vet clean,
+  cover 88.4%.
+
+- Tick WF-DISC-003: new kernel-pure `tools/planning/workflowdecisions`
+  turns the eight register questions into owned safe boundaries (closed
+  safe defaults executed against negative fixtures, strict deadlines,
+  decision revisions); package tests PASS (incl. a seeded-mutant probe),
+  vet clean, cover 89.9%.
+
+- Tick WF-DISC-004: new kernel-pure `tools/planning/workflowpromotion`
+  gates exploratory-to-contracted promotion on the complete closure set
+  with ed25519 signed receipts (tamper-evident, expiry-enforced);
+  package tests PASS (incl. a seeded-mutant probe), vet clean, cover
+  86.5%.
+
+- Tick IAC-001: the provider-neutral infrastructure resource contract in
+  `tools/policy/iac` lands verified (nine-kind catalog, seeded fault/security/
+  recovery oracles, race plus benchmark; package tests PASS, vet clean, cover
+  94.6% against the 70% floor).
+
+- Tick NEXT-008: the gate-dependency and assurance-closure checker in
+  `tools/policy/phaseone` lands verified (later-phase/cycle/self-certification
+  rejection with shortest witnesses, golden closure bytes, Gate B independent
+  assurance plus verified cross-store restore; package tests PASS, vet clean,
+  cover 87.2% against the 70% floor).
+
+- Tick GOV-027: the intent-gap compiler in `tools/planning/intentmanifests`
+  lands verified (23-dimension property suite, golden digest, live-catalog
+  conformance at 238 gaps, duplicate-contract mutation oracles, fuzz seed
+  corpus; package tests PASS, vet clean, cover 70.7% against the 70% floor).
+
+- Refine workforce exploration: full-width team disclosures, readable worker
+  cards, native reporting-line expanders, localized counts and safe handling of
+  ambiguous manager names. Workforce now precedes supporting business metadata.
+
+- Fix Journeys remaining on its loading screen when data arrives before the
+  render subscription mounts; add a deterministic WASM lifecycle regression.
+
+- Fix Start an action dismissal when focus leaves or the user clicks outside;
+  preserve internal focus navigation and clean up browser listeners and timers.
+
+- UX refinement (uncommitted): truthful explicit-role assignment display,
+  worker-number disambiguation, published promotion-eligibility checks shared
+  with the workflow form, and permission-aware task links in Help.
+
+- UX refinement (uncommitted): separate breadcrumbs from page headings, clarify
+  organization-wide appearance, simplify Home promotion entry and empty-work
+  guidance, improve navigation label space, and explain unavailable page editing.
+
+- OBS-013 timer-resume span links (branch eng/obs-013-resume-links): timer
+  wake advancements open a finite `hcmnext.timer.resume` span linked to the
+  parked trace from the drift-checked row's stored causal identity, with a
+  fresh attempt reusing the stored logical operation; nil/expired/invalid
+  links advance unlinked with byte-identical receipts. `timer_id` joins the
+  telemetry attribute allowlist (contract + compiled mirror). Stale OBS-012
+  fallback comment corrected to the landed topology contract.
 - Rebrand to Human Capital Management Suite (uncommitted batch, this
   change): Go module `github.com/monstercameron/hcm-next` becomes
   `github.com/monstercameron/human-capital-management-suite` (go.mod, all

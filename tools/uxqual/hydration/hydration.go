@@ -778,7 +778,7 @@ func identityFrom(scope *html.Node, facts domFacts, c Contract, ssr bool) (PageI
 		if err != nil {
 			return PageIdentity{}, err
 		}
-		got := PageIdentity{PageID: island.PageID, Version: island.Version, Digest: island.Digest}
+		got := PageIdentity(island)
 		if got != c.Identity {
 			return PageIdentity{}, refusal(ErrorMismatch, "identity")
 		}

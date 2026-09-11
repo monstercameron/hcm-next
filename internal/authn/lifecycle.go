@@ -34,10 +34,6 @@ const (
 	StatusTerminated = AccountTerminated
 )
 
-func (s AccountStatus) valid() bool {
-	return s == AccountActive || s == AccountSuspended || s == AccountDisabled || s == AccountTerminated
-}
-
 // IdentityStatus is the lifecycle of a tenant-bound digital identity.
 type IdentityStatus string
 
@@ -47,10 +43,6 @@ const (
 	IdentityUnlinked  IdentityStatus = "UNLINKED"
 	IdentityRevoked   IdentityStatus = "REVOKED"
 )
-
-func (s IdentityStatus) valid() bool {
-	return s == IdentityLinked || s == IdentitySuspended || s == IdentityUnlinked || s == IdentityRevoked
-}
 
 // DependentKind identifies authority derived from an account. The values are
 // intentionally explicit so a fan-out cannot silently omit a security object.

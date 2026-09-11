@@ -27,7 +27,7 @@ import (
 	"go/ast"
 	"go/parser"
 	"go/token"
-	"io/fs"
+	"os"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -626,7 +626,7 @@ func TestPromotionWorkflowExecutesEndToEndWithOneGovernedWrite(t *testing.T) {
 	}
 
 	proposal := newDemoProposal(t, values.TenantId("promo-exec-1"), "intent:promotion-execute-demo-1", at)
-	binding := runtime.ProposalBinding{Revision: proposal, Approved: true, ApprovalRef: "decision:hr-partner-approves-start"}
+	binding := runtime.ProposalBinding{Revision: proposal, ApprovalRef: "decision:hr-partner-approves-start"}
 
 	managerReq, managerRes, _, _ := managerRequirementAndResolution(t)
 
@@ -904,7 +904,7 @@ func TestPromotionWorkflowExecuteRefusesWithoutApprovedProposal(t *testing.T) {
 		mutable := proposal
 		mutable.MaterialDigest.Digest = ""
 		_, err := drv.Execute(ctx, execute.ExecuteRequest{Start: baseRequest("refuse-mutable", proposal,
-			runtime.ProposalBinding{Revision: mutable, Approved: true, ApprovalRef: "decision:x"})})
+			runtime.ProposalBinding{Revision: mutable, ApprovalRef: "decision:x"})})
 		if code := runtime.CodeOf(err); code != runtime.CodeMutableProposal {
 			t.Fatalf("Execute error = %v (code %q), want %q", err, code, runtime.CodeMutableProposal)
 		}
@@ -982,43 +982,55 @@ const forbiddenClockRead = "time.Now"
 func scanDirForCallerDrivenViolations(t *testing.T, dir string, allowedClockReads int) {
 	t.Helper()
 	fset := token.NewFileSet()
-	pkgs, err := parser.ParseDir(fset, dir, func(fi fs.FileInfo) bool {
-		return !strings.HasSuffix(fi.Name(), "_test.go")
-	}, 0)
+	// parser.ParseDir is deprecated; a ReadDir plus ParseFile loop collects
+	// the same file set (build-tag precision is irrelevant here).
+	files := map[string]*ast.File{}
+	entries, err := os.ReadDir(dir)
 	if err != nil {
 		t.Fatalf("parse %s: %v", dir, err)
 	}
-	if len(pkgs) == 0 {
+	for _, entry := range entries {
+		name := entry.Name()
+		if entry.IsDir() || !strings.HasSuffix(name, ".go") || strings.HasSuffix(name, "_test.go") {
+			continue
+		}
+		path := filepath.Join(dir, name)
+		file, err := parser.ParseFile(fset, path, nil, 0)
+		if err != nil {
+			t.Fatalf("parse %s: %v", dir, err)
+		}
+		files[path] = file
+	}
+	filesByPath := files
+	if len(filesByPath) == 0 {
 		t.Fatalf("no non-test Go files found under %s", dir)
 	}
 	clockReads := 0
-	for _, pkg := range pkgs {
-		for filename, file := range pkg.Files {
-			ast.Inspect(file, func(n ast.Node) bool {
-				switch node := n.(type) {
-				case *ast.GoStmt:
-					t.Errorf("%s: goroutine launch (go statement) found; the caller-driven ruling forbids background execution", filename)
-				case *ast.CallExpr:
-					sel, ok := node.Fun.(*ast.SelectorExpr)
-					if !ok {
-						return true
-					}
-					ident, ok := sel.X.(*ast.Ident)
-					if !ok {
-						return true
-					}
-					qualified := ident.Name + "." + sel.Sel.Name
-					switch {
-					case forbiddenAlways[qualified]:
-						t.Errorf("%s: forbidden call %s found; every instant and every wake must come from a caller argument", filename, qualified)
-					case qualified == forbiddenClockRead:
-						clockReads++
-						t.Logf("%s: found %s (occurrence %d)", filename, qualified, clockReads)
-					}
+	for filename, file := range filesByPath {
+		ast.Inspect(file, func(n ast.Node) bool {
+			switch node := n.(type) {
+			case *ast.GoStmt:
+				t.Errorf("%s: goroutine launch (go statement) found; the caller-driven ruling forbids background execution", filename)
+			case *ast.CallExpr:
+				sel, ok := node.Fun.(*ast.SelectorExpr)
+				if !ok {
+					return true
 				}
-				return true
-			})
-		}
+				ident, ok := sel.X.(*ast.Ident)
+				if !ok {
+					return true
+				}
+				qualified := ident.Name + "." + sel.Sel.Name
+				switch {
+				case forbiddenAlways[qualified]:
+					t.Errorf("%s: forbidden call %s found; every instant and every wake must come from a caller argument", filename, qualified)
+				case qualified == forbiddenClockRead:
+					clockReads++
+					t.Logf("%s: found %s (occurrence %d)", filename, qualified, clockReads)
+				}
+			}
+			return true
+		})
 	}
 	if clockReads > allowedClockReads {
 		t.Errorf("%s: found %d occurrences of %s, want at most %d", dir, clockReads, forbiddenClockRead, allowedClockReads)
@@ -1100,7 +1112,7 @@ func runPromotionToCompleteWithTerminal(t *testing.T, tenantKey string, at time.
 
 	versions, plan, activated := publishActiveDemoPlan(t, at)
 	proposal := newDemoProposal(t, values.TenantId(tenantKey), "intent:"+tenantKey, at)
-	binding := runtime.ProposalBinding{Revision: proposal, Approved: true, ApprovalRef: "decision:hr-partner-approves-start"}
+	binding := runtime.ProposalBinding{Revision: proposal, ApprovalRef: "decision:hr-partner-approves-start"}
 	managerReq, managerRes, _, _ := managerRequirementAndResolution(t)
 
 	resolver := effects.PolicyResolver{Entries: []effects.PolicyEntry{{
@@ -1464,7 +1476,7 @@ func TestTodo_WF_RUN_030_Mutation(t *testing.T) {
 	req := execute.TerminalWriteRequest{
 		TenantID: f.tenantID, InstanceID: f.instanceID,
 		WorkflowID: demoWorkflowID, PlanDigest: mustCompiledDigest(t),
-		Proposal:       runtime.ProposalBinding{Revision: f.proposal, Approved: true, ApprovalRef: "decision:hr-partner-approves-start"},
+		Proposal:       runtime.ProposalBinding{Revision: f.proposal, ApprovalRef: "decision:hr-partner-approves-start"},
 		TerminalCode:   demoTerminalCode,
 		CorrelationID:  f.start.CorrelationID,
 		IdempotencyKey: idempotencyKey,

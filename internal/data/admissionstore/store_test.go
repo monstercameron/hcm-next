@@ -209,9 +209,14 @@ func TestMigrationDownRefusesToEraseBudgetEvidence(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	// Down must refuse at the evidence wall: every migration above the
+	// newest reversible version declares irreversibility, so rolling back
+	// raises P0001 instead of erasing budget evidence. The assertion names
+	// the marker, not the version, so the next irreversible tip migration
+	// does not stale it the way 00281 staled the 00280-specific pin.
 	_, downErr := db.Provider(t).Down(ctx)
-	if downErr == nil || !strings.Contains(downErr.Error(), "SQLSTATE P0001") || !strings.Contains(downErr.Error(), "00280 is irreversible: retry receipts and consumed budget counters are durable evidence") {
-		t.Fatalf("migration down error = %v, want exact 00280 P0001 refusal", downErr)
+	if downErr == nil || !strings.Contains(downErr.Error(), "SQLSTATE P0001") || !strings.Contains(downErr.Error(), "is irreversible") {
+		t.Fatalf("migration down error = %v, want a P0001 irreversibility refusal", downErr)
 	}
 	got, err := s.Consume(ctx, a, b.PeriodEnd)
 	if err != nil || got.ReceiptID != want.ReceiptID || got.Digest != want.Digest {

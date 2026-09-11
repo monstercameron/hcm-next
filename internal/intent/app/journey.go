@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"go.opentelemetry.io/otel/trace"
+
 	commonv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/common/v1"
 	intentsv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/intents/v1"
 	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
@@ -316,7 +318,13 @@ func (e *journeyEngine) Propose(ctx context.Context, in workspace.ProposalInput)
 
 	baseline, err := journeyBaseline(in, subject)
 	if err != nil {
+		trace.SpanFromContext(ctx).AddEvent("promotion.baseline.unavailable")
 		return workspace.JourneySummary{}, err
+	}
+	if subject.Created != nil {
+		trace.SpanFromContext(ctx).AddEvent("promotion.baseline.durable_worker")
+	} else {
+		trace.SpanFromContext(ctx).AddEvent("promotion.baseline.declared_reference")
 	}
 	current, err := e.currentPlacement(ctx, principal, worker, baseline.effective)
 	if err != nil {
@@ -375,9 +383,20 @@ func (e *journeyEngine) Propose(ctx context.Context, in workspace.ProposalInput)
 	if sumErr != nil {
 		return workspace.JourneySummary{}, sumErr
 	}
-	artifact, simErr := e.resimulate(ctx, summary.IntentID)
+	simulated, simErr := e.resimulateDetailed(ctx, summary.IntentID)
 	if simErr != nil {
 		return workspace.JourneySummary{}, simErr
+	}
+	artifact := simulated.Artifact
+	// Same durable candidates the typed ProposePromotion records: the page
+	// form and the typed contract are one capability, so the snapshot,
+	// proposal revision and simulation result persist identically.
+	stored, convErr := protomap.InstanceFromProto(created.GetIntent())
+	if convErr != nil {
+		return workspace.JourneySummary{}, convErr
+	}
+	if persistErr := e.recordProposalCandidates(ctx, principal, stored, simulated); persistErr != nil {
+		return workspace.JourneySummary{}, persistErr
 	}
 	summary.ProposalRevisionID = artifact.GetProposalRevisionId()
 	summary.MaterialDigest = artifact.GetMaterialProposalDigest().GetDigest()
@@ -488,10 +507,9 @@ func (b journeyBaselineFacts) knownAtDate() string {
 	return b.evaluationDate
 }
 
-// A created worker is the exception the corpus cannot cover. The ported legacy
-// scenario describes exactly one worker (omar-reyes), so using its declared
-// amounts for an employee somebody just made would assert that person's salary
-// as this one's. When the resolved worker carries its own durable record, the
+// The legacy scenario describes Omar only; Jane has separate declared reference
+// simulation inputs. Neither baseline may be borrowed by any other worker.
+// When the resolved worker carries its own durable record, the
 // pay side of the baseline is read from that record instead -- its base pay,
 // its currency, its bonus target and the instant it was known at.
 //
@@ -526,6 +544,13 @@ func journeyBaseline(in workspace.ProposalInput, subject WorkerLocation) (journe
 		facts.currency = created.Currency
 		facts.bonusTarget = created.BonusTarget
 		facts.knownAt = created.KnownAt.UTC().Format(time.DateOnly)
+	} else if subject.Key == "jane-doe" {
+		facts.currentBase = fixtures.JanePromotionBase
+		facts.currency = "USD"
+		facts.bonusTarget = fixtures.JanePromotionBonus
+		facts.evaluationDate = "2026-09-03"
+	} else if subject.Key != set.Worker {
+		return journeyBaselineFacts{}, journeyInputError("worker_ref", "this worker has no declared compensation baseline; connect a compensation record before proposing a promotion")
 	}
 	return facts, nil
 }

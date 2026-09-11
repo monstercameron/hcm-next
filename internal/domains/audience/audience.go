@@ -47,15 +47,6 @@ const (
 	SourceRoleHolder      SourceKind = "ROLE_HOLDER"
 )
 
-func (s SourceKind) valid() bool {
-	switch s {
-	case SourceExplicit, SourceOrgUnit, SourceManagementChain, SourceRoleHolder:
-		return true
-	default:
-		return false
-	}
-}
-
 // OrgUnitSelector asks for the members of one org unit at the request's
 // effective instant.
 type OrgUnitSelector struct{ OrgUnit string }

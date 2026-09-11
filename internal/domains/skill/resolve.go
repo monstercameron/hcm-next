@@ -283,12 +283,6 @@ func startedAt(interval values.EffectiveInterval, date values.LocalDate) bool {
 	start, ok := interval.StartDate()
 	return ok && start.Compare(date) <= 0
 }
-
-func expiredAt(interval values.EffectiveInterval, date values.LocalDate) bool {
-	end, hasEnd := interval.EndDate()
-	return hasEnd && end.Compare(date) <= 0
-}
-
 func better(a, b evidenceCandidate) bool {
 	rank := func(s EvidenceStatus) int {
 		switch s {

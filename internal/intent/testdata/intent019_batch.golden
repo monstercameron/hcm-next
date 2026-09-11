@@ -1,0 +1,7 @@
+batch=sha256:f10304feb43a95da4edbe4700ea0690ad3027c02d4285e9024edd20e60f5979e
+counts=eligible:3 ineligible:1 denied:1 unknown:1
+child=sha256:0d8611e73f0a1f6059f4b10f58c3f86f1253de215ae3ae33026eff8dd8d57a20 subject=s1 partition=0
+child=sha256:d1400bd602fcd8dd371051138b3a73244adf341b0861bb0abff988423c058c13 subject=s2 partition=1
+child=sha256:5685b92bf7efb25206cb0007067f9d89a3912732af29eb543c7d11eb1061f142 subject=s3 partition=1
+results=3 succeeded=3
+digest=sha256:19b8335354ef136468e13b29a5728783453130b30b70b30cd97a06004a301117

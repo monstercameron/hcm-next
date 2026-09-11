@@ -1,0 +1,193 @@
+{
+  "register": {
+    "rows": [
+      {
+        "item": "intent/a/v1",
+        "source": "catalog.yaml#intent/a/v1",
+        "owner": "family-one",
+        "phase": "Phase 1",
+        "decision": "VERIFIED",
+        "artifact": [
+          "flow-a"
+        ],
+        "todos": [
+          "DONE-1"
+        ],
+        "tests": [
+          "TestDone"
+        ],
+        "evidence_digest": "sha256:93f2af9d3c1fedbe812e1ae03948b62f0f58eb9c04a780b8f1492de1e34bf72f",
+        "blockers": null,
+        "gate": "Phase 1"
+      },
+      {
+        "item": "intent/b/v1",
+        "source": "catalog.yaml#intent/b/v1",
+        "owner": "family-one",
+        "phase": "Phase 1",
+        "decision": "DESIGNED",
+        "artifact": [
+          "flow-b"
+        ],
+        "todos": [
+          "OPEN-1",
+          "OPEN-2"
+        ],
+        "tests": [
+          "TestOpen"
+        ],
+        "evidence_digest": "",
+        "blockers": [
+          {
+            "kind": "gap",
+            "ref": "feature-x",
+            "detail": "open capability gap",
+            "gate": "Phase 1"
+          },
+          {
+            "kind": "todo",
+            "ref": "OPEN-1",
+            "detail": "bound todo still open",
+            "gate": "P0"
+          },
+          {
+            "kind": "todo",
+            "ref": "OPEN-2",
+            "detail": "bound todo still open",
+            "gate": "GATE_A"
+          }
+        ],
+        "gate": "Phase 1"
+      },
+      {
+        "item": "intent/c/v1",
+        "source": "catalog.yaml#intent/c/v1",
+        "owner": "family-two",
+        "phase": "Phase 1",
+        "decision": "CONTRACTED",
+        "artifact": null,
+        "todos": [
+          "BARE-1"
+        ],
+        "tests": [
+          "TestBare"
+        ],
+        "evidence_digest": "",
+        "blockers": null,
+        "gate": "Phase 1"
+      },
+      {
+        "item": "intent/d/v1",
+        "source": "catalog.yaml#intent/d/v1",
+        "owner": "family-two",
+        "phase": "Phase 1",
+        "decision": "UNBOUND",
+        "artifact": [
+          "flow-d"
+        ],
+        "todos": null,
+        "tests": null,
+        "evidence_digest": "",
+        "blockers": [
+          {
+            "kind": "delivery",
+            "ref": "no active DIRECT todos",
+            "detail": "scope item referenced but bound to no delivery todo",
+            "gate": "Phase 1"
+          }
+        ],
+        "gate": "Phase 1"
+      },
+      {
+        "item": "intent/e/v1",
+        "source": "catalog.yaml#intent/e/v1",
+        "owner": "family-one",
+        "phase": "Phase 1",
+        "decision": "UNSELECTED",
+        "artifact": null,
+        "todos": null,
+        "tests": null,
+        "evidence_digest": "",
+        "blockers": [
+          {
+            "kind": "selection",
+            "ref": "no selection, delivery, workflow or gap reference",
+            "detail": "nothing selected this scope item yet",
+            "gate": "Phase 1"
+          }
+        ],
+        "gate": "Phase 1"
+      },
+      {
+        "item": "intent/f/v1",
+        "source": "",
+        "owner": "family-one",
+        "phase": "Phase 1",
+        "decision": "UNSELECTED",
+        "artifact": null,
+        "todos": null,
+        "tests": null,
+        "evidence_digest": "",
+        "blockers": [
+          {
+            "kind": "selection",
+            "ref": "no selection, delivery, workflow or gap reference",
+            "detail": "nothing selected this scope item yet",
+            "gate": "Phase 1"
+          }
+        ],
+        "gate": "Phase 1"
+      }
+    ],
+    "totals": {
+      "rows": 6,
+      "by_state": {
+        "CONTRACTED": 1,
+        "DESIGNED": 1,
+        "UNBOUND": 1,
+        "UNSELECTED": 2,
+        "VERIFIED": 1
+      },
+      "unresolved": 5,
+      "digest": "sha256:86a8f5ee3d08de468bfe853ed4f9df2f0be709d9562384cee930ff90cdd040fa"
+    }
+  },
+  "findings": [
+    {
+      "item": "intent/b/v1",
+      "code": "MISSING_EVIDENCE",
+      "field": "evidence",
+      "detail": "bound work with no evidence digest proves nothing yet"
+    },
+    {
+      "item": "intent/b/v1",
+      "code": "MISSING_TEST",
+      "field": "test",
+      "detail": "evidence names TestMissing, which exists in no scanned test source"
+    },
+    {
+      "item": "intent/c/v1",
+      "code": "MISSING_ARTIFACT",
+      "field": "artifact",
+      "detail": "bound scope item with no workflow artifact"
+    },
+    {
+      "item": "intent/c/v1",
+      "code": "MISSING_EVIDENCE",
+      "field": "evidence",
+      "detail": "bound work with no evidence digest proves nothing yet"
+    },
+    {
+      "item": "intent/c/v1",
+      "code": "TICK_WITHOUT_EVIDENCE",
+      "field": "evidence",
+      "detail": "ticked todo BARE-1 names no evidence test; prose completion cannot satisfy an implementation gate"
+    },
+    {
+      "item": "intent/f/v1",
+      "code": "MISSING_SOURCE",
+      "field": "source",
+      "detail": "scope item names no exact source"
+    }
+  ]
+}

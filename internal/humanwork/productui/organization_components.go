@@ -1,8 +1,6 @@
 package productui
 
 import (
-	"fmt"
-
 	"github.com/monstercameron/GoWebComponents/v5/html"
 	"github.com/monstercameron/GoWebComponents/v5/ui"
 )
@@ -39,15 +37,17 @@ type BusinessMetadataItemProps struct {
 }
 
 type OrganizationGroupProps struct {
-	Name    string
-	Count   int
-	Members []OwnershipNodeProps
+	Name       string
+	Count      int
+	CountLabel string
+	Members    []OwnershipNodeProps
 }
 
 // OwnershipNodeProps is the recursive, presentation-only reporting-line
 // contract. Every person has already passed the page's visibility boundary.
 type OwnershipNodeProps struct {
 	Name, Role, Team, Initials, PhotoURL, Href string
+	WorkerNumber, ReportsLabel                 string
 	Navigate                                   func(string)
 	Reports                                    []OwnershipNodeProps
 	Current                                    bool
@@ -76,15 +76,19 @@ func OrganizationPage(props OrganizationPageProps) ui.Node {
 		),
 		content,
 	)
-	sections = append(sections, ui.CreateElement(Panel, PanelProps{Title: props.Title, Body: body}))
+	// Exploration is the primary task; business context remains available below it.
+	sections = append([]ui.Node{ui.CreateElement(Panel, PanelProps{Title: props.Title, Body: body})}, sections...)
 	return html.Div(html.Props{Class: "organization-page"}, sections...)
 }
 
 func organizationViewAction(action ActionLinkProps, active bool) ui.Node {
+	props := html.Props{Aria: map[string]string{}}
 	if active {
 		action.Class += " active"
+		props.Aria["current"] = "true"
 	}
-	return ui.CreateElement(ActionLink, action)
+	props.Class = action.Class
+	return softwareLink(action.Navigate, props, action.Href, ui.Text(action.Label))
 }
 
 func organizationFlat(values []OrganizationGroupProps) ui.Node {
@@ -92,13 +96,13 @@ func organizationFlat(values []OrganizationGroupProps) ui.Node {
 	for _, group := range values {
 		members := make([]ui.Node, 0, len(group.Members))
 		for _, member := range group.Members {
-			members = append(members, html.Li(html.Props{}, organizationPersonCard(member, false)))
+			members = append(members, html.Li(html.Props{}, organizationPersonCard(member)))
 		}
 		groups = append(groups, html.Li(html.Props{Class: "organization-unit"},
 			html.Details(html.Props{Class: "organization-unit-disclosure"},
 				html.Summary(html.Props{Class: "org-node manager"},
 					html.Span(html.Props{Class: "organization-unit-glyph", Aria: map[string]string{"hidden": "true"}}, ui.Text("›")),
-					html.Span(html.Props{Class: "row-main"}, html.Strong(html.Props{}, ui.Text(group.Name)), html.Small(html.Props{}, ui.Text(fmt.Sprintf("%d visible workers", group.Count)))),
+					html.Span(html.Props{Class: "row-main"}, html.Strong(html.Props{}, ui.Text(group.Name)), html.Small(html.Props{}, ui.Text(group.CountLabel))),
 				),
 				html.Ul(html.Props{Class: "organization-unit-members", Raw: map[string]any{"role": "list"}}, members...),
 			),
@@ -122,7 +126,7 @@ func OrganizationOwnershipTree(props OrganizationOwnershipTreeProps) ui.Node {
 	for _, value := range props.Nodes {
 		nodes = append(nodes, ownershipNode(value))
 	}
-	return html.Ul(html.Props{Class: "ownership-tree", Raw: map[string]any{"role": "tree", "data-organization-view": "tree"}}, nodes...)
+	return html.Ul(html.Props{Class: "ownership-tree", Raw: map[string]any{"role": "list", "data-organization-view": "tree"}}, nodes...)
 }
 
 func ownershipNode(props OwnershipNodeProps) ui.Node {
@@ -130,29 +134,35 @@ func ownershipNode(props OwnershipNodeProps) ui.Node {
 	for _, report := range props.Reports {
 		children = append(children, ownershipNode(report))
 	}
-	card := organizationPersonCard(props, true)
+	card := organizationPersonCard(props)
 	branch := []ui.Node{card}
 	if len(children) > 0 {
-		branch = append(branch, html.Ul(html.Props{Raw: map[string]any{"role": "group"}}, children...))
+		label := props.ReportsLabel
+		if label == "" {
+			label = organizationCountLabel(View{}, "organization.reports_count", len(children))
+		}
+		branch = append(branch, html.Details(html.Props{Class: "ownership-reports"},
+			html.Summary(html.Props{}, ui.Text(label)),
+			html.Ul(html.Props{Raw: map[string]any{"role": "list"}}, children...),
+		))
 	}
-	item := html.Props{Raw: map[string]any{"role": "treeitem"}}
-	if len(children) > 0 {
-		item.Raw["aria-expanded"] = "true"
-	}
-	return html.Li(item, branch...)
+	return html.Li(html.Props{}, branch...)
 }
 
-func organizationPersonCard(props OwnershipNodeProps, showReportCount bool) ui.Node {
+func organizationPersonCard(props OwnershipNodeProps) ui.Node {
 	class := "ownership-card"
 	if props.Current {
 		class += " current-person"
 	}
+	metadata := []ui.Node{html.Strong(html.Props{}, ui.Text(props.Name))}
+	for _, value := range []string{props.WorkerNumber, props.Role, props.Team} {
+		if value != "" {
+			metadata = append(metadata, html.Small(html.Props{}, ui.Text(value)))
+		}
+	}
 	children := []ui.Node{
 		personAvatar(props.Name, props.Initials, props.PhotoURL, "small"),
-		html.Span(html.Props{Class: "row-main"}, html.Strong(html.Props{}, ui.Text(props.Name)), html.Small(html.Props{}, ui.Text(props.Role+" · "+props.Team))),
-	}
-	if showReportCount {
-		children = append(children, html.Span(html.Props{Class: "ownership-count", Aria: map[string]string{"label": fmt.Sprintf("%d direct reports", len(props.Reports))}}, ui.Text(fmt.Sprintf("%d", len(props.Reports)))))
+		html.Span(html.Props{Class: "row-main"}, metadata...),
 	}
 	linkProps := html.Props{Class: class}
 	if props.Current {

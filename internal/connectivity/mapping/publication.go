@@ -551,9 +551,7 @@ func cloneMappingProfileVersion(v MappingProfileVersion) MappingProfileVersion {
 
 func cloneFieldMappings(in []FieldMapping) []FieldMapping {
 	out := make([]FieldMapping, len(in))
-	for i, field := range in {
-		out[i] = field
-	}
+	copy(out, in)
 	return out
 }
 

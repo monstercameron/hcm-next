@@ -49,8 +49,6 @@ type promotionFullBehavior struct {
 	aboveThreshold bool
 	validity       []string
 	payroll        workflow.Outcome
-	managerOutcome workflow.Outcome
-	withdraw       bool
 }
 
 // promotionFullPorts are deterministic test doubles for the ports consumed by
@@ -175,13 +173,7 @@ func digestForPromotionNode(nodeID string) string {
 }
 
 type promotionFullWorkItems struct {
-	proposal intentProposal
 }
-
-// intentProposal is the small immutable part needed by the test factory. The
-// concrete proposal is carried through execute.WorkItemRequest, so this type
-// only exists to keep the factory's policy-independent routing fixtures clear.
-type intentProposal struct{}
 
 func promotionApprovalRequirement(requirementID, approver string, decideBy time.Time) (humanwork.ApprovalRequirement, error) {
 	switch requirementID {
@@ -292,20 +284,19 @@ func (f promotionFullTimerFactory) CreateTimer(ctx context.Context, ex runtime.E
 }
 
 type promotionFullFixture struct {
-	t         *testing.T
-	db        *pgtest.DB
-	tenantID  uuid.UUID
-	key       string
-	at        time.Time
-	fireAt    time.Time
-	start     runtime.StartRequest
-	proposal  intent.ProposalRevision
-	plan      *workflow.CompiledWorkflow
-	versions  version.Store
-	terminal  execute.TerminalWriter
-	runner    *promotionsteps.Runner
-	behavior  promotionFullBehavior
-	scheduler *scheduler.Scheduler
+	t        *testing.T
+	db       *pgtest.DB
+	tenantID uuid.UUID
+	key      string
+	at       time.Time
+	fireAt   time.Time
+	start    runtime.StartRequest
+	proposal intent.ProposalRevision
+	plan     *workflow.CompiledWorkflow
+	versions version.Store
+	terminal execute.TerminalWriter
+	runner   *promotionsteps.Runner
+	behavior promotionFullBehavior
 }
 
 func newPromotionFullFixture(t *testing.T, key string, behavior promotionFullBehavior) promotionFullFixture {
@@ -316,7 +307,7 @@ func newPromotionFullFixture(t *testing.T, key string, behavior promotionFullBeh
 	tenantID := insertTenant(t, db, key, at)
 	versions, plan := publishPromotionFullPlan(t, fireAt)
 	proposal := newDemoProposal(t, values.TenantId(key), "intent:"+key, at)
-	binding := runtime.ProposalBinding{Revision: proposal, Approved: true, ApprovalRef: "decision:promotion-start"}
+	binding := runtime.ProposalBinding{Revision: proposal, ApprovalRef: "decision:promotion-start"}
 	resolver := effects.PolicyResolver{Entries: []effects.PolicyEntry{{
 		WorkflowID: plan.WorkflowID, Pin: version.Pin{CompiledPlanDigest: plan.Digest()}, Plan: plan,
 	}}}

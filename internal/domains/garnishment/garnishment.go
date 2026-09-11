@@ -261,30 +261,6 @@ func zeroLike(d values.Decimal) values.Decimal {
 	return values.MustDecimal("0", d.Scale(), d.Rounding())
 }
 
-func (b RemittanceBatch) body() ([]byte, error) {
-	w := canonicalbytes.New("hcmnext.domains.garnishment.RemittanceBatch", schemaVersion).
-		String("tenant_id", b.TenantID).String("batch_id", b.BatchID).
-		String("payroll_run_ref", b.PayrollRunRef).
-		String("payroll_withholding_digest", b.PayrollWithholdingDigest).
-		Value("payroll_withholding_total", b.PayrollWithholdingTotal).
-		Value("total", b.Total).
-		String("currency", b.Currency).
-		String("payee_ref", b.PayeeRef).
-		String("destination_ref", b.DestinationRef).
-		Int("revision", int64(b.Revision)).
-		Count("lines", len(b.Lines))
-	for _, line := range b.Lines {
-		w.String("line.tenant_id", line.TenantID).String("line.id", line.ID).
-			String("line.order_ref", line.OrderRef).
-			String("line.payee_ref", line.PayeeRef).
-			String("line.destination_ref", line.DestinationRef).
-			String("line.payroll_line_ref", line.PayrollLineRef).
-			Value("line.amount", line.Amount).
-			String("line.currency", line.Currency)
-	}
-	return w.Bytes()
-}
-
 func (b RemittanceBatch) computedDigest() (string, error) {
 	w := canonicalbytes.New("hcmnext.domains.garnishment.RemittanceBatch", schemaVersion).
 		String("tenant_id", b.TenantID).String("batch_id", b.BatchID).
@@ -362,18 +338,6 @@ func (i SettlementInstruction) Validate() error {
 		return fmt.Errorf("%w: settlement instruction digest mismatch", ErrInvalidRemittance)
 	}
 	return nil
-}
-
-func (i SettlementInstruction) body() ([]byte, error) {
-	w := canonicalbytes.New("hcmnext.domains.garnishment.SettlementInstruction", schemaVersion).
-		String("tenant_id", i.TenantID).String("instruction_id", i.InstructionID).
-		String("payroll_run_ref", i.PayrollRunRef).
-		String("payee_ref", i.PayeeRef).
-		String("destination_ref", i.DestinationRef).
-		Value("amount", i.Amount).
-		String("currency", i.Currency).
-		String("state", string(i.State))
-	return w.Bytes()
 }
 
 func (i SettlementInstruction) computedDigest() (string, error) {
@@ -629,25 +593,6 @@ func (a RemittanceAuthorization) Validate() error {
 		return fmt.Errorf("%w: canonical digest mismatch", ErrAuthorizationInvalid)
 	}
 	return nil
-}
-
-func (a RemittanceAuthorization) body() ([]byte, error) {
-	w := canonicalbytes.New("hcmnext.domains.garnishment.RemittanceAuthorization", schemaVersion).
-		String("tenant_id", a.TenantID).String("batch_digest", a.BatchDigest).
-		String("instruction_digest", a.InstructionDigest).
-		String("payroll_run_ref", a.PayrollRunRef).
-		String("payee_ref", a.PayeeRef).
-		String("destination_ref", a.DestinationRef).
-		Value("total", a.Total).
-		String("currency", a.Currency).
-		String("requester", a.Requester).
-		String("approver", a.Approver).
-		String("requester_fingerprint", a.RequesterFingerprint).
-		String("approver_fingerprint", a.ApproverFingerprint).
-		String("step_up_proof_digest", a.StepUpProofDigest).
-		String("authorization_ref", a.AuthorizationRef).
-		String("rule", a.Rule)
-	return w.Bytes()
 }
 
 func (a RemittanceAuthorization) computedDigest() (string, error) {

@@ -94,8 +94,8 @@ var navigationPresets = []appearancePreset{
 
 var colorModePresets = []appearancePreset{
 	{Option: AppearanceOption{ID: "system", Label: "Use system setting", Description: "Follow this device and update automatically", Swatches: []string{"#ffffff", "#101820"}}},
-	{Option: AppearanceOption{ID: "light", Label: "Light", Description: "Use the light workspace on this device", Swatches: []string{"#ffffff", "#eaf3ef"}}},
-	{Option: AppearanceOption{ID: "dark", Label: "Dark", Description: "Use the low-light workspace on this device", Swatches: []string{"#101820", "#70b7a5"}}},
+	{Option: AppearanceOption{ID: "light", Label: "Light", Description: "Use the light workspace for everyone", Swatches: []string{"#ffffff", "#eaf3ef"}}},
+	{Option: AppearanceOption{ID: "dark", Label: "Dark", Description: "Use the dark workspace for everyone", Swatches: []string{"#101820", "#70b7a5"}}},
 }
 
 // DefaultCustomerTheme is deliberately explicit so stored versions remain
@@ -193,7 +193,7 @@ func customerThemeStylesheet() string {
 
 func normalizedBrandText(value string, limit int, fallback string, mark bool) string {
 	runes := make([]rune, 0, limit)
-	for _, character := range []rune(strings.TrimSpace(value)) {
+	for _, character := range strings.TrimSpace(value) {
 		if unicode.IsControl(character) || unicode.In(character, unicode.Cf) || mark && !(unicode.IsLetter(character) || unicode.IsDigit(character) || character == '&') {
 			continue
 		}

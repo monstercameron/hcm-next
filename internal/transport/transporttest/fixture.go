@@ -346,8 +346,9 @@ func (h *IntentHandler) ExecuteIntent(ctx context.Context, req *intentsv1.Execut
 	}
 	return &intentsv1.ExecuteIntentResponse{
 		Execution: &intentsv1.ExecutionReceipt{
-			InstanceId:          DeterministicIntentID(req.GetScope().GetTenantId()),
-			VisitedNodes:        []string{"approve_promotion"},
+			InstanceId:   DeterministicIntentID(req.GetScope().GetTenantId()),
+			VisitedNodes: []string{"approve_promotion"},
+			//lint:ignore SA1019 wire compatibility: the fixture speaks the still-supported deprecated wire field.
 			ParkedContinuations: []string{"approval.prototype.promotion/v1"},
 			InstanceVersion:     1,
 			ReceiptDigest:       "execution:" + req.GetIntentId() + ":PARKED",

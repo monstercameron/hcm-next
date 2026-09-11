@@ -6,10 +6,12 @@ import (
 	"google.golang.org/protobuf/proto"
 
 	evidencev1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/evidence/v1"
+	humanworkv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/humanwork/v1"
 	intentsv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/intents/v1"
 	journeyv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/journey/v1"
 	registryv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/registry/v1"
 	workflowv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/workflow/v1"
+	transporthumanwork "github.com/monstercameron/human-capital-management-suite/internal/transport/humanwork"
 	transportjourney "github.com/monstercameron/human-capital-management-suite/internal/transport/journey"
 	transportoperations "github.com/monstercameron/human-capital-management-suite/internal/transport/operations"
 	transportworkflow "github.com/monstercameron/human-capital-management-suite/internal/transport/workflow"
@@ -60,6 +62,8 @@ var requestFactories = map[string]func() proto.Message{
 	transportjourney.ProposeIntoManagementProcedure: func() proto.Message { return &journeyv1.ProposePromotionRequest{} },
 	transportworkflow.GetWorkflowProcedure:          func() proto.Message { return &workflowv1.GetWorkflowRequest{} },
 	transportworkflow.ListNodeExecutionsProcedure:   func() proto.Message { return &workflowv1.ListNodeExecutionsRequest{} },
+	transporthumanwork.ListWorkItemsProcedure:       func() proto.Message { return &humanworkv1.ListWorkItemsRequest{} },
+	transporthumanwork.GetWorkItemProcedure:         func() proto.Message { return &humanworkv1.GetWorkItemRequest{} },
 	transportoperations.GetOperationProcedure:       func() proto.Message { return &evidencev1.GetOperationRequest{} },
 	transportoperations.CancelOperationProcedure:    func() proto.Message { return &evidencev1.CancelOperationRequest{} },
 }
@@ -78,9 +82,7 @@ func Procedures() []string {
 		ProcedureGetIntentDefinition, ProcedureListCapabilities, ProcedureGetCapability,
 	}
 	out := make([]string, 0, len(legacy))
-	for _, p := range legacy {
-		out = append(out, p)
-	}
+	out = append(out, legacy...)
 	sort.Strings(out)
 	return out
 }

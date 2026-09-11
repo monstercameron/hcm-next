@@ -150,7 +150,7 @@ func (g *StreamGate) Open(req StreamRequest) (StreamDecision, error) {
 	if !req.Reconnect && req.ReplayMessages != 0 {
 		return g.rejectLocked("replay_messages", "unexpected")
 	}
-	if req.At.Before(state.nextReauth) == false && !req.Reauthorized {
+	if !req.At.Before(state.nextReauth) && !req.Reauthorized {
 		return g.rejectLocked("reauthorization", "required")
 	}
 	if req.Reauthorized {

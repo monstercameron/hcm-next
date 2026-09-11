@@ -1,0 +1,36 @@
+{
+  "Subject": "eref:v1:tenant-1:worker:00000000-0000-4000-8000-000000000001",
+  "Actor": "eref:v1:tenant-1:worker:00000000-0000-4000-8000-000000000001",
+  "Proxy": false,
+  "Revision": {
+    "Subject": "eref:v1:tenant-1:worker:00000000-0000-4000-8000-000000000001",
+    "EndpointID": "email-1",
+    "Revision": 1,
+    "SupersedesRevision": 0,
+    "Kind": "EMAIL",
+    "Purpose": "payslip",
+    "Priority": 1,
+    "Source": "self-service",
+    "NormalizedValueDigest": "sha256:9d2d4eab3bd89962453d21ae86e1021a0779b790cf27ce9eeaec166787d6452e",
+    "DisplayHint": "j******e@example.com",
+    "Verification": "UNVERIFIED",
+    "CanonicalDigest": "sha256:4de05a76d2d745a8df3cde7c8a6f9aaa6bdba40264261fedd3de7f2cd659764c"
+  },
+  "Verified": false,
+  "Outbox": [
+    {
+      "EndpointID": "email-1",
+      "Revision": 1,
+      "Digest": "sha256:4de05a76d2d745a8df3cde7c8a6f9aaa6bdba40264261fedd3de7f2cd659764c"
+    }
+  ],
+  "EffectiveDate": "2026-09-01",
+  "Deferred": false,
+  "TimerRef": "",
+  "GuardedFacts": {
+    "tax_residence": "DE",
+    "work_location": "berlin"
+  },
+  "ExternalSync": "PENDING_SYNC",
+  "Signals": null
+}

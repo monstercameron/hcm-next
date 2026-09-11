@@ -20,7 +20,7 @@
 schema_version: 1
 release: P1A
 todo_id: NEXT-002
-signed_date: "2026-09-03"
+signed_date: "2026-09-10"
 freshness_window_days: 30
 workflow: promotion.preflight-simulate-observe/v1
 
@@ -171,7 +171,7 @@ migrations:
       checksum: "sha256:1ddf9a01a9cc9d83e2470c42424dc82d10b17c29fea418af06a814685e7f91b2"
     - version: 8
       name: 00008_tenant_isolation.sql
-      checksum: "sha256:e701d31afe1186e1e2f11bedeeff1c0513ca2731f0a97144895caee5596eecc0"
+      checksum: "sha256:50b3bd48c29fcbaf7422505d03223b4ef2f73e4b773967a1cf8e34c512f8c4af"
     - version: 10
       name: 00010_artifacts.sql
       checksum: "sha256:4fd9fc9efb38906863c75a040f55182a9f84e4826390b92a1a88e3f1e02055ad"
@@ -484,6 +484,72 @@ migrations:
     - version: 261
       name: 00261_operation_store.sql
       checksum: "sha256:43a86b47c2dac4b81aa8aacf16312d569c0cf12bcc80047b04d3094a2679d709"
+    - version: 262
+      name: 00262_fk_indexes.sql
+      checksum: "sha256:2664d26ed789c4b68617e82af9ee12d95486b3cf8bb0596294f3863fcfd559af"
+    - version: 263
+      name: 00263_tax_election_successor_fence.sql
+      checksum: "sha256:c186218502584f7be551fe9f61d3852aad8b8ae7ccdb2c1faa25cd95db7e01da"
+    - version: 264
+      name: 00264_outbox_causal_metadata.sql
+      checksum: "sha256:4c08520381637566acb2e2c05264cf9c10de5ad09ffa98b6c4e37837e09a4e19"
+    - version: 265
+      name: 00265_fx_conversion_profile_policy.sql
+      checksum: "sha256:d916c0e64046851412190c5cac7ec95748b3f9e23d9e2945cba619b80e839a07"
+    - version: 266
+      name: 00266_skill_evidence_supersession.sql
+      checksum: "sha256:26e5a89e3dad11536173aae65e8f6d1f6346818d4183cfc49d7a9d6372a8da29"
+    - version: 267
+      name: 00267_runtime_causal_metadata.sql
+      checksum: "sha256:3af3ca5eb4e728104ff65d1909e6b4fd4723eabbd4547e562f154b2669fc24e8"
+    - version: 268
+      name: 00268_merit_decision_outcomes.sql
+      checksum: "sha256:d53537bb65e0c22a73d21d9e68ec7ed86179448e0705b8cd32cc7d7d5a762290"
+    - version: 269
+      name: 00269_conflict_write_intent_fences.sql
+      checksum: "sha256:153a2b732f665cb2845a09ed5391de3d692772f6f1002d386b69afb6cf69583c"
+    - version: 270
+      name: 00270_merit_compensation_intent_emission.sql
+      checksum: "sha256:a2cf57a8d0c35ffa2be5cdce2526e4e4eac08fc017cef20bcc9d7183828f8cc5"
+    - version: 271
+      name: 00271_signal_causal_metadata.sql
+      checksum: "sha256:a59f19c2b84b61cdc279262d5e81f2be61c5b3e7545e959b6b683101c81e6542"
+    - version: 272
+      name: 00272_jobs_causal_metadata.sql
+      checksum: "sha256:9b24ba3927b98f9eb9788a13687ca2acafbead4be98dd9ba8e88a14f98b8c425"
+    - version: 273
+      name: 00273_intent_legal_evaluation_binding.sql
+      checksum: "sha256:2051d02262d5c070e7e036bc99cb754e8d635f0a874198bb60b1e6ced75246cb"
+    - version: 274
+      name: 00274_records_copy_discovery_coverage.sql
+      checksum: "sha256:60efab3205dec7fe857d233ca622a22dc63c6aafcc26c78ed29c42cdb85343f0"
+    - version: 275
+      name: 00275_legal_evaluation_receipts.sql
+      checksum: "sha256:455a76573bf569edb54ef5f7d23b163845292132b7b214e8dd9cd29a4ad88e8f"
+    - version: 276
+      name: 00276_fx003_quote_successors.sql
+      checksum: "sha256:de5a038664572f7b46d7fceddee8718f7256ae9bf665eb0d036982c899772f25"
+    - version: 277
+      name: 00277_proposal_write_semantics.sql
+      checksum: "sha256:d977edc3641774ef5fed556e9d432b2e77aff1b74a72f0f70ff6eb34266b9365"
+    - version: 278
+      name: 00278_safety_conformance_records.sql
+      checksum: "sha256:b61b7bcbf474121dfdf89314d62e4de160474b0ebd948417e8c2b2773dd31655"
+    - version: 279
+      name: 00279_balance_correction_lineage.sql
+      checksum: "sha256:141e774a2f7949326ba7a979bbceb80bc5fe49098e9d6dd857afda4aea1813fa"
+    - version: 280
+      name: 00280_admission_retry_budgets.sql
+      checksum: "sha256:74bf9a4c02a583899dcb7958b726518ad54f2631c4066b6237dd7d3531b20afe"
+    - version: 281
+      name: 00281_medical_leave_return_to_work.sql
+      checksum: "sha256:24cb5433af872a806da2e5b1ae0a71ea7c398857118f6a4fdab066ad3be467e8"
+    - version: 282
+      name: 00282_admission_retry_tenant_pk.sql
+      checksum: "sha256:496cdabaec1f381e01726889ff36e76c0bcb52e2454d7747f912326472c33e48"
+    - version: 283
+      name: 00283_admission_retry_force_rls.sql
+      checksum: "sha256:2920b205aa78e1f02c52aa144b1cca3e91a912291518f02b9d62acbdc82e7fc8"
   gaps:
     - version: 9
       reason: "No 00009_*.sql file exists under migrations/. Not documented anywhere in planning/todos.md, migrations/migrations.go or the DB-* todo evidence as of 2026-09-03. Recorded here as a NEXT-002 finding rather than silently renumbered or hidden; migrations.Files() (the Goose loader) is unaffected because Goose numbers by version, not by contiguous sequence."
@@ -835,12 +901,12 @@ evidence:
 # proven against a synthetic fixture, not a real import, in
 # compiler_test.go's TestP1AEvidenceCompilerRejectsMissingStaleOutOfManifestOrEffectfulEvidence.
 forbidden_import_prefixes:
-  - github.com/monstercameron/hcm-next/internal/connectivity/writeadapters
-  - github.com/monstercameron/hcm-next/internal/transport/clients/providerwrite
-  - github.com/monstercameron/hcm-next/internal/domains/promotion/execute
+  - github.com/monstercameron/human-capital-management-suite/internal/connectivity/writeadapters
+  - github.com/monstercameron/human-capital-management-suite/internal/transport/clients/providerwrite
+  - github.com/monstercameron/human-capital-management-suite/internal/domains/promotion/execute
 
 signature:
   algorithm: ed25519
   public_key: 93019e7b15fc44dbfb7f36e105e465486e5d5a6ddec109abda44507e0d45332b
   key_fixture: tools/planning/gateevidence/testdata/dev-signing-key.yaml
-  value: "3f118c651f1409a57068cbef9b8cde6feaf6054e4259e2723ac72e114a64230532b86ab94c895764480e942855abd9d0b93900be546b97153238046c07c8c60e"
+  value: "cd259e2d3818443b3e3322c978a540ed4b80547372c0db9e9c3657ee549179fc1218a6dd9aa4a07ab8705fb7cd754ca920f6f774672d6368d8b03af549ef110e"

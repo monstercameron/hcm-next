@@ -297,11 +297,7 @@ func loadFamilyFile(path string) ([]EntitySource, []RelationshipSource, error) {
 	for i, e := range file.Entities {
 		var props []PropertySource
 		for _, p := range e.Properties {
-			props = append(props, PropertySource{
-				Name: p.Name, GoType: p.GoType, SchemaPath: p.SchemaPath, Presence: p.Presence,
-				Classification: p.Classification, Temporal: p.Temporal, AuthorityRef: p.AuthorityRef,
-				Correction: p.Correction, RetentionClassRef: p.RetentionClassRef, Status: p.Status,
-			})
+			props = append(props, PropertySource(p))
 		}
 		ents = append(ents, EntitySource{
 			SourceFile: path, SourceLine: entLines[i], Family: file.Family,

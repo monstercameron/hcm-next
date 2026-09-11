@@ -1,10 +1,27 @@
 package journey
 
 import (
+	"github.com/monstercameron/GoWebComponents/v5/ui"
 	"regexp"
 	"strings"
 	"testing"
 )
+
+func TestUXBLIND007EmbeddedJourneyListHasOneResponsibility(t *testing.T) {
+	view := ListView{People: &PeopleView{DirectoryLink: NavLink{Href: "/workspace/app/people"}}}
+	markup, err := ui.RenderToString(embeddedListView(Page{}, view))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, forbidden := range []string{`id="people-heading"`, `id="new-employee-heading"`, `id="propose-heading"`} {
+		if strings.Contains(markup, forbidden) {
+			t.Fatalf("unrelated task remains: %s", forbidden)
+		}
+	}
+	if !strings.Contains(markup, "Choose an employee to promote") || !strings.Contains(markup, `id="journeys-heading"`) {
+		t.Fatal("journey list lost its review or employee entry point")
+	}
+}
 
 func mustRender(t *testing.T, p Page) string {
 	t.Helper()
@@ -13,6 +30,41 @@ func mustRender(t *testing.T, p Page) string {
 		t.Fatalf("RenderToString: %v", err)
 	}
 	return out
+}
+
+func TestJourneyNextActionsPrecedeSupportingDetails(t *testing.T) {
+	markup, err := ui.RenderToString(detailView(Page{}, DetailView{Actions: []Action{{}}, Proposal: []Fact{{Label: "Reason", Value: "Promotion"}}}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	actions := strings.Index(markup, `id="actions-heading"`)
+	proposal := strings.Index(markup, `id="proposal-heading"`)
+	if actions < 0 || proposal < 0 || actions >= proposal || strings.Count(markup, `id="actions-heading"`) != 1 {
+		t.Fatal("next actions must appear once before supporting proposal details")
+	}
+}
+
+func TestJourneyHeroTechnicalIdentifiersAreCollapsed(t *testing.T) {
+	markup, err := ui.RenderToString(heroSection(JourneyCard{WorkerName: "Jane", WorkerRef: "worker-test", IntentID: "intent-test", InstanceID: "instance-test", EffectiveDate: "date-test", Updated: "updated-test"}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(markup, `<details class="jn-journey-technical">`) || !strings.Contains(markup, "Technical details") {
+		t.Fatal("technical identifiers need a closed native disclosure")
+	}
+	start, end := strings.Index(markup, "<details"), strings.Index(markup, "</details>")
+	for _, identifier := range []string{"worker-test", "intent-test", "instance-test"} {
+		at := strings.Index(markup, identifier)
+		if at < start || at > end {
+			t.Fatalf("identifier outside disclosure: %s", identifier)
+		}
+	}
+	for _, value := range []string{"date-test", "updated-test"} {
+		at := strings.Index(markup, value)
+		if at < 0 || at >= start {
+			t.Fatalf("primary date hidden: %s", value)
+		}
+	}
 }
 
 // ----------------------------------------------------------------------
@@ -332,10 +384,20 @@ func TestConsequentialActionRequiresAReviewDisclosure(t *testing.T) {
 		ConfirmationNote: "Approval records the governed promotion fact.",
 	}}
 	out := mustRender(t, p)
-	for _, want := range []string{`class="jn-confirm"`, "Review and approve", "Confirm approve", "Priya", "1 Dec 2026", "Approval records the governed promotion fact."} {
+	for _, want := range []string{`class="jn-confirm"`, "Review and approve", "Cancel review", `class="jn-confirm-close-label"`, "Confirm approve", "Priya", "1 Dec 2026", "Approval records the governed promotion fact."} {
 		if !strings.Contains(out, want) {
 			t.Fatalf("confirmation markup is missing %q\n%s", want, out)
 		}
+	}
+}
+
+func TestPromotionComparisonPrecedesRequestMetadata(t *testing.T) {
+	p := SampleDetailPage()
+	out := mustRender(t, p)
+	comparison := strings.Index(out, `id="comparison-heading"`)
+	request := strings.Index(out, `>Request</h3>`)
+	if comparison < 0 || request < 0 || comparison >= request {
+		t.Fatal("promotion review must show the change comparison before request metadata")
 	}
 }
 

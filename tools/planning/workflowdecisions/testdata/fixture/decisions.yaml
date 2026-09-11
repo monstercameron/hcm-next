@@ -1,0 +1,61 @@
+decisions:
+  - id: contact-point-ownership
+    question: Whether fixtures own their scope for every case.
+    status: OPEN_OWNED
+    owner: people-domain
+    deadline: "2099-01-01"
+    affected: [contact-information]
+    safe_default: ROUTE_HUMAN
+    evidence: [register.md]
+    linked_todos: [WF-DISC-004]
+    linked_tests: []
+    revision: 1
+  - id: merge-policy
+    question: Whether uncertain merges proceed automatically.
+    status: DECIDED
+    owner: people-domain
+    deadline: "2099-06-01"
+    affected: [merge-person]
+    safe_default: BLOCK
+    evidence: [register.md]
+    linked_todos: [WF-DISC-004]
+    linked_tests: [TestMergeBlocked]
+    revision: 2
+    alternatives: [route-human, defer-capability]
+    consequences: Uncertain merges wait for review.
+    authority: people-domain-owners
+    invalidation_trigger: new-match-evidence
+    negative_fixtures:
+      - action: merge-high-uncertainty
+        signal: uncertainty-high
+        expect: BLOCK
+  - id: rushed-ship
+    question: Whether rushing ships without review.
+    status: DECIDED
+    owner: people-domain
+    deadline: "2099-06-01"
+    affected: [merge-person]
+    safe_default: PROCEED
+    evidence: [register.md]
+    linked_todos: [WF-DISC-004]
+    linked_tests: [TestRushed]
+    revision: 1
+    alternatives: [block]
+    consequences: Rushed merges escape review.
+    authority: people-domain-owners
+    invalidation_trigger: incident
+    negative_fixtures:
+      - action: merge-high-uncertainty
+        signal: uncertainty-high
+        expect: BLOCK
+  - id: stale-deferral
+    question: Whether stale questions stay deferred forever.
+    status: DEFERRED
+    owner: people-domain
+    deadline: "2000-01-01"
+    affected: [contact-information]
+    safe_default: DEFER_CAPABILITY
+    evidence: [register.md]
+    linked_todos: [WF-DISC-004]
+    linked_tests: []
+    revision: 1

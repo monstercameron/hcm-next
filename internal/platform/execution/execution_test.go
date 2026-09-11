@@ -294,7 +294,9 @@ func TestAdaptExecutionResult(t *testing.T) {
 	// The deprecated field keeps its historical "<work_type>:<work_item_id>"
 	// naming for every raised item.
 	wantDeprecated := prototype.ApprovalRequirementID + ":" + itemID.String()
+	//lint:ignore SA1019 wire compatibility: this assertion pins the deprecated compat population the wire still carries.
 	if len(got.ParkedContinuations) != 1 || got.ParkedContinuations[0] != wantDeprecated {
+		//lint:ignore SA1019 wire compatibility: same compat pin as above.
 		t.Errorf("ParkedContinuations = %#v, want [%s]", got.ParkedContinuations, wantDeprecated)
 	}
 

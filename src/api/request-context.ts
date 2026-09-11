@@ -7,7 +7,10 @@ import {
   type AppError,
   type Result,
 } from "@human-capital-management-suite/foundation";
-import { DEMO_IDS, type Repositories } from "@human-capital-management-suite/data-store";
+import {
+  DEMO_IDS,
+  type Repositories,
+} from "@human-capital-management-suite/data-store";
 import type { ApiRequestContext } from "../workflows/shared/runtime-dependencies.js";
 
 export type { ApiRequestContext } from "../workflows/shared/runtime-dependencies.js";

@@ -1,10 +1,11 @@
 package productui
 
 import (
-	"github.com/monstercameron/GoWebComponents/v5/ui"
-	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 	"math/big"
 	"strings"
+
+	"github.com/monstercameron/GoWebComponents/v5/ui"
+	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 )
 
 type workCollectionOptions struct {
@@ -19,10 +20,12 @@ func workPage(view View) ui.Node {
 	// denied proposal artifacts never render.
 	scoped := view
 	scoped.Work = admittedWork(view)
+	collection := workCollectionProps(scoped, workCollectionOptions{Title: scoped.Locale.Text("work.promotion_journeys"), ListDetail: true})
 	return ui.CreateElement(WorkPage, WorkPageProps{
-		I18nProps:  I18nProps{Locale: scoped.Locale},
-		Collection: workCollectionProps(scoped, workCollectionOptions{Title: scoped.Locale.Text("work.promotion_journeys"), ListDetail: true}),
-		Preview:    workPreviewProps(scoped, selectedOpenWork(scoped)),
+		I18nProps:   I18nProps{Locale: scoped.Locale},
+		Collection:  collection,
+		Preview:     workPreviewProps(scoped, selectedOpenWork(scoped)),
+		HidePreview: len(collection.Rows) == 0,
 	})
 }
 
@@ -47,17 +50,21 @@ func workCollectionProps(view View, options workCollectionOptions) WorkCollectio
 	for _, item := range items {
 		rows = append(rows, WorkRowProps{
 			ID: item.ID, Initials: item.Initials, PhotoURL: item.PhotoURL, Title: item.Title, Person: item.Person,
-			Summary: item.Summary, Due: item.Due,
+			Summary: item.Summary, Due: item.Due, JourneyStage: item.Status,
 			StatusProjection: item.StatusProjection,
 			Href:             statefulHref(view, PageWork, "filter", view.WorkFilter, "selected", item.ID),
 			Selected:         options.ListDetail && item.ID == selectedID, Navigate: view.Navigate,
 		})
 	}
+	footer := WorkCollectionFooterProps{Label: view.Locale.Text("work.authorized")}
+	if !options.ListDetail {
+		footer.Action = ActionLinkProps{
+			Label: view.Locale.Text("work.view"), Href: statefulHref(view, PageWork), Navigate: view.Navigate,
+		}
+	}
 	return WorkCollectionProps{
 		Title: options.Title, CountLabel: view.Locale.Plural("work.item_count", int64(len(items))), Tabs: tabs, Rows: rows,
-		Footer: WorkCollectionFooterProps{Label: view.Locale.Text("work.authorized"), Action: ActionLinkProps{
-			Label: view.Locale.Text("work.view"), Href: statefulHref(view, PageWork), Navigate: view.Navigate,
-		}},
+		Footer: footer,
 	}
 }
 
@@ -93,7 +100,7 @@ func workPreviewProps(view View, item WorkItem) WorkPreviewProps {
 	}
 	return WorkPreviewProps{
 		ID: item.ID, Initials: item.Initials, PhotoURL: item.PhotoURL, Title: item.Title, Person: item.Person,
-		Summary: item.Summary, StatusProjection: item.StatusProjection, Provenance: item.Provenance, FactsTitle: view.Locale.Text("work.server_proposal"),
+		Summary: item.Summary, JourneyStage: item.Status, StatusProjection: item.StatusProjection, Provenance: item.Provenance, FactsTitle: view.Locale.Text("work.server_proposal"),
 		Facts: []FactProps{
 			{Label: view.Locale.Text("work.effective_date"), Value: valueOrUnavailableFor(view.Locale, item.EffectiveDate)},
 			{Label: view.Locale.Text("work.current_base"), Value: money(view.Locale, item.CurrentBase)},

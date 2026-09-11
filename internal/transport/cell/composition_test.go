@@ -43,7 +43,7 @@ func TestComposedHTTPHandlerUsesOperationStore(t *testing.T) {
 	h, err := NewEdgeHandlerWithDependencies(&app.Cell{
 		Config:    transporttest.Config(verifier, func() time.Time { return now }, "cell-composition", nil),
 		Discovery: &manifest.DiscoveryDocument{},
-	}, nil, store, []byte("cell-composition-cursor-key"))
+	}, nil, nil, store, []byte("cell-composition-cursor-key"))
 	if err != nil {
 		t.Fatalf("NewEdgeHandlerWithDependencies: %v", err)
 	}
@@ -85,7 +85,7 @@ func TestComposedHTTPHandlerUsesWorkflowReader(t *testing.T) {
 	h, err := NewEdgeHandlerWithDependencies(&app.Cell{
 		Config:    transporttest.Config(verifier, func() time.Time { return now }, "cell-workflow-composition", nil),
 		Discovery: &manifest.DiscoveryDocument{},
-	}, reader, nil, []byte("cell-workflow-cursor-key"))
+	}, reader, nil, nil, []byte("cell-workflow-cursor-key"))
 	if err != nil {
 		t.Fatalf("NewEdgeHandlerWithDependencies: %v", err)
 	}

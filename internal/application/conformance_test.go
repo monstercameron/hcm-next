@@ -123,6 +123,7 @@ func TestTodo_ARCH_GO_020_Conformance(t *testing.T) {
 			ComponentWorkerFacts:          KindPort,
 			ComponentTransactionHistory:   KindPort,
 			ComponentWorkflowInstanceRead: KindPort,
+			ComponentWorkItemQueueRead:    KindPort,
 			ComponentIntentStore:          KindAdapter,
 			ComponentCredentialVerifier:   KindAdapter,
 			ComponentTelemetryProvider:    KindAdapter,
@@ -174,10 +175,10 @@ func TestTodo_ARCH_GO_020_Conformance(t *testing.T) {
 
 	t.Run("the lifecycle is the bootstrap runtime", func(t *testing.T) {
 		composed, _, _ := composeStub(t, stubServeConfig())
+		// Satisfaction is proven by this assignment (a compile-time
+		// assertion); a runtime nil comparison could never fail since the
+		// composed value is a struct.
 		var lifecycle Lifecycle = composed
-		if lifecycle == nil {
-			t.Fatal("the composed application does not satisfy Lifecycle")
-		}
 		runtime := composed.Runtime()
 		if len(runtime.Workloads) == 0 || len(runtime.Shutdown) == 0 {
 			t.Fatal("the bootstrap view of the composition is empty")

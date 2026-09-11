@@ -129,6 +129,40 @@ func TestSameOriginOnly(t *testing.T) {
 	}
 }
 
+// TestTunnelOriginCheckAcceptsTheDeclaredPublicOrigin is the deployment the
+// flag exists for: a TLS-terminating proxy delivers the upgrade with the
+// internal listener's Host while the browser's Origin carries the public
+// authority the cell declared.
+func TestTunnelOriginCheckAcceptsTheDeclaredPublicOrigin(t *testing.T) {
+	check := tunnelOriginCheck("hcm.example.com")
+	upgrade := func(origin string) *http.Request {
+		r := httptest.NewRequest(http.MethodGet, "http://internal:8080"+TunnelPath, nil)
+		r.Host = "internal:8080"
+		if origin != "" {
+			r.Header.Set("Origin", origin)
+		}
+		return r
+	}
+	if !check(upgrade("https://hcm.example.com")) {
+		t.Fatal("the declared public origin must admit despite a rewritten Host")
+	}
+	if !check(upgrade("http://hcm.example.com")) {
+		t.Fatal("the public authority is matched by host, not scheme")
+	}
+	if check(upgrade("https://evil.example")) {
+		t.Fatal("an unrelated origin must not admit")
+	}
+	if !check(upgrade("")) {
+		t.Fatal("a non-browser client carries no Origin and admits as before")
+	}
+	if check(nil) {
+		t.Fatal("a nil request must not pass")
+	}
+	if got := tunnelOriginCheck(""); got == nil || !got(upgrade("http://internal:8080")) || got(upgrade("https://hcm.example.com")) {
+		t.Fatal("with no declared origin the check is sameOriginOnly unchanged")
+	}
+}
+
 func TestTunnelAuthorizerAdmitsABearerCredential(t *testing.T) {
 	cfg, token := tunnelTestAdmission(t)
 	authorize := tunnelAuthorizer(cfg, false)

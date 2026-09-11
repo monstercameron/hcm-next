@@ -37,7 +37,7 @@
 
 version: 1
 module: github.com/monstercameron/human-capital-management-suite
-source: migrations/00001_platform_control.sql .. migrations/00261_operation_store.sql
+source: migrations/00001_platform_control.sql .. migrations/00281_medical_leave_return_to_work.sql
 
 disposition: >-
   Every row is either PERMANENT (an append-only historical or evidentiary
@@ -5025,3 +5025,163 @@ tables:
     rebuild_source: null
     notes: >-
       Registered from 00261_operation_store.sql: append-only evidence for operation cancel.
+  - table: leave_request
+    migration: 00281_medical_leave_return_to_work.sql
+    owner_package: internal/data/leavestore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Versioned leave requests with per-tenant idempotency keys; serving-state
+      transitions are new revision rows under forbid_mutation.
+  - table: leave_record
+    migration: 00281_medical_leave_return_to_work.sql
+    owner_package: internal/data/leavestore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Leave case records anchoring every child table through composite
+      (tenant, record) foreign keys.
+  - table: leave_program_eligibility
+    migration: 00281_medical_leave_return_to_work.sql
+    owner_package: internal/data/leavestore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Per-program eligibility evaluations keyed by tenant, record and program.
+  - table: leave_entitlement_segment
+    migration: 00281_medical_leave_return_to_work.sql
+    owner_package: internal/data/leavestore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Entitlement segments keyed by tenant, record and start day.
+  - table: leave_absence_link
+    migration: 00281_medical_leave_return_to_work.sql
+    owner_package: internal/data/leavestore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Absence links attaching absence events to a leave record.
+  - table: leave_availability_revision
+    migration: 00281_medical_leave_return_to_work.sql
+    owner_package: internal/data/leavestore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Availability revisions with per-tenant unique leave_event_id values.
+  - table: leave_balance_posting
+    migration: 00281_medical_leave_return_to_work.sql
+    owner_package: internal/data/leavestore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Leave balance postings with per-tenant idempotency keys so duplicate
+      return-to-work effects have nowhere to land.
+  - table: leave_evidence_ref
+    migration: 00281_medical_leave_return_to_work.sql
+    owner_package: internal/data/leavestore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Evidence references attached to a leave record.
+  - table: leave_work_restriction
+    migration: 00281_medical_leave_return_to_work.sql
+    owner_package: internal/data/leavestore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Work restrictions declared against a leave record.
+  - table: leave_obligation
+    migration: 00281_medical_leave_return_to_work.sql
+    owner_package: internal/data/leavestore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Obligations arising from a leave record.
+  - table: leave_intent_link
+    migration: 00281_medical_leave_return_to_work.sql
+    owner_package: internal/data/leavestore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Typed references from leave records back to intent digests.
+  - table: leave_medical_detail
+    migration: 00281_medical_leave_return_to_work.sql
+    owner_package: internal/data/leavestore
+    plane: DATA
+    data_role: AGGREGATE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      RESTRICTED-compartment medical detail; the store is the sole reader
+      path and gates it by role (application-level, not column encryption).

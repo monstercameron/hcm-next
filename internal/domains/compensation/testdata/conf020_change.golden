@@ -1,0 +1,8 @@
+total-annual: 111000.00
+simulation: sha256:ff471eb3afdb1d8fb51920ca368f4c71035c794e751118caf5d9cd9c2c516831
+reservation: sha256:ff471eb3afdb1d8fb51920ca368f4c71035c794e751118caf5d9cd9c2c516831@budget/fy26
+package: sha256:ff471eb3afdb1d8fb51920ca368f4c71035c794e751118caf5d9cd9c2c516831
+effect: effect/BASE/0 sha256:ecea96b110c5b8529cba3404821c1bad9ff2e48814c8b18bca746255a015a662 applied=true
+effect: effect/BONUS_TARGET/1 sha256:8ba09501719555c799c10cd37d5403753b5acf02fc17f5cd7ef57255534c5512 applied=true
+effect: effect/ALLOWANCE/2 sha256:09af98a15b0aab3a0349afdd0b894da488951ccd9cc8282911986ed3e86552c9 applied=true
+redriven: effect/BASE/0 untouched: 2

@@ -99,9 +99,7 @@ func Evaluate(p Policy, statement provenance.Statement) Decision {
 	}
 	if p.RequireScannerEvidence || len(p.ScannerEvidence) != 0 {
 		decision.ScannerEvidenceDigest, _ = scannerEvidenceDigest(p.ScannerEvidence)
-		for _, reason := range evaluateScannerEvidence(p.ScannerEvidence, p.RequireScannerEvidence, time.Now().UTC()) {
-			decision.Reasons = append(decision.Reasons, reason)
-		}
+		decision.Reasons = append(decision.Reasons, evaluateScannerEvidence(p.ScannerEvidence, p.RequireScannerEvidence, time.Now().UTC())...)
 	}
 
 	sort.Strings(decision.Reasons)

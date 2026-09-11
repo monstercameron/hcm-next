@@ -86,15 +86,6 @@ func inTenantTxErr(conn *pgxadapter.Conn, tenant uuid.UUID, fn func(tx dbport.Tx
 	}
 	return tx.Commit(ctx)
 }
-
-func repeatHex(s string) string {
-	out := ""
-	for range 64 {
-		out += s
-	}
-	return out
-}
-
 func digestOf(s string) string {
 	sum := sha256.Sum256([]byte(s))
 	return hex.EncodeToString(sum[:])

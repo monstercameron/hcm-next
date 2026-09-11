@@ -121,6 +121,12 @@ func DefaultAllowlistDefinitions() []AttributeDefinition {
 			Description:    "Bounded durable attempt identifier; span context only, never authority or a metric label.",
 		},
 		{
+			Key: "timer_id", Class: ClassOperationalRestricted,
+			Signals:        []SignalKind{SignalSpan},
+			MaxCardinality: 0,
+			Description:    "Durable timer identifier attributing a timer-fire or timer-resume span; span context only, never authority or a metric label.",
+		},
+		{
 			Key: "message_kind", Class: ClassOperationalRestricted,
 			Signals:        []SignalKind{SignalSpan},
 			MaxCardinality: 16,

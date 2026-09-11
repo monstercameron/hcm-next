@@ -73,7 +73,7 @@ func runPromotionWithTelemetry(
 
 	versions, plan, activated := publishActiveDemoPlan(t, at)
 	proposal := newDemoProposal(t, values.TenantId(tenantKey), "intent:"+tenantKey, at)
-	binding := runtime.ProposalBinding{Revision: proposal, Approved: true, ApprovalRef: "decision:hr-partner-approves-start"}
+	binding := runtime.ProposalBinding{Revision: proposal, ApprovalRef: "decision:hr-partner-approves-start"}
 	managerReq, managerRes, _, _ := managerRequirementAndResolution(t)
 
 	resolver := effects.PolicyResolver{Entries: []effects.PolicyEntry{{

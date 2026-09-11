@@ -215,29 +215,6 @@ func validateAward(award AwardCalculation) (AwardCalculation, error) {
 	}
 	return award, nil
 }
-
-func currentPlan(revisions map[uint64]PlanRevisionRecord) (PlanRevisionRecord, bool) {
-	var current PlanRevisionRecord
-	var found bool
-	for _, candidate := range revisions {
-		if !found || candidate.Revision > current.Revision {
-			current, found = candidate, true
-		}
-	}
-	return current, found
-}
-
-func currentAward(revisions map[uint64]AwardCalculationRecord) (AwardCalculationRecord, bool) {
-	var current AwardCalculationRecord
-	var found bool
-	for _, candidate := range revisions {
-		if !found || candidate.Revision > current.Revision {
-			current, found = candidate, true
-		}
-	}
-	return current, found
-}
-
 func validateNextRevision[T any](revisions map[uint64]T, revision, supersedes uint64, currentRevision func(T) uint64, currentDigest func(T) string, parentDigest string) error {
 	if _, exists := revisions[revision]; exists {
 		return storeError(StoreDuplicateCode, fmt.Sprintf("revision %d is already stored", revision))

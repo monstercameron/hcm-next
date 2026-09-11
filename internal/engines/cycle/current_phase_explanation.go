@@ -110,7 +110,7 @@ func validateCutoffForExplanation(c CutoffResolution) error {
 			return fmt.Errorf("%w: resolved cutoff %q has no instant", ErrCutoffExplanation, c.PhaseID)
 		}
 	case CutoffReviewRequired:
-		if c.Instant.IsZero() == false {
+		if !c.Instant.IsZero() {
 			return fmt.Errorf("%w: review cutoff %q must not carry an instant", ErrCutoffExplanation, c.PhaseID)
 		}
 	default:

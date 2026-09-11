@@ -1,0 +1,94 @@
+{
+  "graph": {
+    "intent": "ChangeManager",
+    "definition": "hcmnext.people.change_manager/v1",
+    "archetype": "A2",
+    "profile": "PPL",
+    "disposition": "WORKFLOW",
+    "nodes": [
+      {
+        "seq": 0,
+        "kind": "OBSERVATION",
+        "responsibility": "resolve current fact and expected version",
+        "origin": "INHERITED"
+      },
+      {
+        "seq": 1,
+        "kind": "GOVERNANCE",
+        "responsibility": "approve when policy requires",
+        "origin": "INHERITED"
+      },
+      {
+        "seq": 2,
+        "kind": "EFFECT",
+        "responsibility": "atomic end and append revision with evidence",
+        "origin": "INHERITED"
+      },
+      {
+        "seq": 3,
+        "kind": "OBSERVATION",
+        "responsibility": "observe and reconcile effects",
+        "origin": "INHERITED"
+      },
+      {
+        "seq": 4,
+        "kind": "COMPLETION",
+        "responsibility": "close the revision",
+        "origin": "INHERITED"
+      }
+    ],
+    "edges": [
+      {
+        "from": 0,
+        "to": 1,
+        "kind": "SEQUENCE"
+      },
+      {
+        "from": 1,
+        "to": 2,
+        "kind": "SEQUENCE"
+      },
+      {
+        "from": 2,
+        "to": 3,
+        "kind": "SEQUENCE"
+      },
+      {
+        "from": 3,
+        "to": 4,
+        "kind": "SEQUENCE"
+      },
+      {
+        "from": 2,
+        "to": 4,
+        "kind": "REPAIR"
+      },
+      {
+        "from": 3,
+        "to": 4,
+        "kind": "REPAIR"
+      }
+    ],
+    "effects": [
+      {
+        "order": 0,
+        "node": 2,
+        "description": "manager-edge-replacement"
+      }
+    ],
+    "invalidators": [
+      "org-reparent"
+    ],
+    "completion": {
+      "policy": "edge-observed",
+      "terminal_seq": 4
+    },
+    "engines": [
+      "identity-resolution"
+    ],
+    "human_work": "manager-self-service",
+    "profile_reads": "person facts",
+    "profile_closure": "reconciliation",
+    "digest": "sha256:795524a92d1bb5c4667b7a8c6005376be46a872b36e31308cc5d87827e4d56e7"
+  }
+}

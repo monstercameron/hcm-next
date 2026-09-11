@@ -164,7 +164,7 @@ func TestTodo_WEB_063_Golden(t *testing.T) {
 		t.Fatal(err)
 	}
 	digest := sha256.Sum256([]byte(node))
-	if got := hex.EncodeToString(digest[:]); got != "95f42db51a1aeaf8e74c98948087247c668ec8866159c893a0ea60a14f128e7e" {
+	if got := hex.EncodeToString(digest[:]); got != "cc4de79357c67a182dcbed7d0945d3b33e6e1697714bdfa024d774ba078914b7" {
 		t.Fatalf("governed profile golden mismatch: %s\n%s", got, node)
 	}
 }

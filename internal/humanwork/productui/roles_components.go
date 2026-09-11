@@ -35,13 +35,18 @@ type RolePageOption struct {
 }
 
 func RolesPage(props RolesPageProps) ui.Node {
+	filterQuery := ui.UseState(props.Query)
+	ui.UseEffectOf(func() func() { filterQuery.Set(props.Query); return nil }, props.Query)
+	filterInput := html.Props{ID: "role-directory-query", Name: "q", Type: "search", Value: filterQuery.Get(), Placeholder: props.Text("roles.placeholder")}
+	filterInput.OnInput = ui.UseEvent(func(event ui.InputEvent) { filterQuery.Set(event.GetValue()) })
+	filterSubmit := submitRoleFilter(props.Navigate, props.FilterHref, filterQuery.Get)
 	roleCards := make([]ui.Node, 0, len(props.Roles))
 	for _, role := range props.Roles {
 		kind := props.Text("roles.customer_role")
 		if role.System {
 			kind = props.Text("roles.system_role")
 		}
-		roleCards = append(roleCards, roleAccessCard(props, role, kind))
+		roleCards = append(roleCards, ui.CreateElement(RoleAccessCard, roleAccessCardProps{Page: props, Role: role, Kind: kind}))
 	}
 
 	assignments := make(map[string]WorkerRoleAssignment, len(props.Assignments))
@@ -49,24 +54,21 @@ func RolesPage(props RolesPageProps) ui.Node {
 		assignments[strings.ToLower(strings.TrimSpace(assignment.WorkerRef))] = assignment
 	}
 	people := make([]ui.Node, 0, len(props.People))
-	query := strings.ToLower(strings.TrimSpace(props.Query))
+	query := strings.ToLower(strings.TrimSpace(filterQuery.Get()))
 	for _, person := range props.People {
 		if query != "" && !strings.Contains(strings.ToLower(strings.Join([]string{person.Name, person.Role, person.Team, person.WorkerNumber}, " ")), query) {
 			continue
 		}
 		assignment, ok := assignments[strings.ToLower(strings.TrimSpace(person.ID))]
 		if !ok {
-			assignment = WorkerRoleAssignment{WorkerRef: person.ID, RoleIDs: []string{"worker_self"}}
+			assignment = WorkerRoleAssignment{WorkerRef: person.ID}
 		}
-		people = append(people, workerRoleAssignmentEditor(props.I18nProps, person, props.Roles, assignment, props.CanUpdate, props.OnAssign))
+		people = append(people, ui.CreateElement(WorkerRoleEditor, workerRoleEditorProps{I18n: props.I18nProps, Person: person, Roles: props.Roles, Assignment: assignment, Editable: props.CanUpdate, Save: props.OnAssign}))
 	}
 	if len(people) == 0 {
 		people = append(people, html.Div(html.Props{Class: "empty-state"}, html.Strong(html.Props{}, ui.Text(props.Text("roles.no_match")))))
 	}
 
-	filterQuery := props.Query
-	filterInput := html.Props{ID: "role-directory-query", Name: "q", Type: "search", Value: props.Query, Placeholder: props.Text("roles.placeholder")}
-	filterInput.OnInput = ui.UseEvent(func(event ui.InputEvent) { filterQuery = event.GetValue() })
 	return html.Div(html.Props{Class: "roles-access-page"},
 		html.Section(html.Props{Class: "surface roles-access-intro"},
 			html.Div(html.Props{}, html.Span(html.Props{Class: "eyebrow"}, ui.Text(props.Text("roles.eyebrow"))), html.H2(html.Props{}, ui.Text(props.Text("roles.heading"))), html.P(html.Props{Class: "muted"}, ui.Text(props.Text("roles.description")))),
@@ -80,11 +82,34 @@ func RolesPage(props RolesPageProps) ui.Node {
 			),
 			html.Section(html.Props{Class: "surface employee-role-directory"},
 				html.Div(html.Props{Class: "section-head"}, html.Div(html.Props{}, html.H2(html.Props{}, ui.Text(props.Text("roles.assignments"))), html.P(html.Props{Class: "muted"}, ui.Text(props.Text("roles.assignments_help"))))),
-				html.Form(html.Props{Class: "role-directory-filter", Action: props.FilterHref, Method: "get", OnSubmit: submitRoleFilter(props.Navigate, props.FilterHref, &filterQuery)}, html.Label(html.Props{For: "role-directory-query"}, ui.Text(props.Text("roles.find"))), html.Div(html.Props{}, html.Input(filterInput), html.Button(html.Props{Class: "button secondary", Type: "submit"}, ui.Text(props.Text("roles.filter"))))),
+				html.Form(html.Props{Class: "role-directory-filter", Action: props.FilterHref, Method: "get", OnSubmit: filterSubmit}, html.Label(html.Props{For: "role-directory-query"}, ui.Text(props.Text("roles.find"))), html.Div(html.Props{}, html.Input(filterInput), html.Button(html.Props{Class: "button secondary", Type: "submit"}, ui.Text(props.Text("roles.filter"))))),
 				html.Div(html.Props{Class: "employee-role-list"}, people...),
 			),
 		),
 	)
+}
+
+type roleAccessCardProps struct {
+	Page RolesPageProps
+	Role AccessRole
+	Kind string
+}
+
+func RoleAccessCard(input roleAccessCardProps) ui.Node {
+	return roleAccessCard(input.Page, input.Role, input.Kind)
+}
+
+type workerRoleEditorProps struct {
+	I18n       I18nProps
+	Person     Person
+	Roles      []AccessRole
+	Assignment WorkerRoleAssignment
+	Editable   bool
+	Save       func(WorkerRoleAssignment)
+}
+
+func WorkerRoleEditor(input workerRoleEditorProps) ui.Node {
+	return workerRoleAssignmentEditor(input.I18n, input.Person, input.Roles, input.Assignment, input.Editable, input.Save)
 }
 
 func roleAccessCard(props RolesPageProps, role AccessRole, kind string) ui.Node {
@@ -226,21 +251,28 @@ func permissionSaveButton(props RolePagePermissionRowProps, draft RolePagePermis
 	return html.Form(html.Props{OnSubmit: savePagePermission(props.Save, draft)}, html.Button(html.Props{Class: "button secondary compact", Type: "submit"}, ui.Text(props.Text("roles.save_page"))), html.Span(html.Props{ID: statusID, Class: "sr-only", Raw: map[string]any{"role": "status", "aria-live": "polite"}}))
 }
 
-func submitRoleFilter(navigate func(string), action string, query *string) ui.Handler {
+func submitRoleFilter(navigate func(string), action string, query func() string) ui.Handler {
 	if navigate == nil {
 		return ui.Handler{}
 	}
 	return ui.UseEvent(func(event ui.FormEvent) {
 		event.PreventDefault()
-		parsed, err := url.Parse(action)
-		if err != nil {
+		if query == nil {
 			return
 		}
-		values := parsed.Query()
-		values.Set("q", strings.TrimSpace(*query))
-		parsed.RawQuery = values.Encode()
-		navigate(parsed.String())
+		navigate(roleFilterHref(action, query()))
 	})
+}
+
+func roleFilterHref(action, query string) string {
+	parsed, err := url.Parse(action)
+	if err != nil {
+		return action
+	}
+	values := parsed.Query()
+	values.Set("q", strings.TrimSpace(query))
+	parsed.RawQuery = values.Encode()
+	return parsed.String()
 }
 
 func (props RolesPageProps) BackNode() ui.Node { return ui.CreateElement(ActionLink, props.Back) }
@@ -292,7 +324,17 @@ func workerRoleAssignmentEditor(i18n I18nProps, person Person, roles []AccessRol
 	}
 	badges := make([]ui.Node, 0, len(assignment.RoleIDs))
 	for _, roleID := range assignment.RoleIDs {
-		badges = append(badges, html.Span(html.Props{Class: "status"}, ui.Text(roleID)))
+		label := roleID
+		for _, role := range roles {
+			if role.ID == roleID && strings.TrimSpace(role.Name) != "" {
+				label = role.Name
+				break
+			}
+		}
+		badges = append(badges, html.Span(html.Props{Class: "status"}, ui.Text(label)))
+	}
+	if len(badges) == 0 {
+		badges = append(badges, html.Span(html.Props{Class: "muted"}, ui.Text(i18n.Text("roles.no_explicit_assignment"))))
 	}
 	actions := []ui.Node{html.Small(html.Props{Class: "muted"}, ui.Text(i18n.Text("roles.read_only")))}
 	if editable && save != nil {

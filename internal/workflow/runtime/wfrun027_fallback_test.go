@@ -14,7 +14,8 @@ import (
 // on [runtime.ProposalBinding].
 //
 // Two things have to stay true while the deprecated caller-asserted
-// Approved/ApprovalRef/Superseded fields still exist:
+// ApprovalRef/Superseded fields still exist (the Approved flag completed
+// the same migration and was deleted):
 //
 //  1. A caller that supplies the facts ports is resolved from stored facts
 //     exclusively. Its own flags are inert in both directions -- they can
@@ -33,7 +34,6 @@ func TestTodo_WF_RUN_027_FactsOutrankCallerFlags(t *testing.T) {
 
 	t.Run("a caller denying its own approval still starts on the stored facts", func(t *testing.T) {
 		req := pf.baseStartRequest(tenantID, "start-key-wfrun027-outranks-1")
-		req.Proposal.Approved = false
 		req.Proposal.ApprovalRef = ""
 		req.Proposal.Superseded = true
 
@@ -51,7 +51,6 @@ func TestTodo_WF_RUN_027_FactsOutrankCallerFlags(t *testing.T) {
 
 	t.Run("a caller asserting approval is refused when the facts record none", func(t *testing.T) {
 		req := pf.baseStartRequest(tenantID, "start-key-wfrun027-outranks-2")
-		req.Proposal.Approved = true
 		req.Proposal.ApprovalRef = "approval:invented-by-the-caller"
 		req.ApprovalFacts = runtime.MemoryApprovalFacts{}
 
@@ -102,7 +101,6 @@ func TestTodo_WF_RUN_027_LegacyFallbackSurface(t *testing.T) {
 
 	t.Run("caller-asserted approval cannot admit the start", func(t *testing.T) {
 		req := legacy("start-key-wfrun027-legacy-1")
-		req.Proposal.Approved = true
 		req.Proposal.ApprovalRef = "approval:caller-asserted"
 
 		err := inTenantTxErr(conn, tenantID, func(tx dbport.Tx) error {
@@ -116,7 +114,6 @@ func TestTodo_WF_RUN_027_LegacyFallbackSurface(t *testing.T) {
 
 	t.Run("caller-asserted denial and supersession cannot be evaluated", func(t *testing.T) {
 		unapproved := legacy("start-key-wfrun027-legacy-2")
-		unapproved.Proposal.Approved = false
 		err := inTenantTxErr(conn, tenantID, func(tx dbport.Tx) error {
 			_, startErr := runtime.Start(context.Background(), tx, unapproved)
 			return startErr
@@ -126,7 +123,6 @@ func TestTodo_WF_RUN_027_LegacyFallbackSurface(t *testing.T) {
 		}
 
 		superseded := legacy("start-key-wfrun027-legacy-3")
-		superseded.Proposal.Approved = true
 		superseded.Proposal.ApprovalRef = "approval:caller-asserted"
 		superseded.Proposal.Superseded = true
 		err = inTenantTxErr(conn, tenantID, func(tx dbport.Tx) error {
@@ -140,7 +136,6 @@ func TestTodo_WF_RUN_027_LegacyFallbackSurface(t *testing.T) {
 
 	t.Run("supplying one port without the other is refused rather than half-resolved", func(t *testing.T) {
 		req := legacy("start-key-wfrun027-legacy-4")
-		req.Proposal.Approved = true
 		req.Proposal.ApprovalRef = "approval:caller-asserted"
 		proposalFacts, _ := approvedProposalFacts(pf.Proposal)
 		req.ProposalFacts = proposalFacts

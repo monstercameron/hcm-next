@@ -1,4 +1,8 @@
-import { ok, type AppError, type Result } from "@human-capital-management-suite/foundation";
+import {
+  ok,
+  type AppError,
+  type Result,
+} from "@human-capital-management-suite/foundation";
 import type { ActorRecord } from "@human-capital-management-suite/data-store";
 import type {
   WorkflowApprovalGateApproverResolverConfig,

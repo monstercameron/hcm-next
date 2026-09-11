@@ -59,11 +59,8 @@ func ResolvePageIdentity(view View) PageIdentity {
 // a page without parsing localized copy.
 func PageIdentityHeader(view View) ui.Node {
 	identity := ResolvePageIdentity(view)
-	scopeText := ui.Text(identity.ScopeLabel + " ⌄")
+	scopeText := ui.Text(identity.ScopeLabel)
 	var scopeControl ui.Node = html.Span(html.Props{Class: "scope"}, scopeText)
-	if identity.ScopeHref != "" {
-		scopeControl = appLink(view, html.Props{Class: "scope"}, identity.ScopeHref, scopeText)
-	}
 	return html.Div(html.Props{Class: "page-head", Data: map[string]string{"hcm-page": string(identity.Page)}},
 		Breadcrumbs(view, ResolveBreadcrumbs(view)),
 		html.Div(html.Props{}, html.H1(html.Props{ID: "page-title", Raw: map[string]any{"tabindex": "-1"}}, ui.Text(identity.Title)), html.P(html.Props{Class: "subtitle"}, ui.Text(identity.Subtitle))),

@@ -128,16 +128,6 @@ func loadYAML[T any](path string) (T, error) {
 	}
 	return value, nil
 }
-
-func formatPolicyViolations(violations []depedge.Violation) string {
-	parts := make([]string, len(violations))
-	for i, violation := range violations {
-		parts[i] = violation.Importer + " -> " + violation.Imported + " (" + violation.Rule + ")"
-	}
-	sort.Strings(parts)
-	return strings.Join(parts, "; ")
-}
-
 func render(layoutDoc layoutDocument, policy *depedge.Policy, roles roleDocument, graph graphInfo) []byte {
 	var b strings.Builder
 	b.WriteString("# Human Capital Management Suite Repository Architecture\n\n")

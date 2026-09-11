@@ -1,0 +1,12 @@
+[
+  {
+    "code": "EXECUTED_PROPOSAL",
+    "field": "actions",
+    "detail": "proposed action hcmnext.operations.create_repair_plan/v1 already executed; proposals stay unexecuted intents"
+  },
+  {
+    "code": "MISSING_WATERMARK",
+    "field": "auth.watermark",
+    "detail": "direct execution pins no watermark"
+  }
+]

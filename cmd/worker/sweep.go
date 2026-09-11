@@ -27,14 +27,6 @@ type dispatcher interface {
 	Fail(ctx context.Context, tenant uuid.UUID, outboxID uuid.UUID, cause error) error
 }
 
-// runOutboxLoop sweeps for due outbox work until ctx is canceled, sleeping
-// pollInterval between sweeps that found nothing to do. It always returns
-// nil: the loop's only exit is ctx being done, which is not itself a
-// failure worth reporting to the run-group.
-func runOutboxLoop(ctx context.Context, logger bootstrap.Logger, tenants tenantLister, disp dispatcher, pollInterval time.Duration) error {
-	return runOutboxLoopWithHandler(ctx, logger, tenants, disp, pollInterval, legacyMessageHandler(logger))
-}
-
 type messageHandler func(context.Context, outbox.Record) error
 
 type workerMessageKind string
@@ -71,10 +63,6 @@ func runOutboxLoopWithTelemetry(ctx context.Context, logger bootstrap.Logger, te
 		case <-time.After(pollInterval):
 		}
 	}
-}
-
-func runOutboxLoopWithHandler(ctx context.Context, logger bootstrap.Logger, tenants tenantLister, disp dispatcher, pollInterval time.Duration, handler messageHandler) error {
-	return runOutboxLoopWithTelemetry(ctx, logger, tenants, disp, pollInterval, handler, nil, nil)
 }
 
 // sweep dispatches one batch of due messages for every active tenant, and

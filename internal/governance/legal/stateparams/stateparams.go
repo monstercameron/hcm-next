@@ -614,7 +614,7 @@ type yamlFixture struct {
 }
 
 func (c yamlCitation) citation() Citation {
-	return Citation{SourceFile: c.SourceFile, Statute: c.Statute, ReviewStatus: c.ReviewStatus}
+	return Citation(c)
 }
 func parseMoney(m *yamlMoney, name string) (values.Money, error) {
 	if m == nil {
@@ -653,7 +653,7 @@ func (r yamlFixture) convert() (Fixture, error) {
 	}
 	out := Fixture{Registry: StateRegistry{SchemaVersion: RegistrySchemaVersion}}
 	for _, row := range r.Registry {
-		out.Registry.Rows = append(out.Registry.Rows, StateRegistryRow{row.StateCode, row.StateName, row.SourceFile, row.StatuteCitation, row.ReviewStatus})
+		out.Registry.Rows = append(out.Registry.Rows, StateRegistryRow(row))
 	}
 	for _, raw := range r.ParameterSets {
 		from, err := values.ParseLocalDate(raw.EffectiveFrom)

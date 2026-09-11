@@ -20,8 +20,6 @@ import (
 
 func TestMain(m *testing.M) { pgtest.RunMain(m) }
 
-var fixedInstant = time.Date(2026, 9, 5, 12, 0, 0, 0, time.UTC)
-
 func newDB(t *testing.T) *pgtest.DB {
 	t.Helper()
 	db := pgtest.NewEmpty(t)

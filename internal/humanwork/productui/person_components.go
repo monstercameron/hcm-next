@@ -80,10 +80,11 @@ type ProfileFactProps struct {
 // WorkflowLauncherProps owns the workflow search and filtered cards.
 type WorkflowLauncherProps struct {
 	I18nProps
-	PersonName string
-	TotalCount int
-	Filter     WorkflowFilterProps
-	Workflows  []WorkflowCardProps
+	PersonName        string
+	TotalCount        int
+	UnavailableDetail string
+	Filter            WorkflowFilterProps
+	Workflows         []WorkflowCardProps
 }
 
 // WorkflowFilterProps preserves both the selected person and the directory
@@ -116,7 +117,7 @@ type WorkflowCardProps struct {
 // PersonPage renders a profile or a truthful unavailable state.
 func PersonPage(props PersonPageProps) ui.Node {
 	children := []ui.Node{
-		softwareLink(props.Navigate, html.Props{Class: "back-link"}, props.BackHref, ui.Text(props.Text("person.back"))),
+		softwareLink(props.Navigate, html.Props{Class: "back-link"}, props.BackHref, ui.Text(props.Text("person.return_directory"))),
 	}
 	if props.Profile == nil {
 		missing := PersonUnavailableProps{I18nProps: props.I18nProps, DirectoryHref: props.BackHref, Navigate: props.Navigate}
@@ -267,6 +268,9 @@ func WorkflowLauncher(props WorkflowLauncherProps) ui.Node {
 		title, detail := props.Text("workflow.none"), props.Text("workflow.none_detail")
 		if props.TotalCount == 0 {
 			title, detail = props.Text("workflow.unavailable"), props.Text("workflow.unavailable_detail")
+			if props.UnavailableDetail != "" {
+				detail = props.UnavailableDetail
+			}
 		}
 		results = append(results, html.Div(html.Props{Class: "workflow-empty", Raw: map[string]any{"role": "status"}},
 			html.Strong(html.Props{}, ui.Text(title)),

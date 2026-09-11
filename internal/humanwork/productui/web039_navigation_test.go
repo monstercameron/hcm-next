@@ -79,7 +79,8 @@ func TestTodo_WEB_039_Golden(t *testing.T) {
 	}
 	digest := sha256.Sum256([]byte(doc))
 	got := hex.EncodeToString(digest[:])
-	const want = "c40ef2d0870edf59f680ce94b6743fb4e4c75da8d56fada47a5dcaf001a7bd72"
+	// Closed launcher omits active-option references and does not claim modality.
+	const want = "be8d7096445d12e60ab37cba5d76f794cd45cd1d40d5da0ecbe52ba78e39ea25"
 	if got != want {
 		t.Fatalf("authorization-resolved navigation golden digest = %s, want %s", got, want)
 	}
@@ -167,8 +168,9 @@ func TestNavigationProjectionFailsClosedOnEmptyOrDeniedAnswer(t *testing.T) {
 	if err != nil {
 		t.Fatalf("render filtered navigation: %v", err)
 	}
-	if !strings.Contains(filteredDoc, "No menus match") || strings.Contains(filteredDoc, "No navigation is available in this context.") {
-		t.Fatal("fuzzy-search empty state did not remain distinct from an authorization-empty projection")
+	if strings.Contains(filteredDoc, "No navigation is available in this context.") ||
+		!strings.Contains(filteredDoc, "/workspace/app/help") || !strings.Contains(filteredDoc, "/workspace/app/settings") {
+		t.Fatal("fuzzy-search empty state did not retain the support recovery region")
 	}
 }
 

@@ -21,7 +21,7 @@ func (a AgreementRevision) Validate() error {
 	if a.ID == "" || a.AgreementID == "" || a.Revision == "" {
 		return errors.New("cba: agreement id, agreement_id and revision are required")
 	}
-	if a.EffectiveFrom.IsZero() || (a.EffectiveTo.IsZero() == false && !a.EffectiveTo.After(a.EffectiveFrom)) {
+	if a.EffectiveFrom.IsZero() || (!a.EffectiveTo.IsZero() && !a.EffectiveTo.After(a.EffectiveFrom)) {
 		return errors.New("cba: agreement effective interval is invalid")
 	}
 	if a.KnownFrom.IsZero() && !a.KnownAt.IsZero() {

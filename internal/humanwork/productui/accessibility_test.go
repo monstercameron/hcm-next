@@ -1,7 +1,6 @@
 package productui
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 	"testing"
@@ -245,8 +244,4 @@ func nodeText(node *xhtml.Node) string {
 	}
 	walk(node)
 	return strings.Join(strings.Fields(b.String()), " ")
-}
-
-func debugNode(node *xhtml.Node) string {
-	return fmt.Sprintf("<%s id=%q role=%q>", node.Data, attr(node, "id"), attr(node, "role"))
 }

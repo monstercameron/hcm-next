@@ -191,10 +191,7 @@ func TestTodo_MOBILITY_001_Fault(t *testing.T) {
 func TestTodo_MOBILITY_001_Security(t *testing.T) {
 	p := validPlan(t)
 	text := p.Explain
-	if text == nil {
-		t.Fatal("method value unavailable")
-	}
-	x, err := p.Explain()
+	x, err := text()
 	if err != nil {
 		t.Fatal(err)
 	}

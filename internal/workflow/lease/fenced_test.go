@@ -72,8 +72,5 @@ func TestFenced_RefusesAHolderIdThatIsNotAWorkloadIdentity(t *testing.T) {
 // internal/workflow/runtime state what it needs without depending on this
 // package. A compile-time assertion is the honest test for that.
 func TestFenced_SatisfiesTheRuntimePort(t *testing.T) {
-	var verifier runtime.FenceVerifier = Fenced{Manager: Manager{}}
-	if verifier == nil {
-		t.Fatal("the adapter does not satisfy runtime.FenceVerifier")
-	}
+	var _ runtime.FenceVerifier = Fenced{Manager: Manager{}}
 }

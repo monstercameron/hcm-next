@@ -273,26 +273,6 @@ func validateReturned(ref, want KeyVersion) error {
 	return nil
 }
 
-func (a *Adapter) providerKey(handle custody.Handle) (KeyVersion, error) {
-	if err := a.validateHandleOnly(handle); err != nil {
-		return KeyVersion{}, err
-	}
-	if err := a.checkRevoked(handle); err != nil {
-		return KeyVersion{}, err
-	}
-	return a.lookup(handle)
-}
-
-func (a *Adapter) validateHandleOnly(handle custody.Handle) error {
-	if a == nil || a.client == nil {
-		return ErrInvalidRequest
-	}
-	if err := handle.Validate(); err != nil {
-		return fmt.Errorf("%w: custody handle: %v", ErrInvalidRequest, err)
-	}
-	return nil
-}
-
 func (a *Adapter) receipt(ctx custody.Context, handle custody.Handle, op custody.Operation) custody.Receipt {
 	at := a.now()
 	return custody.Receipt{ID: fmt.Sprintf("kms:%s:%s:%d", op, handle.ID, at.UnixNano()), Handle: handle, Operation: op, ContextDigest: custody.ContextDigest(ctx.RequestContext), At: at}
@@ -403,6 +383,7 @@ func verifyPublic(public crypto.PublicKey, message, signature []byte) (bool, err
 		}
 		return ed25519.Verify(key, message, signature), nil
 	case *ecdsa.PublicKey:
+		//lint:ignore SA1019 read-only nil guard: the coordinates are only inspected for nil (never modified or operated on) to fail malformed keys closed before VerifyASN1.
 		if key == nil || key.Curve == nil || key.X == nil || key.Y == nil {
 			return false, fmt.Errorf("%w: malformed ecdsa public key", ErrUnsupportedKeyType)
 		}

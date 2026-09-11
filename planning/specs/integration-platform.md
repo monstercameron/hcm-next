@@ -39,7 +39,7 @@ A connector provides transport and semantic adaptation. It does not automaticall
 
 ## Connector Families
 
-| Family                | Representative ecosystems                      | Human Capital Management Suite use                                                   |
+| Family                | Representative ecosystems                      | Human Capital Management Suite use                             |
 | --------------------- | ---------------------------------------------- | -------------------------------------------------------------- |
 | Core HCM              | Workday, UKG, Oracle, SAP, Dayforce, ADP       | People, employment, jobs, positions, org, compensation         |
 | Payroll               | ADP, UKG, Dayforce, regional payroll providers | Pay inputs/results, status, correction, reconciliation         |
@@ -568,7 +568,7 @@ incident -> degradation policy -> owner/escalation -> repair -> verify
 | ----- | ------------------- | ----------------------------------------------------------------------------------------- |
 | L0    | Transport Adapter   | Transport/auth/file/event mechanics; no vendor object semantics                           |
 | L1    | Typed Connector     | Versioned vendor objects, operations, errors, pagination, and fixtures                    |
-| L2    | Semantic Connector  | Maps supported vendor behavior to canonical Human Capital Management Suite capabilities                         |
+| L2    | Semantic Connector  | Maps supported vendor behavior to canonical Human Capital Management Suite capabilities   |
 | L3    | Governed Connector  | Simulation, observation, reconciliation, idempotency, capacity, repair, schema monitoring |
 | L4    | Certified Connector | Supported version matrix, reference workflows, scale/security/failure tests, owned SLO    |
 

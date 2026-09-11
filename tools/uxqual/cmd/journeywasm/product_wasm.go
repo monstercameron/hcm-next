@@ -322,6 +322,7 @@ func startProduct(ctx context.Context, cfg journeyclient.Config, service journey
 				resolved.Refreshing = false
 				resolved.RefreshingRegion = ""
 				lastResolvedProductView = &resolved
+				setActiveProductLayout(resolved, state.Page != productui.PageJourneys)
 				return attrs, nil
 			},
 			Loading: func(_ router.Attrs) *router.Element {
@@ -392,18 +393,31 @@ func startProduct(ctx context.Context, cfg journeyclient.Config, service journey
 }
 
 // hydrateProductRouter resumes the server-rendered loading shell before the
-// router owns future updates. Current starts the initial route generation on
-// the single-threaded WASM runtime; HydrateMount is bound before that loader
-// can resume, so its resolved answer cannot be lost between the two calls.
+// router owns future updates. The first hydration commit must complete before
+// a loader answer is allowed to schedule a normal render into the same root.
 func hydrateProductRouter(productRouter *router.Router) error {
 	initial := productRouter.Current()
 	if initial == nil {
 		return fmt.Errorf("product router did not resolve the initial location")
 	}
-	if _, err := ui.Hydrate(initial, rootSelector); err != nil {
+	// Hydration commits asynchronously. Wait for the framework's completion
+	// signal rather than guessing a frame delay before enabling router writes.
+	committed := make(chan struct{}, 1)
+	options := ui.HydrationOptions{Observability: ui.SSRObservabilityOptions{
+		OnEvent: func(event ui.SSRObservation) {
+			if event.Hydration != nil {
+				select {
+				case committed <- struct{}{}:
+				default:
+				}
+			}
+		},
+	}}
+	if _, err := ui.Hydrate(initial, rootSelector, options); err != nil {
 		return fmt.Errorf("hydrate product shell: %w", err)
 	}
-	productRouter.HydrateMount(rootSelector)
+	<-committed
+	productRouter.Mount(rootSelector)
 	return nil
 }
 
@@ -539,25 +553,28 @@ func setActiveProductLayout(view productui.View, showHeading bool) {
 func productShellLayoutComponent(_ router.Attrs) *router.Element {
 	// Route factories run before the reconciler enters a component context.
 	// Keep the shell itself behind a component boundary so its software links
-	// can safely use GWC event hooks in js/wasm builds.
+	// can safely use GWC event hooks in js/wasm builds. The router's outlet
+	// context only exists during this factory call, not the later render.
 	outlet := router.GetOutlet()
 	if outlet == nil {
 		outlet = productui.LoadingProxy(productui.LoadingProxyProps{Page: activeProductLayoutView.Page})
 	}
-	return ui.CreateElement(renderProductShellLayout, productShellLayoutProps{Outlet: outlet})
+	return ui.CreateElement(renderProductShellLayout, productShellLayoutProps{Outlet: outlet, View: activeProductLayoutView, ShowHeading: activeProductLayoutShowHeading})
 }
 
 type productShellLayoutProps struct {
-	Outlet ui.Node
+	Outlet      ui.Node
+	View        productui.View
+	ShowHeading bool
 }
 
 func renderProductShellLayout(props productShellLayoutProps) ui.Node {
-	view := activeProductLayoutView
+	view := props.View
 	if view.Page == "" {
 		view = productui.NewView(productui.PageHome, "", "", "")
 		view.Loading = true
 	}
-	return productui.BuildShell(view, props.Outlet, activeProductLayoutShowHeading)
+	return productui.BuildShell(view, props.Outlet, props.ShowHeading)
 }
 
 // focusProductRouteAfterNavigation restores the missing browser behavior of

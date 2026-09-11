@@ -68,7 +68,8 @@ func TestTodo_ALIGN_016_Golden(t *testing.T) {
 	if len(index.Entries) != 2 || index.Entries[0].Table != "alpha" || index.Entries[1].Table != "zeta" {
 		t.Fatalf("reverse index order = %+v", index.Entries)
 	}
-	if index.Digest() != index.Digest() {
+	firstIndexDigest, secondIndexDigest := index.Digest(), index.Digest()
+	if firstIndexDigest != secondIndexDigest {
 		t.Fatal("reverse index digest is not stable")
 	}
 }

@@ -378,7 +378,8 @@ func TestControlSnapshotDigestIsDeterministicAndFieldSensitive(t *testing.T) {
 
 func TestExecutionDecisionIDIsDerivedFromItsOwnTuple(t *testing.T) {
 	base := pfAuthorization(uuid.New(), uuid.New(), pfDigest("material:id"))
-	if base.decisionID() != base.decisionID() {
+	firstDecisionID, secondDecisionID := base.decisionID(), base.decisionID()
+	if firstDecisionID != secondDecisionID {
 		t.Fatal("the same decision must derive the same id")
 	}
 	for name, mutate := range map[string]func(*executionDecision){

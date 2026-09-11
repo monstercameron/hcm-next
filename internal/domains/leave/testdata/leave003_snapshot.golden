@@ -1,0 +1,19 @@
+inputs=worker,employment,assignment,location,manager,schedule,calendar,balances,benefits,payroll-context,legal-context,evidence-usability,source-authority,freshness,effective-time,known-time
+satisfied=true
+input=assignment rev=rev-7 status=READY ref=evidence:assignment
+input=balances rev=rev-7 status=READY ref=evidence:balances
+input=benefits rev=rev-7 status=READY ref=evidence:benefits
+input=calendar rev=rev-7 status=READY ref=evidence:calendar
+input=effective-time rev=rev-7 status=READY ref=evidence:effective-time
+input=employment rev=rev-7 status=READY ref=evidence:employment
+input=evidence-usability rev=rev-7 status=READY ref=evidence:evidence-usability
+input=freshness rev=rev-7 status=READY ref=evidence:freshness
+input=known-time rev=rev-7 status=READY ref=evidence:known-time
+input=legal-context rev=rev-7 status=READY ref=evidence:legal-context
+input=location rev=rev-7 status=READY ref=evidence:location
+input=manager rev=rev-7 status=READY ref=evidence:manager
+input=payroll-context rev=rev-7 status=READY ref=evidence:payroll-context
+input=schedule rev=rev-7 status=READY ref=evidence:schedule
+input=source-authority rev=rev-7 status=READY ref=evidence:source-authority
+input=worker rev=rev-7 status=READY ref=evidence:worker
+digest=sha256:47ff7752641d9f835bf2f04ae788b7ced496c94db668daac65e9a2dadec86cb0

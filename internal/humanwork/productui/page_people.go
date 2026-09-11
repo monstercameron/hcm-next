@@ -160,6 +160,9 @@ func peopleRowProps(view View, window peoplePageWindow) []PeopleRowProps {
 	for _, person := range window.People {
 		actions := make([]PeopleQuickActionProps, 0, len(view.PersonWorkflows))
 		for _, workflow := range workflows {
+			if workflow.ID == "promotion" && person.PromotionUnavailable {
+				continue
+			}
 			href := workflow.Href
 			if workflow.LaunchHref != nil {
 				href = workflow.LaunchHref(person.ID)
@@ -172,7 +175,7 @@ func peopleRowProps(view View, window peoplePageWindow) []PeopleRowProps {
 				Href:            href, Frequent: workflow.UseCount > 0})
 		}
 		rows = append(rows, PeopleRowProps{
-			ID: person.ID, Initials: person.Initials, PhotoURL: person.PhotoURL, Name: person.Name, Role: person.Role, Team: person.Team,
+			ID: person.ID, Initials: person.Initials, PhotoURL: person.PhotoURL, Name: person.Name, WorkerNumber: person.WorkerNumber, Role: person.Role, Team: person.Team,
 			Manager: person.Manager, Location: person.Location, Navigate: view.Navigate,
 			Href: peoplePersonHref(view, person.ID, window.Page), QuickActions: actions,
 		})

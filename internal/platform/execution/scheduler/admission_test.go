@@ -58,7 +58,10 @@ func TestAdmissibleStatusesCannotBeWidenedByACaller(t *testing.T) {
 		t.Fatalf("AdmissibleStatuses() = %v, want three statuses", got)
 	}
 	got[0] = string(runtime.InstancePaused)
-	got = append(got, string(runtime.InstanceQuarantined))
+	widened := append(got, string(runtime.InstanceQuarantined))
+	if len(widened) != 4 {
+		t.Fatalf("caller-side widen attempt did not land: %v", widened)
+	}
 	if Admissible(string(runtime.InstancePaused)) || Admissible(string(runtime.InstanceQuarantined)) {
 		t.Fatalf("mutating the returned slice widened the admission rule to %v", AdmissibleStatuses())
 	}

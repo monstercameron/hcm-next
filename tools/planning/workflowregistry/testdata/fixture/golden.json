@@ -1,0 +1,117 @@
+{
+  "artifacts": [
+    {
+      "path": "README.md",
+      "kind": "INDEX",
+      "digest": "sha256:c3b7290c0411e3fbde5471e3a26e87b749315326482c0f9da6109c3fec5c30cc",
+      "steps_present": false,
+      "dependencies_present": false
+    },
+    {
+      "path": "catalog.yaml",
+      "kind": "CATALOG",
+      "digest": "sha256:7bfd84591952f1316a0a6dc3fc4ecf65ad603bee5943e02571630b1f4b8b1242",
+      "steps_present": false,
+      "dependencies_present": false
+    },
+    {
+      "path": "lifecycle/rushed.md",
+      "kind": "WORKFLOW",
+      "digest": "sha256:df0d9aeb4df5213482782856ee4c56a24812b717e00137a4813a1aa0ff8fd518",
+      "workflow_id": "lifecycle.rushed/v1",
+      "intents": [
+        "employee.rushed",
+        "hcmnext.people.promote_worker"
+      ],
+      "target_intent": "hcmnext.people.promote_worker",
+      "domain": "lifecycle",
+      "kernel_family": "ChangeRequest",
+      "states": [
+        "IMPLEMENTED"
+      ],
+      "owner": "lifecycle",
+      "steps_present": true,
+      "dependencies_present": true
+    },
+    {
+      "path": "people/promotion-copy.md",
+      "kind": "WORKFLOW",
+      "digest": "sha256:b83f37b5319ec1b91c606cbe4fa0deb1104407c1537436edf270904045d05fed",
+      "workflow_id": "people.promotion/v1",
+      "intents": [
+        "employee.promotion",
+        "hcmnext.people.promote_worker"
+      ],
+      "target_intent": "hcmnext.people.promote_worker",
+      "domain": "people",
+      "kernel_family": "ChangeRequest",
+      "states": [
+        "REFERENCE",
+        "EXPLORED"
+      ],
+      "owner": "people",
+      "steps_present": true,
+      "dependencies_present": true
+    },
+    {
+      "path": "people/promotion.md",
+      "kind": "WORKFLOW",
+      "digest": "sha256:6e26042b42fc5340d7d244ac0cb1cd3ab7ca1f8981259e3547d505be703a5c10",
+      "workflow_id": "people.promotion/v1",
+      "intents": [
+        "employee.promotion",
+        "hcmnext.people.promote_worker"
+      ],
+      "target_intent": "hcmnext.people.promote_worker",
+      "domain": "people",
+      "kernel_family": "ChangeRequest",
+      "states": [
+        "REFERENCE",
+        "EXPLORED"
+      ],
+      "owner": "people",
+      "steps_present": true,
+      "dependencies_present": true
+    },
+    {
+      "path": "samples/sketch.md",
+      "kind": "SAMPLE",
+      "digest": "sha256:d4e688b4224bf72cbe436021d4d192c8a7c9ac1bc97411899e6afdc8675d7524",
+      "domain": "samples",
+      "steps_present": false,
+      "dependencies_present": false
+    }
+  ],
+  "findings": [
+    {
+      "path": "README.md",
+      "code": "DANGLING_INDEX_LINK",
+      "field": "people/missing.md",
+      "detail": "index links a missing artifact"
+    },
+    {
+      "path": "lifecycle/rushed.md",
+      "code": "STATE_PROMOTION_WITHOUT_EVIDENCE",
+      "field": "state",
+      "detail": "state IMPLEMENTED requires a typed contract ref and fresh evidence links"
+    },
+    {
+      "path": "people/promotion-copy.md",
+      "code": "DUPLICATE_WORKFLOW_ID",
+      "field": "workflow_id",
+      "detail": "workflow id people.promotion/v1 is declared more than once"
+    },
+    {
+      "path": "people/promotion.md",
+      "code": "DUPLICATE_WORKFLOW_ID",
+      "field": "workflow_id",
+      "detail": "workflow id people.promotion/v1 is declared more than once"
+    },
+    {
+      "path": "samples/sketch.md",
+      "code": "ORPHAN_WORKFLOW_DOCUMENT",
+      "detail": "sample declares no workflow id"
+    }
+  ],
+  "digest": "sha256:8236bfbc6542ac9b52cffd0149991096606ebe970881a6ec81444cb1b4a46009"
+}

@@ -7,8 +7,10 @@ import (
 	"testing"
 )
 
+type verifierTestMarkerKey struct{}
+
 func TestVerifierFunc_VerifyForwardsContextAndCredential(t *testing.T) {
-	wantCtx := context.WithValue(context.Background(), "marker", "value")
+	wantCtx := context.WithValue(context.Background(), verifierTestMarkerKey{}, "value")
 	want := Credential{Scheme: "Bearer", Token: "proof", Audience: "api"}
 	called := false
 	f := VerifierFunc(func(ctx context.Context, got Credential) (*Principal, error) {

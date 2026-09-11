@@ -176,13 +176,6 @@ func nullableUint64(value uint64) any {
 	return int64(value)
 }
 
-func scanUint64(value *int64) (uint64, error) {
-	if *value < 1 {
-		return 0, fmt.Errorf("revision must be positive")
-	}
-	return uint64(*value), nil
-}
-
 // SaveProfile stores one profile revision and its nested immutable values in
 // one transaction. Existing identical child identities are left untouched so
 // callers may ingest the children before their containing profile.

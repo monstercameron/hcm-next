@@ -1,0 +1,9 @@
+[
+  "definitions/customer/source.go:2: authored definitions must not import runtime configuration (definitions-runtime-import)",
+  "internal/configuration/engine.go:2: configuration owns semantics but must not depend on concrete domain execution (configuration-domain-import)",
+  "internal/configuration/engine.go:3: configuration declares domain execution: Apply (configuration-executes-domain)",
+  "internal/configuration/engine.go:4: configuration declares domain execution: ExecuteChange (configuration-executes-domain)",
+  "internal/customer/config.go:4: customer configuration must pass through publication and approval (customer-config-bypasses-publication)",
+  "internal/customer/config.go:4: customer configuration must pass through publication and approval (customer-config-bypasses-publication)",
+  "internal/rollout/plan.go:3: rollout must target immutable bundle versions; it must not rewrite bundles (rollout-rewrites-bundle)"
+]

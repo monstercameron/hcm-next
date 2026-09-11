@@ -18,13 +18,14 @@ jobs:
   node:
     name: Node tests
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: "20.x"
           cache: npm
@@ -38,13 +39,14 @@ jobs:
   go:
     name: Go tests (legacy src/blocks/go)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v7
         with:
           go-version-file: src/blocks/go/go.mod
           cache: false
@@ -56,37 +58,101 @@ jobs:
   go-core:
     name: Go tests (root module)
     runs-on: ubuntu-latest
+    # This job runs the root module's suite TWICE and has to budget for both:
+    # once under the race detector (narrowed to the concurrent packages, see
+    # the TOOL-012 step) and once in full under covergate, which shells out to
+    # `go test -count=1 -cover` over every measurable package to compute the
+    # 70% floor. They are separate sweeps because they answer separate
+    # questions, and neither can be dropped.
+    #
+    # Measured on run 34548568659 (ubuntu-latest, 4 cores): the unnarrowed
+    # `-race ./...` sweep burned 11,080 package-seconds over 530 of the 776
+    # packages in 55 minutes of wall clock before the 60-minute wall cancelled
+    # it with ~200 packages still unrun. internal/data alone was 6,803 of those
+    # seconds (101 PostgreSQL-backed packages), and internal/operations/
+    # reliability contributed 600 of them by hanging in an infinite directory
+    # walk until the per-package test timeout fired (fixed in
+    # reliability_test.go). Narrowing the race sweep to the 332 concurrent
+    # packages leaves ~6,700 package-seconds there, and the coverage sweep is
+    # ~7,900 without the detector, which is roughly 33 + 39 minutes of wall
+    # clock at the observed 3.4x package parallelism. 120 leaves real headroom
+    # over that ~80-minute budget; do not lower it without re-measuring.
+    #
+    # If this becomes too slow to live with, the next move is to split the
+    # coverage sweep into its own job so the two run in parallel. That needs a
+    # branch-protection change in the same breath, because "Tests / Go tests
+    # (root module)" is a required status check and a gate moved into a job
+    # that is not required stops being enforced.
+    timeout-minutes: 120
 
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: postgres
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
+    # PostgreSQL runs as an explicit step container rather than a
+    # `services:` entry on purpose: service containers start before
+    # `actions/checkout`, so a workspace mount source does not exist yet
+    # and Docker creates it root-owned, which fails checkout with EACCES.
+    # Starting it here keeps checkout, the tuning mount below, and
+    # teardown in a visible, ordered sequence.
     env:
       HCMNEXT_TEST_DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable
+      HCMNEXT_PG_CONTAINER: hcmnext-pg
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
           cache: true
 
+      - name: Start PostgreSQL (tuned per .github/postgres/init-tuning.sql)
+        run: |
+          docker run -d --name "$HCMNEXT_PG_CONTAINER" \
+            -e POSTGRES_USER=postgres \
+            -e POSTGRES_PASSWORD=postgres \
+            -e POSTGRES_DB=postgres \
+            -p 5432:5432 \
+            --shm-size=512m \
+            --health-cmd "pg_isready -U postgres -d postgres" \
+            --health-interval 10s \
+            --health-timeout 5s \
+            --health-retries 5 \
+            -v "${GITHUB_WORKSPACE}/.github/postgres:/docker-entrypoint-initdb.d:ro" \
+            postgres:16
+          for _ in $(seq 1 45); do
+            status="$(docker inspect --format='{{.State.Health.Status}}' "$HCMNEXT_PG_CONTAINER")"
+            if [ "$status" = "healthy" ]; then
+              echo "postgres is healthy"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "postgres never became healthy; container logs:"
+          docker logs "$HCMNEXT_PG_CONTAINER"
+          exit 1
+
       - name: Build root module
         run: go build ./...
+
+      # TOOL-002 pins buf in gen/TOOLS.lock and the generator tests shell
+      # out to it; keep this version identical to the lock file.
+      - name: Set up buf
+        uses: bufbuild/buf-setup-action@v1
+        with:
+          version: 1.72.0
+
+      # The workspace asset manifest (internal/humanwork/workspace) covers
+      # the built wasm bundles, which are git-ignored build outputs, so a
+      # clean checkout must build them before any test reads the manifest.
+      # Order matters: journeywasm generates manifest.json from the files
+      # present, and its packaging allowlist admits uxqual.wasm while the
+      # runtime allowlist never serves it, so uxqual.wasm must land AFTER
+      # the manifest is written. Reversing these two lines bakes a manifest
+      # the validator rejects as stale.
+      - name: Build embedded frontend assets
+        run: |
+          go run ./tools/uxqual/cmd/journeywasm -out internal/humanwork/workspace/assets
+          GOOS=js GOARCH=wasm go build -o internal/humanwork/workspace/assets/uxqual.wasm ./tools/uxqual/cmd/uxqualwasm
 
       - name: Run the quality gate (gofmt, go vet, staticcheck)
         run: go run ./tools/quality
@@ -102,13 +168,43 @@ jobs:
       # TOOL-012: the race class only runs for real on Linux CI; the local
       # dev machine (windows/arm64) has no race detector support, so
       # tools/quality's TestTodo_TOOL_012 skips itself there. This is that
-      # promised Linux run, covering every concurrent package under
-      # ./... (transaction, workflow, queue, cache, connector) plus the
-      # deliberately racy fixture in tools/quality/testdata/racefixture,
-      # which TestTodo_TOOL_012 shells out to under -race as its own
-      # RED/GREEN proof.
-      - name: Run root module tests with the race detector (TOOL-012)
-        run: go test -race -count=1 ./...
+      # promised Linux run.
+      #
+      # The package set comes from tools/policy/racepolicy itself (-list),
+      # which is the same scan the policy step below audits: every package
+      # that imports sync/sync/atomic or starts a goroutine (transaction,
+      # workflow, queue, cache, connector, ...). Racing that set instead of
+      # ./... is not a narrowing of the TOOL-012 contract, it IS the contract
+      # written down -- and because both steps read one scan, a package that
+      # becomes concurrent starts being raced without anyone editing this
+      # file, while one that cannot be raced for want of a resolving test file
+      # still fails the policy step. The packages left out are not skipped:
+      # the coverage sweep below runs every measurable package, detector off.
+      #
+      # What this buys is time. `-race ./...` re-ran all 101 PostgreSQL-backed
+      # internal/data packages under the detector for no race-class signal,
+      # and that is most of what blew the old 60-minute wall.
+      #
+      # tools/quality's TestTodo_TOOL_012 keeps its RED/GREEN proof either
+      # way: it shells out to `go test -race` over
+      # tools/quality/testdata/racefixture in a subprocess, so it needs a
+      # race-capable platform (this one) rather than a race-instrumented
+      # parent, and the coverage sweep runs it here.
+      #
+      # xargs, not $(cat ...), so a future list too long for one argv becomes
+      # several `go test` invocations rather than a truncation; xargs still
+      # exits nonzero if any of them fails.
+      - name: Run the race detector over every concurrent package (TOOL-012)
+        run: |
+          mkdir -p .artifacts
+          go run ./tools/policy/racepolicy/cmd/racepolicy -root . -list > .artifacts/race-packages.txt
+          echo "racing $(wc -l < .artifacts/race-packages.txt) concurrent package(s)"
+          xargs -a .artifacts/race-packages.txt go test -race -count=1
+      # This is also the full-suite sweep with the detector off: covergate
+      # -all shells out to `go test -count=1 -cover` over every measurable
+      # package (everything except gen/, src/blocks/go, testdata and dot
+      # directories), so a package outside the concurrent set above still has
+      # to build and pass here.
       - name: Unit-test and coverage floor gate (70%)
         run: go run ./tools/quality/covergate/cmd/covergate -root . -all
       - name: Drift gate (MSRC-010)
@@ -122,9 +218,14 @@ jobs:
       - name: Verify concurrent-package race coverage policy (TOOL-012)
         run: go run ./tools/policy/racepolicy/cmd/racepolicy -root .
 
+      - name: Stop PostgreSQL
+        if: always()
+        run: docker rm --force "$HCMNEXT_PG_CONTAINER" || true
+
   go-core-ephemeral-pg:
     name: Go tests (ephemeral embedded PostgreSQL, TOOL-014)
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     # No postgres service container here, and HCMNEXT_TEST_DATABASE_URL is
     # deliberately left unset: this job proves the OTHER supported path
@@ -141,10 +242,10 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
           cache: true
@@ -154,7 +255,7 @@ jobs:
       # silently reusing a stale archive under a name embedded-postgres no
       # longer looks for.
       - name: Cache the embedded PostgreSQL binary archive
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ${{ env.HCMNEXT_TEST_PG_CACHE }}
           key: embedded-postgres-linux-amd64-17.5.0
@@ -165,13 +266,14 @@ jobs:
   dependency-admission:
     name: Dependency license & vulnerability admission (TOOL-019/TOOL-024)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
           cache: true
@@ -205,7 +307,7 @@ jobs:
 
       - name: Upload admission report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: dependency-admission-report
           path: |

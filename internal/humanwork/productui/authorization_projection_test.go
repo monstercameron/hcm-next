@@ -5,6 +5,24 @@ import (
 	"testing"
 )
 
+func TestInsightsCountsOnlyDiscoverableWorkflows(t *testing.T) {
+	view := testView(PageInsights)
+	view.Work = []WorkItem{{ID: "visible", Status: "Blocked"}, {ID: "hidden", Terminal: true}, {ID: "unclassified"}}
+	view.RecordVerdicts = map[string]AuthorizedRecord{
+		"visible": {ID: "visible", Disclosable: true},
+		"hidden":  {ID: "hidden", Disclosable: false},
+	}
+	doc, err := Render(view)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, want := range []string{`Visible workflows</span><strong>1</strong>`, `In progress</span><strong>1</strong>`, `Completed or closed</span><strong>0</strong>`} {
+		if !strings.Contains(doc, want) {
+			t.Errorf("admitted metric missing: %s", want)
+		}
+	}
+}
+
 func TestHomeAndInsightsDoNotAdvertiseUnauthorizedRoutes(t *testing.T) {
 	permissions := []RolePagePermission{
 		{Page: PageHome, View: true},

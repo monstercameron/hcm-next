@@ -1,6 +1,7 @@
 package productui
 
 import (
+	"fmt"
 	"sort"
 	"strconv"
 	"strings"
@@ -32,7 +33,7 @@ func organizationPage(view View) ui.Node {
 		sort.SliceStable(members[name], func(i, j int) bool {
 			return strings.ToLower(members[name][i].Name) < strings.ToLower(members[name][j].Name)
 		})
-		groups = append(groups, OrganizationGroupProps{Name: name, Count: len(members[name]), Members: members[name]})
+		groups = append(groups, OrganizationGroupProps{Name: name, Count: len(members[name]), CountLabel: organizationCountLabel(view, "organization.members_count", len(members[name])), Members: members[name]})
 	}
 	visibleLocations := sortedOrganizationValues(locations)
 	number := func(value int) string { return view.Locale.FormatNumber(strconv.Itoa(value), 0) }
@@ -75,14 +76,18 @@ func ownershipTree(view View) []OwnershipNodeProps {
 	people := append([]Person(nil), view.People...)
 	sort.SliceStable(people, func(i, j int) bool { return strings.ToLower(people[i].Name) < strings.ToLower(people[j].Name) })
 	byName := make(map[string]int, len(people))
+	nameCount := make(map[string]int, len(people))
 	for index, person := range people {
-		byName[strings.ToLower(strings.TrimSpace(person.Name))] = index
+		name := strings.ToLower(strings.TrimSpace(person.Name))
+		byName[name] = index
+		nameCount[name]++
 	}
 	children := make(map[int][]int)
 	roots := make([]int, 0)
 	for index, person := range people {
-		manager, ok := byName[strings.ToLower(strings.TrimSpace(person.Manager))]
-		if !ok || manager == index {
+		name := strings.ToLower(strings.TrimSpace(person.Manager))
+		manager, ok := byName[name]
+		if !ok || name == "" || nameCount[name] != 1 || manager == index {
 			roots = append(roots, index)
 			continue
 		}
@@ -103,6 +108,7 @@ func ownershipTree(view View) []OwnershipNodeProps {
 			}
 		}
 		delete(visiting, index)
+		node.ReportsLabel = organizationCountLabel(view, "organization.reports_count", len(node.Reports))
 		return node
 	}
 	result := make([]OwnershipNodeProps, 0, len(roots))
@@ -127,7 +133,11 @@ func ownershipPerson(view View, person Person) OwnershipNodeProps {
 	} else if current {
 		href = statefulHref(view, PageMyself)
 	}
-	return OwnershipNodeProps{Name: person.Name, Role: valueOrUnavailable(person.Role), Team: valueOrUnavailable(person.Team), Initials: person.Initials, PhotoURL: person.PhotoURL, Href: href, Navigate: view.Navigate, Current: current}
+	return OwnershipNodeProps{Name: person.Name, WorkerNumber: person.WorkerNumber, Role: person.Role, Team: person.Team, Initials: person.Initials, PhotoURL: person.PhotoURL, Href: href, Navigate: view.Navigate, Current: current}
+}
+
+func organizationCountLabel(view View, key string, count int) string {
+	return fmt.Sprintf(view.Locale.Text(key), view.Locale.FormatNumber(strconv.Itoa(count), 0))
 }
 
 func sortedOrganizationValues(values map[string]bool) []string {

@@ -1,0 +1,6 @@
+full: 王 小明 latin: Wang Xiaoming profile: NFC
+part: 王 script=Hani
+part: 小明 script=Hani
+sufficiency: {EvidenceClassified:true ObligationStated:true ObligationDischarged:true ApprovalBound:true Sufficient:true}
+truth: sha256:6bfd1eed4c58ba9c136c89eb106ff6c628ad028c343eb110a8035e3528f4de76
+pending: effect/chg/19/payroll

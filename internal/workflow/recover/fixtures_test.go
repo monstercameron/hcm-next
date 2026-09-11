@@ -423,19 +423,6 @@ func loadInstance(t *testing.T, conn *pgxadapter.Conn, d deadWorker) runtime.Ins
 	return inst
 }
 
-// continuationRows counts the durable continuation records one instance has.
-// A duplicated advancement shows up here as duplicated downstream work.
-func continuationRows(t *testing.T, db *pgtest.DB, tenant, instanceID uuid.UUID) int {
-	t.Helper()
-	var n int
-	if err := db.QueryRow(context.Background(),
-		`SELECT count(*) FROM workflow_continuation WHERE tenant_id = $1 AND instance_id = $2`,
-		tenant, instanceID).Scan(&n); err != nil {
-		t.Fatalf("count continuations: %v", err)
-	}
-	return n
-}
-
 // idempotencyStatus reads the stored record for one recovery request.
 func idempotencyStatus(t *testing.T, conn *pgxadapter.Conn, d deadWorker) (idempotency.Record, bool) {
 	t.Helper()

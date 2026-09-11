@@ -73,6 +73,7 @@ const (
 	ComponentWorkflowResolver      = "workflow-resolver"
 	ComponentWorkflowVersions      = "workflow-versions"
 	ComponentWorkflowInstanceRead  = "workflow-instance-reader"
+	ComponentWorkItemQueueRead     = "work-item-queue-reader"
 	ComponentCell                  = "cell"
 	ComponentIntentDefinitions     = "intent-definitions"
 	ComponentCapabilityRegistry    = "capability-registry"
@@ -282,6 +283,7 @@ func ComposeServe(ctx context.Context, in ServeInput) (*App, error) {
 		Workspace:       &workspaceEnabled,
 		DevBrowserLogin: cfg.DevBrowserLogin,
 		DevPersonas:     composeDevPersonas(verifier, cfg, options.Now),
+		PublicOrigin:    cfg.PublicOrigin,
 		Evidence:        evidence,
 		Telemetry:       telemetryProvider,
 		Inputs:          options.Inputs,
@@ -362,18 +364,24 @@ func ComposeServe(ctx context.Context, in ServeInput) (*App, error) {
 	workflowInstanceReader := app.NewWorkflowInstanceReader(in.Pool,
 		tenantKeyMapper[kernelvalues.TenantId](pgstore.TenantID))
 	graph.add(ComponentWorkflowInstanceRead, KindPort, workflowInstanceReader, ComponentDatabasePool)
+	// EP-WORK-001: the work-item queue reader is composed over the same pool
+	// and tenant mapping; it powers WorkService.ListWorkItems/GetWorkItem on
+	// both surfaces below.
+	workQueueReader := app.NewWorkItemQueueReader(in.Pool,
+		tenantKeyMapper[kernelvalues.TenantId](pgstore.TenantID))
+	graph.add(ComponentWorkItemQueueRead, KindPort, workQueueReader, ComponentDatabasePool)
 	operationStore := operationStoreAdapter{store: operationstore.New(in.Pool,
 		func(tenant string) string { return pgstore.TenantID(tenant).String() })}
 
 	grpcServer, err := transportcell.NewGRPCServerWithWorkflowInspectorAndOperations(
-		cell, workflowInstanceReader, operationStore, []byte(cfg.DevHMACKey))
+		cell, workflowInstanceReader, workQueueReader, operationStore, []byte(cfg.DevHMACKey))
 	if err != nil {
 		return nil, err
 	}
 	graph.add(ComponentGRPCSurface, KindTransport, grpcServer, ComponentCell, ComponentWorkflowInstanceRead)
 
 	edgeHandler, err := transportcell.NewEdgeHandlerWithTunnelAndDependencies(
-		cell, grpcServer, workflowInstanceReader, operationStore, []byte(cfg.DevHMACKey))
+		cell, grpcServer, workflowInstanceReader, workQueueReader, operationStore, []byte(cfg.DevHMACKey))
 	if err != nil {
 		return nil, err
 	}
@@ -402,6 +410,7 @@ func ComposeServe(ctx context.Context, in ServeInput) (*App, error) {
 		"tunnel", transportcell.TunnelPath,
 		"workspace", workspacePath,
 		"dev_browser_login", cfg.DevBrowserLogin,
+		"public_origin", cfg.PublicOrigin,
 		"otel_exporter", cfg.OTelExporter,
 		"definitions", cell.Definitions.Len(),
 		"capabilities", len(cell.Capabilities.List()))
@@ -686,6 +695,7 @@ func RequestLogger(logger bootstrap.Logger) func(transport.LogRecord) {
 			"tenant", record.TenantID,
 			"purpose", record.Purpose,
 			"outcome", outcome,
+			"error_type", record.ErrorType,
 			"duration", record.Duration.String())
 	}
 }

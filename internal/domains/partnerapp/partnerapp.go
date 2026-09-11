@@ -493,12 +493,6 @@ func (r *Registry) Revisions(applicationID, semanticVersion string) []Applicatio
 
 type digestEndpoint struct{ Ref, Digest string }
 
-type applicationDigestView struct {
-	PartnerRef, ApplicationID, AgreementRef, ContactRef, LegalRef string
-	Capabilities, DataClasses                                     []string
-	Redirects, Callbacks                                          []digestEndpoint
-}
-
 type versionDigestView struct {
 	ApplicationID, Version, Requester, AgreementRef, ContactRef, LegalRef, SuccessorVersion string
 	Revision                                                                                uint64
@@ -620,7 +614,7 @@ func sortedCopy(values []string) []string {
 func digestEndpoints(values []EndpointRef) []digestEndpoint {
 	out := make([]digestEndpoint, 0, len(values))
 	for _, value := range values {
-		out = append(out, digestEndpoint{Ref: value.Ref, Digest: value.Digest})
+		out = append(out, digestEndpoint(value))
 	}
 	sort.Slice(out, func(i, j int) bool { return out[i].Ref < out[j].Ref })
 	return out

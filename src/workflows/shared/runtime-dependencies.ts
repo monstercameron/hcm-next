@@ -1,6 +1,13 @@
 import type { AiClient } from "@human-capital-management-suite/ai-client";
-import type { ActorRecord, Repositories } from "@human-capital-management-suite/data-store";
-import type { AppError, Result, StructuredLogger } from "@human-capital-management-suite/foundation";
+import type {
+  ActorRecord,
+  Repositories,
+} from "@human-capital-management-suite/data-store";
+import type {
+  AppError,
+  Result,
+  StructuredLogger,
+} from "@human-capital-management-suite/foundation";
 
 export type ApiRequestContext = {
   actor: ActorRecord;

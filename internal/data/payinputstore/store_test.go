@@ -70,14 +70,6 @@ func tenantTxErr(conn *pgxadapter.Conn, tenant uuid.UUID, fn func(dbport.Tx) err
 	}
 	return tx.Commit(ctx)
 }
-
-func tenantTx(t *testing.T, conn *pgxadapter.Conn, tenant uuid.UUID, fn func(dbport.Tx) error) {
-	t.Helper()
-	if err := tenantTxErr(conn, tenant, fn); err != nil {
-		t.Fatalf("tenant transaction: %v", err)
-	}
-}
-
 func testInterval(t *testing.T) values.EffectiveInterval {
 	t.Helper()
 	start, err := values.NewLocalDate(2026, time.January, 1)

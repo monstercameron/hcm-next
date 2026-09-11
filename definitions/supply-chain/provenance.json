@@ -20,12 +20,7 @@
     "go_version": "go1.26.3",
     "goos": "windows",
     "goarch": "arm64",
-    "flags": [
-      "-trimpath=true",
-      "CGO_ENABLED=0",
-      "-compiler=gc",
-      "-buildmode=exe"
-    ],
+    "flags": ["-trimpath=true", "CGO_ENABLED=0", "-compiler=gc", "-buildmode=exe"],
     "config_digest": "cde747fbe838ee886ddc09527bed529cc09915a7b7bd1e45d013d60e3779cd3d"
   },
   "sbom": {

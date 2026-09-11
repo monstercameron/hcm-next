@@ -153,7 +153,8 @@ func TestTodo_WEB_074_Conformance(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if DraftDigest(NewPageDraft(base)) != DraftDigest(NewPageDraft(base)) {
+	firstDraft, secondDraft := DraftDigest(NewPageDraft(base)), DraftDigest(NewPageDraft(base))
+	if firstDraft != secondDraft {
 		t.Fatal("draft digests are nondeterministic")
 	}
 	scratch := NewPageDraftFromScratch("studio")

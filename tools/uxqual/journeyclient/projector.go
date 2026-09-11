@@ -426,15 +426,6 @@ func personHref(ref string) string {
 	}
 	return "/workspace/app/person?person=" + url.QueryEscape(ref)
 }
-
-func peopleSearchHref(name string) string {
-	name = strings.TrimSpace(name)
-	if name == "" {
-		return "/workspace/app/people"
-	}
-	return "/workspace/app/people?q=" + url.QueryEscape(name)
-}
-
 func nonEmpty(value, fallback string) string {
 	if strings.TrimSpace(value) == "" {
 		return fallback
@@ -465,10 +456,8 @@ func card(j *journeyv1.Journey) journey.JourneyCard {
 // DefaultEffectiveDate is the proposal form's seeded effective date: the
 // first day of the month three months out.
 //
-// It is a computed default rather than a fixed string because the engine
-// refuses an effective date in the past, and a form whose default is refused
-// teaches the reader that the form is broken. Three months is the shortest
-// horizon that survives a cycle boundary; the reader can shorten it.
+// It is a computed planning default rather than a promise of eligibility.
+// The server evaluates the selected date against the proposal's policy context.
 func DefaultEffectiveDate(now time.Time) string {
 	t := now.UTC()
 	return time.Date(t.Year(), t.Month(), 1, 0, 0, 0, 0, time.UTC).
@@ -538,7 +527,7 @@ func ProposalForm(values map[string]string, workers []*journeyv1.Worker, selecte
 			{
 				ID: FieldEffective, Name: NameEffective, Label: "Effective date", Kind: kindDate,
 				Required: true, Value: effective,
-				Help: "Must fall on or after today: the engine refuses a promotion that would take effect in the past.",
+				Help: "Choose when the promotion should take effect. Simulation checks the date against the applicable promotion rules; recording still requires approvals and final checks.",
 			},
 			{
 				ID: FieldReason, Name: NameReason, Label: "Business reason", Kind: kindTextarea,
@@ -564,6 +553,10 @@ func FocusedProposalForm(values map[string]string, selectedRef string, optionSet
 func focusedProposalForm(values map[string]string, selectedRef string, options *journeyv1.WorkforceOptions, worker *journeyv1.Worker) journey.ProposalForm {
 	form := ProposalForm(values, nil, selectedRef, options)
 	jobCodes, grades := governedProposalChoices(options, worker, values[FieldJobCode])
+	if worker != nil && len(jobCodes) == 0 {
+		form.Disabled = true
+		form.DisabledReason = "No promotion path is available for this employee's current job and grade. Ask your HR administrator to publish an eligible next role in the job ladder, then return to this employee's profile."
+	}
 	form.Fields[1].Label = "Valid next role"
 	form.Fields[1].Options = promotionJobOptions(options, worker, jobCodes, values[FieldJobCode])
 	form.Fields[1].Help = "Published by this organization's job architecture. Pay bands alone do not make an unrelated role a valid promotion target."
@@ -579,6 +572,13 @@ func focusedProposalForm(values map[string]string, selectedRef string, options *
 		ID: FieldWorker, Name: NameWorker, Kind: kindHidden, Value: strings.TrimSpace(selectedRef),
 	}
 	return form
+}
+
+// HasPromotionChoices shares the proposal form's published-choice resolution
+// with employee launchers. It is presentation eligibility, not authorization.
+func HasPromotionChoices(options *journeyv1.WorkforceOptions, worker *journeyv1.Worker) bool {
+	jobs, _ := governedProposalChoices(options, worker, "")
+	return len(jobs) > 0
 }
 
 func governedProposalChoices(options *journeyv1.WorkforceOptions, worker *journeyv1.Worker, selectedJob string) ([]string, []string) {
@@ -1151,10 +1151,10 @@ var (
 	stepIDs        = [4]string{"proposed", "executed", "approval", "recorded"}
 	stepLabels     = [4]string{"Proposal", "Execution", "Approval", "Record"}
 	stepDoneDetail = [4]string{
-		"The manager submitted the change and the engine minted and simulated an immutable proposal.",
-		"The P1B execution authority admitted the plan and started the workflow instance.",
-		"The routed approver completed the durable approval work item.",
-		"The terminal node recorded exactly one promotion fact in the ledger.",
+		"The proposal was saved and checked against promotion rules.",
+		"The workflow was authorized and started.",
+		"The required approval step was completed.",
+		"The promotion was recorded in the audit ledger.",
 	}
 	// stepStates is the whole of this page's reading of a stage. Each row is
 	// the four steps' states at one stage, so "what does BLOCKED look like"
@@ -1210,15 +1210,15 @@ func stepDescription(index int, state string) string {
 	}
 	active := [4]string{
 		"Review the simulation findings and correct any blocked proposal details.",
-		"Ready for the execution authority to review and admit the plan.",
-		"Waiting for the currently routed approver to decide the durable work item.",
-		"Recording the governed promotion fact at the workflow terminal.",
+		"Ready to review and start the approval workflow.",
+		"Waiting for the assigned approver's decision.",
+		"Waiting for the effective date and final checks before recording.",
 	}
 	upcoming := [4]string{
-		"The manager will submit and simulate an immutable proposal.",
-		"The execution authority will review the plan before the workflow starts.",
-		"A durable work item will be routed to the approver required by policy.",
-		"The terminal node will record one governed promotion fact.",
+		"Submit the proposed change for policy checks.",
+		"An authorized reviewer can start the workflow.",
+		"The required approvers will receive a review request.",
+		"The promotion will be recorded after approvals and final checks.",
 	}
 	failed := [4]string{
 		"The proposal cannot advance until the simulation findings are resolved.",
@@ -1626,17 +1626,17 @@ func actions(head journey.JourneyCard, approver string, workItems []*journeyv1.W
 	switch head.Stage {
 	case stageProposed:
 		return []journey.Action{{
-			ID: ActionExecute, Label: "Execute under authority", Variant: "primary",
-			Description:      "Runs the engine's ExecuteIntent behind the P1B execution authority gate. On admission the workflow instance starts and parks on its approval work item.",
+			ID: ActionExecute, Label: "Start approval workflow", Variant: "primary",
+			Description:      "Review the proposal, then start its approval workflow. Required approvals and final checks still apply; starting does not record the promotion.",
 			Action:           href,
 			Hidden:           map[string]string{},
 			Confirmation:     confirm,
-			ConfirmationNote: "Execution starts a durable workflow and routes an approval work item. It does not record the promotion yet.",
+			ConfirmationNote: "Starting sends the proposal through its required approvals. It does not record the promotion yet.",
 		}}
 	case stageBlocked:
 		return []journey.Action{{
-			ID: ActionExecute, Label: "Execute under authority", Variant: "primary",
-			Description: "Runs the engine's ExecuteIntent behind the P1B execution authority gate.",
+			ID: ActionExecute, Label: "Start approval workflow", Variant: "primary",
+			Description: "Start the approval workflow after the proposal passes its required checks.",
 			Action:      href,
 			Hidden:      map[string]string{},
 			Disabled:    true,

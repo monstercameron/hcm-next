@@ -197,7 +197,7 @@ func NewPool(ctx context.Context, url string, runtimeParams map[string]string) (
 	// or session-level advisory locks, so those are reset explicitly too.
 	var hygieneFailures atomic.Int64
 	var hygieneRoundTrips atomic.Int64
-	cfg.BeforeAcquire = func(ctx context.Context, conn *pgx.Conn) bool {
+	cfg.PrepareConn = func(ctx context.Context, conn *pgx.Conn) (bool, error) {
 		// RESET ROLE returns from SET ROLE to the login role. The unlock-all call
 		// is intentionally unconditional: unlike transaction-scoped locks,
 		// session advisory locks survive a transaction and DISCARD ALL.
@@ -206,12 +206,14 @@ func NewPool(ctx context.Context, url string, runtimeParams map[string]string) (
 		// invalidate. Runtime parameters are sent in PostgreSQL's
 		// startup packet and DISCARD ALL restores those startup values, so they
 		// do not need a per-acquire set_config round trip.
+		// A false result destroys the connection and retries the acquisition
+		// on a new one, matching the retired BeforeAcquire semantics.
 		hygieneRoundTrips.Add(1)
 		if _, err := conn.Exec(ctx, hygieneSQL, pgx.QueryExecModeSimpleProtocol); err != nil {
 			hygieneFailures.Add(1)
-			return false
+			return false, nil
 		}
-		return true
+		return true, nil
 	}
 	pool, err := pgxpool.NewWithConfig(ctx, cfg)
 	if err != nil {
@@ -225,7 +227,7 @@ func NewPool(ctx context.Context, url string, runtimeParams map[string]string) (
 }
 
 // WithConn lends one physical connection to fn and releases it afterwards.
-// The next borrower receives a session cleaned by BeforeAcquire. fn must not
+// The next borrower receives a session cleaned by PrepareConn. fn must not
 // retain conn after it returns.
 func (p *Pool) WithConn(ctx context.Context, fn func(dbport.Conn) error) error {
 	conn, err := p.pool.Acquire(ctx)

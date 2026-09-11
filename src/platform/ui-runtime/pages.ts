@@ -1,4 +1,7 @@
-import type { PageDefinition, WidgetInstance } from "@human-capital-management-suite/ui-contracts";
+import type {
+  PageDefinition,
+  WidgetInstance,
+} from "@human-capital-management-suite/ui-contracts";
 
 const basePageDefinitions: readonly PageDefinition[] = [
   {

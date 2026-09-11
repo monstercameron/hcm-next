@@ -1,0 +1,26 @@
+{
+  "receipt": {
+    "stage": "canary",
+    "artifact": "WORKFLOW",
+    "version": "v1.2.0",
+    "plan_digest": "sha256:ff90f1f1046508f9805be281b4a1fb8785a451e69a3ad53f91b703c2e0170fe2",
+    "cohort_digest": "sha256:c3095bdf5e6f9f17b5fb9da1bab1ca28ad4def54f6fb419b4ba02db56ed1f6e4",
+    "epoch": 1,
+    "control_digest": "sha256:f9b8ecbef34371c91d7880c0ddbf646d3f84db48927ee9c6d34445437ea1cbd1",
+    "owner": "release-captains"
+  },
+  "explanation": {
+    "stage": "canary",
+    "member": true,
+    "receipt": {
+      "stage": "canary",
+      "artifact": "WORKFLOW",
+      "version": "v1.2.0",
+      "plan_digest": "sha256:ff90f1f1046508f9805be281b4a1fb8785a451e69a3ad53f91b703c2e0170fe2",
+      "cohort_digest": "sha256:c3095bdf5e6f9f17b5fb9da1bab1ca28ad4def54f6fb419b4ba02db56ed1f6e4",
+      "epoch": 1,
+      "control_digest": "sha256:f9b8ecbef34371c91d7880c0ddbf646d3f84db48927ee9c6d34445437ea1cbd1",
+      "owner": "release-captains"
+    }
+  }
+}

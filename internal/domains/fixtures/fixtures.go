@@ -165,6 +165,11 @@ type promotionPathRecord struct {
 	BenefitRuleRefs            []string `json:"benefit_rule_refs"`
 }
 
+// JanePromotionBase and JanePromotionBonus are the declared inputs shared by
+// the Jane reference simulation and the interactive demo. They are not live pay.
+const JanePromotionBase = "165000.00"
+const JanePromotionBonus = "0.1500"
+
 // LegacyScenario is one ported compensation-change case.
 type LegacyScenario struct {
 	Name             string   `json:"name"`

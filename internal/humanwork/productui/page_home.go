@@ -24,10 +24,9 @@ func homePage(view View) ui.Node {
 		work.Footer.Action = ActionLinkProps{}
 	}
 	actions := make([]ActionLinkProps, 0, 2)
-	if view.Allows(PageJourneys, "create") {
-		actions = append(actions, ActionLinkProps{Label: "Start a promotion", Href: statefulHref(view, PageJourneys), Class: "button primary", Navigate: view.Navigate})
-	}
-	if view.Allows(PagePeople, "view") {
+	if view.Allows(PageJourneys, "create") && view.Allows(PagePeople, "view") {
+		actions = append(actions, ActionLinkProps{Label: "Choose an employee to promote", Href: statefulHref(view, PagePeople), Class: "button primary", Navigate: view.Navigate})
+	} else if view.Allows(PagePeople, "view") {
 		actions = append(actions, ActionLinkProps{Label: "Choose a worker", Href: statefulHref(view, PagePeople), Class: "button secondary", Navigate: view.Navigate})
 	}
 	return ui.CreateElement(HomePage, HomePageProps{
@@ -35,7 +34,7 @@ func homePage(view View) ui.Node {
 		ShowWork: view.Allows(PageWork, "view"),
 		Overview: SummaryCardProps{Title: "Promotion journeys", Facts: []FactProps{
 			{Label: "Active", Value: fmt.Sprint(active)},
-			{Label: "Terminal", Value: fmt.Sprint(terminal)},
+			{Label: "Completed or closed", Value: fmt.Sprint(terminal)},
 			{Label: "Visible workers", Value: fmt.Sprint(len(view.People))},
 		}},
 		QuickStart: QuickActionsProps{Title: "Start something", Actions: actions},

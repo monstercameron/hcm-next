@@ -178,7 +178,8 @@ func TestReportSerializationTextAndDefensiveCopies(t *testing.T) {
 		t.Fatal("RequiredCommandPackages did not return a defensive slice copy")
 	}
 	report := Report{TrackedFiles: 1, BuildArtifacts: BuildTimeArtifacts, Checks: []CheckResult{{Name: "ok", Passed: true, ExitCode: 0}}}
-	if !report.OK() || report.Digest() == "" || report.Digest() != report.Digest() {
+	firstReportDigest, secondReportDigest := report.Digest(), report.Digest()
+	if !report.OK() || firstReportDigest == "" || firstReportDigest != secondReportDigest {
 		t.Fatalf("report status/digest invalid: %+v", report)
 	}
 	data, err := report.JSON()

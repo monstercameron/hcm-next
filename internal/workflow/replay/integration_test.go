@@ -198,7 +198,7 @@ func newExecutedRun(t *testing.T) *executedRun {
 				CompiledPlanDigest: plan.Digest(), Status: version.StatusActive,
 			}},
 			Proposal: runtime.ProposalBinding{
-				Revision: proposal, Approved: true, ApprovalRef: "approval:wfrun013:manager",
+				Revision: proposal, ApprovalRef: "approval:wfrun013:manager",
 			},
 			ProposalFacts:       runtime.MemoryProposalFacts{},
 			ApprovalFacts:       runtime.MemoryApprovalFacts{ByRevisionID: map[string][]runtime.ApprovalDecisionFact{proposal.ProposalRevisionID: {{DecisionID: "approval:wfrun013:manager", Outcome: runtime.ApprovalOutcomeApproved, ProposalDigest: proposal.MaterialDigest.Digest}}}},

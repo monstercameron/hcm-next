@@ -1,0 +1,230 @@
+{
+  "decisions": [
+    {
+      "id": "unresolved-modeling-decision-1",
+      "question": "Whether test fixtures own their scope for every case.",
+      "status": ""
+    },
+    {
+      "id": "unresolved-modeling-decision-2",
+      "question": "Which variants affect approvals, and their precedence.",
+      "status": ""
+    },
+    {
+      "id": "contact-point-ownership",
+      "question": "Whether fixtures own their scope for every case.",
+      "status": "OPEN_OWNED",
+      "owner": "people-domain",
+      "deadline": "2099-01-01",
+      "affected": [
+        "contact-information"
+      ],
+      "safe_default": "ROUTE_HUMAN",
+      "evidence": [
+        "register.md"
+      ],
+      "linked_todos": [
+        "WF-DISC-004"
+      ],
+      "revision": 1
+    },
+    {
+      "id": "merge-policy",
+      "question": "Whether uncertain merges proceed automatically.",
+      "status": "DECIDED",
+      "owner": "people-domain",
+      "deadline": "2099-06-01",
+      "affected": [
+        "merge-person"
+      ],
+      "safe_default": "BLOCK",
+      "evidence": [
+        "register.md"
+      ],
+      "linked_todos": [
+        "WF-DISC-004"
+      ],
+      "linked_tests": [
+        "TestMergeBlocked"
+      ],
+      "revision": 2,
+      "alternatives": [
+        "route-human",
+        "defer-capability"
+      ],
+      "consequences": "Uncertain merges wait for review.",
+      "authority": "people-domain-owners",
+      "invalidation_trigger": "new-match-evidence",
+      "negative_fixtures": [
+        {
+          "action": "merge-high-uncertainty",
+          "signal": "uncertainty-high",
+          "expect": "BLOCK"
+        }
+      ]
+    },
+    {
+      "id": "rushed-ship",
+      "question": "Whether rushing ships without review.",
+      "status": "DECIDED",
+      "owner": "people-domain",
+      "deadline": "2099-06-01",
+      "affected": [
+        "merge-person"
+      ],
+      "safe_default": "PROCEED",
+      "evidence": [
+        "register.md"
+      ],
+      "linked_todos": [
+        "WF-DISC-004"
+      ],
+      "linked_tests": [
+        "TestRushed"
+      ],
+      "revision": 1,
+      "alternatives": [
+        "block"
+      ],
+      "consequences": "Rushed merges escape review.",
+      "authority": "people-domain-owners",
+      "invalidation_trigger": "incident",
+      "negative_fixtures": [
+        {
+          "action": "merge-high-uncertainty",
+          "signal": "uncertainty-high",
+          "expect": "BLOCK"
+        }
+      ]
+    },
+    {
+      "id": "stale-deferral",
+      "question": "Whether stale questions stay deferred forever.",
+      "status": "DEFERRED",
+      "owner": "people-domain",
+      "deadline": "2000-01-01",
+      "affected": [
+        "contact-information"
+      ],
+      "safe_default": "DEFER_CAPABILITY",
+      "evidence": [
+        "register.md"
+      ],
+      "linked_todos": [
+        "WF-DISC-004"
+      ],
+      "revision": 1
+    }
+  ],
+  "findings": [
+    {
+      "decision": "rushed-ship",
+      "code": "UNSAFE_DEFAULT",
+      "field": "safe_default",
+      "detail": "safe default must be BLOCK, ROUTE_HUMAN or DEFER_CAPABILITY"
+    },
+    {
+      "decision": "rushed-ship",
+      "code": "UNSAFE_FIXTURE",
+      "field": "negative_fixtures",
+      "detail": "negative fixture does not prove the safe default"
+    },
+    {
+      "decision": "stale-deferral",
+      "code": "MISSING_INVALIDATION_TRIGGER",
+      "field": "invalidation_trigger",
+      "detail": "entry records no invalidation trigger"
+    },
+    {
+      "decision": "stale-deferral",
+      "code": "OVERDUE_DECISION",
+      "field": "deadline",
+      "detail": "undecided entry passed its decision deadline"
+    },
+    {
+      "decision": "unresolved-modeling-decision-1",
+      "code": "INVALID_STATUS",
+      "field": "status",
+      "detail": "status must be OPEN_OWNED, DECIDED or DEFERRED"
+    },
+    {
+      "decision": "unresolved-modeling-decision-1",
+      "code": "MISSING_AFFECTED",
+      "field": "affected",
+      "detail": "decision names no affected intents or workflows"
+    },
+    {
+      "decision": "unresolved-modeling-decision-1",
+      "code": "MISSING_DEADLINE",
+      "field": "deadline",
+      "detail": "decision names no decision deadline"
+    },
+    {
+      "decision": "unresolved-modeling-decision-1",
+      "code": "MISSING_EVIDENCE",
+      "field": "evidence",
+      "detail": "decision cites no deciding evidence"
+    },
+    {
+      "decision": "unresolved-modeling-decision-1",
+      "code": "MISSING_LINKED_TODO",
+      "field": "linked_todos|linked_tests",
+      "detail": "decision links no todo or test"
+    },
+    {
+      "decision": "unresolved-modeling-decision-1",
+      "code": "MISSING_OWNER",
+      "field": "owner",
+      "detail": "decision names no accountable owner"
+    },
+    {
+      "decision": "unresolved-modeling-decision-1",
+      "code": "MISSING_SAFE_DEFAULT",
+      "field": "safe_default",
+      "detail": "decision names no safe default"
+    },
+    {
+      "decision": "unresolved-modeling-decision-2",
+      "code": "INVALID_STATUS",
+      "field": "status",
+      "detail": "status must be OPEN_OWNED, DECIDED or DEFERRED"
+    },
+    {
+      "decision": "unresolved-modeling-decision-2",
+      "code": "MISSING_AFFECTED",
+      "field": "affected",
+      "detail": "decision names no affected intents or workflows"
+    },
+    {
+      "decision": "unresolved-modeling-decision-2",
+      "code": "MISSING_DEADLINE",
+      "field": "deadline",
+      "detail": "decision names no decision deadline"
+    },
+    {
+      "decision": "unresolved-modeling-decision-2",
+      "code": "MISSING_EVIDENCE",
+      "field": "evidence",
+      "detail": "decision cites no deciding evidence"
+    },
+    {
+      "decision": "unresolved-modeling-decision-2",
+      "code": "MISSING_LINKED_TODO",
+      "field": "linked_todos|linked_tests",
+      "detail": "decision links no todo or test"
+    },
+    {
+      "decision": "unresolved-modeling-decision-2",
+      "code": "MISSING_OWNER",
+      "field": "owner",
+      "detail": "decision names no accountable owner"
+    },
+    {
+      "decision": "unresolved-modeling-decision-2",
+      "code": "MISSING_SAFE_DEFAULT",
+      "field": "safe_default",
+      "detail": "decision names no safe default"
+    }
+  ],
+  "digest": "sha256:4e335265dd038e60a2ddd59e96f38ed6e63027c68390299abddbb694d5e6f015"
+}

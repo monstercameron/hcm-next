@@ -948,8 +948,7 @@ func nullableSequence(revision values.RevisionToken) any {
 	}
 	return sequenceValue(revision)
 }
-func parseID(id string) uuid.UUID             { v, _ := uuid.Parse(id); return v }
-func mustUUID(ref values.EntityRef) uuid.UUID { v, _ := uuid.Parse(ref.Id); return v }
+func parseID(id string) uuid.UUID { v, _ := uuid.Parse(id); return v }
 func entityRef(tenant, kind, id string) values.EntityRef {
 	return values.EntityRef{Tenant: values.TenantId(tenant), Kind: values.Kind(kind), Id: id}
 }

@@ -1,0 +1,32 @@
+{
+  "exploratory_digest": "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "graph_digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+  "schemas": [
+    {
+      "name": "ContactPointRevision",
+      "digest": "sha256:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+    }
+  ],
+  "capabilities": {
+    "identity-resolve": "1.4.0"
+  },
+  "behaviors": [
+    {
+      "name": "verify-endpoint",
+      "type": "Effect"
+    }
+  ],
+  "deviations": null,
+  "owner": "people-domain",
+  "review_expiry": "2099-01-01",
+  "fixture_results": [
+    {
+      "action": "merge-high-uncertainty",
+      "outcome": "BLOCK"
+    }
+  ],
+  "state": "CONTRACTED",
+  "key_id": "2152f8d19b791d24",
+  "digest": "sha256:75d85358b4938d2ff4483a660b9d4ae89b13e9d068d0ad6a117dec8f19a5e096",
+  "signature": "635b7bd3e5cf781e317fbfa47af7bf3407eef1c1008cf43c52125f5dd7dac6cf3f100beb6c711e727e752ebddbc32b47ad4e8602bb39aa7d5a68c149b869c308"
+}

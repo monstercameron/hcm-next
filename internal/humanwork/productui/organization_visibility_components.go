@@ -39,16 +39,61 @@ func OrganizationVisibilityPage(props OrganizationVisibilityPageProps) ui.Node {
 		}
 		editors = append(editors, roleVisibilityEditor(props, role, policy, index == 0))
 	}
+	activeRoles := make([]AccessRole, 0, len(props.Roles))
+	for _, role := range props.Roles {
+		if role.Active {
+			activeRoles = append(activeRoles, role)
+		}
+	}
 	if len(editors) == 0 {
 		editors = append(editors, html.Div(html.Props{Class: "surface empty-state"}, html.H2(html.Props{}, ui.Text(props.Text("organization_visibility.no_roles"))), html.P(html.Props{Class: "muted"}, ui.Text(props.Text("organization_visibility.no_roles_detail"))), ui.CreateElement(ActionLink, props.RolesLink)))
 	}
 	return html.Div(html.Props{Class: "organization-visibility-page"},
 		html.Section(html.Props{Class: "surface organization-visibility-intro"},
 			html.Div(html.Props{}, html.Span(html.Props{Class: "eyebrow"}, ui.Text(props.Text("organization_visibility.eyebrow"))), html.H2(html.Props{}, ui.Text(props.Text("organization_visibility.heading"))), html.P(html.Props{Class: "muted"}, ui.Text(props.Text("organization_visibility.description")))),
+			organizationVisibilityEffectiveSummary(props, activeRoles, policies),
 			html.Div(html.Props{Class: "organization-visibility-nav"}, ui.CreateElement(ActionLink, props.RolesLink), ui.CreateElement(ActionLink, props.Back)),
 		),
 		html.Div(html.Props{Class: "role-visibility-list"}, editors...),
 	)
+}
+
+// organizationVisibilityEffectiveSummary is presentation-only context for
+// additive role grants. The server remains the authority for the effective
+// worker set; this summary names the configured grants so an editor can see
+// why multiple roles may broaden access.
+func organizationVisibilityEffectiveSummary(props OrganizationVisibilityPageProps, roles []AccessRole, policies map[string]OrganizationVisibilityPolicy) ui.Node {
+	if len(roles) == 0 {
+		return html.Div(html.Props{})
+	}
+	items := make([]ui.Node, 0, len(roles))
+	for _, role := range roles {
+		policy, ok := policies[role.ID]
+		if !ok {
+			policy.Mode = "OWN_UNIT"
+		}
+		items = append(items, html.Li(html.Props{}, ui.Text(role.Name+": "+localizedVisibilityModeLabel(props, policy.Mode))))
+	}
+	return html.Div(html.Props{Class: "organization-visibility-effective-summary", Raw: map[string]any{"role": "note"}},
+		html.Strong(html.Props{}, ui.Text(props.Text("organization_visibility.boundary_title"))),
+		html.P(html.Props{Class: "muted"}, ui.Text(props.Text("organization_visibility.boundary_detail"))),
+		html.Details(html.Props{},
+			html.Summary(html.Props{}, ui.Text(props.Text("organization_visibility.configured_roles"))),
+			html.Ul(html.Props{}, items...)),
+	)
+}
+
+func localizedVisibilityModeLabel(props OrganizationVisibilityPageProps, mode string) string {
+	switch strings.ToUpper(strings.TrimSpace(mode)) {
+	case "ALL":
+		return props.Text("organization_visibility.mode_all")
+	case "ALLOWLIST":
+		return props.Text("organization_visibility.mode_allow")
+	case "DENYLIST":
+		return props.Text("organization_visibility.mode_deny")
+	default:
+		return props.Text("organization_visibility.mode_own")
+	}
 }
 
 func roleVisibilityEditor(props OrganizationVisibilityPageProps, role AccessRole, policy OrganizationVisibilityPolicy, expanded bool) ui.Node {
@@ -87,6 +132,13 @@ func roleVisibilityEditor(props OrganizationVisibilityPageProps, role AccessRole
 		unitChoices = append(unitChoices, html.Label(html.Props{Class: "organization-visibility-unit"}, html.Input(input), html.Span(html.Props{}, ui.Text(unit))))
 	}
 	modeFieldset := append([]ui.Node{html.Legend(html.Props{}, ui.Text(props.Text("organization_visibility.scope_title")))}, modeChoices...)
+	unitSelectionActive := strings.EqualFold(draft.Mode, "ALLOWLIST") || strings.EqualFold(draft.Mode, "DENYLIST")
+	unitFieldsetProps := html.Props{Class: "organization-visibility-units"}
+	if !unitSelectionActive {
+		unitFieldsetProps.Class += " inactive"
+		unitFieldsetProps.Raw = map[string]any{"aria-disabled": "true", "data-selection-state": "inactive"}
+	}
+	unitFieldsetProps.Disabled = !props.Editable || !unitSelectionActive
 	unitFieldset := append([]ui.Node{html.Legend(html.Props{}, ui.Text(props.Text("organization_visibility.units_title"))), html.P(html.Props{Class: "muted"}, ui.Text(props.Text("organization_visibility.units_help")))}, html.Div(html.Props{Class: "organization-visibility-unit-grid"}, unitChoices...))
 	modeLabels := make(map[string]string, len(modes))
 	for _, mode := range modes {
@@ -105,7 +157,7 @@ func roleVisibilityEditor(props OrganizationVisibilityPageProps, role AccessRole
 		html.Tag("summary", html.Props{}, html.Div(html.Props{}, html.Strong(html.Props{}, ui.Text(role.Name)), html.Code(html.Props{}, ui.Text(role.ID))), html.Span(html.Props{Class: "status"}, ui.Text(visibilityModeLabel(policy.Mode)))),
 		html.Form(html.Props{Class: "organization-visibility-form", OnSubmit: saveOrganizationVisibility(props.OnSave, &draft)},
 			html.Fieldset(html.Props{Class: "organization-visibility-modes"}, modeFieldset...),
-			html.Fieldset(html.Props{Class: "organization-visibility-units"}, unitFieldset...),
+			html.Fieldset(unitFieldsetProps, unitFieldset...),
 			scopeBlock,
 			domainBlock,
 			html.Div(html.Props{Class: "organization-visibility-boundary", Raw: map[string]any{"role": "note"}}, html.Strong(html.Props{}, ui.Text(props.Text("organization_visibility.boundary_title"))), html.P(html.Props{}, ui.Text(props.Text("organization_visibility.boundary_detail")))),

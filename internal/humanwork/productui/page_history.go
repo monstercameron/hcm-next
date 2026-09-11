@@ -51,6 +51,9 @@ func workflowHistoryPropsForTarget(view View, personID string, target PageID, ti
 		EmptyText: view.Locale.Text("history.empty_terminal"),
 		Items:     rows, FilteredCount: len(items), TotalCount: len(universe),
 	}
+	if len(universe) > 0 && len(items) == 0 {
+		props.EmptyText = view.Locale.Text("history.none_detail")
+	}
 	if len(items) > 0 {
 		props.Pagination = historyPaginationProps(view, personID, target, window)
 	}

@@ -91,17 +91,6 @@ func fromWorkerIDPolicy(p *journeyv1.WorkerIDPolicy) workerids.Policy {
 }
 
 func workerIDPreviews(p workerids.Policy, at time.Time) []string {
-	result := make([]string, 0, 4)
-	sequence := p.NextSequence
-	for len(result) < 4 {
-		if !workerids.IsExcluded(p, sequence) {
-			value, err := workerids.Format(p, sequence, workerids.FormatContext{At: at, UnitCode: "CARE"})
-			if err != nil {
-				break
-			}
-			result = append(result, value)
-		}
-		sequence += p.IncrementBy
-	}
+	result, _ := workerids.Preview(p, workerids.FormatContext{At: at, UnitCode: "CARE"})
 	return result
 }

@@ -2,6 +2,7 @@ package bootstrap_test
 
 import (
 	"context"
+	"fmt"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -9,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/monstercameron/GoGRPCBridge/pkg/grpctunnel"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -17,6 +19,8 @@ import (
 	"google.golang.org/grpc/status"
 
 	journeyv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/journey/v1"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/intentcontrol"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/tenancy"
 	"github.com/monstercameron/human-capital-management-suite/internal/intent/app"
 	"github.com/monstercameron/human-capital-management-suite/internal/intent/app/pgstore"
 	"github.com/monstercameron/human-capital-management-suite/internal/transport"
@@ -416,6 +420,203 @@ func TestTodo_PROMO_007_Mutation(t *testing.T) {
 	if after := intentCount(t, c); after != intentsBefore+2 {
 		t.Fatalf("intents recorded = %d, want %d (propose must record chronology)", after-intentsBefore, 2)
 	}
+}
+
+// ---------------------------------------------------------------------------
+// DURABLE CANDIDATES (EP-PROMO-001)
+// ---------------------------------------------------------------------------
+
+// TestTodo_EP_PROMO_001_Integration is the facade-specific half of EP-PROMO-001
+// the reopened audit named missing: one propose leaves behind durable,
+// restartable candidates - the input snapshot the simulation consumed, the
+// proposal revision it minted with its item sets, and the simulation result
+// binding the two - while mutating no domain state.
+//
+// "Durable" is asserted in the only way that means anything: the rows are
+// read back out of the database, the stored payload decodes to the same
+// material digest the wire carried, and a store recomposed over the same
+// pool - the test's stand-in for a process restart - reads them all again.
+// A replayed request records nothing a second time, because every candidate
+// identity is derived rather than allocated.
+func TestTodo_EP_PROMO_001_Integration(t *testing.T) {
+	c := newPromotionCell(t)
+	ctx, cancel := c.callCtx(t)
+	defer cancel()
+	tenant := pgstore.TenantID(testTenant)
+
+	proposed, err := c.direct.ProposePromotion(ctx, promotionProposeRequest("req-durable-1"))
+	if err != nil {
+		t.Fatalf("ProposePromotion: %v", err)
+	}
+	if proposed.GetStage() != journeyv1.JourneyStage_JOURNEY_STAGE_PROPOSED {
+		t.Fatalf("stage = %v, want PROPOSED", proposed.GetStage())
+	}
+	intentID := proposed.GetIntentId()
+	materialDigest := proposed.GetMaterialDigest()
+
+	t.Run("the snapshot the simulation consumed is durable", func(t *testing.T) {
+		type row struct {
+			purpose   string
+			sequence  int64
+			digest    string
+			schemaRef string
+			body      string
+		}
+		var got row
+		if err := c.harness.cell.pool.QueryRow(ctx, `
+			SELECT snapshot_purpose, snapshot_sequence, snapshot_digest,
+				schema_ref, snapshot_body::text
+			FROM intent_input_snapshot
+			WHERE tenant_id = $1 AND intent_id = $2`,
+			tenant, intentID).Scan(&got.purpose, &got.sequence, &got.digest, &got.schemaRef, &got.body); err != nil {
+			t.Fatalf("no durable input snapshot for the proposed intent: %v", err)
+		}
+		if got.purpose != "SIMULATION" || got.sequence != 1 {
+			t.Fatalf("snapshot = (%s, seq %d), want (SIMULATION, 1)", got.purpose, got.sequence)
+		}
+		if len(got.digest) != 64 {
+			t.Fatalf("snapshot_digest = %q, want a 64-hex content digest", got.digest)
+		}
+		if got.schemaRef != "hcmnext.intents.v1.IntentInputSnapshot" {
+			t.Fatalf("schema_ref = %q", got.schemaRef)
+		}
+		if !strings.Contains(got.body, intentID) {
+			t.Fatalf("the snapshot body does not name its intent: %s", got.body)
+		}
+	})
+
+	t.Run("the proposal revision and its item sets are durable", func(t *testing.T) {
+		var (
+			schemaRef, producedBy, storedDigest string
+			payloadLen                          int
+		)
+		if err := c.harness.cell.pool.QueryRow(ctx, `
+			SELECT schema_ref, produced_by, material_digest, length(payload)
+			FROM proposal_revision
+			WHERE tenant_id = $1 AND revision = 1
+				AND intent_id = $2`,
+			tenant, intentID).Scan(&schemaRef, &producedBy, &storedDigest, &payloadLen); err != nil {
+			t.Fatalf("no durable proposal_revision for the proposed intent: %v", err)
+		}
+		if storedDigest != materialDigest {
+			t.Fatalf("stored material_digest = %q, want the wire's %q", storedDigest, materialDigest)
+		}
+		if schemaRef != "hcmnext.intents.v1.Proposal" {
+			t.Fatalf("schema_ref = %q", schemaRef)
+		}
+		if producedBy != "hcmnext:intent-cell" {
+			t.Fatalf("produced_by = %q, want the cell's own attribution", producedBy)
+		}
+		if payloadLen == 0 {
+			t.Fatal("the durable revision carries no payload; it could not be re-read")
+		}
+
+		writes := queryOne[int](t, c.harness.cell, `
+			SELECT count(*) FROM proposal_write_item
+			WHERE tenant_id = $1 AND revision = 1
+				AND intent_id = $2`,
+			tenant, intentID)
+		if writes == 0 {
+			t.Fatal("the promotion proposal recorded no planned write items")
+		}
+		ordinals := queryAll[int64](t, c.harness.cell, `
+			SELECT ordinal FROM proposal_write_item
+			WHERE tenant_id = $1 AND revision = 1
+				AND intent_id = $2
+			ORDER BY ordinal`, tenant, intentID)
+		for i, ordinal := range ordinals {
+			if ordinal != int64(i+1) {
+				t.Fatalf("write item ordinals = %v, want a dense 1..%d sequence", ordinals, len(ordinals))
+			}
+		}
+		approvals := queryOne[int](t, c.harness.cell, `
+			SELECT count(*) FROM proposal_approval_requirement
+			WHERE tenant_id = $1 AND revision = 1
+				AND intent_id = $2`,
+			tenant, intentID)
+		if approvals != 1 {
+			t.Fatalf("approval requirements recorded = %d, want the promotion's one", approvals)
+		}
+	})
+
+	t.Run("the simulation result binds the snapshot and the proposal", func(t *testing.T) {
+		var (
+			status, resultDigest, proposalDigest string
+			revision, sequence                   int64
+			snapshotBound                        int
+		)
+		if err := c.harness.cell.pool.QueryRow(ctx, `
+			SELECT simulation_status, result_digest, proposal_digest,
+				revision, simulation_sequence,
+				(SELECT count(*) FROM intent_input_snapshot s
+					WHERE s.tenant_id = r.tenant_id AND s.snapshot_id = r.input_snapshot_id)
+			FROM intent_simulation_result r
+			WHERE r.tenant_id = $1
+				AND r.intent_id = $2`,
+			tenant, intentID).Scan(&status, &resultDigest, &proposalDigest,
+			&revision, &sequence, &snapshotBound); err != nil {
+			t.Fatalf("no durable simulation result for the proposed intent: %v", err)
+		}
+		if status != "READY" || revision != 1 || sequence != 1 {
+			t.Fatalf("simulation result = (%s, rev %d, seq %d), want (READY, 1, 1)", status, revision, sequence)
+		}
+		if proposalDigest != materialDigest {
+			t.Fatalf("result's proposal_digest = %q, want %q", proposalDigest, materialDigest)
+		}
+		if len(resultDigest) != 64 {
+			t.Fatalf("result_digest = %q, want a 64-hex content digest", resultDigest)
+		}
+		if snapshotBound != 1 {
+			t.Fatal("the result's input_snapshot_id names no recorded snapshot")
+		}
+	})
+
+	t.Run("a replayed request records no second candidate set", func(t *testing.T) {
+		replayed, err := c.tunnel.ProposePromotion(ctx, promotionProposeRequest("req-durable-1"))
+		if err != nil {
+			t.Fatalf("replayed ProposePromotion: %v", err)
+		}
+		if replayed.GetIntentId() != intentID {
+			t.Fatalf("a replay minted a second intent %s", replayed.GetIntentId())
+		}
+		for _, table := range []string{
+			"intent_input_snapshot", "intent_simulation_result", "proposal_revision",
+		} {
+			n := queryOne[int](t, c.harness.cell, fmt.Sprintf(`
+				SELECT count(*) FROM %s
+				WHERE tenant_id = $1
+					AND intent_id = $2`,
+				table), tenant, intentID)
+			if n != 1 {
+				t.Fatalf("%s holds %d candidate rows for one replayed propose", table, n)
+			}
+		}
+	})
+
+	t.Run("a recomposed store reads the same candidates", func(t *testing.T) {
+		// The restart claim, after the convention in next004: a store
+		// recomposed over the same pool - what a process restart composes -
+		// answers with the rows the first composition wrote.
+		tx, err := c.harness.cell.pool.Begin(ctx)
+		if err != nil {
+			t.Fatalf("begin: %v", err)
+		}
+		defer func() { _ = tx.Rollback(ctx) }()
+		if err := tenancy.WithTenant(ctx, tx, tenant); err != nil {
+			t.Fatalf("scope tenant: %v", err)
+		}
+		stored, err := (intentcontrol.RevisionStore{}).Load(ctx, tx,
+			tenant, uuid.MustParse(intentID), 1)
+		if err != nil {
+			t.Fatalf("the recomposed store finds no revision: %v", err)
+		}
+		if stored.MaterialDigest != materialDigest {
+			t.Fatalf("after recomposition material_digest = %q, want %q", stored.MaterialDigest, materialDigest)
+		}
+		if len(stored.Payload) == 0 {
+			t.Fatal("the recomposed store read back no payload")
+		}
+	})
 }
 
 // ---------------------------------------------------------------------------

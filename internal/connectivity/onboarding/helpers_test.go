@@ -2,6 +2,7 @@ package onboarding_test
 
 import (
 	"crypto/ed25519"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -83,13 +84,19 @@ func activeConnection(t *testing.T) *connectivity.ConnectorConnection {
 
 // fixedClock returns a clock advancing one minute per call, so checkpoint and
 // budget timestamps are deterministic and strictly increasing.
+//
+// The tick counter is atomic because TestTodo_ONBOARD_001_Race drives one
+// Preflight from 32 goroutines at once, and Preflight.now() calls this clock
+// on every one of them. The previous plain `int` was a genuine data race that
+// `go test -race` on Linux CI reported (a read-modify-write from concurrent
+// goroutines), failing every test in this package, not just the racing one.
+// Add returns each caller a distinct tick, which is all the callers need;
+// which goroutine gets which minute was never deterministic anyway.
 func fixedClock() func() time.Time {
 	base := time.Date(2026, 9, 1, 12, 0, 0, 0, time.UTC)
-	var tick int
+	var tick atomic.Int64
 	return func() time.Time {
-		t := base.Add(time.Duration(tick) * time.Minute)
-		tick++
-		return t
+		return base.Add(time.Duration(tick.Add(1)-1) * time.Minute)
 	}
 }
 

@@ -1,0 +1,5 @@
+audience=sha256:26d388b50599783f5e5165770c47438801c6a4e67bbe63d9edcb6fb837e09871
+r1=ACKNOWLEDGED r2=UNREACHABLE
+human-work=reach:r2
+legal-satisfaction=false
+digest=sha256:8029ffba622f8ce4e9bf308b84f965adf2b0f1dfd45c600774a2aa4523edab07

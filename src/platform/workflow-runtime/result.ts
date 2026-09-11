@@ -17,4 +17,8 @@ export {
   workflowNotFoundError,
 } from "@human-capital-management-suite/foundation";
 
-export type { AppError, ErrorCode, Result } from "@human-capital-management-suite/foundation";
+export type {
+  AppError,
+  ErrorCode,
+  Result,
+} from "@human-capital-management-suite/foundation";

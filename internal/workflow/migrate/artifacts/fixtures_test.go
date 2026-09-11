@@ -363,14 +363,6 @@ func (s *scenario) relocate() *scenario {
 	return s
 }
 
-// noHumanArtifacts drops the approval and the child link, which are the two
-// kinds that refuse a relocation on purpose.
-func (s *scenario) noHumanArtifacts() *scenario {
-	s.ports.approvals = nil
-	s.ports.children = nil
-	return s
-}
-
 func (s *scenario) run(t *testing.T) (Receipt, error) {
 	t.Helper()
 	return Migrate(context.Background(), nil, Request{Scope: s.scope, Ports: s.ports.ports()})

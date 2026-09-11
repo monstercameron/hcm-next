@@ -106,10 +106,7 @@ func (m Manifest) payload() manifestPayload {
 	streams := m.OrderedStreams()
 	projected := make([]streamHeadPayload, 0, len(streams))
 	for _, s := range streams {
-		projected = append(projected, streamHeadPayload{
-			StreamKey: s.StreamKey, Sequence: s.Sequence,
-			ChainHash: s.ChainHash, ChainAlgorithm: s.ChainAlgorithm,
-		})
+		projected = append(projected, streamHeadPayload(s))
 	}
 	p := manifestPayload{
 		SchemaVersion:          m.SchemaVersion,

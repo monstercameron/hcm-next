@@ -1,9 +1,80 @@
 package productui
 
 import (
+	"regexp"
 	"strings"
 	"testing"
+	"time"
 )
+
+func TestWorkerIDInvalidNumbersDisableSaveAndAvoidSuccessBadge(t *testing.T) {
+	view := testView(PageWorkerIDs)
+	view.WorkerIDPolicy = WorkerIDPolicy{SequenceDigits: 6, StartAt: 1, IncrementBy: -1}
+	doc, err := Render(view)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !regexp.MustCompile(`<button[^>]*disabled[^>]*>Save worker ID rules</button>`).MatchString(doc) {
+		t.Fatal("invalid numeric draft retains an enabled save action")
+	}
+	if !strings.Contains(doc, "No examples available") || strings.Contains(doc, "Atomic uniqueness") {
+		t.Fatal("invalid preview lacks explanation or shows a success badge")
+	}
+	if !strings.Contains(doc, "Complete the numeric fields") || !strings.Contains(doc, `aria-describedby="worker-id-status"`) {
+		t.Fatal("disabled save lacks an associated explanation")
+	}
+	if !strings.Contains(doc, ".app-shell .button:disabled,.app-shell .button:disabled:hover{") {
+		t.Fatal("native disabled buttons lack theme-aware visual state")
+	}
+}
+
+func TestWorkerIDDraftExamplesTrackInputsWithoutIssuingNumbers(t *testing.T) {
+	p := WorkerIDPolicy{Prefix: "TEST", Separator: "-", SequenceDigits: 6, StartAt: 1, NextSequence: 42, IncrementBy: 2, ZeroPad: true, YearFormat: "YYYY", CheckDigit: "NONE", Version: 2, IssuedCount: 5}
+	got, err := workerIDDraftExamples(p, time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC))
+	if err != nil || len(got) != 4 || got[0] != "TEST-2026-000042" || got[3] != "TEST-2026-000048" {
+		t.Fatalf("draft examples = %v, %v", got, err)
+	}
+	if p.NextSequence != 42 || p.IssuedCount != 5 {
+		t.Fatal("preview changed allocation")
+	}
+	p.SequenceDigits = 0
+	if _, err := workerIDDraftExamples(p, time.Time{}); err == nil {
+		t.Fatal("invalid digits silently normalized")
+	}
+	p.SequenceDigits = 6
+	p.ExcludedRanges = "invalid"
+	if _, err := workerIDDraftExamples(p, time.Time{}); err == nil {
+		t.Fatal("invalid exclusions silently accepted")
+	}
+}
+
+func TestWorkerIDNumericDraftPreservesIncompleteInputAsInvalid(t *testing.T) {
+	for _, raw := range []string{"", "-", "1.5", "1e3", "999999999999999999999999"} {
+		if got := workerIDNumericDraft(raw); got != -1 {
+			t.Errorf("raw %q parsed as %d", raw, got)
+		}
+	}
+	p := WorkerIDPolicy{SequenceDigits: 6, StartAt: 1000, IncrementBy: 1}
+	draft := newWorkerIDDraft(p, time.Time{})
+	if draft.Numbers != [3]string{"6", "1000", "1"} {
+		t.Fatalf("seed = %v", draft.Numbers)
+	}
+	draft.Numbers[2] = ""
+	draft.Policy.IncrementBy = workerIDNumericDraft(draft.Numbers[2])
+	if workerIDNumbersValid(draft.Policy) {
+		t.Fatal("blank increment can submit")
+	}
+	if _, err := workerIDDraftExamples(draft.Policy, time.Time{}); err == nil {
+		t.Fatal("blank increment has preview")
+	}
+	if draft.Numbers[2] != "" {
+		t.Fatal("blank input was replaced")
+	}
+	draft.Policy.IncrementBy = workerIDNumericDraft("5")
+	if !workerIDNumbersValid(draft.Policy) {
+		t.Fatal("valid increment cannot recover")
+	}
+}
 
 func TestWorkerIDAdminPageRendersGovernedRulesAndExamples(t *testing.T) {
 	view := testView(PageWorkerIDs)
@@ -12,7 +83,7 @@ func TestWorkerIDAdminPageRendersGovernedRulesAndExamples(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, want := range []string{"Issue worker numbers your way", `id="worker-prefix"`, "Maximum sequence digits", "HC-001042", "Atomic uniqueness", "never reused", `href="/workspace/app/admin"`} {
+	for _, want := range []string{"Issue worker numbers your way", `id="worker-prefix"`, "Maximum sequence digits", "HC-001042", "Format preview", "never reused", `href="/workspace/app/admin"`} {
 		if !strings.Contains(doc, want) {
 			t.Errorf("worker ID page missing %q", want)
 		}

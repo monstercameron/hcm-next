@@ -1,0 +1,7 @@
+request: headcount request hc-21 state=SUBMITTED revision=1; position and requisition are separate transactions
+headcount: SUBMITTED -> APPROVED
+position: PROPOSED -> REQUESTED
+position: REQUESTED -> CREATED external=external-pos-21
+requisition: PROPOSED -> REQUESTED
+requisition: REQUESTED -> OPEN external=external-req-21
+capacity: requested=2.00 available=2.00

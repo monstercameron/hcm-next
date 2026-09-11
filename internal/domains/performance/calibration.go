@@ -194,18 +194,17 @@ func (a CalibrationAdjustment) body() []byte {
 }
 
 func (a CalibrationAdjustment) ValidateWithoutDigest() error {
-	copyOf := a
-	copyOf.Digest = ""
-	if strings.TrimSpace(copyOf.ParticipantID) == "" || strings.TrimSpace(copyOf.AdjusterID) == "" {
+	// The digest is simply never read here, so there is nothing to blank.
+	if strings.TrimSpace(a.ParticipantID) == "" || strings.TrimSpace(a.AdjusterID) == "" {
 		return fmt.Errorf("%w: participant and adjuster are required", ErrInvalidCalibrationAdjustment)
 	}
-	if err := copyOf.From.Validate(); err != nil {
+	if err := a.From.Validate(); err != nil {
 		return fmt.Errorf("%w: from rating: %v", ErrInvalidCalibrationAdjustment, err)
 	}
-	if err := copyOf.To.Validate(); err != nil {
+	if err := a.To.Validate(); err != nil {
 		return fmt.Errorf("%w: to rating: %v", ErrInvalidCalibrationAdjustment, err)
 	}
-	if copyOf.From.Scale() != copyOf.To.Scale() || !copyOf.Reason.Valid() {
+	if a.From.Scale() != a.To.Scale() || !a.Reason.Valid() {
 		return fmt.Errorf("%w: rating scales and reason must be declared", ErrInvalidCalibrationAdjustment)
 	}
 	return nil

@@ -7,6 +7,26 @@ import (
 	"github.com/monstercameron/GoWebComponents/v5/ui"
 )
 
+func TestPromotionUnavailableHidesActionButNotPerson(t *testing.T) {
+	view := testView(PagePeople)
+	view.People[0].PromotionUnavailable = true
+	person := view.People[0]
+	for _, item := range globalSearchItems(view) {
+		if item.ID == "action:promotion:"+person.ID {
+			t.Fatal("search offers unavailable promotion")
+		}
+	}
+	props := personWorkflowLauncherProps(view, person, PagePerson)
+	for _, workflow := range props.Workflows {
+		if workflow.Name == "Promotion" {
+			t.Fatal("profile offers unavailable promotion")
+		}
+	}
+	if props.UnavailableDetail == "" {
+		t.Fatal("profile needs a recovery explanation")
+	}
+}
+
 func TestGlobalSearchCoversProductPagesPeopleWorkflowsSettingsAndFeatures(t *testing.T) {
 	view := testView(PageHome)
 	items := globalSearchItems(view)

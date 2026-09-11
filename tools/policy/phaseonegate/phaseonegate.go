@@ -249,9 +249,7 @@ func Generate(layoutManifest *layout.Manifest, graph *Graph, physical []string, 
 		}
 		manifest.Deferred = append(manifest.Deferred, deferredFor(layoutManifest, path))
 	}
-	for _, gap := range liveGaps(layoutManifest, graph.Packages) {
-		manifest.LiveGaps = append(manifest.LiveGaps, gap)
-	}
+	manifest.LiveGaps = append(manifest.LiveGaps, liveGaps(layoutManifest, graph.Packages)...)
 	return manifest
 }
 

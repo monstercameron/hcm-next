@@ -8,7 +8,8 @@ import (
 )
 
 func TestDigest_IsDeterministic(t *testing.T) {
-	if digest("profile", "x", "y") != digest("profile", "x", "y") {
+	firstDigest, secondDigest := digest("profile", "x", "y"), digest("profile", "x", "y")
+	if firstDigest != secondDigest {
 		t.Fatal("digest is not deterministic")
 	}
 	if digest("profile", "x", "y") == digest("profile", "x", "z") {

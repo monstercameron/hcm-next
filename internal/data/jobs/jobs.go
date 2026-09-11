@@ -666,14 +666,6 @@ const (
 	PartitionCancelled = "CANCELLED"
 )
 
-var partitionTransitions = map[string][]string{
-	PartitionPending:   {PartitionClaimed, PartitionCancelled},
-	PartitionClaimed:   {PartitionCompleted, PartitionFailed, PartitionCancelled},
-	PartitionCompleted: nil,
-	PartitionFailed:    nil,
-	PartitionCancelled: nil,
-}
-
 // JobPartition is one job_partition row: one partition of a run, with its
 // own compare-and-swap fenced state and a deterministic partition key.
 type JobPartition struct {

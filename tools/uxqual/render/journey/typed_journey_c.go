@@ -70,7 +70,7 @@ func declareJourneyMotion() {
 	)
 	declareGlobal(`.jn-band-fill`,
 		gwccss.Raw("fill", "var(--jn-accent)"),
-		gwccss.Opacity(.85),
+		gwccss.OpacityNum(gwccss.Num(.85)),
 		gwccss.Raw("transform-box", "fill-box"),
 		gwccss.Raw("transform-origin", "left center"),
 		gwccss.Keyframes("jn-grow-x-svg", jnGrowXSVGFrames...),
@@ -353,9 +353,11 @@ func declareJourneyMotion() {
 	declareGlobal(`.jn-confirm>summary::-webkit-details-marker`,
 		gwccss.Display.None,
 	)
-	declareGlobal(`.jn-confirm[open]>summary`,
+	declareGlobal(`.jn-confirm-close-label`,
 		gwccss.Display.None,
 	)
+	declareGlobal(`.jn-confirm[open] .jn-confirm-open-label`, gwccss.Display.None)
+	declareGlobal(`.jn-confirm[open] .jn-confirm-close-label`, gwccss.Display.Inline)
 	declareGlobal(`.jn-confirm-body`,
 		gwccss.Display.Flex,
 		gwccss.FlexDir.Col,
@@ -505,7 +507,7 @@ func declareJourneyMotion() {
 		gwccss.MinHeight(gwccss.Rem(24)),
 	)
 	declareGlobal(`.jn-network-stale`,
-		gwccss.Opacity(.22),
+		gwccss.OpacityNum(gwccss.Num(.22)),
 		gwccss.Raw("pointer-events", "none"),
 		gwccss.Raw("user-select", "none"),
 	)

@@ -132,7 +132,8 @@ func TestTodo_SUBPROCESSOR_001_Security(t *testing.T) {
 }
 
 func TestTodo_SUBPROCESSOR_001_Conformance(t *testing.T) {
-	if Digest(testInventory(1, "us")) != Digest(testInventory(1, "us")) {
+	firstInventoryDigest, secondInventoryDigest := Digest(testInventory(1, "us")), Digest(testInventory(1, "us"))
+	if firstInventoryDigest != secondInventoryDigest {
 		t.Fatal("digest is not deterministic")
 	}
 	shuffled := testInventory(1, "us")

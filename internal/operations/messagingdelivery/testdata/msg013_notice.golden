@@ -1,0 +1,4 @@
+requirement=notice-1
+outcome=SATISFIED
+evidence=ack:ack:worker-w1,content:sha256:notice,recipient:worker:w1,rule:ca-notice/v1,signature:sha256:ceremony
+digest=sha256:f0c3304c3afca1e8542334aaf840b6fb8fe51cd0583116d38da25fc06e81db7b

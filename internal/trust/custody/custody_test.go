@@ -144,7 +144,8 @@ func TestLease_ValidateRejectsMalformedAndExpiredValues(t *testing.T) {
 
 func TestContextDigest_IsStableAndBindsEveryDimension(t *testing.T) {
 	base := testContext().RequestContext
-	if ContextDigest(base) != ContextDigest(base) {
+	firstContextDigest, secondContextDigest := ContextDigest(base), ContextDigest(base)
+	if firstContextDigest != secondContextDigest {
 		t.Fatal("digest is not stable")
 	}
 	for _, mutate := range []func(*RequestContext){

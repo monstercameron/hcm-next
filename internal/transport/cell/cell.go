@@ -26,6 +26,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
+	"strings"
 
 	"connectrpc.com/connect"
 	"google.golang.org/grpc"
@@ -39,6 +41,7 @@ import (
 	"github.com/monstercameron/human-capital-management-suite/internal/transport/envelope"
 	"github.com/monstercameron/human-capital-management-suite/internal/transport/grpcserver"
 	transporthealth "github.com/monstercameron/human-capital-management-suite/internal/transport/health"
+	transporthumanwork "github.com/monstercameron/human-capital-management-suite/internal/transport/humanwork"
 	transportjourney "github.com/monstercameron/human-capital-management-suite/internal/transport/journey"
 	"github.com/monstercameron/human-capital-management-suite/internal/transport/manifest"
 	transportoperations "github.com/monstercameron/human-capital-management-suite/internal/transport/operations"
@@ -60,7 +63,7 @@ import (
 // UNAVAILABLE, matching every other optional transportadmin.Dependencies
 // port a caller does not wire.
 func NewGRPCServer(c *app.Cell, opts ...grpc.ServerOption) (*grpc.Server, error) {
-	return NewGRPCServerWithWorkflowInspectorAndOperations(c, nil, nil, nil, opts...)
+	return NewGRPCServerWithWorkflowInspectorAndOperations(c, nil, nil, nil, nil, opts...)
 }
 
 // NewGRPCServerWithWorkflowInspector is [NewGRPCServer] plus ADMIN-008's
@@ -77,7 +80,7 @@ func NewGRPCServer(c *app.Cell, opts ...grpc.ServerOption) (*grpc.Server, error)
 func NewGRPCServerWithWorkflowInspector(
 	c *app.Cell, instances app.WorkflowInstanceReader, opts ...grpc.ServerOption,
 ) (*grpc.Server, error) {
-	return NewGRPCServerWithWorkflowInspectorAndOperations(c, instances, nil, nil, opts...)
+	return NewGRPCServerWithWorkflowInspectorAndOperations(c, instances, nil, nil, nil, opts...)
 }
 
 // NewGRPCServerWithWorkflowInspectorAndOperations is
@@ -86,7 +89,8 @@ func NewGRPCServerWithWorkflowInspector(
 // application root owns construction of these adapters; this package only
 // threads the already-composed ports into the listener-facing services.
 func NewGRPCServerWithWorkflowInspectorAndOperations(
-	c *app.Cell, instances app.WorkflowInstanceReader, operationStore transportoperations.Store,
+	c *app.Cell, instances app.WorkflowInstanceReader, workQueue app.WorkItemQueueReader,
+	operationStore transportoperations.Store,
 	cursorKey []byte, opts ...grpc.ServerOption,
 ) (*grpc.Server, error) {
 	if c == nil {
@@ -135,6 +139,13 @@ func NewGRPCServerWithWorkflowInspectorAndOperations(
 	// the same durable record without moving database access into transport.
 	workflowDeps := transportworkflow.Dependencies{Instances: newWorkflowReader(instances), CursorKey: append([]byte(nil), cursorKey...)}
 	transportworkflow.Register(srv, workflowDeps)
+	// WorkService (EP-WORK-001) publishes the queue read endpoints under the
+	// same interceptor chain and cursor key. A nil workQueue leaves the
+	// methods answering UNAVAILABLE rather than absent, the same nil-tolerant
+	// posture the workflow inspector takes.
+	transporthumanwork.Register(srv, transporthumanwork.Dependencies{
+		Queue: newWorkQueueReader(workQueue), CursorKey: append([]byte(nil), cursorKey...),
+	})
 	transportoperations.Register(srv, transportoperations.Dependencies{Store: operationStore})
 	transporthealth.Register(srv, transporthealth.Dependencies{})
 	return srv, nil
@@ -154,10 +165,11 @@ func NewEdgeHandler(c *app.Cell, opts ...connect.HandlerOption) (http.Handler, e
 // reader, operation store and cursor key as the gRPC surface. It is the
 // non-tunnel counterpart of [NewEdgeHandlerWithTunnelAndDependencies].
 func NewEdgeHandlerWithDependencies(
-	c *app.Cell, instances app.WorkflowInstanceReader, operationStore transportoperations.Store,
+	c *app.Cell, instances app.WorkflowInstanceReader, workQueue app.WorkItemQueueReader,
+	operationStore transportoperations.Store,
 	cursorKey []byte, opts ...connect.HandlerOption,
 ) (http.Handler, error) {
-	return buildEdgeHandlerWithDependencies(c, nil, instances, operationStore, cursorKey, opts...)
+	return buildEdgeHandlerWithDependencies(c, nil, instances, workQueue, operationStore, cursorKey, opts...)
 }
 
 // buildEdgeHandler is the one edge composition both [NewEdgeHandler] and
@@ -165,10 +177,10 @@ func NewEdgeHandlerWithDependencies(
 // mounted, which is exactly what NewEdgeHandler has always built; a non-nil
 // one adds [TunnelPath] to the same mux and changes nothing else.
 func buildEdgeHandler(c *app.Cell, grpcServer *grpc.Server, opts ...connect.HandlerOption) (http.Handler, error) {
-	return buildEdgeHandlerWithDependencies(c, grpcServer, nil, nil, nil, opts...)
+	return buildEdgeHandlerWithDependencies(c, grpcServer, nil, nil, nil, nil, opts...)
 }
 
-func buildEdgeHandlerWithDependencies(c *app.Cell, grpcServer *grpc.Server, instances app.WorkflowInstanceReader, operationStore transportoperations.Store, cursorKey []byte, opts ...connect.HandlerOption) (http.Handler, error) {
+func buildEdgeHandlerWithDependencies(c *app.Cell, grpcServer *grpc.Server, instances app.WorkflowInstanceReader, workQueue app.WorkItemQueueReader, operationStore transportoperations.Store, cursorKey []byte, opts ...connect.HandlerOption) (http.Handler, error) {
 	if c == nil {
 		return nil, fmt.Errorf("transport cell: application cell is required")
 	}
@@ -179,9 +191,14 @@ func buildEdgeHandlerWithDependencies(c *app.Cell, grpcServer *grpc.Server, inst
 		Config: c.Config, Intent: c.Service, Registry: c.Service,
 		Journey:    &transportjourney.Dependencies{Engine: c.Journey, Preferences: c.Preferences, RoleAccess: c.RoleAccess, WorkerIDs: c.WorkerIDs},
 		Workflow:   &transportworkflow.Dependencies{Instances: newWorkflowReader(instances), CursorKey: append([]byte(nil), cursorKey...)},
+		Work:       &transporthumanwork.Dependencies{Queue: newWorkQueueReader(workQueue), CursorKey: append([]byte(nil), cursorKey...)},
 		Operations: &transportoperations.Dependencies{Store: operationStore},
 		Health:     transporthealth.New(transporthealth.Dependencies{}), HandlerOptions: opts,
 	})
+	if err != nil {
+		return nil, err
+	}
+	publicOrigin, err := cellPublicOrigin(c.PublicOrigin())
 	if err != nil {
 		return nil, err
 	}
@@ -195,6 +212,7 @@ func buildEdgeHandlerWithDependencies(c *app.Cell, grpcServer *grpc.Server, inst
 			DevBrowserLogin: c.DevBrowserLogin(),
 			DevPersonas:     c.DevPersonas(),
 			RoleAccess:      c.RoleAccess,
+			PublicOrigin:    c.PublicOrigin(),
 		})
 		if wsErr != nil {
 			return nil, fmt.Errorf("transport cell: compose the promotion workspace: %w", wsErr)
@@ -214,14 +232,51 @@ func buildEdgeHandlerWithDependencies(c *app.Cell, grpcServer *grpc.Server, inst
 	}
 	mux.Handle(app.DiscoveryPath, discovery)
 	if grpcServer != nil {
-		tunnel, tunnelErr := newTunnelHandler(c, grpcServer)
+		var publicHost string
+		if publicOrigin != nil {
+			publicHost = publicOrigin.Host
+		}
+		tunnel, tunnelErr := newTunnelHandler(c, grpcServer, publicHost)
 		if tunnelErr != nil {
 			return nil, tunnelErr
 		}
 		mux.Handle(TunnelPath, tunnel)
 	}
 	mux.Handle("/", rpc)
-	return edge.BrowserPolicy(mux, edge.BrowserPolicyOptions{}), nil
+	return edge.BrowserPolicy(mux, browserPolicyOptions(publicOrigin)), nil
+}
+
+// cellPublicOrigin parses the deployment's declared public origin once, so
+// the browser policy, the workspace shells and the tunnel's origin check all
+// bind to the same authority. It returns nil for the empty default. The
+// application root has already canonicalized the value; this parse is the
+// boundary check for callers that compose a cell without it.
+func cellPublicOrigin(raw string) (*url.URL, error) {
+	if strings.TrimSpace(raw) == "" {
+		return nil, nil
+	}
+	u, err := url.Parse(strings.TrimSpace(raw))
+	if err != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" ||
+		u.User != nil || u.Path != "" || u.RawQuery != "" || u.Fragment != "" {
+		return nil, fmt.Errorf("transport cell: public origin must be an absolute http(s) origin like https://hcm.example.com; got %q", raw)
+	}
+	return u, nil
+}
+
+// browserPolicyOptions derives the edge's browser boundary from the declared
+// public origin. An https origin means a proxy terminated TLS upstream: the
+// browser's Origin carries that scheme while the listener stays plain HTTP,
+// so it must be named explicitly or every state-changing request is refused,
+// and the cookies the policy normalizes must be Secure. With no public
+// origin the same-origin default remains: the cell is the origin.
+func browserPolicyOptions(publicOrigin *url.URL) edge.BrowserPolicyOptions {
+	if publicOrigin == nil {
+		return edge.BrowserPolicyOptions{}
+	}
+	return edge.BrowserPolicyOptions{
+		AllowedOrigins: []string{publicOrigin.Scheme + "://" + publicOrigin.Host},
+		SecureCookies:  publicOrigin.Scheme == "https",
+	}
 }
 
 // discoveryHandler serves the pre-rendered API-001 discovery document to an

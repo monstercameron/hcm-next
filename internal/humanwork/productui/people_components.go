@@ -107,6 +107,7 @@ type PeopleRowProps struct {
 	Initials     string
 	PhotoURL     string
 	Name         string
+	WorkerNumber string
 	Role         string
 	Team         string
 	Manager      string
@@ -360,6 +361,10 @@ func PeopleRow(props PeopleRowProps) ui.Node {
 }
 
 func peopleDataTableRow(props PeopleRowProps) DataTableRowProps {
+	identity := []ui.Node{html.Strong(html.Props{}, ui.Text(props.Name))}
+	if props.WorkerNumber != "" {
+		identity = append(identity, html.Small(html.Props{Class: "muted"}, ui.Text(props.WorkerNumber)))
+	}
 	actions := make([]ui.Node, 0, len(props.QuickActions))
 	for _, action := range props.QuickActions {
 		label := action.Label
@@ -383,11 +388,11 @@ func peopleDataTableRow(props PeopleRowProps) DataTableRowProps {
 	}
 	return DataTableRowProps{ID: props.ID, Class: "people-row-item people-row", Cells: []DataTableCellProps{
 		{ColumnID: peopleSortName, RowHeader: true, Children: []ui.Node{softwareLink(props.Navigate, html.Props{Class: "person-cell people-person-link"}, props.Href,
-			personAvatar(props.Name, props.Initials, props.PhotoURL, ""), html.Strong(html.Props{}, ui.Text(props.Name)))}},
-		{ColumnID: peopleSortRole, Class: "people-cell", Text: props.Role},
-		{ColumnID: peopleSortTeam, Class: "people-cell", Text: props.Team},
-		{ColumnID: peopleSortManager, Class: "people-cell", Text: props.Manager},
-		{ColumnID: peopleSortLocation, Class: "people-cell", Text: props.Location},
+			personAvatar(props.Name, props.Initials, props.PhotoURL, ""), html.Span(html.Props{Class: "people-identity"}, identity...))}},
+		{ColumnID: peopleSortRole, Class: "people-cell", Text: valueOrUnavailableFor(props.Locale, props.Role)},
+		{ColumnID: peopleSortTeam, Class: "people-cell", Text: valueOrUnavailableFor(props.Locale, props.Team)},
+		{ColumnID: peopleSortManager, Class: "people-cell", Text: valueOrUnavailableFor(props.Locale, props.Manager)},
+		{ColumnID: peopleSortLocation, Class: "people-cell", Text: valueOrUnavailableFor(props.Locale, props.Location)},
 		{ColumnID: "actions", Class: "people-row-actions", Children: []ui.Node{workflowMenu}},
 	}}
 }

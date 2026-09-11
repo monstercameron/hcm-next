@@ -32,6 +32,7 @@ func TestOperation_PublicErrorValuesRemainUnambiguous(t *testing.T) {
 
 func TestOperation_ContextAndTenantValidationFailClosed(t *testing.T) {
 	j := newJournal()
+	//lint:ignore SA1012 deliberate nil context: this hardening test proves a nil context fails closed with ErrInvalid.
 	if _, err := j.Get(nil, "tenant-promotion", testUUID()); !errors.Is(err, operation.ErrInvalid) {
 		t.Fatalf("nil context get = %v", err)
 	}

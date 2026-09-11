@@ -613,7 +613,7 @@ Go product core (github.com/monstercameron/human-capital-management-suite)
 | `golang.org/x/sys`                                                  | `v0.47.0`                              | `INFRASTRUCTURE_MECHANIC` | indirect | platform-foundation      |
 | `golang.org/x/text`                                                 | `v0.41.0`                              | `INFRASTRUCTURE_MECHANIC` | direct   | experience-and-transport |
 | `golang.org/x/tools`                                                | `v0.48.0`                              | `DEV_TEST_ONLY`           | indirect | platform-foundation      |
-| `google.golang.org/genproto/googleapis/api`                         | `v0.0.0-20260819154853-08b0e4226688`   | `INFRASTRUCTURE_MECHANIC` | indirect | experience-and-transport |
+| `google.golang.org/genproto/googleapis/api`                         | `v0.0.0-20260819154853-08b0e4226688`   | `INFRASTRUCTURE_MECHANIC` | indirect | platform-foundation      |
 | `google.golang.org/genproto/googleapis/rpc`                         | `v0.0.0-20260831171406-18b4a7587f8a`   | `INFRASTRUCTURE_MECHANIC` | indirect | experience-and-transport |
 | `google.golang.org/grpc`                                            | `v1.83.2`                              | `INFRASTRUCTURE_MECHANIC` | direct   | experience-and-transport |
 | `google.golang.org/grpc/cmd/protoc-gen-go-grpc`                     | `v1.6.2`                               | `DEV_TEST_ONLY`           | indirect | experience-and-transport |

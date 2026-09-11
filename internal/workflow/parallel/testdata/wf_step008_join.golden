@@ -1,0 +1,5 @@
+ALL=FAILED|degraded=false|unknown=b4
+ANY=PARTIAL|degraded=true|unknown=b4
+QUORUM=PARTIAL|degraded=true|unknown=b4
+REQUIRED_SET=PARTIAL|degraded=true|unknown=b4
+BEST_EFFORT=PARTIAL|degraded=true|unknown=b4

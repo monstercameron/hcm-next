@@ -39,15 +39,15 @@ func TestMenuFilterKeepsOnlyMatchingHierarchy(t *testing.T) {
 	}
 }
 
-func TestMenuFilterFuzzyRanksMetadataAndHidesUnrelatedSupport(t *testing.T) {
+func TestUXBLIND025MenuFilterPreservesSupportNavigation(t *testing.T) {
 	view := ApplyRequest(testView(PageSettings), PageRequest{MenuQuery: "pe"})
 	favorites, items := projectNavigation(view)
 	if len(favorites) != 0 || len(items) != 2 || items[0].Page != PagePeople || items[1].Page != PageAdmin {
 		t.Fatalf("short prefix should resolve People first: favorites=%+v items=%+v", favorites, items)
 	}
 	props := navigationSidebarProps(view)
-	if len(props.Support) != 0 {
-		t.Fatalf("unrelated support links remained during search: %+v", props.Support)
+	if len(props.Support) != 2 || props.Support[0].Page != PageHelp || props.Support[1].Page != PageSettings {
+		t.Fatalf("support escape routes were not preserved during search: %+v", props.Support)
 	}
 	if items[0].MatchDetail == "" || items[0].MatchScore == 0 {
 		t.Fatalf("matching metadata was not projected: %+v", items[0])
@@ -76,18 +76,49 @@ func TestMenuFilterFindsAliasesTyposAndMultipleTerms(t *testing.T) {
 	}
 }
 
-func TestSupportMenusParticipateInFuzzySearch(t *testing.T) {
+func TestSupportMenusRemainReachableDuringFuzzySearch(t *testing.T) {
 	view := ApplyRequest(testView(PageHome), PageRequest{MenuQuery: "language"})
 	props := navigationSidebarProps(view)
-	if len(props.Items) != 0 || len(props.Support) != 1 || props.Support[0].Page != PageSettings {
-		t.Fatalf("language query = items %+v support %+v, want Settings only", props.Items, props.Support)
+	if len(props.Items) != 0 || len(props.Support) != 2 {
+		t.Fatalf("language query = items %+v support %+v, want stable support region", props.Items, props.Support)
 	}
 	doc, err := Render(view)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if strings.Contains(doc, ">Help</span>") || !strings.Contains(doc, "available preferences") {
-		t.Fatalf("filtered support result did not render metadata: %s", doc)
+	inputStart := strings.Index(doc, `id="menu-filter"`)
+	if inputStart < 0 {
+		t.Fatal("missing menu filter")
+	}
+	inputEnd := strings.Index(doc[inputStart:], ">")
+	if inputEnd < 0 || !strings.Contains(doc[inputStart:inputStart+inputEnd], `value="language"`) {
+		t.Fatal("server-rendered input does not carry the active filter query")
+	}
+	if !strings.Contains(doc, ">Help</span>") || !strings.Contains(doc, "Manage your language, accessibility and personal preferences.") {
+		t.Fatal("filtered support result did not render current localized metadata")
+	}
+	settings := strings.Index(doc, ">Settings</span>")
+	bottom := strings.Index(doc, `class="nav-bottom"`)
+	if settings < 0 || bottom < 0 || settings > bottom || strings.Count(doc, ">Settings</span>") != 1 {
+		t.Fatal("matching Settings must appear once above the support recovery area")
+	}
+}
+
+func TestUnmatchedMenuSearchExplainsEmptyResultsWithRecoveryLinks(t *testing.T) {
+	view := ApplyRequest(testView(PageHome), PageRequest{MenuQuery: "zzzznotfound"})
+	doc, err := Render(view)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(doc, `class="nav-empty"`) || !strings.Contains(doc, ">Help</span>") || !strings.Contains(doc, ">Settings</span>") {
+		t.Fatal("unmatched search must explain empty results and retain recovery links")
+	}
+}
+
+func TestUXBLIND025UnmatchedMenuFilterPreservesSupportNavigation(t *testing.T) {
+	props := navigationSidebarProps(ApplyRequest(testView(PageHome), PageRequest{MenuQuery: "zzzznotfound"}))
+	if len(props.Items) != 0 || len(props.Support) != 2 {
+		t.Fatalf("unmatched query removed support recovery routes: items=%+v support=%+v", props.Items, props.Support)
 	}
 }
 
@@ -132,8 +163,39 @@ func TestMenuFilterUsesDebouncedSoftwareNavigationAndImmediateSubmit(t *testing.
 	}
 
 	filter.OnInput("")
-	if cancelled != 2 {
-		t.Fatalf("returning to the rendered query did not cancel pending navigation: %d", cancelled)
+	if scheduled != "/workspace/app/settings" {
+		t.Fatalf("clearing a stale rendered query must schedule the cleared URL: %q", scheduled)
+	}
+}
+
+func TestUXBLIND024ClearMenuFilterResetsStateAndCancelsPendingNavigation(t *testing.T) {
+	view := testView(PageHome)
+	view.MenuQuery = "zzzznotfound"
+	var navigated string
+	cancelled := 0
+	view.Navigate = func(href string) { navigated = href }
+	view.NavigateDebounced = func(string) {}
+	view.CancelDebouncedNavigation = func() { cancelled++ }
+
+	filter := navigationSidebarProps(view).Filter
+	if filter.Query != "zzzznotfound" || filter.OnClear == nil {
+		t.Fatalf("clearable filter = %+v", filter)
+	}
+	filter.OnInput("new query")
+	clearNavigate := menuFilterClearNavigate(filter)
+	if clearNavigate == nil {
+		t.Fatal("clear link lost navigation capability")
+	}
+	clearNavigate(filter.ClearHref)
+	if navigated != filter.ClearHref || cancelled != 1 {
+		t.Fatalf("clear link navigation=%q cancelled=%d", navigated, cancelled)
+	}
+
+	reset := ApplyRequest(view, PageRequest{})
+	reset.MenuQuery = ""
+	resetProps := navigationSidebarProps(reset)
+	if resetProps.Filter.Query != "" || len(resetProps.Items) == 0 {
+		t.Fatalf("cleared route retained stale state: filter=%q items=%d", resetProps.Filter.Query, len(resetProps.Items))
 	}
 }
 

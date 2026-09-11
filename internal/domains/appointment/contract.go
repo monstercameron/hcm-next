@@ -496,7 +496,6 @@ func CheckFeasibility(r Requirement, availability []ResourceAvailability) (Feasi
 				}
 			case CapacityUnlimited:
 				available = quantity
-				break
 			}
 			if item.CapacityMode == CapacityUnlimited {
 				break

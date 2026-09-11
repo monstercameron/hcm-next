@@ -1,13 +1,8 @@
 package issuerregistry_test
 
 import (
-	"crypto"
-	"crypto/ecdsa"
-	"crypto/ed25519"
-	"crypto/elliptic"
 	"crypto/rand"
 	"crypto/rsa"
-	"crypto/sha256"
 	"crypto/x509"
 	"crypto/x509/pkix"
 	"math/big"
@@ -46,24 +41,6 @@ func testRSAPublicKeyDER(t *testing.T) []byte {
 	return der
 }
 
-func testECDSAKey(t *testing.T) *ecdsa.PrivateKey {
-	t.Helper()
-	key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
-	if err != nil {
-		t.Fatalf("generate ECDSA key: %v", err)
-	}
-	return key
-}
-
-func testEd25519Key(t *testing.T) (ed25519.PublicKey, ed25519.PrivateKey) {
-	t.Helper()
-	pub, priv, err := ed25519.GenerateKey(rand.Reader)
-	if err != nil {
-		t.Fatalf("generate Ed25519 key: %v", err)
-	}
-	return pub, priv
-}
-
 // testSelfSignedCA builds a minimal, valid self-signed CA certificate over
 // an RSA key, for tests that exercise the [issuerregistry.JWKSSourcePinnedBundle]
 // path through a real internal/trust/bundle.Bundle rather than a stub.
@@ -87,17 +64,4 @@ func testSelfSignedCA(t *testing.T, serial int64, notBefore, notAfter time.Time)
 		t.Fatalf("create CA certificate: %v", err)
 	}
 	return der, key
-}
-
-// testSignRS256 signs signingInput ("header.payload") with key and returns
-// the raw PKCS#1v1.5 signature bytes, matching what internal/trust/federation's
-// verifySignature expects for RS256.
-func testSignRS256(t *testing.T, key *rsa.PrivateKey, signingInput string) []byte {
-	t.Helper()
-	sum := sha256.Sum256([]byte(signingInput))
-	sig, err := rsa.SignPKCS1v15(rand.Reader, key, crypto.SHA256, sum[:])
-	if err != nil {
-		t.Fatalf("sign RS256: %v", err)
-	}
-	return sig
 }

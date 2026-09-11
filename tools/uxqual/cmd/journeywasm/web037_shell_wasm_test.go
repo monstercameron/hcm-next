@@ -294,7 +294,7 @@ func web037StatefulShellLayout(props web037ShellLayoutProps) ui.Node {
 	marker := ui.UseState(strconv.FormatInt(int64(serial), 10))
 	return html.Div(html.Props{ID: "web037-shell-boundary"},
 		html.Tag("output", html.Props{ID: "web037-shell-local-state"}, ui.Text(marker.Get())),
-		ui.CreateElement(renderProductShellLayout, productShellLayoutProps{Outlet: props.Outlet}),
+		ui.CreateElement(renderProductShellLayout, productShellLayoutProps{Outlet: props.Outlet, View: activeProductLayoutView, ShowHeading: activeProductLayoutShowHeading}),
 	)
 }
 

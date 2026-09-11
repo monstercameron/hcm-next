@@ -352,3 +352,24 @@ func TestJourneyBaselineRefusesAMalformedEffectiveDate(t *testing.T) {
 		t.Fatalf("journeyBaseline(bad date) = %v, want ErrJourneyInput", err)
 	}
 }
+
+func TestJourneyBaselineIsSpecificToTheResolvedWorker(t *testing.T) {
+	in := journeyProposalFixture()
+	in.WorkerRef = "omar-reyes" // The resolved subject, not form text, owns pay.
+	jane, err := journeyBaseline(in, WorkerLocation{Key: "jane-doe"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if jane.currentBase != "165000.00" || jane.currency != "USD" || jane.bonusTarget != "0.1500" {
+		t.Fatalf("Jane inherited another worker's baseline: %+v", jane)
+	}
+	in.TargetJobCode, in.TargetGrade, in.ProposedBase = "ENG-MGR1", "M1", "180000.00"
+	if err := validatePublishedPromotionPath(journeyCurrent{jobCode: "ENG-SWE3", grade: "P3"}, in, jane); err != nil {
+		t.Fatalf("Jane's certified proposal rejected: %v", err)
+	}
+	for _, key := range []string{"", "unknown-worker", "priya-shah"} {
+		if _, err := journeyBaseline(in, WorkerLocation{Key: key}); !errors.Is(err, workspace.ErrJourneyInput) {
+			t.Fatalf("worker %q inherited a baseline: %v", key, err)
+		}
+	}
+}

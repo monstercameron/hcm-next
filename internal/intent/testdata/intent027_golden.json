@@ -1,0 +1,122 @@
+{
+  "Request": {
+    "Definition": {
+      "TypeID": "payroll.run",
+      "Version": 2
+    },
+    "ProposalRevision": "proposal/payroll-run-88/r9",
+    "Snapshot": {
+      "Tenant": "",
+      "KnownAtHorizon": {},
+      "Requirement": {
+        "Tenant": "",
+        "KnownAtHorizon": {},
+        "MinWatermarks": null
+      },
+      "Entries": null,
+      "Digest": "sha256:snap"
+    },
+    "Governance": {
+      "AuthZ": {
+        "Effect": "ALLOW",
+        "Reason": "",
+        "Restrictions": null,
+        "Digest": "sha256:authz",
+        "ValidUntil": "0001-01-01T00:00:00Z",
+        "EvaluatedAt": "0001-01-01T00:00:00Z"
+      },
+      "Legal": {
+        "Effect": "ALLOW",
+        "Reason": "",
+        "Obligations": null,
+        "Digest": "sha256:legal",
+        "ValidUntil": "0001-01-01T00:00:00Z",
+        "EvaluatedAt": "0001-01-01T00:00:00Z"
+      },
+      "Purpose": {
+        "Allowed": true,
+        "Reason": ""
+      },
+      "Risk": {
+        "Level": "MEDIUM",
+        "Obligations": null
+      },
+      "Now": "2026-09-10T12:00:00Z"
+    },
+    "Assumptions": [
+      {
+        "Name": "pay-calendar",
+        "Value": "monthly",
+        "Unknown": false,
+        "ResolvedValue": ""
+      }
+    ],
+    "Cost": {
+      "Units": 42,
+      "Basis": "price-list@v7"
+    },
+    "Risk": {
+      "Level": "MEDIUM",
+      "Factors": [
+        "overtime-spike"
+      ]
+    },
+    "Reservations": [
+      {
+        "IntentID": "intent/payroll-run-87",
+        "Fence": 9
+      }
+    ],
+    "Approvals": [
+      {
+        "Kind": "APPROVAL",
+        "Ref": "approval/captains-1"
+      }
+    ],
+    "Obligations": [
+      "retain-7y"
+    ],
+    "Writes": [
+      {
+        "Target": "ledger/payroll",
+        "Effect": "POST",
+        "Guaranteed": false
+      },
+      {
+        "Target": "notify/send",
+        "Effect": "SEND",
+        "Guaranteed": false
+      }
+    ],
+    "EffectEdges": [
+      {
+        "From": "ledger/payroll",
+        "To": "notify/send"
+      }
+    ],
+    "Observations": [
+      "timesheet-approved"
+    ],
+    "RevalidationTriggers": [
+      "calendar-revision"
+    ],
+    "Completion": "WAIT_FOR_CHILD",
+    "RepairExpectation": "retry-once-then-escalate",
+    "EngineVersions": {
+      "payroll-core": "v1.4.0"
+    },
+    "ControlVersions": {
+      "admission": "v3"
+    }
+  },
+  "Governance": {
+    "Decision": "UNKNOWN",
+    "Restrictions": null,
+    "Obligations": null,
+    "Explanation": "stale decision permits nothing: authz or legal validity expired",
+    "Digest": "22c50d6d46522e0af4b389f44d4de9f5305e2e20a13d11f36e9b55b111e50d7b",
+    "ValidUntil": "0001-01-01T00:00:00Z",
+    "EvaluatedAt": "0001-01-01T00:00:00Z"
+  },
+  "Digest": "sha256:da0dc6ce300bda80d9b2a1b4188344d96172b1d72db9883588df582b7e01aade"
+}

@@ -388,9 +388,6 @@ type taxInputPin struct {
 	contentDigest  string
 }
 
-func (in Input) direct() bool { return in.Amount.Validate() == nil }
-func (in Input) rate() bool   { return in.Base.Validate() == nil || in.Rate.Validate() == nil }
-
 func (in Input) Validate() error {
 	if in.Revision == 0 {
 		return fieldError("input.revision", ErrInvalidInput)

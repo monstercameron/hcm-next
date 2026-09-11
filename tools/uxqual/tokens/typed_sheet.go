@@ -30,17 +30,6 @@ func declareGlobal(selector string, parts ...any) {
 	gwccss.Global(selector, gwccss.Rules(parts...)...)
 }
 
-// mediaRule scopes parts inside one @media query. The single-spread form
-// keeps every call site clear of fixed-arg-plus-spread mixing.
-func mediaRule(query gwccss.MediaQuery, parts ...any) []gwccss.Rule {
-	return gwccss.Media(query, gwccss.Rules(parts...)...)
-}
-
-// hoverRule scopes parts to :hover on the enclosing selector.
-func hoverRule(parts ...any) []gwccss.Rule {
-	return gwccss.Hover(gwccss.Rules(parts...)...)
-}
-
 // atRule wraps harvested typed CSS in an at-rule header the GWC css API has
 // no constructor for (@supports, @starting-style), or in an @media header
 // that must wrap several selectors in ONE block (per-selector mediaRule

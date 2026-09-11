@@ -1,9 +1,79 @@
 package productui
 
 import (
+	"net/url"
 	"strings"
 	"testing"
+
+	"github.com/monstercameron/GoWebComponents/v5/ui"
 )
+
+func TestUXBlindRoleAssignmentsNeverInventDefaults(t *testing.T) {
+	for _, locale := range SupportedProductLocales() {
+		i18n := I18nProps{Locale: ResolveProductLocale(locale)}
+		markup, err := ui.RenderToString(RolesPage(RolesPageProps{
+			I18nProps: i18n, People: []Person{{ID: "worker-1", Name: "Rafael"}},
+			Roles: []AccessRole{{ID: "worker_self", Name: "Employee self-service", Active: true}},
+		}))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !strings.Contains(markup, i18n.Text("roles.no_explicit_assignment")) || strings.Contains(markup, `checked`) {
+			t.Fatalf("%s: absent assignment must not imply a selected role", locale)
+		}
+	}
+}
+
+func TestUXBlindRoleBadgesUseNames(t *testing.T) {
+	markup, err := ui.RenderToString(workerRoleAssignmentEditor(I18nProps{Locale: ResolveProductLocale("en-US")}, Person{Name: "Rafael"}, []AccessRole{{ID: "hcm_admin", Name: "HCM administrator", Active: true}}, WorkerRoleAssignment{RoleIDs: []string{"hcm_admin"}}, false, nil))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(markup, `class="status">HCM administrator`) || strings.Contains(markup, `class="status">hcm_admin`) {
+		t.Fatal("badge must use the role display name")
+	}
+}
+
+func TestTodo_UXBLIND_014_RolesFilterKeepsTheDraftAcrossRerender(t *testing.T) {
+	first := testView(PageRoles)
+	first.People = []Person{
+		{ID: "rafael", Name: "Rafael Torres", Role: "HCM administrator", Team: "People"},
+		{ID: "isaac", Name: "Isaac Cole", Role: "Engineer", Team: "Product"},
+	}
+	first.Query = "Rafael"
+	first.Navigate = func(string) {}
+	firstDoc, err := Render(first)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(firstDoc, "Rafael Torres") || strings.Contains(firstDoc, "Isaac Cole") {
+		t.Fatal("the filtered roles projection did not narrow the employee directory")
+	}
+
+	second := first
+	second.Query = "Rafael"
+	second.People = append(first.People, Person{ID: "marisol", Name: "Marisol Vega", Role: "Designer", Team: "Product"})
+	secondDoc, err := Render(second)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(secondDoc, `value="Rafael"`) || strings.Contains(secondDoc, "Marisol Vega") {
+		t.Fatal("rerender replaced or ignored the employee filter draft")
+	}
+}
+
+func TestTodo_UXBLIND_014_RolesFilterPreservesRouteQuery(t *testing.T) {
+	action := "/workspace/app/roles?locale=de-DE&nav=collapsed"
+	got := roleFilterHref(action, " Rafael ")
+	parsed, err := url.Parse(got)
+	if err != nil {
+		t.Fatal(err)
+	}
+	values := parsed.Query()
+	if values.Get("q") != "Rafael" || values.Get("locale") != "de-DE" || values.Get("nav") != "collapsed" {
+		t.Fatalf("filter route state = %q, want q plus existing route state", got)
+	}
+}
 
 func TestRolesPageComposesCatalogCreationAndEmployeeAssignments(t *testing.T) {
 	view := testView(PageRoles)

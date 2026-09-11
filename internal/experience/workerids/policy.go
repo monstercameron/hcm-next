@@ -170,6 +170,42 @@ func IsExcluded(p Policy, sequence int64) bool {
 	return false
 }
 
+// Preview returns at most four candidates without reserving any numbers.
+// Excluded ranges are jumped over on the sequence's increment grid, rather
+// than scanned number by number, so even trillion-number exclusions are cheap.
+func Preview(p Policy, ctx FormatContext) ([]string, error) {
+	p = Normalize(p)
+	if err := Validate(p); err != nil {
+		return nil, err
+	}
+	limit := maxSequence(p.SequenceDigits)
+	ranges, err := parseRanges(p.ExcludedRanges, limit)
+	if err != nil {
+		return nil, err
+	}
+	result := make([]string, 0, 4)
+	sequence := p.NextSequence
+	for len(result) < 4 && sequence <= limit {
+		jumped := false
+		for _, excluded := range ranges {
+			if sequence >= excluded[0] && sequence <= excluded[1] {
+				sequence += ((excluded[1]-sequence)/p.IncrementBy + 1) * p.IncrementBy
+				jumped = true
+			}
+		}
+		if jumped {
+			continue
+		}
+		value, err := Format(p, sequence, ctx)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, value)
+		sequence += p.IncrementBy
+	}
+	return result, nil
+}
+
 func maxSequence(digits int) int64 {
 	var n int64 = 1
 	for i := 0; i < digits; i++ {

@@ -12,6 +12,7 @@ import (
 	"github.com/monstercameron/human-capital-management-suite/internal/transport"
 	"github.com/monstercameron/human-capital-management-suite/internal/transport/envelope"
 	transporthealth "github.com/monstercameron/human-capital-management-suite/internal/transport/health"
+	transporthumanwork "github.com/monstercameron/human-capital-management-suite/internal/transport/humanwork"
 	transportjourney "github.com/monstercameron/human-capital-management-suite/internal/transport/journey"
 	transportoperations "github.com/monstercameron/human-capital-management-suite/internal/transport/operations"
 	transportworkflow "github.com/monstercameron/human-capital-management-suite/internal/transport/workflow"
@@ -33,6 +34,7 @@ type Options struct {
 	Registry   transport.RegistryHandler
 	Journey    *transportjourney.Dependencies
 	Workflow   *transportworkflow.Dependencies
+	Work       *transporthumanwork.Dependencies
 	Operations *transportoperations.Dependencies
 	Health     *transporthealth.Server
 	// MaxBodyBytes bounds an inbound body. Zero means 4 MiB.
@@ -63,7 +65,7 @@ func NewHandler(opts Options) (http.Handler, error) {
 	if opts.Config.Verifier == nil {
 		return nil, ErrNoVerifier
 	}
-	if opts.Intent == nil && opts.Registry == nil && opts.Journey == nil && opts.Workflow == nil && opts.Operations == nil && opts.Health == nil {
+	if opts.Intent == nil && opts.Registry == nil && opts.Journey == nil && opts.Workflow == nil && opts.Work == nil && opts.Operations == nil && opts.Health == nil {
 		return nil, ErrNoHandlers
 	}
 	maxBody := opts.MaxBodyBytes
@@ -104,6 +106,11 @@ func NewHandler(opts Options) (http.Handler, error) {
 		h := transportworkflow.NewHandler(*opts.Workflow, handlerOptions...)
 		mux.Handle(transportworkflow.GetWorkflowProcedure, h)
 		mux.Handle(transportworkflow.ListNodeExecutionsProcedure, h)
+	}
+	if opts.Work != nil {
+		h := transporthumanwork.NewHandler(*opts.Work, handlerOptions...)
+		mux.Handle(transporthumanwork.ListWorkItemsProcedure, h)
+		mux.Handle(transporthumanwork.GetWorkItemProcedure, h)
 	}
 	if opts.Operations != nil {
 		h := transportoperations.NewHandler(*opts.Operations, handlerOptions...)

@@ -38,7 +38,8 @@ func TestTodo_ALIGN_008(t *testing.T) {
 	if want := len(loadInventory(t).MigrationTables); len(registry.Tables) != want || want < 200 {
 		t.Fatalf("alignment registry has %d tables, want the %d migration tables", len(registry.Tables), want)
 	}
-	if registry.Digest() != registry.Digest() || registry.Explain() == "" {
+	firstRegistryDigest, secondRegistryDigest := registry.Digest(), registry.Digest()
+	if firstRegistryDigest != secondRegistryDigest || registry.Explain() == "" {
 		t.Fatal("alignment registry identity is not stable")
 	}
 }

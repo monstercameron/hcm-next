@@ -65,8 +65,9 @@ func TestTodo_MODEL_031_Property(t *testing.T) {
 }
 func TestTodo_MODEL_031_Golden(t *testing.T) {
 	p := ownershipPolicy()
-	if len(p.Digest()) != 64 || p.Digest() != p.Digest() {
-		t.Fatalf("digest=%q", p.Digest())
+	firstPolicyDigest, secondPolicyDigest := p.Digest(), p.Digest()
+	if len(firstPolicyDigest) != 64 || firstPolicyDigest != secondPolicyDigest {
+		t.Fatalf("digest=%q", firstPolicyDigest)
 	}
 	got, _ := p.Resolve(selector(FactAddress, ScopeWorkAddress))
 	if !strings.Contains(got.Explain(), "scope=WORK_ADDRESS") {

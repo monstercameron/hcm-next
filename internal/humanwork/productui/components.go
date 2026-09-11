@@ -37,10 +37,6 @@ func unavailablePanel(title, detail string) ui.Node {
 	return ui.CreateElement(EmptyState, EmptyStateProps{Title: title, Description: detail, Role: "status"})
 }
 
-func avatar(label, size string) ui.Node {
-	return personAvatar("", label, "", size)
-}
-
 func personAvatar(name, label, photoURL, size string) ui.Node {
 	class := "avatar"
 	if size != "" {

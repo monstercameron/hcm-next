@@ -164,7 +164,7 @@ func TestTodo_OBS_023_Golden(t *testing.T) {
 	}
 	attrs := map[string]string{}
 	for _, kv := range recorded.Attributes() {
-		attrs[string(kv.Key)] = kv.Value.Emit()
+		attrs[string(kv.Key)] = kv.Value.String()
 	}
 	if got := attrs["outcome"]; got != "SUCCESS" {
 		t.Errorf("span attribute outcome = %q, want %q (all: %v)", got, "SUCCESS", attrs)

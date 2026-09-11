@@ -1,0 +1,6 @@
+worker: jane revision: 4 digest: sha256:103e70bab1262b86182c3e3ac194bb0e0f57d12213d57581c06399f8c4c1d0ff
+member: ec/jane/1 SPOUSE priority=1 linked=true
+member: ec/jane/2 PARENT priority=2 linked=false
+disclosed: ec/jane/1 SPOUSE priority=1
+disclosed: ec/jane/2 PARENT priority=2
+reconcile: reconciled

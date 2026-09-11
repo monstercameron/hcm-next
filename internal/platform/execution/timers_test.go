@@ -202,10 +202,9 @@ func TestTimerFactorySatisfiesTheDriverPort(t *testing.T) {
 	if err != nil {
 		t.Fatalf("NewTimerFactory: %v", err)
 	}
-	var port execute.TimerFactory = factory
-	if port == nil {
-		t.Fatal("the factory does not satisfy execute.TimerFactory")
-	}
+	// The factory is a struct value, so a runtime nil comparison could
+	// never fail; the assignment itself is the port assertion.
+	var _ execute.TimerFactory = factory
 }
 
 func TestWaitAttemptNamesTheContinuationActivation(t *testing.T) {

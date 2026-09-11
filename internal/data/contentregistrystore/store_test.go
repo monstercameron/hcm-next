@@ -65,14 +65,6 @@ func tenantTxErr(conn *pgxadapter.Conn, tenantID uuid.UUID, fn func(dbport.Tx) e
 	}
 	return tx.Commit(ctx)
 }
-
-func tenantTx(t *testing.T, conn *pgxadapter.Conn, tenantID uuid.UUID, fn func(dbport.Tx) error) {
-	t.Helper()
-	if err := tenantTxErr(conn, tenantID, fn); err != nil {
-		t.Fatalf("tenant transaction: %v", err)
-	}
-}
-
 func manifest(t *testing.T, id string, version int) industrypack.IndustryPack {
 	t.Helper()
 	pack, err := industrypack.NewIndustryPack(industrypack.IndustryPack{

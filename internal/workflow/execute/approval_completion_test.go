@@ -228,7 +228,7 @@ func (f work006Fixture) request(authority CurrentApprovalAuthority) ApprovalComp
 		Start: runtime.StartRequest{
 			TenantID: f.tenantID, CellID: "cell-local", StartIdempotencyKey: "start:work-006",
 			Resolver: staticResolver{selection: selection}, Versions: staticVersions{record: record},
-			Proposal:      runtime.ProposalBinding{Revision: f.proposal, Approved: true, ApprovalRef: "approval:proposal:1"},
+			Proposal:      runtime.ProposalBinding{Revision: f.proposal, ApprovalRef: "approval:proposal:1"},
 			ProposalFacts: runtime.MemoryProposalFacts{}, ApprovalFacts: approvedApprovalFacts(f.proposal),
 			BusinessSubjectRefs: []string{"worker:jane"}, ExecutionMode: workflow.ModeExecute,
 			CorrelationID: "correlation:work-006",

@@ -88,7 +88,9 @@ func TestPayInputDefinitionsRejectUnknownTaxabilityRecurrenceAndOverlappingAssig
 
 func TestTodo_PAYINPUT_001_Property(t *testing.T) {
 	d := validDefinition(t, StatePublished)
-	if d.CanonicalDigest != d.CanonicalDigest {
+	// CanonicalDigest is a value field; read it twice to prove stability.
+	firstCanonical, secondCanonical := d.CanonicalDigest, d.CanonicalDigest
+	if firstCanonical != secondCanonical {
 		t.Fatal("digest is not stable")
 	}
 	copyOf := d

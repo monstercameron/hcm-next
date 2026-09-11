@@ -162,7 +162,8 @@ func TestPartitionPlan_Digest(t *testing.T) {
 		PartitionCount: 4,
 	}
 
-	if base.Digest() != base.Digest() {
+	firstDigest, secondDigest := base.Digest(), base.Digest()
+	if firstDigest != secondDigest {
 		t.Fatal("Digest() is not deterministic across calls on the identical value")
 	}
 

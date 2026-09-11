@@ -2,7 +2,12 @@ package journeyclient
 
 import (
 	"context"
+	"errors"
+	"io"
 	"time"
+
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	journeyv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/journey/v1"
 	"github.com/monstercameron/human-capital-management-suite/tools/uxqual/render/journey"
@@ -78,6 +83,7 @@ func (a *App) stopWatchLocked() {
 func (a *App) watch(ctx context.Context, generation int, intentID, sinceDigest string, retry time.Duration) {
 	attempts := 0
 	for {
+		openedAt := time.Now()
 		stream, err := a.svc.WatchJourney(ctx, &journeyv1.WatchJourneyRequest{
 			IntentId:    intentID,
 			SinceDigest: sinceDigest,
@@ -102,9 +108,11 @@ func (a *App) watch(ctx context.Context, generation int, intentID, sinceDigest s
 		}
 
 		delivered := false
+		var termination error
 		for {
 			msg, recvErr := stream.Recv()
 			if recvErr != nil {
+				termination = recvErr
 				// Every stream ends: with OK at the server's ceiling, with
 				// the caller's cancellation, or with a refusal. The three
 				// are told apart below, not here.
@@ -119,13 +127,19 @@ func (a *App) watch(ctx context.Context, generation int, intentID, sinceDigest s
 			// The notice the reader is looking at is carried across a live
 			// update: an approval's "Approved" must not be wiped half a
 			// second later by the stream delivering the same approval.
-			a.applyDetail(generation, detail, a.currentNotice())
+			notice := a.currentNotice()
+			// A durable terminal result supersedes an earlier success message
+			// saying that approval is still waiting on the effective date.
+			if detail.GetLedger() != nil && notice != nil && notice.Tone == toneSuccess {
+				notice = approvalNotice(detail)
+			}
+			a.applyDetail(generation, detail, notice)
 		}
 
 		if a.watchEnded(ctx, generation) {
 			return
 		}
-		if delivered {
+		if delivered || quietWatchRollover(termination, time.Since(openedAt)) {
 			attempts = 0
 		} else {
 			attempts++
@@ -142,6 +156,14 @@ func (a *App) watch(ctx context.Context, generation int, intentID, sinceDigest s
 			return
 		}
 	}
+}
+
+// A quiet, established stream can reach the transport's shorter deadline
+// without a domain change. Reconnect with the same digest; do not count normal
+// rotation as an outage. Immediate EOF/deadline failures still exhaust retries.
+func quietWatchRollover(err error, lifetime time.Duration) bool {
+	return lifetime >= 10*time.Second && (errors.Is(err, io.EOF) ||
+		errors.Is(err, context.DeadlineExceeded) || status.Code(err) == codes.DeadlineExceeded)
 }
 
 // watchEnded reports whether this watch has been superseded: its context was

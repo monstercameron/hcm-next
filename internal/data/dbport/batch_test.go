@@ -7,8 +7,7 @@ import (
 )
 
 type batchTestExecer struct {
-	counts []int64
-	args   [][]any
+	args [][]any
 }
 
 func (e *batchTestExecer) Exec(_ context.Context, sql string, args ...any) (int64, error) {
