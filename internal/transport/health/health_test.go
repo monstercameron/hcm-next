@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net/http/httptest"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -23,9 +24,14 @@ func TestHealthAndReadinessEndpointsDistinguishProcessLifeFromAdmissionReadiness
 	}
 }
 
+// TestReadinessCheckIsBoundedAndCached counts calls atomically because
+// isReady runs ReadyCheck on its own goroutine and abandons it when
+// CheckTimeout expires (see health.go's select on ctx.Done()). The check
+// goroutine is therefore still live when this test reads the counter, which a
+// plain int made a data race that `go test -race` reported on Linux CI.
 func TestReadinessCheckIsBoundedAndCached(t *testing.T) {
-	calls := 0
-	s := New(Dependencies{CheckTimeout: 10 * time.Millisecond, CheckInterval: time.Minute, ReadyCheck: func(ctx context.Context) error { calls++; <-ctx.Done(); return ctx.Err() }})
+	var calls atomic.Int64
+	s := New(Dependencies{CheckTimeout: 10 * time.Millisecond, CheckInterval: time.Minute, ReadyCheck: func(ctx context.Context) error { calls.Add(1); <-ctx.Done(); return ctx.Err() }})
 	start := time.Now()
 	if s.isReady(context.Background()) {
 		t.Fatal("slow readiness check was admitted")
@@ -36,8 +42,8 @@ func TestReadinessCheckIsBoundedAndCached(t *testing.T) {
 	if s.isReady(context.Background()) {
 		t.Fatal("cached failed readiness was admitted")
 	}
-	if calls != 1 {
-		t.Fatalf("readiness checks = %d, want one cached check", calls)
+	if got := calls.Load(); got != 1 {
+		t.Fatalf("readiness checks = %d, want one cached check", got)
 	}
 }
 
