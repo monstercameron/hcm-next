@@ -114,9 +114,11 @@ func NewEdgeHandlerWithTunnelAndDependencies(
 }
 
 // newTunnelHandler builds the bridge handler for one composed cell.
-func newTunnelHandler(c *app.Cell, grpcServer *grpc.Server) (http.Handler, error) {
+// publicHost is the host[:port] of the cell's declared public origin, or
+// empty when the cell is reached directly.
+func newTunnelHandler(c *app.Cell, grpcServer *grpc.Server, publicHost string) (http.Handler, error) {
 	handler, err := grpctunnel.BuildBridgeHandler(grpcServer, grpctunnel.BridgeConfig{
-		CheckOrigin:             sameOriginOnly,
+		CheckOrigin:             tunnelOriginCheck(publicHost),
 		Authorize:               tunnelAuthorizer(c.Config, c.DevBrowserLogin()),
 		SessionMaxLifetime:      tunnelSessionMaxLifetime,
 		MaxConnectionsPerClient: tunnelMaxConnectionsPerClient,
@@ -154,6 +156,29 @@ func sameOriginOnly(r *http.Request) bool {
 		return false
 	}
 	return strings.EqualFold(parsed.Host, r.Host)
+}
+
+// tunnelOriginCheck is the upgrade's origin policy for one composed cell.
+// With no declared public origin it is [sameOriginOnly] unchanged. With one,
+// the origin the public authority names is admitted too: a TLS-terminating
+// proxy may deliver an upgrade whose request Host is the internal listener
+// while the browser's page origin is the authority the deployment declared.
+// The Origin's host is compared rather than its scheme, matching
+// sameOriginOnly's own reading of a Host-rewriting hop.
+func tunnelOriginCheck(publicHost string) func(*http.Request) bool {
+	if publicHost == "" {
+		return sameOriginOnly
+	}
+	return func(r *http.Request) bool {
+		if sameOriginOnly(r) {
+			return true
+		}
+		if r == nil {
+			return false
+		}
+		parsed, err := url.Parse(strings.TrimSpace(r.Header.Get("Origin")))
+		return err == nil && parsed.Host != "" && strings.EqualFold(parsed.Host, publicHost)
+	}
 }
 
 // tunnelAuthorizer runs the cell's own admission over a websocket upgrade

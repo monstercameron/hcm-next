@@ -2,8 +2,10 @@ package workspace
 
 import (
 	"encoding/json"
+	"fmt"
 	"html"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/monstercameron/human-capital-management-suite/internal/experience/roleaccess"
@@ -145,7 +147,7 @@ func (h *Handler) serveJourney(w http.ResponseWriter, r *http.Request) {
 	}
 	principal, _ := trust.FromContext(admitted.Context())
 	config := JourneyConfig{
-		TunnelURL:    JourneyTunnelURL(r),
+		TunnelURL:    h.tunnelURL(r),
 		Bearer:       normalizeBearerInput(BearerFromRequest(r, h.devBrowserLogin)),
 		Roles:        []string{},
 		JourneysPath: PathJourney,
@@ -167,7 +169,7 @@ func (h *Handler) serveJourney(w http.ResponseWriter, r *http.Request) {
 		h.writeProblem(w, http.StatusInternalServerError, "Workspace unavailable", err.Error())
 		return
 	}
-	writeHTMLDocument(w, http.StatusOK, doc, JourneyContentSecurityPolicy(r.Host))
+	writeHTMLDocument(w, http.StatusOK, doc, JourneyContentSecurityPolicy(h.policyHost(r)))
 }
 
 // journeyShellDocument renders the shell for one configuration.
@@ -312,4 +314,54 @@ func forwardedProtoIsHTTPS(r *http.Request) bool {
 	}
 	first, _, _ := strings.Cut(raw, ",")
 	return strings.EqualFold(strings.TrimSpace(first), "https")
+}
+
+// tunnelURL is [JourneyTunnelURL] except that a handler composed with a
+// public origin answers for it: the page hands its browser the authority the
+// deployment declared, not whatever Host an inner proxy hop rewrote the
+// request to.
+func (h *Handler) tunnelURL(r *http.Request) string {
+	if h.publicAuthority == "" {
+		return JourneyTunnelURL(r)
+	}
+	scheme := "ws"
+	if h.publicScheme == "https" {
+		scheme = "wss"
+	}
+	return scheme + "://" + h.publicAuthority + PathTunnel
+}
+
+// policyHost is the authority bound into a shell's connect-src. Under a
+// declared public origin it is that origin's own: the browser's page origin
+// is the public one whatever Host the request arrived with, so connect-src
+// must name the public authority or the client cannot open its tunnel.
+func (h *Handler) policyHost(r *http.Request) string {
+	if h.publicAuthority != "" {
+		return h.publicAuthority
+	}
+	return r.Host
+}
+
+// parsePublicOrigin resolves an Options.PublicOrigin value into its scheme
+// and sanitized host[:port]. The configured origin is operator input rather
+// than request text, but it is emitted into a page's JSON island and its
+// CSP, so it is parsed exactly and the authority goes through the same
+// sanitizer a request Host does. An origin the sanitizer cannot represent -
+// a bare non-loopback IP, for example - is refused at construction rather
+// than discovered as an empty tunnel address on every page.
+func parsePublicOrigin(raw string) (scheme, authority string, err error) {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return "", "", nil
+	}
+	u, parseErr := url.Parse(raw)
+	if parseErr != nil || (u.Scheme != "http" && u.Scheme != "https") || u.Host == "" ||
+		u.User != nil || u.Path != "" || u.RawQuery != "" || u.Fragment != "" {
+		return "", "", fmt.Errorf("workspace: public origin must be an absolute http(s) origin like https://hcm.example.com; got %q", raw)
+	}
+	authority = sanitizeHostAuthority(u.Host)
+	if authority == "" {
+		return "", "", fmt.Errorf("workspace: public origin %q has no usable authority", raw)
+	}
+	return u.Scheme, authority, nil
 }
