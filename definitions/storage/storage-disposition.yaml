@@ -5185,3 +5185,31 @@ tables:
     notes: >-
       RESTRICTED-compartment medical detail; the store is the sole reader
       path and gates it by role (application-level, not column encryption).
+  - table: legal_hold_notice
+    migration: 00284_records_hold_001_release_and_notices.sql
+    owner_package: internal/data/recordsmeta
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      RECORDS-HOLD-001: immutable evidence that a legal hold was issued to a
+      named custodian or recipient; forbid_mutation.
+  - table: legal_hold_acknowledgement
+    migration: 00284_records_hold_001_release_and_notices.sql
+    owner_package: internal/data/recordsmeta
+    plane: DATA
+    data_role: LEDGER
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: PERMANENT
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      RECORDS-HOLD-001: immutable evidence that one legal_hold_notice was
+      acknowledged; capped at one per notice; forbid_mutation.
