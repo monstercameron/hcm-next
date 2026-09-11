@@ -23,13 +23,19 @@ const (
 	RoleProjector Role = "projector"
 	// RoleMigrate is the isolated migration command (status: initial).
 	RoleMigrate Role = "migrate"
+	// RoleFrontendDev is the development-only product-UI server
+	// (status: initial). It is in the vocabulary because the manifest
+	// declares it and this list mirrors the manifest exactly; that it never
+	// fronts a tenant in production is the manifest row's business, not
+	// bootstrap's.
+	RoleFrontendDev Role = "frontenddev"
 	// RoleScheduler is reserved for P1B durable timers (status: later).
 	RoleScheduler Role = "scheduler"
 	RoleAdmin     Role = "hcmctl"
 )
 
 // roleVocabulary is every Role bootstrap recognizes, in manifest order.
-var roleVocabulary = []Role{RoleHCMNext, RoleWorker, RoleProjector, RoleMigrate, RoleScheduler, RoleAdmin}
+var roleVocabulary = []Role{RoleHCMNext, RoleWorker, RoleProjector, RoleMigrate, RoleFrontendDev, RoleScheduler, RoleAdmin}
 
 // ErrUnknownRole is returned by Role.Validate when a Spec names a role
 // outside the process-roles.yaml vocabulary.

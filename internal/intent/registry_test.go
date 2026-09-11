@@ -1036,3 +1036,78 @@ func FuzzTodo_MODEL_016(f *testing.F) {
 		}
 	})
 }
+
+// TestRegistryHandsOutDeepCopies pins the value-semantics contract
+// TestTodo_MODEL_010_Race assumes but, before Definition.clone existed, only
+// checked for the scalar DisplayName: every accessor that returns a Definition
+// must return one that shares no mutable memory with the registry.
+//
+// This is the non-race half of the proof, so it fails on any platform rather
+// than only where the race detector runs. The race half stays in
+// TestTodo_MODEL_010_Race, which writes to the same fields from 16 goroutines.
+func TestRegistryHandsOutDeepCopies(t *testing.T) {
+	reg := mustRegistry(t)
+	refs := reg.Refs()
+
+	var ref intent.Ref
+	for _, candidate := range refs {
+		d, err := reg.Resolve(candidate)
+		if err != nil {
+			continue
+		}
+		if len(d.SubjectKinds) > 0 && len(d.RequiredCapabilities) > 0 {
+			ref = candidate
+			break
+		}
+	}
+	if (ref == intent.Ref{}) {
+		t.Skip("no published definition carries both subject kinds and required capabilities")
+	}
+
+	first, err := reg.Resolve(ref)
+	if err != nil {
+		t.Fatalf("Resolve(%s): %v", ref, err)
+	}
+	wantSubject := first.SubjectKinds[0]
+	wantCapability := first.RequiredCapabilities[0]
+
+	first.SubjectKinds[0] = "CLOBBERED"
+	first.RequiredCapabilities[0] = "CLOBBERED"
+	if first.PopulationScope != nil {
+		first.PopulationScope.ScopeRef = "CLOBBERED"
+	}
+	for dimension, rules := range first.AllowedTransitions {
+		if len(rules) > 0 {
+			rules[0] = lifecycle.TransitionRule{}
+			first.AllowedTransitions[dimension] = rules
+		}
+		break
+	}
+
+	second, err := reg.Resolve(ref)
+	if err != nil {
+		t.Fatalf("Resolve(%s) after mutation: %v", ref, err)
+	}
+	if got := second.SubjectKinds[0]; got != wantSubject {
+		t.Errorf("SubjectKinds[0] = %q after a caller wrote to an earlier copy, want %q", got, wantSubject)
+	}
+	if got := second.RequiredCapabilities[0]; got != wantCapability {
+		t.Errorf("RequiredCapabilities[0] = %q after a caller wrote to an earlier copy, want %q", got, wantCapability)
+	}
+
+	all := reg.Definitions()
+	if len(all) == 0 {
+		t.Fatal("Definitions() is empty")
+	}
+	for i := range all {
+		if len(all[i].SubjectKinds) > 0 {
+			kind := all[i].SubjectKinds[0]
+			all[i].SubjectKinds[0] = "CLOBBERED"
+			if again := reg.Definitions(); again[i].SubjectKinds[0] != kind {
+				t.Errorf("Definitions()[%d].SubjectKinds[0] = %q after a caller wrote to an earlier copy, want %q",
+					i, again[i].SubjectKinds[0], kind)
+			}
+			break
+		}
+	}
+}

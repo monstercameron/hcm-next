@@ -1,6 +1,7 @@
 package reliability_test
 
 import (
+	"os"
 	"path/filepath"
 	"runtime"
 	"testing"
@@ -9,14 +10,30 @@ import (
 	"github.com/monstercameron/human-capital-management-suite/internal/operations/reliability"
 )
 
+// root walks up from this test file's own directory until it finds the
+// module's go.mod, which is the repository root that DefaultManifestPath is
+// relative to. It deliberately does NOT match on a directory *name*: the
+// earlier version looked for an ancestor literally named "hcm-next", which
+// only exists on a checkout cloned into that folder. On CI the workspace is
+// named after the repository ("human-capital-management-suite"), so the loop
+// walked past the filesystem root and spun forever on filepath.Dir("/") ==
+// "/", hanging the package until the 10-minute test timeout killed it.
 func root(t *testing.T) string {
-	_, f, _, _ := runtime.Caller(0)
+	t.Helper()
+	_, f, _, ok := runtime.Caller(0)
+	if !ok {
+		t.Fatal("runtime.Caller(0) failed; cannot locate this test file")
+	}
 	d := filepath.Dir(f)
 	for {
-		if filepath.Base(d) == "hcm-next" {
+		if _, err := os.Stat(filepath.Join(d, "go.mod")); err == nil {
 			return d
 		}
-		d = filepath.Dir(d)
+		parent := filepath.Dir(d)
+		if parent == d {
+			t.Fatalf("could not locate repo root (go.mod) starting from %s", filepath.Dir(f))
+		}
+		d = parent
 	}
 }
 func TestTodo_OPS_001(t *testing.T) {

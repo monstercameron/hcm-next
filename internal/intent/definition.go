@@ -184,6 +184,46 @@ type Definition struct {
 	AvailabilityPolicy    string
 }
 
+// clone returns a Definition that shares no mutable memory with d: every
+// slice, the AllowedTransitions map and its per-dimension slices, and the
+// PopulationScope pointer are copied.
+//
+// The registry hands definitions out by value, which copies the struct but not
+// what its slice headers point at. Before this existed, a caller that wrote to
+// a returned definition's SubjectKinds (or any other slice field) wrote
+// straight into the registry's own storage, and two callers doing it at once
+// were a genuine data race — which is exactly what `go test -race` reported on
+// Linux CI for TestTodo_MODEL_010_Race, whose own comment already stated the
+// intended contract: "Mutating the returned copies must not reach the
+// registry." Nothing inside the copied element types holds further references
+// (Initiator, Mode, NegativeState and RequiredInput are scalars or
+// all-scalar structs; PopulationScope is all-scalar; lifecycle.TransitionRule
+// is copied by value), so one level of copying is the whole job.
+func (d Definition) clone() Definition {
+	out := d
+	out.AllowedInitiators = slices.Clone(d.AllowedInitiators)
+	out.AllowedModes = slices.Clone(d.AllowedModes)
+	out.SubjectKinds = slices.Clone(d.SubjectKinds)
+	out.RequiredCapabilities = slices.Clone(d.RequiredCapabilities)
+	out.GovernanceRequirements = slices.Clone(d.GovernanceRequirements)
+	out.Preconditions = slices.Clone(d.Preconditions)
+	out.Invariants = slices.Clone(d.Invariants)
+	out.RequiredInputs = slices.Clone(d.RequiredInputs)
+	out.ApplicableNegativeStates = slices.Clone(d.ApplicableNegativeStates)
+	if d.PopulationScope != nil {
+		scope := *d.PopulationScope
+		out.PopulationScope = &scope
+	}
+	if d.AllowedTransitions != nil {
+		transitions := make(map[lifecycle.Dimension][]lifecycle.TransitionRule, len(d.AllowedTransitions))
+		for dimension, rules := range d.AllowedTransitions {
+			transitions[dimension] = slices.Clone(rules)
+		}
+		out.AllowedTransitions = transitions
+	}
+	return out
+}
+
 // AllowsMode reports whether the definition permits an execution mode.
 func (d Definition) AllowsMode(m Mode) bool { return slices.Contains(d.AllowedModes, m) }
 
