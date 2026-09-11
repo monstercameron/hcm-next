@@ -149,6 +149,7 @@ shutdown:stop-http-edge|shutdown|func(context.Context) error|http-edge
 telemetry-provider|adapter|<nil>|config
 transaction-history|port|*app.ledgerTransactions|
 trusted-clock|engine|*timeauth.Monitor|
+work-item-queue-reader|port|app.workItemQueueReader|database-pool
 worker-facts|port|*fixtures.MemoryWorkerFacts|
 workflow-instance-reader|port|app.workflowInstanceReader|database-pool
 workflow-resolver|workflow|<nil>|execution-authority

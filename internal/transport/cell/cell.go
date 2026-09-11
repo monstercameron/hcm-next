@@ -41,6 +41,7 @@ import (
 	"github.com/monstercameron/human-capital-management-suite/internal/transport/envelope"
 	"github.com/monstercameron/human-capital-management-suite/internal/transport/grpcserver"
 	transporthealth "github.com/monstercameron/human-capital-management-suite/internal/transport/health"
+	transporthumanwork "github.com/monstercameron/human-capital-management-suite/internal/transport/humanwork"
 	transportjourney "github.com/monstercameron/human-capital-management-suite/internal/transport/journey"
 	"github.com/monstercameron/human-capital-management-suite/internal/transport/manifest"
 	transportoperations "github.com/monstercameron/human-capital-management-suite/internal/transport/operations"
@@ -62,7 +63,7 @@ import (
 // UNAVAILABLE, matching every other optional transportadmin.Dependencies
 // port a caller does not wire.
 func NewGRPCServer(c *app.Cell, opts ...grpc.ServerOption) (*grpc.Server, error) {
-	return NewGRPCServerWithWorkflowInspectorAndOperations(c, nil, nil, nil, opts...)
+	return NewGRPCServerWithWorkflowInspectorAndOperations(c, nil, nil, nil, nil, opts...)
 }
 
 // NewGRPCServerWithWorkflowInspector is [NewGRPCServer] plus ADMIN-008's
@@ -79,7 +80,7 @@ func NewGRPCServer(c *app.Cell, opts ...grpc.ServerOption) (*grpc.Server, error)
 func NewGRPCServerWithWorkflowInspector(
 	c *app.Cell, instances app.WorkflowInstanceReader, opts ...grpc.ServerOption,
 ) (*grpc.Server, error) {
-	return NewGRPCServerWithWorkflowInspectorAndOperations(c, instances, nil, nil, opts...)
+	return NewGRPCServerWithWorkflowInspectorAndOperations(c, instances, nil, nil, nil, opts...)
 }
 
 // NewGRPCServerWithWorkflowInspectorAndOperations is
@@ -88,7 +89,8 @@ func NewGRPCServerWithWorkflowInspector(
 // application root owns construction of these adapters; this package only
 // threads the already-composed ports into the listener-facing services.
 func NewGRPCServerWithWorkflowInspectorAndOperations(
-	c *app.Cell, instances app.WorkflowInstanceReader, operationStore transportoperations.Store,
+	c *app.Cell, instances app.WorkflowInstanceReader, workQueue app.WorkItemQueueReader,
+	operationStore transportoperations.Store,
 	cursorKey []byte, opts ...grpc.ServerOption,
 ) (*grpc.Server, error) {
 	if c == nil {
@@ -137,6 +139,13 @@ func NewGRPCServerWithWorkflowInspectorAndOperations(
 	// the same durable record without moving database access into transport.
 	workflowDeps := transportworkflow.Dependencies{Instances: newWorkflowReader(instances), CursorKey: append([]byte(nil), cursorKey...)}
 	transportworkflow.Register(srv, workflowDeps)
+	// WorkService (EP-WORK-001) publishes the queue read endpoints under the
+	// same interceptor chain and cursor key. A nil workQueue leaves the
+	// methods answering UNAVAILABLE rather than absent, the same nil-tolerant
+	// posture the workflow inspector takes.
+	transporthumanwork.Register(srv, transporthumanwork.Dependencies{
+		Queue: newWorkQueueReader(workQueue), CursorKey: append([]byte(nil), cursorKey...),
+	})
 	transportoperations.Register(srv, transportoperations.Dependencies{Store: operationStore})
 	transporthealth.Register(srv, transporthealth.Dependencies{})
 	return srv, nil
@@ -156,10 +165,11 @@ func NewEdgeHandler(c *app.Cell, opts ...connect.HandlerOption) (http.Handler, e
 // reader, operation store and cursor key as the gRPC surface. It is the
 // non-tunnel counterpart of [NewEdgeHandlerWithTunnelAndDependencies].
 func NewEdgeHandlerWithDependencies(
-	c *app.Cell, instances app.WorkflowInstanceReader, operationStore transportoperations.Store,
+	c *app.Cell, instances app.WorkflowInstanceReader, workQueue app.WorkItemQueueReader,
+	operationStore transportoperations.Store,
 	cursorKey []byte, opts ...connect.HandlerOption,
 ) (http.Handler, error) {
-	return buildEdgeHandlerWithDependencies(c, nil, instances, operationStore, cursorKey, opts...)
+	return buildEdgeHandlerWithDependencies(c, nil, instances, workQueue, operationStore, cursorKey, opts...)
 }
 
 // buildEdgeHandler is the one edge composition both [NewEdgeHandler] and
@@ -167,10 +177,10 @@ func NewEdgeHandlerWithDependencies(
 // mounted, which is exactly what NewEdgeHandler has always built; a non-nil
 // one adds [TunnelPath] to the same mux and changes nothing else.
 func buildEdgeHandler(c *app.Cell, grpcServer *grpc.Server, opts ...connect.HandlerOption) (http.Handler, error) {
-	return buildEdgeHandlerWithDependencies(c, grpcServer, nil, nil, nil, opts...)
+	return buildEdgeHandlerWithDependencies(c, grpcServer, nil, nil, nil, nil, opts...)
 }
 
-func buildEdgeHandlerWithDependencies(c *app.Cell, grpcServer *grpc.Server, instances app.WorkflowInstanceReader, operationStore transportoperations.Store, cursorKey []byte, opts ...connect.HandlerOption) (http.Handler, error) {
+func buildEdgeHandlerWithDependencies(c *app.Cell, grpcServer *grpc.Server, instances app.WorkflowInstanceReader, workQueue app.WorkItemQueueReader, operationStore transportoperations.Store, cursorKey []byte, opts ...connect.HandlerOption) (http.Handler, error) {
 	if c == nil {
 		return nil, fmt.Errorf("transport cell: application cell is required")
 	}
@@ -181,6 +191,7 @@ func buildEdgeHandlerWithDependencies(c *app.Cell, grpcServer *grpc.Server, inst
 		Config: c.Config, Intent: c.Service, Registry: c.Service,
 		Journey:    &transportjourney.Dependencies{Engine: c.Journey, Preferences: c.Preferences, RoleAccess: c.RoleAccess, WorkerIDs: c.WorkerIDs},
 		Workflow:   &transportworkflow.Dependencies{Instances: newWorkflowReader(instances), CursorKey: append([]byte(nil), cursorKey...)},
+		Work:       &transporthumanwork.Dependencies{Queue: newWorkQueueReader(workQueue), CursorKey: append([]byte(nil), cursorKey...)},
 		Operations: &transportoperations.Dependencies{Store: operationStore},
 		Health:     transporthealth.New(transporthealth.Dependencies{}), HandlerOptions: opts,
 	})

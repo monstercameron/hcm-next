@@ -123,6 +123,7 @@ func TestTodo_ARCH_GO_020_Conformance(t *testing.T) {
 			ComponentWorkerFacts:          KindPort,
 			ComponentTransactionHistory:   KindPort,
 			ComponentWorkflowInstanceRead: KindPort,
+			ComponentWorkItemQueueRead:    KindPort,
 			ComponentIntentStore:          KindAdapter,
 			ComponentCredentialVerifier:   KindAdapter,
 			ComponentTelemetryProvider:    KindAdapter,

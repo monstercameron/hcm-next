@@ -3,9 +3,9 @@
 Generated from the checked-in architecture manifests and the current Go package tree.
 
 - Module: `github.com/monstercameron/human-capital-management-suite`
-- Source graph: d406177716fb09987a615abbacfa78cc028ee3e47615d2d20deed51ac235b9a7
-- Package count: 776
-- Within-module edge count: 1749
+- Source graph: a42d7fca06de49f9954642a052015cb910d02422ca4c66fbeaafd7d4e9af8348
+- Package count: 777
+- Within-module edge count: 1759
 - Source manifests: `definitions/architecture/repository-layout.yaml`, `definitions/architecture/package-dependency-policy.yaml`, `definitions/architecture/dependency-roles.yaml`
 
 ## Declared layers and roots
@@ -576,6 +576,7 @@ Semantic package roots. Every second-level directory name must be a declared roo
 - `github.com/monstercameron/human-capital-management-suite/internal/transport/envelope`
 - `github.com/monstercameron/human-capital-management-suite/internal/transport/grpcserver`
 - `github.com/monstercameron/human-capital-management-suite/internal/transport/health`
+- `github.com/monstercameron/human-capital-management-suite/internal/transport/humanwork`
 - `github.com/monstercameron/human-capital-management-suite/internal/transport/journey`
 - `github.com/monstercameron/human-capital-management-suite/internal/transport/list`
 - `github.com/monstercameron/human-capital-management-suite/internal/transport/manifest`
@@ -929,4 +930,4 @@ Generated Protobuf/Go artifacts. Content is owned by the generator (TOOL-002/TOO
 
 ## Document digest
 
-`9088b0bb6d5d87d6412933c786524d2afba363c112f1a182040d8ca2c7099555`
+`349d6b8782492b293cd57edee6cd4b800946ccf50d7f1e54d9caab980715741b`

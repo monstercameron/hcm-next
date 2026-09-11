@@ -23,6 +23,22 @@
   request re-derives the same keys and the stores' ON CONFLICT semantics make
   it a no-op. The generic `SimulateIntent` path still writes none of these
   rows, keeping the P1A zero-authoritative-mutation contract intact.
+- Serve the human-work queue read surface (EP-WORK-001): `WorkService`'s
+  ListWorkItems and GetWorkItem are now composed on the gRPC surface, the
+  websocket tunnel and the Connect edge. Membership, visibility
+  classification and the server-computed permitted-action set are the
+  workitem package's read rules (new `view.go`); a new durable
+  `Store.ListQueue` answers the principal's actionable queue in
+  deadline/identity order behind `tenant_isolation` RLS, and an
+  application-level `WorkItemQueueReader` port hands the transports the
+  raw records. The wire `WorkItem` gains proposal_ref, claimed_by,
+  claim_expires_at and repeated permitted_actions; the queue cursor is an
+  HMAC-signed token bound to principal/tenant/scope, the queue snapshot
+  digest and a five-minute expiry. Absent, invisible and other-tenant
+  reads answer the identical non-disclosing NOT_FOUND, and the four
+  mutating methods refuse FAILED_PRECONDITION on both transports per the
+  P1A contract. Composition golden and conformance rows updated for the
+  new `work-item-queue-reader` port.
 
 ## 2026-09-10
 
