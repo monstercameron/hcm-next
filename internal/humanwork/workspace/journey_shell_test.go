@@ -42,8 +42,10 @@ func (c unreachableCell) ReadPromotion(context.Context, Request) (Reading, error
 	return Reading{}, errors.New("unreachable")
 }
 
-// newShellHandler builds a Handler and one credential it admits.
-func newShellHandler(t *testing.T, devBrowserLogin bool) (*Handler, string) {
+// newShellHandler builds a Handler and one credential it admits. An
+// optional public origin composes the handler the way a TLS-terminating
+// deployment would.
+func newShellHandler(t *testing.T, devBrowserLogin bool, publicOrigin ...string) (*Handler, string) {
 	t.Helper()
 	verifier, err := trust.NewHMACVerifier(trust.HMACVerifierConfig{
 		Key:      shellSigningKey,
@@ -73,6 +75,10 @@ func newShellHandler(t *testing.T, devBrowserLogin bool) (*Handler, string) {
 	if err != nil {
 		t.Fatalf("issue credential: %v", err)
 	}
+	declared := ""
+	if len(publicOrigin) > 0 {
+		declared = publicOrigin[0]
+	}
 	h, err := NewHandler(Options{
 		Cell: unreachableCell{t: t},
 		Config: transport.Config{
@@ -81,6 +87,7 @@ func newShellHandler(t *testing.T, devBrowserLogin bool) (*Handler, string) {
 		},
 		Now:             func() time.Time { return shellNow },
 		DevBrowserLogin: devBrowserLogin,
+		PublicOrigin:    declared,
 	})
 	if err != nil {
 		t.Fatalf("NewHandler: %v", err)
@@ -277,6 +284,60 @@ func TestJourneyShellTunnelURLFollowsTheRequest(t *testing.T) {
 func TestJourneyTunnelURLNilRequest(t *testing.T) {
 	if got := JourneyTunnelURL(nil); got != "" {
 		t.Fatalf("JourneyTunnelURL(nil) = %q, want the empty string", got)
+	}
+}
+
+// TestJourneyShellBindsTheDeclaredPublicOrigin is the complex-deployment
+// case: a proxy that terminates TLS and rewrites Host delivers the page
+// request with an internal authority, so the tunnel address and the policy
+// must come from the origin the deployment declared, not from the request.
+func TestJourneyShellBindsTheDeclaredPublicOrigin(t *testing.T) {
+	h, token := newShellHandler(t, false, "https://hcm.example.com")
+	w := getJourney(t, h, func(r *http.Request) {
+		r.Header.Set("Authorization", "Bearer "+token)
+	})
+	if w.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200: %s", w.Code, w.Body.String())
+	}
+	if got := island(t, w.Body.String()).TunnelURL; got != "wss://hcm.example.com"+PathTunnel {
+		t.Errorf("tunnel_url = %q, want wss://hcm.example.com%s", got, PathTunnel)
+	}
+	if got := w.Header().Get("Content-Security-Policy"); got != JourneyContentSecurityPolicy("hcm.example.com") {
+		t.Errorf("Content-Security-Policy = %q, want the public authority bound", got)
+	}
+
+	plain, plainToken := newShellHandler(t, false, "http://hcm.internal:8080")
+	w = getJourney(t, plain, func(r *http.Request) {
+		r.Header.Set("Authorization", "Bearer "+plainToken)
+	})
+	if got := island(t, w.Body.String()).TunnelURL; got != "ws://hcm.internal:8080"+PathTunnel {
+		t.Errorf("tunnel_url = %q, want ws://hcm.internal:8080%s", got, PathTunnel)
+	}
+}
+
+// TestJourneyShellRejectsAPublicOriginItCannotServe is the fail-closed half:
+// an origin the sanitizer cannot represent must not reach a shell that would
+// silently emit empty tunnel addresses.
+func TestJourneyShellRejectsAPublicOriginItCannotServe(t *testing.T) {
+	verifier, err := trust.NewHMACVerifier(trust.HMACVerifierConfig{
+		Key: shellSigningKey, Issuer: shellIssuer, Audience: shellAudience,
+	})
+	if err != nil {
+		t.Fatalf("NewHMACVerifier: %v", err)
+	}
+	for _, raw := range []string{
+		"hcm.example.com", "https://", "https://hcm.example.com/path",
+		"https://user@hcm.example.com", "ftp://hcm.example.com",
+		"https://203.0.113.10",
+	} {
+		_, err := NewHandler(Options{
+			Cell:         unreachableCell{t: t},
+			Config:       transport.Config{Verifier: verifier, Audience: shellAudience},
+			PublicOrigin: raw,
+		})
+		if err == nil {
+			t.Errorf("PublicOrigin %q: NewHandler returned no error", raw)
+		}
 	}
 }
 

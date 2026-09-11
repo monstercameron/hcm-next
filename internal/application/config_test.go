@@ -42,7 +42,7 @@ func TestServeConfigFieldsDeclareEveryConfigurationTheRoleReads(t *testing.T) {
 		FieldExecutionAuthorityRole, FieldExecutionApprover,
 		FieldWorkflowPlan, FieldLegalEvidenceIssuerKeys,
 		FieldExecutionRetry, FieldExecutionRetryVersion, FieldExecutionRetryMaxAttempts,
-		FieldExecutionRetryResolutionAttempts,
+		FieldExecutionRetryResolutionAttempts, FieldPublicOrigin,
 	} {
 		if _, ok := declared[name]; !ok {
 			t.Errorf("field %q is read by the composition but not declared", name)
@@ -84,6 +84,7 @@ func TestServeConfigFromValuesResolvesEveryFieldOnce(t *testing.T) {
 		"-execution-retry=true", "-execution-retry-version=retry-v1",
 		"-execution-retry-max-attempts=3", "-execution-retry-resolution-attempts=4",
 		"-legal-evidence-issuer-keys=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+		"-public-origin=https://HCM.example.com:8443",
 	)
 	cfg, err := ServeConfigFromValues(values)
 	if err != nil {
@@ -104,12 +105,56 @@ func TestServeConfigFromValuesResolvesEveryFieldOnce(t *testing.T) {
 		ExecutionRetryMaxAttempts: 3, ExecutionRetryResolutionAttempts: 4,
 		LegalEvidenceIssuerKeys: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
 		TimerTzdbVersion:        "2026b", TimerCalendarVersion: "2026.2", HealthAddr: "127.0.0.1:9",
+		PublicOrigin: "https://hcm.example.com:8443",
 	}
 	if cfg != want {
 		t.Errorf("ServeConfigFromValues =\n %+v\nwant\n %+v", cfg, want)
 	}
 	if err := cfg.Validate(); err != nil {
 		t.Errorf("Validate on a complete configuration: %v", err)
+	}
+}
+
+// TestServeConfigPublicOriginIsCanonicalizedAndValidated pins the one
+// parse the flag accepts: an absolute http(s) origin, canonicalized to
+// lowercase scheme://host so every consumer binds the same authority.
+func TestServeConfigPublicOriginIsCanonicalizedAndValidated(t *testing.T) {
+	cfg, err := ServeConfigFromValues(parseServe(t,
+		"-database-url=postgres://x", "-dev-hmac-key="+testDevKey))
+	if err != nil {
+		t.Fatalf("ServeConfigFromValues: %v", err)
+	}
+	if cfg.PublicOrigin != "" {
+		t.Fatalf("default PublicOrigin = %q, want empty", cfg.PublicOrigin)
+	}
+	if err := cfg.Validate(); err != nil {
+		t.Fatalf("Validate with no public origin: %v", err)
+	}
+
+	cfg, err = ServeConfigFromValues(parseServe(t,
+		"-database-url=postgres://x", "-dev-hmac-key="+testDevKey,
+		"-public-origin=https://HCM.Example.com:443"))
+	if err != nil {
+		t.Fatalf("ServeConfigFromValues: %v", err)
+	}
+	if cfg.PublicOrigin != "https://hcm.example.com:443" {
+		t.Fatalf("PublicOrigin = %q, want the canonical form", cfg.PublicOrigin)
+	}
+	if err := cfg.Validate(); err != nil {
+		t.Fatalf("Validate with a public origin: %v", err)
+	}
+
+	for _, raw := range []string{
+		"hcm.example.com", "https://", "ftp://hcm.example.com",
+		"https://hcm.example.com/app", "https://user@hcm.example.com",
+		"https://hcm.example.com?q=1",
+	} {
+		_, err := ServeConfigFromValues(parseServe(t,
+			"-database-url=postgres://x", "-dev-hmac-key="+testDevKey,
+			"-public-origin="+raw))
+		if err == nil {
+			t.Errorf("-public-origin=%q accepted", raw)
+		}
 	}
 }
 

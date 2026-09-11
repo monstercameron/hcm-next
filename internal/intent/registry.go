@@ -173,11 +173,14 @@ func (r *Registry) Len() int { return len(r.byRef) }
 // Refs returns every published definition reference, sorted.
 func (r *Registry) Refs() []Ref { return append([]Ref(nil), r.order...) }
 
-// Definitions returns every published definition, sorted by reference.
+// Definitions returns every published definition, sorted by reference. Each
+// one is a deep copy (see [Definition.clone]): a caller may write to the
+// returned definitions and their slices without reaching the registry, and two
+// callers may do so concurrently without racing each other.
 func (r *Registry) Definitions() []Definition {
 	out := make([]Definition, 0, len(r.order))
 	for _, ref := range r.order {
-		out = append(out, r.byRef[ref])
+		out = append(out, r.byRef[ref].clone())
 	}
 	return out
 }
@@ -200,7 +203,7 @@ func (r *Registry) Resolve(ref Ref) (Definition, error) {
 		return Definition{}, newError("Resolve", "maturity", ErrNotInvocable,
 			"%s is at %s, below DRAFT_CONTRACT", ref, d.Maturity)
 	}
-	return d, nil
+	return d.clone(), nil
 }
 
 // ResolveText parses a canonical "intent_type_id/vN" reference and resolves it.
@@ -261,7 +264,7 @@ func (r *Registry) ByRelease(rel Release) []Definition {
 	var out []Definition
 	for _, ref := range r.order {
 		if d := r.byRef[ref]; d.Release == rel {
-			out = append(out, d)
+			out = append(out, d.clone())
 		}
 	}
 	return out
@@ -272,7 +275,7 @@ func (r *Registry) ByFamily(f Family) []Definition {
 	var out []Definition
 	for _, ref := range r.order {
 		if d := r.byRef[ref]; d.Family == f {
-			out = append(out, d)
+			out = append(out, d.clone())
 		}
 	}
 	return out

@@ -5,10 +5,18 @@
 // `-race` is unavailable on this development host (windows/arm64 has no
 // race detector support at all — the Go toolchain simply refuses the
 // flag). .github/workflows/tests.yml's go-core job already runs
-// `go test -race -count=1 ./...` on Linux CI, which is where the actual
-// race class gets proven; that step is not this package's job to
-// duplicate, and this package's own test suite runs, and must pass,
-// without -race, on this host.
+// `go test -race -count=1` on Linux CI, which is where the actual race
+// class gets proven; that step is not this package's job to duplicate, and
+// this package's own test suite runs, and must pass, without -race, on this
+// host.
+//
+// That step takes its package list from this package, via `racepolicy
+// -list` (see cmd/racepolicy): the set that is raced and the set this
+// policy audits are one scan, so they cannot drift. It used to be a blanket
+// `./...`, which raced every PostgreSQL-backed data package for no
+// race-class signal and could not finish inside the job's wall clock. The
+// packages -list leaves out are not skipped; the same job sweeps every
+// measurable package through covergate with the detector off.
 //
 // What a blind `-race -count=1 ./...` cannot prove on its own is
 // *coverage*: it races whatever tests already exist, but says nothing
