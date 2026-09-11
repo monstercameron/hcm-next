@@ -196,8 +196,20 @@ type WorkItem struct {
 	CreatedAt               *timestamppb.Timestamp `protobuf:"bytes,24,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	ClaimedAt               *timestamppb.Timestamp `protobuf:"bytes,25,opt,name=claimed_at,json=claimedAt,proto3,oneof" json:"claimed_at,omitempty"`
 	CompletedAt             *timestamppb.Timestamp `protobuf:"bytes,26,opt,name=completed_at,json=completedAt,proto3,oneof" json:"completed_at,omitempty"`
-	unknownFields           protoimpl.UnknownFields
-	sizeCache               protoimpl.SizeCache
+	// proposal_ref binds the item to the material proposal revision digest it
+	// dispositions (planning/specs/human-work-forms-and-rules.md
+	// "ApprovalDecision bound to proposal"); empty for non-approval work.
+	ProposalRef *string `protobuf:"bytes,27,opt,name=proposal_ref,json=proposalRef,proto3,oneof" json:"proposal_ref,omitempty"`
+	// permitted_actions is the server-computed action token set the caller may
+	// currently exercise against this item ("claim", "release", "complete",
+	// "decide_approval"), computed against caller membership, current version
+	// and claim state -- never a client-supplied hint.
+	PermittedActions []string `protobuf:"bytes,28,rep,name=permitted_actions,json=permittedActions,proto3" json:"permitted_actions,omitempty"`
+	// claimed_by is the current claim holder when a live claim exists.
+	ClaimedBy      *string                `protobuf:"bytes,29,opt,name=claimed_by,json=claimedBy,proto3,oneof" json:"claimed_by,omitempty"`
+	ClaimExpiresAt *timestamppb.Timestamp `protobuf:"bytes,30,opt,name=claim_expires_at,json=claimExpiresAt,proto3,oneof" json:"claim_expires_at,omitempty"`
+	unknownFields  protoimpl.UnknownFields
+	sizeCache      protoimpl.SizeCache
 }
 
 func (x *WorkItem) Reset() {
@@ -408,6 +420,34 @@ func (x *WorkItem) GetClaimedAt() *timestamppb.Timestamp {
 func (x *WorkItem) GetCompletedAt() *timestamppb.Timestamp {
 	if x != nil {
 		return x.CompletedAt
+	}
+	return nil
+}
+
+func (x *WorkItem) GetProposalRef() string {
+	if x != nil && x.ProposalRef != nil {
+		return *x.ProposalRef
+	}
+	return ""
+}
+
+func (x *WorkItem) GetPermittedActions() []string {
+	if x != nil {
+		return x.PermittedActions
+	}
+	return nil
+}
+
+func (x *WorkItem) GetClaimedBy() string {
+	if x != nil && x.ClaimedBy != nil {
+		return *x.ClaimedBy
+	}
+	return ""
+}
+
+func (x *WorkItem) GetClaimExpiresAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.ClaimExpiresAt
 	}
 	return nil
 }
@@ -706,7 +746,7 @@ var File_hcmnext_humanwork_v1_humanwork_proto protoreflect.FileDescriptor
 
 const file_hcmnext_humanwork_v1_humanwork_proto_rawDesc = "" +
 	"\n" +
-	"$hcmnext/humanwork/v1/humanwork.proto\x12\x14hcmnext.humanwork.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1ehcmnext/common/v1/common.proto\x1a(hcmnext/intents/v1/business_intent.proto\"\x86\f\n" +
+	"$hcmnext/humanwork/v1/humanwork.proto\x12\x14hcmnext.humanwork.v1\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x1ehcmnext/common/v1/common.proto\x1a(hcmnext/intents/v1/business_intent.proto\"\xff\r\n" +
 	"\bWorkItem\x12 \n" +
 	"\fwork_item_id\x18\x01 \x01(\tR\n" +
 	"workItemId\x12\x1b\n" +
@@ -739,7 +779,12 @@ const file_hcmnext_humanwork_v1_humanwork_proto_rawDesc = "" +
 	"\n" +
 	"claimed_at\x18\x19 \x01(\v2\x1a.google.protobuf.TimestampH\n" +
 	"R\tclaimedAt\x88\x01\x01\x12B\n" +
-	"\fcompleted_at\x18\x1a \x01(\v2\x1a.google.protobuf.TimestampH\vR\vcompletedAt\x88\x01\x01B\x14\n" +
+	"\fcompleted_at\x18\x1a \x01(\v2\x1a.google.protobuf.TimestampH\vR\vcompletedAt\x88\x01\x01\x12&\n" +
+	"\fproposal_ref\x18\x1b \x01(\tH\fR\vproposalRef\x88\x01\x01\x12+\n" +
+	"\x11permitted_actions\x18\x1c \x03(\tR\x10permittedActions\x12\"\n" +
+	"\n" +
+	"claimed_by\x18\x1d \x01(\tH\rR\tclaimedBy\x88\x01\x01\x12I\n" +
+	"\x10claim_expires_at\x18\x1e \x01(\v2\x1a.google.protobuf.TimestampH\x0eR\x0eclaimExpiresAt\x88\x01\x01B\x14\n" +
 	"\x12_resolved_queue_idB\x18\n" +
 	"\x16_assigned_principal_idB\x16\n" +
 	"\x14_form_definition_refB\t\n" +
@@ -752,7 +797,10 @@ const file_hcmnext_humanwork_v1_humanwork_proto_rawDesc = "" +
 	"\n" +
 	"\b_case_idB\r\n" +
 	"\v_claimed_atB\x0f\n" +
-	"\r_completed_at\"\xe3\x02\n" +
+	"\r_completed_atB\x0f\n" +
+	"\r_proposal_refB\r\n" +
+	"\v_claimed_byB\x13\n" +
+	"\x11_claim_expires_at\"\xe3\x02\n" +
 	"\x16ApprovalDecisionResult\x12 \n" +
 	"\fwork_item_id\x18\x01 \x01(\tR\n" +
 	"workItemId\x120\n" +
@@ -840,17 +888,18 @@ var file_hcmnext_humanwork_v1_humanwork_proto_depIdxs = []int32{
 	9,  // 4: hcmnext.humanwork.v1.WorkItem.created_at:type_name -> google.protobuf.Timestamp
 	9,  // 5: hcmnext.humanwork.v1.WorkItem.claimed_at:type_name -> google.protobuf.Timestamp
 	9,  // 6: hcmnext.humanwork.v1.WorkItem.completed_at:type_name -> google.protobuf.Timestamp
-	10, // 7: hcmnext.humanwork.v1.ApprovalDecisionResult.decision:type_name -> hcmnext.intents.v1.ApprovalDecisionKind
-	11, // 8: hcmnext.humanwork.v1.ApprovalDecisionResult.deciding_principal:type_name -> hcmnext.intents.v1.PrincipalReference
-	9,  // 9: hcmnext.humanwork.v1.ApprovalDecisionResult.decided_at:type_name -> google.protobuf.Timestamp
-	4,  // 10: hcmnext.humanwork.v1.ThresholdRow.conditions:type_name -> hcmnext.humanwork.v1.ThresholdCondition
-	5,  // 11: hcmnext.humanwork.v1.ThresholdTable.rows:type_name -> hcmnext.humanwork.v1.ThresholdRow
-	1,  // 12: hcmnext.humanwork.v1.ThresholdTable.hit_policy:type_name -> hcmnext.humanwork.v1.ThresholdHitPolicy
-	13, // [13:13] is the sub-list for method output_type
-	13, // [13:13] is the sub-list for method input_type
-	13, // [13:13] is the sub-list for extension type_name
-	13, // [13:13] is the sub-list for extension extendee
-	0,  // [0:13] is the sub-list for field type_name
+	9,  // 7: hcmnext.humanwork.v1.WorkItem.claim_expires_at:type_name -> google.protobuf.Timestamp
+	10, // 8: hcmnext.humanwork.v1.ApprovalDecisionResult.decision:type_name -> hcmnext.intents.v1.ApprovalDecisionKind
+	11, // 9: hcmnext.humanwork.v1.ApprovalDecisionResult.deciding_principal:type_name -> hcmnext.intents.v1.PrincipalReference
+	9,  // 10: hcmnext.humanwork.v1.ApprovalDecisionResult.decided_at:type_name -> google.protobuf.Timestamp
+	4,  // 11: hcmnext.humanwork.v1.ThresholdRow.conditions:type_name -> hcmnext.humanwork.v1.ThresholdCondition
+	5,  // 12: hcmnext.humanwork.v1.ThresholdTable.rows:type_name -> hcmnext.humanwork.v1.ThresholdRow
+	1,  // 13: hcmnext.humanwork.v1.ThresholdTable.hit_policy:type_name -> hcmnext.humanwork.v1.ThresholdHitPolicy
+	14, // [14:14] is the sub-list for method output_type
+	14, // [14:14] is the sub-list for method input_type
+	14, // [14:14] is the sub-list for extension type_name
+	14, // [14:14] is the sub-list for extension extendee
+	0,  // [0:14] is the sub-list for field type_name
 }
 
 func init() { file_hcmnext_humanwork_v1_humanwork_proto_init() }
