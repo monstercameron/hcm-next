@@ -60,26 +60,15 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
 
-    services:
-      postgres:
-        image: postgres:16
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: postgres
-        ports:
-          - 5432:5432
-        options: >-
-          --shm-size=512m
-          --health-cmd "pg_isready -U postgres -d postgres"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        volumes:
-          - ${{ github.workspace }}/.github/postgres/:/docker-entrypoint-initdb.d/:ro
-
+    # PostgreSQL runs as an explicit step container rather than a
+    # `services:` entry on purpose: service containers start before
+    # `actions/checkout`, so a workspace mount source does not exist yet
+    # and Docker creates it root-owned, which fails checkout with EACCES.
+    # Starting it here keeps checkout, the tuning mount below, and
+    # teardown in a visible, ordered sequence.
     env:
       HCMNEXT_TEST_DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable
+      HCMNEXT_PG_CONTAINER: hcmnext-pg
 
     steps:
       - name: Check out repository
@@ -90,6 +79,32 @@ jobs:
         with:
           go-version-file: go.mod
           cache: true
+
+      - name: Start PostgreSQL (tuned per .github/postgres/init-tuning.sql)
+        run: |
+          docker run -d --name "$HCMNEXT_PG_CONTAINER" \
+            -e POSTGRES_USER=postgres \
+            -e POSTGRES_PASSWORD=postgres \
+            -e POSTGRES_DB=postgres \
+            -p 5432:5432 \
+            --shm-size=512m \
+            --health-cmd "pg_isready -U postgres -d postgres" \
+            --health-interval 10s \
+            --health-timeout 5s \
+            --health-retries 5 \
+            -v "${GITHUB_WORKSPACE}/.github/postgres:/docker-entrypoint-initdb.d:ro" \
+            postgres:16
+          for _ in $(seq 1 45); do
+            status="$(docker inspect --format='{{.State.Health.Status}}' "$HCMNEXT_PG_CONTAINER")"
+            if [ "$status" = "healthy" ]; then
+              echo "postgres is healthy"
+              exit 0
+            fi
+            sleep 2
+          done
+          echo "postgres never became healthy; container logs:"
+          docker logs "$HCMNEXT_PG_CONTAINER"
+          exit 1
 
       - name: Build root module
         run: go build ./...
@@ -147,6 +162,10 @@ jobs:
         run: go run ./tools/policy/enginecoverage/cmd/enginecoverage -root .
       - name: Verify concurrent-package race coverage policy (TOOL-012)
         run: go run ./tools/policy/racepolicy/cmd/racepolicy -root .
+
+      - name: Stop PostgreSQL
+        if: always()
+        run: docker rm --force "$HCMNEXT_PG_CONTAINER" || true
 
   go-core-ephemeral-pg:
     name: Go tests (ephemeral embedded PostgreSQL, TOOL-014)
