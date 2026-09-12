@@ -45,6 +45,15 @@ type Session struct {
 	Subject string   `json:"subject"`
 	Roles   []string `json:"roles"`
 	Purpose string   `json:"purpose"`
+	// AuthorityState is the server-resolved reason, if any, this session's
+	// acting authority needs a persistent shell-wide notice (UXAUDIT-007).
+	// It is a separate declaration from
+	// internal/humanwork/productui.AuthorityState for the same reason the
+	// rest of this struct is: this package may not import internal/, and
+	// the server may not import a tools/ package. See
+	// [AuthorityState.noticeworthy] for how [SessionStrip] uses it -- an
+	// empty or unrecognized value discloses rather than hides.
+	AuthorityState AuthorityState `json:"authority_state"`
 }
 
 // ErrSessionMalformed means the island was not a JSON object at all.
@@ -68,11 +77,15 @@ func ReadSession(data []byte) (Session, error) {
 	s.Tenant = strings.TrimSpace(s.Tenant)
 	s.Subject = strings.TrimSpace(s.Subject)
 	s.Purpose = strings.TrimSpace(s.Purpose)
+	s.AuthorityState = AuthorityState(strings.TrimSpace(string(s.AuthorityState)))
 	return s, nil
 }
 
 // IsZero reports whether s carries no display fact at all, which
-// [SessionStrip] uses to decide whether to render anything.
+// [SessionStrip] uses to decide whether to render anything. A Session that
+// carries only a resolved AuthorityState and none of the other three
+// display facts is not zero: UXAUDIT-007 requires that state to still
+// disclose, which it cannot do from behind an empty-fragment short circuit.
 func (s Session) IsZero() bool {
-	return s.Tenant == "" && s.Subject == "" && s.Purpose == "" && len(s.Roles) == 0
+	return s.Tenant == "" && s.Subject == "" && s.Purpose == "" && len(s.Roles) == 0 && s.AuthorityState == ""
 }

@@ -395,6 +395,19 @@ func mastheadNav(links []NavLink) ui.Node {
 // principalChip names who is signed in, which roles admitted them and the
 // purpose the session was opened under. The page shows this on every screen
 // because every answer below it was filtered by exactly these three things.
+//
+// UXAUDIT-007's GREEN clause requires this explanation to sit next to an
+// exit action, in the same masthead: a reviewer told "Purpose:
+// compensation_review" needs an obvious way to leave that context from the
+// same place they learned they were in it. This session has no narrower way
+// to drop just the purpose while staying signed in, so the exit control is
+// the same LogoutHref destination the ordinary "Sign out" control already
+// uses -- but when a Purpose is present, its label names that purpose
+// explicitly ("Exit <purpose> and sign out") instead of the bare, generic
+// "Sign out" a purposeless session still gets. The pairing is deliberate:
+// the two spans render adjacently, and [TestPrincipalChipPairsPurposeWithItsExit]
+// asserts the pairing by value, not merely that each half exists somewhere
+// on the page.
 func principalChip(pr Principal) ui.Node {
 	if pr.Subject == "" && len(pr.Roles) == 0 && pr.Purpose == "" && pr.LogoutHref == "" {
 		return nil
@@ -411,7 +424,14 @@ func principalChip(pr Principal) ui.Node {
 			visuallyHidden("Purpose: "), html.Text(pr.Purpose)))
 	}
 	if pr.LogoutHref != "" {
-		children = append(children, html.A(html.Props{Class: "jn-logout", Href: pr.LogoutHref}, html.Text("Sign out")))
+		exitLabel := "Sign out"
+		exitProps := html.Props{Class: "jn-logout", Href: pr.LogoutHref}
+		if pr.Purpose != "" {
+			exitLabel = "Exit " + pr.Purpose + " and sign out"
+			exitProps.Class = "jn-logout jn-exit-purpose"
+			exitProps.Aria = map[string]string{"label": exitLabel}
+		}
+		children = append(children, html.A(exitProps, html.Text(exitLabel)))
 	}
 	return html.Div(html.Props{Class: "jn-principal"}, children...)
 }

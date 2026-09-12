@@ -212,6 +212,45 @@ func TestListPageChrome(t *testing.T) {
 	}
 }
 
+// TestChromePairsPurposeWithItsLogoutHref proves UXAUDIT-007's exit-action
+// clause at the data-wiring layer: whenever the admitted session carries a
+// LogoutPath, the chrome both list and detail pages share must forward it
+// into Principal.LogoutHref, next to the same Principal.Purpose the
+// masthead's explanation reads from -- not merely somewhere on the config,
+// unreachable by the component that renders the explanation. cfg.LogoutPath
+// was previously dropped entirely by chrome(), which is exactly how a
+// masthead could show "Purpose: compensation_review" with no paired way to
+// leave it.
+func TestChromePairsPurposeWithItsLogoutHref(t *testing.T) {
+	cfg := testConfig()
+	cfg.LogoutPath = "/workspace/logout"
+
+	list := ListPage(cfg, ListData{}, nil, nil)
+	if list.Principal.Purpose != cfg.Purpose || list.Principal.Purpose == "" {
+		t.Fatalf("list chrome Principal.Purpose = %q, want the fixture's non-empty purpose", list.Principal.Purpose)
+	}
+	if list.Principal.LogoutHref != cfg.LogoutPath {
+		t.Fatalf("list chrome Principal.LogoutHref = %q, want %q paired with Purpose %q", list.Principal.LogoutHref, cfg.LogoutPath, list.Principal.Purpose)
+	}
+
+	detail := DetailPage(cfg, testDetail(t, journeyv1.JourneyStage_JOURNEY_STAGE_PROPOSED), nil, nil)
+	if detail.Principal.Purpose != cfg.Purpose || detail.Principal.Purpose == "" {
+		t.Fatalf("detail chrome Principal.Purpose = %q, want the fixture's non-empty purpose", detail.Principal.Purpose)
+	}
+	if detail.Principal.LogoutHref != cfg.LogoutPath {
+		t.Fatalf("detail chrome Principal.LogoutHref = %q, want %q paired with Purpose %q", detail.Principal.LogoutHref, cfg.LogoutPath, detail.Principal.Purpose)
+	}
+
+	// A session with no logout destination at all (enterprise identity edge,
+	// no dev browser login) still carries its purpose without inventing an
+	// exit link nothing backs.
+	noLogout := testConfig()
+	noLogout.LogoutPath = ""
+	if p := ListPage(noLogout, ListData{}, nil, nil); p.Principal.LogoutHref != "" {
+		t.Fatalf("chrome invented a LogoutHref of %q with no LogoutPath on the config", p.Principal.LogoutHref)
+	}
+}
+
 func TestListPageCards(t *testing.T) {
 	cfg := testConfig()
 	p := ListPage(cfg, ListData{Journeys: []*journeyv1.Journey{

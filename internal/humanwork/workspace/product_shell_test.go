@@ -184,7 +184,7 @@ func TestProductShellUsesTheRouteShapedLoadingProxyBeforeWASMStarts(t *testing.T
 	}
 	for _, want := range []string{
 		`class="app-shell is-loading"`, `class="loading-proxy loading-proxy-history"`,
-		`aria-busy="true"`, "Loading authorized data from the live cell", "Harborcare Demo", "Compensation Review",
+		`aria-busy="true"`, "Loading authorized data from the live cell", "Harborcare Demo",
 	} {
 		if !strings.Contains(doc, want) {
 			t.Errorf("initial product shell missing %q", want)
@@ -193,4 +193,84 @@ func TestProductShellUsesTheRouteShapedLoadingProxyBeforeWASMStarts(t *testing.T
 	if strings.Contains(doc, "0 promotion journeys are visible") {
 		t.Fatal("initial product shell exposed an unresolved count as zero")
 	}
+	// UXAUDIT-007: config.Purpose ("compensation_review" -> "Compensation
+	// Review") is the admitted principal's authorized data-processing
+	// purpose, not the shell's authorized scope. This test previously
+	// asserted the opposite -- that "Compensation Review" appears in this
+	// route-agnostic loading shell, shown for every product page -- which
+	// was the exact pattern the live audit flagged as RED. The purpose
+	// still reaches the Promotion journey's own masthead; it never reaches
+	// this shared shell again.
+	if strings.Contains(doc, "Compensation Review") {
+		t.Fatal("initial product shell still leaks the task-specific purpose into its route-agnostic scope label")
+	}
+}
+
+// TestTodo_UXAUDIT_007_Regression proves, from this package's own caller
+// path (productShellDocumentForRouteQuery, the SSR loading shell every
+// product route renders before the WASM client takes over), that a task-
+// specific purpose can no longer reach the shell's rendered, persistent
+// page-identity region -- for any registered page, not just the one case
+// above. It asserts by value: a distinctive purpose that could not have
+// arrived any other way must be entirely absent from the rendered <div
+// id="app"> region, while the tenant and subject display facts the same
+// call carries stay present, so this is not merely proof that the loading
+// shell rendered nothing at all.
+//
+// The check is deliberately scoped to the rendered region and not the whole
+// document: the JSON configuration island later in the same document (see
+// JourneyConfigElementID) still carries the raw, unrendered Purpose field
+// verbatim, by design -- that island is what lets the WASM client's own
+// Promotion journey masthead (tools/uxqual/render/journey's principalChip)
+// surface the purpose inside the affected workflow, which is exactly where
+// GREEN says it belongs. Only the shell's own rendered chrome must stay
+// quiet about it.
+func TestTodo_UXAUDIT_007_Regression(t *testing.T) {
+	const distinctivePurpose = "zzz_uxaudit007_distinctive_purpose_marker"
+	for _, page := range []productui.PageID{productui.PageHome, productui.PageHistory, productui.PagePeople, productui.PageSettings} {
+		config := JourneyConfig{
+			TunnelURL: "ws://cell.test" + PathTunnel, Bearer: "token",
+			Tenant: "harborcare-demo", Subject: "local-developer", Purpose: distinctivePurpose,
+		}
+		doc, err := productShellDocumentForRoute(config, true, productui.ResolveProductLocale("en-US"), page)
+		if err != nil {
+			t.Fatalf("page %s: %v", page, err)
+		}
+		rendered, configIsland := splitAtConfigIsland(t, doc)
+		if strings.Contains(rendered, distinctivePurpose) {
+			t.Fatalf("page %s: caller-supplied purpose %q reached the rendered shell", page, distinctivePurpose)
+		}
+		if strings.Contains(rendered, "Distinctive Purpose Marker") {
+			t.Fatalf("page %s: humanized form of the purpose reached the rendered shell", page)
+		}
+		// The tenant display fact survives on every page; the personalized
+		// "Local Developer" greeting is Home-specific chrome (see
+		// productui.ResolvePageIdentity), not a fact this fix touches, so it
+		// is checked only where it actually applies.
+		if !strings.Contains(rendered, "Harborcare Demo") {
+			t.Fatalf("page %s: fix over-suppressed the shell -- missing tenant %q", page, "Harborcare Demo")
+		}
+		if page == productui.PageHome && !strings.Contains(rendered, "Local Developer") {
+			t.Fatalf("page %s: fix over-suppressed the shell -- missing subject greeting %q", page, "Local Developer")
+		}
+		// The purpose still belongs in the configuration island the WASM
+		// client reads to build the affected workflow's own masthead: this
+		// is the deliberate exception, not a second leak.
+		if !strings.Contains(configIsland, distinctivePurpose) {
+			t.Fatalf("page %s: configuration island lost the purpose the affected-workflow masthead needs", page)
+		}
+	}
+}
+
+// splitAtConfigIsland separates the rendered app region from the JSON
+// configuration island a governed page's shell writes after it (see
+// JourneyConfigElementID), so a test can require different things of each.
+func splitAtConfigIsland(t *testing.T, doc string) (rendered, configIsland string) {
+	t.Helper()
+	marker := `<script type="application/json" id="` + JourneyConfigElementID + `">`
+	at := strings.Index(doc, marker)
+	if at < 0 {
+		t.Fatalf("document has no %s configuration island", JourneyConfigElementID)
+	}
+	return doc[:at], doc[at:]
 }

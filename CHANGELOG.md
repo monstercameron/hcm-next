@@ -1,5 +1,39 @@
 # Changelog
 
+## 2026-09-12 (UXAUDIT-007)
+
+- The shell stops announcing context that has not changed. An ordinary
+  self-context user no longer sees `Acting as yourself` or a `Compensation
+Review` badge on every page; the persistent banner is reserved for delegated,
+  view-as, elevated and break-glass authority. Verified live: Home's header
+  reduces to the product name plus navigation, search, locale and avatar, with
+  no banner.
+
+  The RED had two independent sources. `header_identity.go` rendered a hardcoded
+  acting label on every page with no dependency on any authority projection at
+  all, and the authority banner fired for any valid context including plain own
+  authority. Notices now come from one component.
+
+- The disclosure rule is deliberately inverted from this repository's usual
+  fail-closed convention, and tested that way. Every unrecognised authority
+  state discloses rather than suppresses, because silently hiding a banner would
+  tell someone acting under delegated or break-glass authority that they are
+  acting as themselves -- a misrepresentation of who they are, and much worse
+  than a redundant banner. Only ordinary self context is quiet.
+
+- The second half was data wiring, not rendering: an admitted principal's
+  authorized data-processing purpose was being passed as the shell's generic
+  authorized scope, from two separate callers. Both stop, and the field that
+  received it carries a doc comment pinning its contract against a repeat.
+
+- The purpose now appears where the todo says it belongs -- inside the affected
+  workflow, reading `Purpose: compensation_review` beside a control that reads
+  `Exit compensation_review and sign out`. That exit was missing after the first
+  fix and was found by the live run: the masthead's principal was built with
+  subject, roles and purpose but never a logout destination, though the
+  component already knew how to render one. The tests now assert the pairing by
+  value, because asserting either half alone is what let the gap through.
+
 ## 2026-09-12 (UXAUDIT-001)
 
 - The application shell is usable on a phone. At 320x720 the header is a single

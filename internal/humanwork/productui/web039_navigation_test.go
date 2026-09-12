@@ -80,7 +80,10 @@ func TestTodo_WEB_039_Golden(t *testing.T) {
 	digest := sha256.Sum256([]byte(doc))
 	got := hex.EncodeToString(digest[:])
 	// Closed launcher omits active-option references and does not claim modality.
-	const want = "9c2743eccf258463c95ef890103b52bb7c578c3c882c79c70b9b382d47dcdd0f"
+	// UXAUDIT-007 removed the page-identity header's unconditional
+	// "Acting as yourself" span; re-pinned for the same reason as
+	// TestTodo_WEB_037_Golden.
+	const want = "f83788e7c607068c235501403866f3f875561c5d954711c97f42df700392a317"
 	if got != want {
 		t.Fatalf("authorization-resolved navigation golden digest = %s, want %s", got, want)
 	}

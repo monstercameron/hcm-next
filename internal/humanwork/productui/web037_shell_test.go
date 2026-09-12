@@ -100,7 +100,13 @@ func TestTodo_WEB_037_Golden(t *testing.T) {
 	digest := sha256.Sum256([]byte(doc))
 	got := hex.EncodeToString(digest[:])
 	// Closed launcher omits active-option references and does not claim modality.
-	const want = "f1a9532cd56836ef81bba24c9948344ff3695f598ed25a3aacc77bc06b3e1dee"
+	// UXAUDIT-007 removed the page-identity header's unconditional
+	// "Acting as yourself" span (see PageIdentityHeader): acting-context
+	// notices now come from exactly one place, ActingAuthorityBanner, gated
+	// on the server-resolved authority projection. That removal changes
+	// this stable-chrome byte pin even though the fixture carries no
+	// authority projection at all, so it was re-pinned to the new bytes.
+	const want = "8d9b47c37154ec8961fea748dd1d8b1547f0476c5b83b018005b77b5e0d9f386"
 	if got != want {
 		t.Fatalf("stable shell golden digest = %s, want %s", got, want)
 	}

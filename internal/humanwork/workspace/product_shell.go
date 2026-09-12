@@ -118,7 +118,21 @@ func productShellDocumentForRouteQuery(config JourneyConfig, bundleBuilt bool, l
 	b.WriteString("</style></head><body>")
 	b.WriteString(`<div id="` + JourneyRootElementID + `">`)
 	if bundleBuilt {
-		view := productui.NewView(page, productui.DisplayLabel(config.Tenant), productui.DisplayLabel(config.Subject), productui.DisplayLabel(config.Purpose))
+		// UXAUDIT-007: config.Purpose is the admitted principal's authorized
+		// data-processing purpose (a GDPR-style processing reason), not the
+		// shell's "authorized scope" -- feeding it here made e.g.
+		// "Compensation Review" persist as a global scope badge on every
+		// page, unrelated pages included. NewView has no other authorized-
+		// scope fact to offer, so this passes the honest empty value and
+		// lets ResolvePageIdentity's own "Authenticated scope" fallback
+		// stand in rather than mislabeling a purpose as a scope. The
+		// purpose itself still reaches the one place GREEN says it belongs:
+		// the Promotion journey experience's own masthead
+		// (tools/uxqual/render/journey's principalChip), fed independently
+		// through journeyclient.Config/journeyApp in
+		// tools/uxqual/cmd/journeywasm/product_wasm.go, untouched by this
+		// SSR loading shell.
+		view := productui.NewView(page, productui.DisplayLabel(config.Tenant), productui.DisplayLabel(config.Subject), "")
 		// Hydration preserves live input values. Seed the request's query in the
 		// loading shell so an empty SSR value cannot hide an active client filter.
 		view.MenuQuery = strings.TrimSpace(menuQuery)

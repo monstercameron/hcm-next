@@ -49,8 +49,13 @@ func TestTodo_WEB_056(t *testing.T) {
 		t.Fatal("authority banner is not placed between topbar and content")
 	}
 
-	// An own (non-delegated) authority still banners: persistence covers
-	// the authority the user acts under, not just delegations.
+	// UXAUDIT-007: an own (non-delegated, non-elevated) authority is now
+	// quiet. This case previously asserted the opposite -- that a plain
+	// "Your own authority" projection still banners -- which was exactly
+	// the RED the live audit found ("Acting as yourself" persisting on an
+	// ordinary self-context page). Persistence now covers only the
+	// authority that actually changes what the viewer can do: delegated,
+	// view-as, elevated, or break-glass, never ordinary self.
 	own := testView(PageHome)
 	own.ContextSwitcher = web056Fixture()
 	own.ContextSwitcher.Current = AuthorityContext{
@@ -65,12 +70,8 @@ func TestTodo_WEB_056(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	ownBanner := findElementByID(ownRoot, "acting-authority")
-	if ownBanner == nil {
-		t.Fatal("valid own authority renders no banner")
-	}
-	if !strings.Contains(textContent(ownBanner), "HarborCare") {
-		t.Fatalf("own-authority banner names no tenant: %q", textContent(ownBanner))
+	if ownBanner := findElementByID(ownRoot, "acting-authority"); ownBanner != nil {
+		t.Fatalf("ordinary self authority renders a banner: %q", textContent(ownBanner))
 	}
 
 	// No projection means no strip.
