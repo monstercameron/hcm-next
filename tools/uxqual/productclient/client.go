@@ -38,8 +38,16 @@ type Service struct {
 // island. The server authorizes every RPC independently; these values never
 // grant authority.
 type Session struct {
-	Tenant                string
-	Principal             string
+	Tenant    string
+	Principal string
+	// Scope is the shell's persistent, page-independent "authorized scope"
+	// label (rendered on every product route). UXAUDIT-007: it must be a
+	// real authorized-scope fact or empty, never a task-specific purpose --
+	// tools/uxqual/cmd/journeywasm/product_wasm.go previously set this from
+	// the admitted principal's data-processing Purpose (e.g.
+	// "compensation_review"), which persisted a task-specific badge on
+	// every unrelated page. A purpose belongs inside the workflow it
+	// actually governs, not here.
 	Scope                 string
 	Roles                 []string
 	Permissions           []productui.RolePagePermission

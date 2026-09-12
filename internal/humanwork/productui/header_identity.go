@@ -11,13 +11,19 @@ import (
 // stable registry stamp plus localized copy. Resolving it in one place
 // keeps page titles, subtitles, and the scope control from drifting into
 // per-page ad-hoc fields while the registry stays the single authority.
+//
+// It deliberately carries no acting-context field of its own (UXAUDIT-007
+// removed the header's unconditional "Acting as yourself" label): a
+// per-page identity resolution is not the place a page decides for itself
+// whether the acting authority is worth a notice. [ActingAuthorityBanner] is
+// the shell's one acting-context component, fed by the server-resolved
+// projection, shown or quiet the same way on every page.
 type PageIdentity struct {
-	Page        PageID
-	Title       string
-	Subtitle    string
-	ScopeLabel  string
-	ScopeHref   string
-	ActingLabel string
+	Page       PageID
+	Title      string
+	Subtitle   string
+	ScopeLabel string
+	ScopeHref  string
 }
 
 // ResolvePageIdentity derives the header identity from the canonical page
@@ -34,11 +40,10 @@ func ResolvePageIdentity(view View) PageIdentity {
 		scope = view.Locale.Text("shell.authenticated_scope")
 	}
 	identity := PageIdentity{
-		Page:        definition.ID,
-		Title:       view.Locale.Text(definition.TitleKey),
-		Subtitle:    view.Locale.Text(definition.SubtitleKey),
-		ScopeLabel:  scope,
-		ActingLabel: view.Locale.Text("shell.acting_self"),
+		Page:       definition.ID,
+		Title:      view.Locale.Text(definition.TitleKey),
+		Subtitle:   view.Locale.Text(definition.SubtitleKey),
+		ScopeLabel: scope,
 	}
 	if navigationDestinationAuthorized(view, PageSettings) {
 		identity.ScopeHref = statefulHref(view, PageSettings)
@@ -57,6 +62,13 @@ func ResolvePageIdentity(view View) PageIdentity {
 // the resolved title and subtitle, and the scope control. The stable page
 // id is stamped on the header so tests, styles, and automation can address
 // a page without parsing localized copy.
+//
+// UXAUDIT-007 removed this header's second, unconditional acting-context
+// label ("Acting as yourself" on every page regardless of authority): the
+// scope control below names the authorized data boundary, nothing about who
+// the viewer is acting as. Acting-context notices now come from exactly one
+// place, [ActingAuthorityBanner], shown in the shell above this header only
+// when the server-resolved authority actually calls for one.
 func PageIdentityHeader(view View) ui.Node {
 	identity := ResolvePageIdentity(view)
 	scopeText := ui.Text(identity.ScopeLabel)
@@ -64,9 +76,6 @@ func PageIdentityHeader(view View) ui.Node {
 	return html.Div(html.Props{Class: "page-head", Data: map[string]string{"hcm-page": string(identity.Page)}},
 		Breadcrumbs(view, ResolveBreadcrumbs(view)),
 		html.Div(html.Props{}, html.H1(html.Props{ID: "page-title", Raw: map[string]any{"tabindex": "-1"}}, ui.Text(identity.Title)), html.P(html.Props{Class: "subtitle"}, ui.Text(identity.Subtitle))),
-		html.Div(html.Props{Class: "scope-wrap"},
-			scopeControl,
-			html.Span(html.Props{}, ui.Text(identity.ActingLabel)),
-		),
+		html.Div(html.Props{Class: "scope-wrap"}, scopeControl),
 	)
 }

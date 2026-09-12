@@ -30,6 +30,12 @@ func digest(t *testing.T, s string) string {
 //
 // It also proves Build is deterministic directly: building each page a
 // second time from the same Input produces the identical digest.
+//
+// UXAUDIT-007 re-pinned both digests: [SessionStrip] no longer renders
+// fixtureSession's Purpose ("promotion_review") at all -- task-specific
+// review context does not belong in this persistent, page-independent
+// region -- so the shell's authority-context region changed shape even
+// though the fixture session's other three fields are unchanged.
 func TestTodo_WEB_121_Golden(t *testing.T) {
 	widgets := page.PromotionWidgetRegistry()
 	session := fixtureSession()
@@ -44,13 +50,13 @@ func TestTodo_WEB_121_Golden(t *testing.T) {
 			name:       "list",
 			resolution: listResolution,
 			route:      journeyclient.Parse(""),
-			wantDigest: "sha256:59a34141b179020ed1f8e8789a38f9a8cf83c868341cd3d6a4732a0601673292",
+			wantDigest: "sha256:2be5c0aa93c021c044833ab1d0aab49a21c835bbc0e440eb7ddfd0db44a8668c",
 		},
 		{
 			name:       "detail",
 			resolution: detailResolution,
 			route:      journeyclient.Parse("#/journeys/int_01JX6Y8B2C7D9EFG"),
-			wantDigest: "sha256:9f209dfbfcf8b7f09f34ef3ddbdd85690d89e5c7a85c37ec275c6e3c6eac0968",
+			wantDigest: "sha256:b7e6282ed3775c4c42a67c5121f66e66a410f541000d445d63d24558c2ec43cb",
 		},
 	}
 

@@ -24,8 +24,13 @@ func TestTodo_WEB_045(t *testing.T) {
 	if identity.ScopeHref != "/workspace/app/settings" {
 		t.Fatalf("history scope href = %q, want authorized settings destination", identity.ScopeHref)
 	}
-	if identity.ScopeLabel == "" || identity.ActingLabel != "Acting as yourself" {
-		t.Fatalf("history scope labels = %#v, want scope and acting-self text", identity)
+	// UXAUDIT-007 removed PageIdentity's own acting-context label: the
+	// header no longer says "Acting as yourself" on every page regardless
+	// of authority. Acting-context notices now come from the shell's one
+	// ActingAuthorityBanner component, gated on the server-resolved
+	// projection, not from a per-page identity field.
+	if identity.ScopeLabel == "" {
+		t.Fatalf("history scope label = %#v, want a scope label", identity)
 	}
 
 	// The scope control never advertises settings the identity cannot open.
@@ -66,7 +71,10 @@ func TestTodo_WEB_045_Golden(t *testing.T) {
 	}
 	digest := sha256.Sum256([]byte(node))
 	got := hex.EncodeToString(digest[:])
-	const want = "16bd305d89854be0220fd111fb17b977d76509ad0df343dabac7cf86524f3568"
+	// UXAUDIT-007 removed the header's unconditional "Acting as yourself"
+	// span from the scope-wrap (see PageIdentityHeader): re-pinned to the
+	// new bytes.
+	const want = "c2e610d1c312d48b62a05392c64ae4cae2dd1a27bb483666785e704b86841141"
 	if got != want {
 		t.Fatalf("page-identity header golden digest = %s, want %s", got, want)
 	}
@@ -135,7 +143,7 @@ func TestTodo_WEB_045_Conformance(t *testing.T) {
 			view.Locale = ResolveProductLocale(locale)
 			view = ApplyLocale(view, view.Locale)
 			identity := ResolvePageIdentity(view)
-			if identity.Page != definition.ID || identity.Title == "" || identity.Subtitle == "" || identity.ScopeLabel == "" || identity.ActingLabel == "" {
+			if identity.Page != definition.ID || identity.Title == "" || identity.Subtitle == "" || identity.ScopeLabel == "" {
 				t.Fatalf("page %s locale %s identity incomplete: %#v", definition.ID, locale, identity)
 			}
 			node, err := ui.RenderToString(PageIdentityHeader(view))

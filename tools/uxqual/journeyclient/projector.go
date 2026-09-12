@@ -275,15 +275,23 @@ func stageTone(stage string) string {
 
 // chrome is everything both views share: the masthead, who is signed in,
 // the navigation and the footer.
+//
+// UXAUDIT-007: Principal.LogoutHref carries cfg.LogoutPath through so the
+// masthead's exit control has a destination whenever Purpose does -- the
+// config island already plumbed logout_path to the client (see
+// journeywasm's own loader), but nothing here forwarded it into the
+// rendered Principal, so a reviewer told "Purpose: compensation_review" had
+// an explanation with no paired way to leave it.
 func chrome(cfg Config, title string, notice *journey.Notice, values map[string]string, currentDetail bool) journey.Page {
 	return journey.Page{
 		Title:       title,
 		Brand:       Brand,
 		TenantLabel: cfg.Tenant,
 		Principal: journey.Principal{
-			Subject: cfg.Subject,
-			Roles:   cfg.Roles,
-			Purpose: cfg.Purpose,
+			Subject:    cfg.Subject,
+			Roles:      cfg.Roles,
+			Purpose:    cfg.Purpose,
+			LogoutHref: cfg.LogoutPath,
 		},
 		Nav: []journey.NavLink{
 			// The workspace link is an ordinary document link to another

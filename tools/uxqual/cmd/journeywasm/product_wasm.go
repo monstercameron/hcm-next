@@ -65,7 +65,16 @@ func startProduct(ctx context.Context, cfg journeyclient.Config, service journey
 			View: permission.View, Create: permission.Create, Update: permission.Update, Delete: permission.Delete,
 		})
 	}
-	session := productclient.Session{Tenant: cfg.Tenant, Principal: cfg.Subject, Scope: cfg.Purpose, Roles: cfg.Roles, Permissions: pagePermissions, EnforceRoleVisibility: true, LogoutHref: cfg.LogoutPath}
+	// UXAUDIT-007: cfg.Purpose is the admitted principal's authorized
+	// data-processing purpose, not the product shell's "authorized scope"
+	// -- do not carry it into Session.Scope, which LoadingView renders as a
+	// persistent, page-independent header badge on every product route.
+	// cfg still reaches journeyApp below unchanged, which is what actually
+	// surfaces the purpose where GREEN requires: inside the Promotion
+	// journey experience itself (tools/uxqual/render/journey's
+	// principalChip), with a visually-hidden "Purpose: " explanation and
+	// its own sign-out exit action, mounted only on PageJourneys.
+	session := productclient.Session{Tenant: cfg.Tenant, Principal: cfg.Subject, Roles: cfg.Roles, Permissions: pagePermissions, EnforceRoleVisibility: true, LogoutHref: cfg.LogoutPath}
 	preferences := newServerPreferenceController(ctx, service)
 	appearance := newBrowserThemeController(preferences.SaveTheme)
 	appearance.Apply(appearance.Saved())

@@ -38,6 +38,68 @@ type AuthorityContext struct {
 	ExpiresAt         string
 	Delegated         bool
 	Elevated          bool
+	// State is the server-resolved classification of why the acting-authority
+	// banner would matter (UXAUDIT-007). It is a separate signal from
+	// Delegated/Elevated, not a replacement for them: those two remain the
+	// source for the banner's detail text (see currentContextDetail), while
+	// State is the source [ActingAuthorityBanner] consults when it carries an
+	// explicit, non-empty value. An empty State defers to Delegated/Elevated
+	// (see authorityNoticeworthy) rather than being treated as "unknown" on
+	// its own, because those two booleans are themselves already a complete,
+	// known answer about the one authority a session projection currently
+	// resolves. A non-empty State the [AuthorityState.noticeworthy] switch
+	// does not recognize is not the same as "no state was ever set" and
+	// discloses precisely because it does not match the one safe value.
+	State AuthorityState
+}
+
+// AuthorityState is the closed set of reasons a session's acting authority
+// would need a persistent, shell-wide notice. It is resolved by the
+// authoritative session projection -- never inferred by a page -- and is
+// deliberately exhaustive: [AuthorityState.noticeworthy] names every safe
+// (quiet) value explicitly and discloses for everything else, including a
+// value this type does not recognize at all, so a future authority mode the
+// presentation layer has not been taught yet fails toward disclosure, not
+// toward silently impersonating the viewer's own authority.
+type AuthorityState string
+
+const (
+	// AuthorityStateSelf is the one value [AuthorityState.noticeworthy]
+	// treats as quiet: acting under the viewer's own, undelegated,
+	// unelevated authority.
+	AuthorityStateSelf AuthorityState = "self"
+	// AuthorityStateDelegated is another principal's authority, exercised on
+	// their behalf.
+	AuthorityStateDelegated AuthorityState = "delegated"
+	// AuthorityStateViewAs is a policy simulation under a viewed identity;
+	// no authority is actually assumed (see PolicySimulation), but the
+	// acting-authority notice still applies while it is in force.
+	AuthorityStateViewAs AuthorityState = "view_as"
+	// AuthorityStateElevated is the viewer's own identity acting with
+	// broadened, temporarily granted capability.
+	AuthorityStateElevated AuthorityState = "elevated"
+	// AuthorityStateBreakGlass is emergency access exercised under an active
+	// break-glass grant.
+	AuthorityStateBreakGlass AuthorityState = "break_glass"
+)
+
+// noticeworthy reports whether s calls for the shell's persistent
+// acting-authority banner. AuthorityStateSelf is the only value that stays
+// quiet; every other named state discloses, and -- with no permissive
+// default -- so does anything this switch does not recognize at all,
+// including the empty AuthorityState. Hiding the banner under real
+// delegated, view-as, elevated, or break-glass authority would misrepresent
+// who the viewer is acting as, which is the more dangerous error; showing it
+// once too often for an otherwise-ordinary session is only noise.
+func (s AuthorityState) noticeworthy() bool {
+	switch s {
+	case AuthorityStateSelf:
+		return false
+	case AuthorityStateDelegated, AuthorityStateViewAs, AuthorityStateElevated, AuthorityStateBreakGlass:
+		return true
+	default:
+		return true
+	}
 }
 
 // AuthorityContextOption is one complete tenant/acting pair admitted by the

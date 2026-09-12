@@ -23,6 +23,69 @@ func TestUXBLIND007EmbeddedJourneyListHasOneResponsibility(t *testing.T) {
 	}
 }
 
+// TestPrincipalChipPairsPurposeWithItsExit is UXAUDIT-007's render-level
+// proof of the pairing GREEN actually requires: not merely that the purpose
+// explanation renders somewhere, and not merely that an exit control renders
+// somewhere, but that the masthead emits both together, the exit control
+// names the same purpose the explanation just named, and it points at the
+// session's real logout destination. Asserting only the purpose text (as
+// this package's other coverage already did) is exactly what let a masthead
+// ship with an explanation and no paired way to act on it.
+func TestPrincipalChipPairsPurposeWithItsExit(t *testing.T) {
+	markup, err := ui.RenderToString(principalChip(Principal{
+		Subject:    "avery.okafor@northwind.example",
+		Roles:      []string{"hr.business_partner"},
+		Purpose:    "compensation_review",
+		LogoutHref: "/workspace/logout",
+	}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(markup, "Purpose: ") || !strings.Contains(markup, "compensation_review") {
+		t.Fatalf("masthead lost the purpose explanation: %s", markup)
+	}
+	exit := regexp.MustCompile(`<a [^>]*href="/workspace/logout"[^>]*>([^<]*)</a>`).FindStringSubmatch(markup)
+	if exit == nil {
+		t.Fatalf("masthead has no exit control pointing at the session's logout destination: %s", markup)
+	}
+	if !strings.Contains(exit[1], "compensation_review") {
+		t.Fatalf("exit control text %q does not name the purpose it exits, want it to say so explicitly rather than a bare generic control", exit[1])
+	}
+	if !strings.Contains(strings.ToLower(exit[1]), "exit") {
+		t.Fatalf("exit control text %q does not read as leaving the reviewing context", exit[1])
+	}
+
+	// A purposeless session (no reviewing context to exit) keeps the plain,
+	// generic control: this pairing must not invent a "purpose" that was
+	// never there.
+	plainMarkup, err := ui.RenderToString(principalChip(Principal{
+		Subject:    "avery.okafor@northwind.example",
+		LogoutHref: "/workspace/logout",
+	}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(plainMarkup, "compensation_review") || !strings.Contains(plainMarkup, ">Sign out<") {
+		t.Fatalf("purposeless session did not keep the plain Sign out control: %s", plainMarkup)
+	}
+
+	// No logout destination at all (no dev browser login): the explanation
+	// still renders, honestly, with nothing pretending to be an exit link.
+	noExitMarkup, err := ui.RenderToString(principalChip(Principal{
+		Subject: "avery.okafor@northwind.example",
+		Purpose: "compensation_review",
+	}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(noExitMarkup, "compensation_review") {
+		t.Fatal("purpose explanation disappeared once there was no logout destination")
+	}
+	if strings.Contains(noExitMarkup, "<a ") {
+		t.Fatalf("an exit link rendered with no LogoutHref to back it: %s", noExitMarkup)
+	}
+}
+
 func mustRender(t *testing.T, p Page) string {
 	t.Helper()
 	out, err := RenderToString(p)
