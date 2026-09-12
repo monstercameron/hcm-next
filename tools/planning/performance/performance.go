@@ -370,3 +370,268 @@ func digest(report ForecastReport) (string, error) {
 	sum := sha256.Sum256(data)
 	return "sha256:" + hex.EncodeToString(sum[:]), nil
 }
+
+// ---------------------------------------------------------------------------
+// PERF-005: PostgreSQL/timer/artifact sizing model and validator.
+//
+// This is a pure, versioned capacity model, not a load test. Capacity is the
+// declared hard limit for one resource dimension and Measured is the
+// modeled or observed peak usage against it -- both supplied by the caller.
+// Size and CheckSizing perform no I/O, touch no database, timer queue or
+// object store, and persist nothing anywhere.
+// ---------------------------------------------------------------------------
+
+const (
+	// MinTimerBacklogCapacity is the GREEN-clause floor: the sizing model
+	// must be able to describe draining at least 100k timers. A declared
+	// capacity below this is an undersized peak model, not a working one.
+	MinTimerBacklogCapacity = 100000
+
+	// RolloverThreshold is the fraction of declared capacity at which a
+	// dimension is modeled to need expansion, ahead of its hard limit.
+	RolloverThreshold = 0.8
+
+	// RejectedCode identifies every PERF-005 sizing rejection.
+	RejectedCode = "PERF_005_REJECTED"
+
+	StateMissing            = "MISSING_OR_INVALID"
+	StateBreach             = "MEASURED_EXCEEDS_CAPACITY"
+	StateUndersized         = "CAPACITY_BELOW_REQUIRED_FLOOR"
+	StateUnsupportedVersion = "UNSUPPORTED_MODEL_VERSION"
+)
+
+// ErrSizingRejected is the sentinel every PERF-005 Rejection unwraps to.
+var ErrSizingRejected = errors.New("performance: PERF_005_REJECTED")
+
+// Dimension is one sized resource: the declared hard capacity and the
+// modeled/measured peak usage against it. A zero Capacity or Measured is
+// never treated as "within budget" -- it is rejected as missing.
+type Dimension struct {
+	Capacity Limit `json:"capacity"`
+	Measured Limit `json:"measured"`
+}
+
+// StorageSizing captures the PostgreSQL-facing dimensions named in PERF-005's
+// GREEN clause.
+type StorageSizing struct {
+	Rows           Dimension `json:"rows"`
+	IndexBytes     Dimension `json:"index_bytes"`
+	WALBytes       Dimension `json:"wal_bytes"`
+	Locks          Dimension `json:"locks"`
+	ConnectionPool Dimension `json:"connection_pool"`
+	VacuumSeconds  Dimension `json:"vacuum_seconds"`
+}
+
+// TimerSizing captures the timer-drain dimension. Backlog is the number of
+// outstanding timers the model must be able to drain (floored at
+// MinTimerBacklogCapacity); DrainRate and DrainSeconds bound how fast and
+// how long that drain is modeled to take.
+type TimerSizing struct {
+	Backlog      Dimension `json:"backlog"`
+	DrainRate    Dimension `json:"drain_rate"`
+	DrainSeconds Dimension `json:"drain_seconds"`
+}
+
+// ArtifactClass is one object class (a size band, say) in the artifact
+// throughput model, with its own throughput and memory budgets.
+type ArtifactClass struct {
+	Name       string    `json:"name"`
+	Throughput Dimension `json:"throughput_mbps"`
+	Memory     Dimension `json:"memory_bytes"`
+}
+
+// ArtifactSizing captures artifact object-class throughput and memory.
+type ArtifactSizing struct {
+	Classes []ArtifactClass `json:"classes"`
+}
+
+// SizingModel is the versioned PERF-005 capacity model for one workload
+// envelope. Evaluating it is a pure computation: no database, timer queue or
+// object store is touched, and nothing is persisted.
+type SizingModel struct {
+	SchemaVersion int    `json:"schema_version"`
+	ID            string `json:"id"`
+	EnvelopeID    string `json:"envelope_id"`
+
+	Storage   StorageSizing  `json:"storage"`
+	Timers    TimerSizing    `json:"timers"`
+	Artifacts ArtifactSizing `json:"artifacts"`
+}
+
+// Rejection is the typed PERF-005 sizing rejection: a caller reads Field,
+// State and ModelVersion directly instead of parsing error prose.
+type Rejection struct {
+	Code         string `json:"code"`
+	Field        string `json:"field"`
+	State        string `json:"state"`
+	ModelVersion int    `json:"model_version"`
+	Reason       string `json:"reason"`
+}
+
+func (r *Rejection) Error() string {
+	return fmt.Sprintf("%s: field=%s state=%s model_version=%d: %s", r.Code, r.Field, r.State, r.ModelVersion, r.Reason)
+}
+
+// Unwrap lets callers test errors.Is(err, ErrSizingRejected) without parsing
+// the message.
+func (r *Rejection) Unwrap() error { return ErrSizingRejected }
+
+// ValidateSizing returns every PERF-005 violation in deterministic order. An
+// empty result means the model is complete and every dimension is within its
+// declared capacity.
+func ValidateSizing(model SizingModel) []Rejection {
+	var out []Rejection
+	add := func(field, state, reason string) {
+		out = append(out, Rejection{Code: RejectedCode, Field: field, State: state, ModelVersion: model.SchemaVersion, Reason: reason})
+	}
+
+	if model.SchemaVersion != SchemaVersion {
+		add("schema_version", StateUnsupportedVersion, fmt.Sprintf("sizing model schema version must be %d", SchemaVersion))
+	}
+	if strings.TrimSpace(model.ID) == "" {
+		add("id", StateMissing, "sizing model id is required")
+	}
+	if strings.TrimSpace(model.EnvelopeID) == "" {
+		add("envelope_id", StateMissing, "sizing model must reference its source envelope id")
+	}
+
+	checkDimension := func(field string, dim Dimension, floor int64) {
+		if dim.Capacity.Value <= 0 || strings.TrimSpace(dim.Capacity.Unit) == "" {
+			add(field+".capacity", StateMissing, "a positive capacity and unit are required")
+			return
+		}
+		if dim.Measured.Value <= 0 || strings.TrimSpace(dim.Measured.Unit) == "" {
+			add(field+".measured", StateMissing, "a positive measured value and unit are required")
+			return
+		}
+		if floor > 0 && dim.Capacity.Value < floor {
+			add(field+".capacity", StateUndersized, fmt.Sprintf("capacity %d is below the required floor %d", dim.Capacity.Value, floor))
+		}
+		if dim.Measured.Value > dim.Capacity.Value {
+			add(field+".measured", StateBreach, fmt.Sprintf("measured %d exceeds capacity %d", dim.Measured.Value, dim.Capacity.Value))
+		}
+	}
+
+	checkDimension("storage.rows", model.Storage.Rows, 0)
+	checkDimension("storage.index_bytes", model.Storage.IndexBytes, 0)
+	checkDimension("storage.wal_bytes", model.Storage.WALBytes, 0)
+	checkDimension("storage.locks", model.Storage.Locks, 0)
+	checkDimension("storage.connection_pool", model.Storage.ConnectionPool, 0)
+	checkDimension("storage.vacuum_seconds", model.Storage.VacuumSeconds, 0)
+	checkDimension("timers.backlog", model.Timers.Backlog, MinTimerBacklogCapacity)
+	checkDimension("timers.drain_rate", model.Timers.DrainRate, 0)
+	checkDimension("timers.drain_seconds", model.Timers.DrainSeconds, 0)
+
+	if len(model.Artifacts.Classes) == 0 {
+		add("artifacts.classes", StateMissing, "at least one artifact object class is required")
+	}
+	seen := make(map[string]bool, len(model.Artifacts.Classes))
+	for i, class := range model.Artifacts.Classes {
+		name := strings.TrimSpace(class.Name)
+		label := name
+		if label == "" {
+			label = fmt.Sprintf("classes[%d]", i)
+			add(fmt.Sprintf("artifacts.classes[%d].name", i), StateMissing, "artifact class name is required")
+		} else if seen[name] {
+			add(fmt.Sprintf("artifacts.classes.%s", name), StateMissing, "duplicate artifact class name")
+		}
+		seen[name] = true
+		checkDimension(fmt.Sprintf("artifacts.classes.%s.throughput_mbps", label), class.Throughput, 0)
+		checkDimension(fmt.Sprintf("artifacts.classes.%s.memory_bytes", label), class.Memory, 0)
+	}
+
+	sort.SliceStable(out, func(i, j int) bool {
+		if out[i].Field != out[j].Field {
+			return out[i].Field < out[j].Field
+		}
+		return out[i].State < out[j].State
+	})
+	return out
+}
+
+// CheckSizing rejects an incomplete or over-budget model with its first
+// violation, in deterministic field order.
+func CheckSizing(model SizingModel) error {
+	if violations := ValidateSizing(model); len(violations) != 0 {
+		rejection := violations[0]
+		return &rejection
+	}
+	return nil
+}
+
+// DimensionSizing is one dimension's derived headroom, rollover point and
+// hard limit in a SizingReport.
+type DimensionSizing struct {
+	Field         string  `json:"field"`
+	Unit          string  `json:"unit"`
+	Capacity      int64   `json:"capacity"`
+	Measured      int64   `json:"measured"`
+	HeadroomRatio float64 `json:"headroom_ratio"`
+	RolloverAt    int64   `json:"rollover_at"`
+	HardLimit     int64   `json:"hard_limit"`
+}
+
+// SizingReport is the deterministic PERF-005 evaluation of one SizingModel.
+type SizingReport struct {
+	SchemaVersion int               `json:"schema_version"`
+	ID            string            `json:"id"`
+	EnvelopeID    string            `json:"envelope_id"`
+	Dimensions    []DimensionSizing `json:"dimensions"`
+	Digest        string            `json:"digest"`
+}
+
+// Size evaluates a SizingModel into a SizingReport. It is a pure function:
+// no I/O, no persistence, nothing written anywhere. A model that fails
+// CheckSizing is rejected outright -- there is no partial sizing.
+func Size(model SizingModel) (SizingReport, error) {
+	if err := CheckSizing(model); err != nil {
+		return SizingReport{}, err
+	}
+
+	var dims []DimensionSizing
+	dims = append(dims, dimensionSizing("storage.rows", model.Storage.Rows))
+	dims = append(dims, dimensionSizing("storage.index_bytes", model.Storage.IndexBytes))
+	dims = append(dims, dimensionSizing("storage.wal_bytes", model.Storage.WALBytes))
+	dims = append(dims, dimensionSizing("storage.locks", model.Storage.Locks))
+	dims = append(dims, dimensionSizing("storage.connection_pool", model.Storage.ConnectionPool))
+	dims = append(dims, dimensionSizing("storage.vacuum_seconds", model.Storage.VacuumSeconds))
+	dims = append(dims, dimensionSizing("timers.backlog", model.Timers.Backlog))
+	dims = append(dims, dimensionSizing("timers.drain_rate", model.Timers.DrainRate))
+	dims = append(dims, dimensionSizing("timers.drain_seconds", model.Timers.DrainSeconds))
+	for _, class := range model.Artifacts.Classes {
+		dims = append(dims, dimensionSizing(fmt.Sprintf("artifacts.classes.%s.throughput_mbps", class.Name), class.Throughput))
+		dims = append(dims, dimensionSizing(fmt.Sprintf("artifacts.classes.%s.memory_bytes", class.Name), class.Memory))
+	}
+	sort.SliceStable(dims, func(i, j int) bool { return dims[i].Field < dims[j].Field })
+
+	report := SizingReport{SchemaVersion: model.SchemaVersion, ID: model.ID, EnvelopeID: model.EnvelopeID, Dimensions: dims}
+	digest, err := sizingDigest(report)
+	if err != nil {
+		return SizingReport{}, err
+	}
+	report.Digest = digest
+	return report, nil
+}
+
+func dimensionSizing(field string, dim Dimension) DimensionSizing {
+	return DimensionSizing{
+		Field:         field,
+		Unit:          dim.Capacity.Unit,
+		Capacity:      dim.Capacity.Value,
+		Measured:      dim.Measured.Value,
+		HeadroomRatio: ratio(dim.Capacity.Value-dim.Measured.Value, dim.Capacity.Value),
+		RolloverAt:    int64(math.Round(float64(dim.Capacity.Value) * RolloverThreshold)),
+		HardLimit:     dim.Capacity.Value,
+	}
+}
+
+func sizingDigest(report SizingReport) (string, error) {
+	copyReport := report
+	copyReport.Digest = ""
+	data, err := json.Marshal(copyReport)
+	if err != nil {
+		return "", fmt.Errorf("performance: encode sizing report: %w", err)
+	}
+	sum := sha256.Sum256(data)
+	return "sha256:" + hex.EncodeToString(sum[:]), nil
+}

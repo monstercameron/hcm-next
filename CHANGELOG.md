@@ -1,5 +1,29 @@
 # Changelog
 
+## 2026-09-12 (PERF-005)
+
+- Close PERF-005: size PostgreSQL, queues, timers and artifact throughput. Read
+  as a pure sizing model rather than a load test, which is what RED's "persist
+  zero authoritative rows, business events, outbox entries, human work and
+  provider requests" clause requires. The 100k+ timer drain is a dimension the
+  model bounds, not an action any test performs, so nothing here starts
+  PostgreSQL or generates load.
+
+  Storage covers rows, index bytes, WAL bytes, locks, connection pool and vacuum
+  seconds; timers cover backlog, drain rate and drain budget; artifacts cover
+  named object classes each with throughput and memory. Every dimension is a
+  capacity/measured pair whose zero value or empty unit is rejected as
+  MISSING_OR_INVALID rather than read as within budget, and the headroom ratio
+  additionally guards a non-positive limit so it can never divide by zero.
+  Headroom, a rollover point at 80% of capacity and the hard limit are derived
+  per dimension, and a model missing any dimension is rejected outright.
+
+  The rejection is a typed value carrying the offending field, its state and the
+  model version, reachable through `errors.As`, rather than a bare error string --
+  a sizing validator that says only "too big" is useless at the moment you need
+  it. The mutation matrix flips sixteen fields one at a time and asserts exactly
+  one diagnostic each, so the validator cannot be passing on an aggregate.
+
 ## 2026-09-12 (PERF-006)
 
 - Close PERF-006: bound external latency, quotas and retries. Most of the
