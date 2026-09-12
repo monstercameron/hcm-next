@@ -31,7 +31,7 @@ func PreflightPromotion(ctx context.Context, catalog rewards.PayBandCatalog, req
 	// A withheld subject stops here. Running the remaining rules would let a
 	// caller infer the worker's grade and pay from which findings came back.
 	if statusFor(findings) == StatusDenied && req.WorkerState.Disclosure == people.DisclosureWithheld {
-		return assemble(req, baseline, findings, rewards.BandResult{State: rewards.BandResultNotRequested}, nil)
+		return assemble(req, baseline, findings, rewards.BandResult{State: rewards.BandResultNotRequested}, nil, ManagementImpact{})
 	}
 
 	findings = append(findings, checkPlacement(req, baseline)...)
@@ -40,6 +40,11 @@ func PreflightPromotion(ctx context.Context, catalog rewards.PayBandCatalog, req
 		return PreflightResult{}, err
 	}
 	findings = append(findings, targetPositionFindings...)
+	targetManagerFindings, managementImpact, err := evaluateTargetManagerSelection(ctx, req)
+	if err != nil {
+		return PreflightResult{}, err
+	}
+	findings = append(findings, targetManagerFindings...)
 	compFindings, comparable := checkCompensation(req)
 	findings = append(findings, compFindings...)
 	findings = append(findings, checkEffectiveDate(req, baseline)...)
@@ -72,7 +77,7 @@ func PreflightPromotion(ctx context.Context, catalog rewards.PayBandCatalog, req
 		})
 	}
 
-	return assemble(req, baseline, findings, band, bandQuery)
+	return assemble(req, baseline, findings, band, bandQuery, managementImpact)
 }
 
 // checkPlacement validates the target job, grade and the worker's eligibility
@@ -424,26 +429,27 @@ func bandFindings(band rewards.BandResult) []Finding {
 
 // assemble sorts the findings, computes the verdict, digests the input and the
 // result and mints the zero-effect receipt.
-func assemble(req PreflightRequest, baseline WorkerBaseline, findings []Finding, band rewards.BandResult, bandQuery *rewards.BandQuery) (PreflightResult, error) {
+func assemble(req PreflightRequest, baseline WorkerBaseline, findings []Finding, band rewards.BandResult, bandQuery *rewards.BandQuery, managementImpact ManagementImpact) (PreflightResult, error) {
 	sortFindings(findings)
 	if findings == nil {
 		findings = []Finding{}
 	}
 
 	snapshot := InputSnapshot{
-		Tenant:         req.Tenant,
-		Subject:        req.Subject,
-		Baseline:       baseline,
-		Target:         req.Target,
-		Current:        req.Current,
-		Proposed:       req.Proposed,
-		EffectiveDate:  req.EffectiveDate,
-		EvaluationDate: req.EvaluationDate,
-		BusinessReason: req.BusinessReason,
-		Budget:         req.Budget,
-		Policy:         req.Policy,
-		Annualization:  req.Annualization,
-		BandQuery:      bandQuery,
+		Tenant:           req.Tenant,
+		Subject:          req.Subject,
+		Baseline:         baseline,
+		Target:           req.Target,
+		Current:          req.Current,
+		Proposed:         req.Proposed,
+		EffectiveDate:    req.EffectiveDate,
+		EvaluationDate:   req.EvaluationDate,
+		BusinessReason:   req.BusinessReason,
+		Budget:           req.Budget,
+		Policy:           req.Policy,
+		Annualization:    req.Annualization,
+		BandQuery:        bandQuery,
+		ManagementImpact: managementImpact,
 	}
 
 	inputsDigest, err := canonicalbytes.New("hcmnext.domains.promotion.PreflightRequest", promotionSchemaVer).

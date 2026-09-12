@@ -23,5 +23,5 @@ control promotion_rule_pack@people.promotion.preflight.rules/1.0.0
 effects_zero: true
 receipt_mode: SIMULATE
 receipt_execution_state: NOT_PLANNED
-inputs_digest: sha256:b0979e82bfa14b290a0802c075b386b534e44050fdfa92689ddf558f871b7fe4
-result_digest: sha256:8295c7967377799641b4adfcbb61cdadd46e36c59559e85e5cbb43db9144ddfd
+inputs_digest: sha256:d49efff4472c940833759ddbbad2b38a8083333af37d8f11fe67ed8417fe74bc
+result_digest: sha256:be820d2da5f9dbd124a91aeed1197b23692eb42279b8283be6c2b27df38dd5d3

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/monstercameron/human-capital-management-suite/internal/domains/fixtures"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/org"
 	"github.com/monstercameron/human-capital-management-suite/internal/domains/people"
 	"github.com/monstercameron/human-capital-management-suite/internal/domains/position"
 	"github.com/monstercameron/human-capital-management-suite/internal/domains/promotion"
@@ -58,6 +59,12 @@ type workspaceReader struct {
 	// never reached here; see promotion.evaluateTargetPositionSelection's
 	// package doc for why a bare identifier's check stops at ground four.
 	positionReader position.PositionFacts
+	// managerFacts is PROMOUX-005's real org.WorkerFacts adapter, the cell's
+	// own (nil on a cell with no execution database). It answers both
+	// existence/disclosure and the reporting-chain reachability walk for a
+	// selected target manager and every affected direct report; see
+	// promotion.evaluateTargetManagerSelection.
+	managerFacts org.WorkerFacts
 }
 
 var _ workspace.Cell = workspaceReader{}
@@ -68,7 +75,7 @@ func (c *Cell) WorkspacePort() workspace.Cell {
 	if now == nil {
 		now = func() time.Time { return time.Now().UTC() }
 	}
-	return workspaceReader{svc: c.Service, now: now, locate: c.locateWorker, positionReader: c.positionReader}
+	return workspaceReader{svc: c.Service, now: now, locate: c.locateWorker, positionReader: c.positionReader, managerFacts: c.managerFacts}
 }
 
 // WorkspaceHandler builds the workspace HTTP surface over this cell, admitted
@@ -226,6 +233,13 @@ func (a workspaceReader) ReadPromotion(ctx context.Context, req workspace.Reques
 		// see evaluateTargetPositionSelection -- rather than accepting it
 		// unproven.
 		PositionReader: a.positionReader,
+		// PROMOUX-005: mirrors PositionReader immediately above. A nil
+		// managerFacts (no execution database composed) still refuses a
+		// non-nil TargetManagerSelection rather than accepting it unproven --
+		// see evaluateTargetManagerSelection's own "no manager facts reader
+		// configured" contract failure.
+		ManagerFacts:           a.managerFacts,
+		TargetManagerSelection: req.TargetManagerSelection,
 	}
 	preflight, evidenceID, ownedErr := invokePromotion(ctx, a.svc, principal, purpose,
 		promotionCall{Mode: promotionModePreflight, Request: preflightRequest})

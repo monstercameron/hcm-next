@@ -1,5 +1,40 @@
 # Changelog
 
+## 2026-09-12 (PROMOUX-005)
+
+- A management promotion can no longer reach approval without resolving the
+  target manager, organization and reporting-line impact -- and cycle safety is
+  real reachability rather than a single-hop guard. The detector walks the
+  proposed manager's actual ancestor chain and asks whether the promoted worker
+  appears in it, so a cycle closing two or more hops up is caught. A reports to
+  B reports to C, promote A to manage C: refused, proven both in memory and
+  against real PostgreSQL rows.
+
+  The converse is proven too, because a check that refused every deep chain
+  would pass a cycle test while breaking the product: a legitimate four-hop
+  chain that closes no cycle is admitted.
+
+- The detector reports three outcomes rather than a boolean that would have to
+  guess. A chain it cannot certify -- depth exceeded, a pre-existing loop above
+  the proposed manager, a withheld disclosure, a stale or ambiguous resolution
+  -- returns UNDETERMINED, and promotion treats that as blocking with its own
+  finding. An unresolved chain is never reported safe by omission.
+
+- "Material changes re-run the exact checks" is proven to mean the same checks,
+  not a cheaper subset: preflight runs twice, and every pre-existing unrelated
+  finding from the first run must reappear verbatim alongside the new cycle
+  finding. A re-validation that quietly dropped checks fails.
+
+- Organization semantics stayed in the Organization capability; promotion
+  composes a typed impact effect rather than copying graph logic. This also
+  added the first production worker-facts adapter in the tree.
+
+- Escalated rather than silently inherited: three cycle checks on the promotion
+  commit path test membership in an ancestor list that nothing ever populates,
+  so their self-reference half works while their multi-hop half always passes.
+  They are dormant while promotions only simulate, and become silent no-ops the
+  moment execution is enabled.
+
 ## 2026-09-12 (PROMOUX-004)
 
 - A guessed target position is no longer accepted. Any non-empty position
