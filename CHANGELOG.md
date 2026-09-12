@@ -1,5 +1,24 @@
 # Changelog
 
+## 2026-09-11 (CONN-RT-007)
+
+- Close CONN-RT-007: normalized observations, ambiguity and targeted redrive.
+  Both RED properties were already implemented by INTG-011/INTG-016 and are now
+  pinned by tests rather than rewritten -- provider acceptance leaves the
+  operation in PROVIDER_ACCEPTED requiring an observation, and a timeout or
+  MayHaveSent failure lands AMBIGUOUS, which is not a leaseable state, so a
+  blind resend is impossible rather than merely discouraged.
+
+  The genuine gap was the todo's word "normalized". Every existing caller
+  hand-built an `Observation` literal, which meant a caller could assert
+  `ObservationApplied` for any reason it liked -- the verdict was an assertion,
+  not a measurement. New `ProviderReadBack` and `NormalizeObservation` compute
+  it by comparison: an ambiguous read is UNKNOWN, a missing record is
+  NOT_APPLIED, a digest matching an attempt this operation actually dispatched
+  is APPLIED, and anything else found at that resource is CONFLICT. An empty
+  observed digest explicitly refuses to match, so a blank read-back cannot pass
+  as applied.
+
 ## 2026-09-11 (ARTIFACT-006)
 
 - Close ARTIFACT-006: verify and repair artifact-byte integrity.
