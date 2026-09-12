@@ -1,5 +1,41 @@
 # Changelog
 
+## 2026-09-12 (EP-WORK-003)
+
+- `CompleteWorkItem` and `DecideApproval` land on the humanwork transport,
+  replacing the two remaining P1B stub refusals. The clause that defines the
+  todo -- an approval records a decision, it must never BE the business change
+  it approves -- is proven by absence rather than asserted. A `countingExecutor`
+  wraps the real transaction, parses every mutating statement's target table
+  against live PostgreSQL, and the integration test walks all recorded writes
+  and fails on any table it does not name: `work_item` and
+  `work_item_transition` at exactly one write each, everything else a named
+  failure. A write to a ledger, a budget reservation or an org-chart row would
+  be caught by table name.
+
+  Restricted evidence stays out of responses structurally, not by filtering:
+  the wire `WorkItem` carries no evidence field and `ApprovalDecisionResult`
+  carries only ids, revision, decision, reason, principal and timestamp. A
+  canary evidence id supplied on a completion request is asserted absent from
+  the whole marshalled response.
+
+  Both endpoints compose rather than reimplement. WORK-006's
+  `CompleteWithAuthorityRecheck` performs the identity, assurance, authorization
+  and separation-of-duties recheck; ENDPOINT-004's idempotency `Coordinator`
+  supplies the duplicate-decision and mutated-decision clause. The SoD policy
+  itself lives in a driver outside this change -- what is proven here is the
+  wiring, that a refusal from the recheck port reaches the caller unchanged.
+
+- Fixed alongside: `prepareMutation` required `Dependencies.Claims != nil` for
+  all four mutating methods, including the two that never touch Claims. The
+  check now covers only the dependencies actually shared, and
+  `ClaimWorkItem`/`ReleaseWorkItem` keep their own guards.
+
+- Removed two `TestTodo_EP_WORK_001_Conformance` cases asserting that Complete
+  and DecideApproval return the P1B stub `FAILED_PRECONDITION`. Implementing
+  them made those assertions false; this is the same treatment EP-WORK-002 gave
+  Claim and Release.
+
 ## 2026-09-12 (DATAOPS-005, ARCH-GO-019)
 
 - Ticked two more todos the sweep found built but unrecorded. No behaviour

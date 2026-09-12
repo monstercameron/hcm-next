@@ -2,7 +2,9 @@ package workitem_test
 
 import (
 	"context"
+	"regexp"
 	"sort"
+	"sync"
 	"testing"
 	"time"
 
@@ -186,4 +188,47 @@ func repeatHex(digit string) string {
 		out += digit
 	}
 	return out
+}
+
+// mutatingStatement matches the leading keyword and target table of a
+// mutating SQL statement, tolerant of this package's own formatting (a
+// leading newline and tabs before the keyword, as every statement in
+// store.go is written).
+var mutatingStatement = regexp.MustCompile(`(?is)^\s*(INSERT INTO|UPDATE|DELETE FROM)\s+([a-zA-Z_][a-zA-Z0-9_]*)`)
+
+// countingExecutor wraps a real [dbport.Tx] and counts every mutating
+// statement (INSERT/UPDATE/DELETE) by the table it targets, leaving every
+// read (Query/QueryRow) to pass straight through unmodified. It exists for
+// exactly one purpose -- EP-WORK-003's "prove zero domain mutation" clause --
+// so a test can assert that a call touched only the tables it names, and
+// exactly as many times as expected, rather than trusting a code review that
+// no domain package was imported.
+type countingExecutor struct {
+	dbport.Tx
+	mu     sync.Mutex
+	writes map[string]int
+}
+
+func (c *countingExecutor) Exec(ctx context.Context, sql string, args ...any) (int64, error) {
+	c.mu.Lock()
+	if c.writes == nil {
+		c.writes = map[string]int{}
+	}
+	if m := mutatingStatement.FindStringSubmatch(sql); m != nil {
+		c.writes[m[2]]++
+	}
+	c.mu.Unlock()
+	return c.Tx.Exec(ctx, sql, args...)
+}
+
+func (c *countingExecutor) QueryRow(ctx context.Context, sql string, args ...any) dbport.Row {
+	c.mu.Lock()
+	if c.writes == nil {
+		c.writes = map[string]int{}
+	}
+	if m := mutatingStatement.FindStringSubmatch(sql); m != nil {
+		c.writes[m[2]]++
+	}
+	c.mu.Unlock()
+	return c.Tx.QueryRow(ctx, sql, args...)
 }

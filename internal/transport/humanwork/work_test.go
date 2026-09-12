@@ -455,12 +455,12 @@ func TestTodo_EP_WORK_001_Conformance(t *testing.T) {
 	ctx := humanworkContext(t, ListWorkItemsProcedure)
 	envErr := &envelope.Error{}
 
-	// Malformed requests land INVALID_ARGUMENT, absent resources NOT_FOUND,
-	// and the still-unimplemented mutating surface refuses with the
-	// contract's FAILED_PRECONDITION. ClaimWorkItem and ReleaseWorkItem are
-	// EP-WORK-002 and are exercised by their own test suite below; an empty
-	// request to either now fails validation (INVALID_ARGUMENT), not the
-	// P1B stub refusal this todo's methods no longer carry.
+	// Malformed requests land INVALID_ARGUMENT and absent resources land
+	// NOT_FOUND. ClaimWorkItem, ReleaseWorkItem (EP-WORK-002) and
+	// CompleteWorkItem, DecideApproval (EP-WORK-003) are all exercised by
+	// their own test suites below; an empty request to any of the four now
+	// fails validation (INVALID_ARGUMENT), not a P1B stub refusal -- none of
+	// them carries one any more.
 	for _, tc := range []struct {
 		name string
 		call func() error
@@ -478,14 +478,6 @@ func TestTodo_EP_WORK_001_Conformance(t *testing.T) {
 			_, err := srv.GetWorkItem(ctx, &humanworkv1.GetWorkItemRequest{WorkItemId: uuid.NewString()})
 			return err
 		}, envelope.CodeNotFound},
-		{"complete refused", func() error {
-			_, err := srv.CompleteWorkItem(ctx, &humanworkv1.CompleteWorkItemRequest{})
-			return err
-		}, envelope.CodeFailedPrecondition},
-		{"decide refused", func() error {
-			_, err := srv.DecideApproval(ctx, &humanworkv1.DecideApprovalRequest{})
-			return err
-		}, envelope.CodeFailedPrecondition},
 	} {
 		if err := tc.call(); !errors.As(err, &envErr) || envErr.Code() != tc.want {
 			t.Fatalf("%s err = %v, want code %v", tc.name, err, tc.want)

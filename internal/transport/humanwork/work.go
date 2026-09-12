@@ -1,18 +1,23 @@
 // Package humanwork exposes the human-work queue read surface (WorkService
-// ListWorkItems and GetWorkItem, EP-WORK-001) and the exclusive claim/release
-// write surface (ClaimWorkItem and ReleaseWorkItem, EP-WORK-002).
+// ListWorkItems and GetWorkItem, EP-WORK-001), the exclusive claim/release
+// write surface (ClaimWorkItem and ReleaseWorkItem, EP-WORK-002) and the
+// completion/approval write surface (CompleteWorkItem and DecideApproval,
+// EP-WORK-003).
 //
 // The service is deliberately thin (ARCH-GO-023): membership, visibility
-// classification, the permitted-action set and current-authority claim/lease
-// logic are all the workitem package's rules, reached through [Reader] and
-// [Claims]; this package owns protocol, wire-level authorization, the signed
-// stable queue cursor, idempotent replay (composed from
-// internal/transport/endpoint's Coordinator) and the wire projection.
-// CompleteWorkItem and DecideApproval remain P1B acceptance items
-// (EP-WORK-003): they are registered and refuse with FAILED_PRECONDITION
-// exactly as the proto contract specifies, rather than answering
-// UNIMPLEMENTED. GetThresholdTable is a separate read todo and is left
-// unimplemented.
+// classification, the permitted-action set, current-authority claim/lease
+// logic and the current-authority-rechecked completion/decision CAS are all
+// the workitem package's rules, reached through [Reader], [Claims],
+// [Completions] and [Decisions]; this package owns protocol, wire-level
+// authorization, the signed stable queue cursor, idempotent replay (composed
+// from internal/transport/endpoint's Coordinator) and the wire projection.
+// EP-WORK-003's own rule -- approving records a decision and its signal
+// (the appended COMPLETED transition) but never executes the business change
+// a decision authorizes -- is enforced by composing
+// [workitem.Store.CompleteWithAuthorityRecheck] and
+// [workitem.Store.DecideApproval] rather than by this package writing
+// anything beyond the one idempotent call each method makes.
+// GetThresholdTable is a separate read todo and is left unimplemented.
 package humanwork
 
 import (
@@ -36,6 +41,7 @@ import (
 
 	commonv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/common/v1"
 	humanworkv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/humanwork/v1"
+	intentsv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/intents/v1"
 	"github.com/monstercameron/human-capital-management-suite/internal/humanwork/workitem"
 	"github.com/monstercameron/human-capital-management-suite/internal/transport"
 	"github.com/monstercameron/human-capital-management-suite/internal/transport/endpoint"
@@ -48,6 +54,9 @@ const (
 	GetWorkItemProcedure     = "/hcmnext.humanwork.v1.WorkService/GetWorkItem"
 	ClaimWorkItemProcedure   = "/hcmnext.humanwork.v1.WorkService/ClaimWorkItem"
 	ReleaseWorkItemProcedure = "/hcmnext.humanwork.v1.WorkService/ReleaseWorkItem"
+	// CompleteWorkItemProcedure and DecideApprovalProcedure are EP-WORK-003.
+	CompleteWorkItemProcedure = "/hcmnext.humanwork.v1.WorkService/CompleteWorkItem"
+	DecideApprovalProcedure   = "/hcmnext.humanwork.v1.WorkService/DecideApproval"
 
 	ActionListWorkItems      = "list_work_items"
 	ActionGetWorkItem        = "get_work_item"
@@ -62,6 +71,14 @@ const (
 	// candidate or claimant".
 	ActionClaimWorkItem   = "claim_work_item"
 	ActionReleaseWorkItem = "release_work_item"
+	// ActionCompleteWorkItem and ActionDecideApproval are EP-WORK-003's own
+	// wire-level gates, built the same way: current authority, session
+	// validity, the stale-proposal check and separation of duties are all
+	// re-established fresh by [Completions] and [Decisions] against the item
+	// as it stands right now, never by trusting that this gate having passed
+	// means the caller may currently act.
+	ActionCompleteWorkItem = "complete_work_item"
+	ActionDecideApproval   = "decide_approval"
 
 	defaultPageSize = 20
 	maxPageSize     = 100
@@ -120,6 +137,34 @@ type Claims interface {
 	Release(ctx context.Context, tenant, workItemID, principal string, expectedVersion uint64, now time.Time, meta workitem.TransitionMeta) (workitem.WorkItem, error)
 }
 
+// Completions is EP-WORK-003's completion write port. Like [Claims], tenant,
+// work item id and principal arrive as strings, and the port is expected to
+// perform [workitem.Store.CompleteWithAuthorityRecheck]'s own current
+// session/authority recheck and exclusive item_version compare-and-swap in
+// one durable transaction: this package supplies no authorization, digest or
+// CAS logic of its own, only the wire-level gate and how the port's typed
+// refusal projects onto the wire. sessionRef is the caller's own current
+// session reference (never a session the caller merely asserts about someone
+// else); completedOutputDigest is computed by [workitem.CompletionDigest] so
+// the hashing formula lives in one place.
+type Completions interface {
+	Complete(ctx context.Context, tenant, workItemID, sessionRef, principal string, expectedVersion uint64,
+		completedOutputDigest string, now time.Time, meta workitem.TransitionMeta) (workitem.WorkItem, error)
+}
+
+// Decisions is EP-WORK-003's approval write port, composed the same way as
+// Completions but from [workitem.Store.DecideApproval]: REFACTOR requires
+// approval to be a specialized WorkItem result sharing Completions'
+// current-authority and signal-publication mechanics, not a second decision
+// mechanism, and this port's shape -- the same primitive arguments plus the
+// proposal revision, decision and reason a plain completion does not carry
+// -- is exactly that sharing made concrete at the transport boundary.
+type Decisions interface {
+	Decide(ctx context.Context, tenant, workItemID, sessionRef, principal string, expectedVersion uint64,
+		proposalRevisionRef string, decision workitem.ApprovalDecision, reasonRef string,
+		now time.Time, meta workitem.TransitionMeta) (workitem.WorkItem, error)
+}
+
 type Dependencies struct {
 	Queue     Reader
 	Claims    Claims
@@ -128,14 +173,21 @@ type Dependencies struct {
 	Now       func() time.Time
 	// Idempotency composes ENDPOINT-004's Coordinator: exact replay of the
 	// same idempotency key and payload returns the original result without
-	// re-running the claim or release effect, and a stale expected revision
-	// refuses with the current revision attached rather than reaching the
-	// effect at all. Required for ClaimWorkItem and ReleaseWorkItem; a nil
-	// Coordinator is treated as the write surface being unavailable rather
-	// than silently skipping idempotency.
+	// re-running the claim, release, completion or decision effect, and a
+	// stale expected revision refuses with the current revision attached
+	// rather than reaching the effect at all. Required for ClaimWorkItem,
+	// ReleaseWorkItem, CompleteWorkItem and DecideApproval; a nil Coordinator
+	// is treated as the write surface being unavailable rather than silently
+	// skipping idempotency.
 	Idempotency *endpoint.Coordinator
 	// ClaimLease overrides [defaultClaimLease]. Zero means the default.
 	ClaimLease time.Duration
+	// Completions and Decisions are EP-WORK-003's write ports. Both nil
+	// (the todo's stub-era default) is treated as the respective write
+	// surface being unavailable, exactly like a nil Claims for the
+	// EP-WORK-002 methods.
+	Completions Completions
+	Decisions   Decisions
 }
 
 type server struct {
@@ -178,9 +230,11 @@ func NewHandler(deps Dependencies, opts ...connect.HandlerOption) http.Handler {
 		}
 		return connect.NewResponse(res), nil
 	}, opts...))
-	// The mutating procedures are mounted to refuse, not to 404: the proto's
-	// P1A disposition fixes their answer as FAILED_PRECONDITION on both
-	// transports.
+	// Every mutating procedure is mounted here too: EP-WORK-002 and
+	// EP-WORK-003 both answer for real on both transports, and mounting them
+	// unconditionally means an unavailable write port (a nil Claims,
+	// Completions or Decisions) is this handler's own UNAVAILABLE rather than
+	// a route 404.
 	mux.Handle(ClaimWorkItemProcedure, connect.NewUnaryHandler(ClaimWorkItemProcedure, func(ctx context.Context, req *connect.Request[humanworkv1.ClaimWorkItemRequest]) (*connect.Response[humanworkv1.ClaimWorkItemResponse], error) {
 		res, err := s.ClaimWorkItem(ctx, req.Msg)
 		if err != nil {
@@ -195,14 +249,14 @@ func NewHandler(deps Dependencies, opts ...connect.HandlerOption) http.Handler {
 		}
 		return connect.NewResponse(res), nil
 	}, opts...))
-	mux.Handle("/hcmnext.humanwork.v1.WorkService/CompleteWorkItem", connect.NewUnaryHandler("/hcmnext.humanwork.v1.WorkService/CompleteWorkItem", func(ctx context.Context, req *connect.Request[humanworkv1.CompleteWorkItemRequest]) (*connect.Response[humanworkv1.CompleteWorkItemResponse], error) {
+	mux.Handle(CompleteWorkItemProcedure, connect.NewUnaryHandler(CompleteWorkItemProcedure, func(ctx context.Context, req *connect.Request[humanworkv1.CompleteWorkItemRequest]) (*connect.Response[humanworkv1.CompleteWorkItemResponse], error) {
 		res, err := s.CompleteWorkItem(ctx, req.Msg)
 		if err != nil {
 			return nil, err
 		}
 		return connect.NewResponse(res), nil
 	}, opts...))
-	mux.Handle("/hcmnext.humanwork.v1.WorkService/DecideApproval", connect.NewUnaryHandler("/hcmnext.humanwork.v1.WorkService/DecideApproval", func(ctx context.Context, req *connect.Request[humanworkv1.DecideApprovalRequest]) (*connect.Response[humanworkv1.DecideApprovalResponse], error) {
+	mux.Handle(DecideApprovalProcedure, connect.NewUnaryHandler(DecideApprovalProcedure, func(ctx context.Context, req *connect.Request[humanworkv1.DecideApprovalRequest]) (*connect.Response[humanworkv1.DecideApprovalResponse], error) {
 		res, err := s.DecideApproval(ctx, req.Msg)
 		if err != nil {
 			return nil, err
@@ -317,19 +371,6 @@ func (s *server) GetWorkItem(ctx context.Context, req *humanworkv1.GetWorkItemRe
 	return &humanworkv1.GetWorkItemResponse{WorkItem: projectItem(item, m, governed)}, nil
 }
 
-// refused reports the contract-fixed FAILED_PRECONDITION for the mutating
-// WorkService methods: work queues do not accept writes before P1B
-// (humanwork_service.proto's P1A disposition), and a typed refusal is the
-// documented answer rather than UNIMPLEMENTED.
-func (s *server) refused(ctx context.Context, reason string) error {
-	inv, ok := transport.InvocationFromContext(ctx)
-	err := envelope.New(envelope.CodeFailedPrecondition, reason, "this method does not accept calls in this phase")
-	if ok {
-		err.WithCorrelation(inv.RequestID())
-	}
-	return err
-}
-
 // ClaimWorkItem is EP-WORK-002: an atomic, version-bound, current-authority,
 // idempotent claim. The wire-level authorization gate and non-disclosing
 // visibility answer are this package's own (matching GetWorkItem exactly);
@@ -342,6 +383,9 @@ func (s *server) ClaimWorkItem(ctx context.Context, req *humanworkv1.ClaimWorkIt
 	item, inv, p, err := s.prepareMutation(ctx, req.GetWorkItemId(), req.GetIdempotencyKey(), req.GetExpectedItemVersion(), req.GetScope(), ActionClaimWorkItem)
 	if err != nil {
 		return nil, err
+	}
+	if s.deps.Claims == nil {
+		return nil, unavailable(inv, p, ErrQueueEmpty)
 	}
 	now := s.now()
 	tenant := p.Tenant().String()
@@ -381,6 +425,9 @@ func (s *server) ReleaseWorkItem(ctx context.Context, req *humanworkv1.ReleaseWo
 	item, inv, p, err := s.prepareMutation(ctx, req.GetWorkItemId(), req.GetIdempotencyKey(), req.GetExpectedItemVersion(), req.GetScope(), ActionReleaseWorkItem)
 	if err != nil {
 		return nil, err
+	}
+	if s.deps.Claims == nil {
+		return nil, unavailable(inv, p, ErrQueueEmpty)
 	}
 	now := s.now()
 	tenant := p.Tenant().String()
@@ -443,7 +490,12 @@ func (s *server) prepareMutation(
 	if scope != nil && scope.GetTenantId() != "" && scope.GetTenantId() != tenant {
 		return workitem.WorkItem{}, inv, p, notFound(inv, p)
 	}
-	if s.deps.Queue == nil || s.deps.Claims == nil || s.deps.Idempotency == nil {
+	// Queue and Idempotency are every mutating method's shared dependency;
+	// which write port a given method also needs (Claims, Completions or
+	// Decisions) is that method's own check, made right after this call --
+	// EP-WORK-002's methods need Claims and EP-WORK-003's need Completions or
+	// Decisions, never all four at once.
+	if s.deps.Queue == nil || s.deps.Idempotency == nil {
 		return workitem.WorkItem{}, inv, p, unavailable(inv, p, ErrQueueEmpty)
 	}
 	item, loadErr := s.deps.Queue.LoadItem(ctx, tenant, workItemID)
@@ -538,6 +590,34 @@ func (s *server) mutationError(inv *transport.Invocation, p *trust.Principal, er
 		return e
 	case workitem.CodeInvalidRecord:
 		return invalid(inv, "work_item")
+	case workitem.CodeStaleProposal:
+		e := envelope.New(envelope.CodeFailedPrecondition, "humanwork.stale_proposal",
+			"the caller's proposal revision no longer matches this item's current one")
+		if inv != nil {
+			e.WithCorrelation(inv.RequestID())
+		}
+		return e
+	case workitem.CodeAuthorityChanged:
+		// Covers every current-authority refusal WORK-006's recheck can
+		// produce, separation of duties included: a requester who is denied
+		// deciding their own proposal is refused this same, non-disclosing
+		// code -- it never says which rule fired, only that current
+		// authority no longer admits this call.
+		e := envelope.New(envelope.CodePermissionDenied, "humanwork.authority_changed",
+			"current authority no longer admits this request")
+		if inv != nil {
+			e.WithCorrelation(inv.RequestID())
+		}
+		if p != nil {
+			e.WithEvidence(envelope.Evidence{ID: p.EvidenceID(), Kind: "authentication"})
+		}
+		return e
+	case workitem.CodeSessionRevoked, workitem.CodeSessionInactive:
+		e := envelope.New(envelope.CodeUnauthenticated, "humanwork.session_invalid", "the caller's session is no longer valid")
+		if inv != nil {
+			e.WithCorrelation(inv.RequestID())
+		}
+		return e
 	default:
 		return unavailable(inv, p, err)
 	}
@@ -551,12 +631,203 @@ func (s *server) claimLease() time.Duration {
 	return defaultClaimLease
 }
 
-func (s *server) CompleteWorkItem(ctx context.Context, _ *humanworkv1.CompleteWorkItemRequest) (*humanworkv1.CompleteWorkItemResponse, error) {
-	return nil, s.refused(ctx, "workitem.complete_unavailable")
+// CompleteWorkItem is EP-WORK-003's plain completion: current authority and
+// session validity are rechecked fresh (composed from
+// [workitem.Store.CompleteWithAuthorityRecheck] through [Dependencies.Completions]),
+// required evidence must be present, and the completed output digest is
+// computed once, by [workitem.CompletionDigest], so this package invents no
+// hashing scheme of its own. Completing performs no domain mutation beyond
+// the one item_version-guarded write [Completions] makes: the response is
+// the same redacted [projectItem] every other WorkService method returns,
+// which carries no evidence field at all, so nothing this method reads from
+// the request's evidence_refs can leak into it.
+func (s *server) CompleteWorkItem(ctx context.Context, req *humanworkv1.CompleteWorkItemRequest) (*humanworkv1.CompleteWorkItemResponse, error) {
+	item, inv, p, err := s.prepareMutation(ctx, req.GetWorkItemId(), req.GetIdempotencyKey(), req.GetExpectedItemVersion(), req.GetScope(), ActionCompleteWorkItem)
+	if err != nil {
+		return nil, err
+	}
+	outputRef := strings.TrimSpace(req.GetOutputArtifactRef())
+	if outputRef == "" {
+		return nil, invalid(inv, "output_artifact_ref")
+	}
+	if len(req.GetEvidenceRefs()) == 0 {
+		return nil, invalid(inv, "evidence_refs")
+	}
+	if s.deps.Completions == nil {
+		return nil, unavailable(inv, p, ErrQueueEmpty)
+	}
+	now := s.now()
+	tenant := p.Tenant().String()
+	expectedRev := req.GetExpectedItemVersion()
+	formRef := req.GetFormSubmissionRef()
+	digest := workitem.CompletionDigest(item.WorkItemID, outputRef, formRef, evidenceRefKeys(req.GetEvidenceRefs()))
+	idemReq := endpoint.Request{
+		Scope:            endpoint.Scope{Principal: p.Subject(), Tenant: tenant, Capability: "humanwork.work_item.complete"},
+		MessageKey:       req.GetIdempotencyKey(),
+		Payload:          []byte(fmt.Sprintf("complete|%s|%d|%s", item.WorkItemID.String(), expectedRev, digest)),
+		ExpectedRevision: &expectedRev,
+		CurrentRevision:  uint64(item.ItemVersion),
+	}
+	meta := workitem.TransitionMeta{ActorPrincipalID: p.Subject(), Reason: "workitem.completed_via_endpoint", At: now}
+	if _, doErr := s.deps.Idempotency.Do(ctx, idemReq, func(ctx context.Context) (endpoint.Outcome, error) {
+		completed, compErr := s.deps.Completions.Complete(ctx, tenant, item.WorkItemID.String(), p.SessionRef(), p.Subject(), expectedRev, digest, now, meta)
+		if compErr != nil {
+			return endpoint.Outcome{}, compErr
+		}
+		return endpoint.Outcome{Status: "OK", ResultDigest: completed.WorkItemID.String()}, nil
+	}); doErr != nil {
+		return nil, s.mutationError(inv, p, doErr)
+	}
+	final, loadErr := s.deps.Queue.LoadItem(ctx, tenant, item.WorkItemID.String())
+	if loadErr != nil {
+		return nil, unavailable(inv, p, loadErr)
+	}
+	governed := s.authorized(p, ActionWorkItemGovernance)
+	return &humanworkv1.CompleteWorkItemResponse{WorkItem: projectItem(final, workitem.MembershipOf(final, p.Subject(), now), governed)}, nil
 }
 
-func (s *server) DecideApproval(ctx context.Context, _ *humanworkv1.DecideApprovalRequest) (*humanworkv1.DecideApprovalResponse, error) {
-	return nil, s.refused(ctx, "workitem.decide_approval_unavailable")
+// DecideApproval is EP-WORK-003's approval write, built on the same
+// current-authority-rechecked, idempotent shape as CompleteWorkItem (REFACTOR:
+// approval is a specialized WorkItem result, not a second decision
+// mechanism) but composed from [workitem.Store.DecideApproval] through
+// [Dependencies.Decisions]: a stale proposal digest, a changed authority
+// (including separation of duties -- the [workitem.AuthorityRecheckPort] the
+// driver behind Decisions injects refuses a requester deciding their own
+// proposal exactly as it refuses any other changed authority) and a
+// duplicate or mutated decision under the same idempotency key are all
+// refused before, or instead of, any write. The response carries only
+// [ApprovalDecisionResult]'s own five fields -- work item id, proposal
+// revision, decision, reason and who/when -- never the item's restricted
+// evidence compartment, which this message has no field for at all.
+func (s *server) DecideApproval(ctx context.Context, req *humanworkv1.DecideApprovalRequest) (*humanworkv1.DecideApprovalResponse, error) {
+	item, inv, p, err := s.prepareMutation(ctx, req.GetWorkItemId(), req.GetIdempotencyKey(), req.GetExpectedItemVersion(), req.GetScope(), ActionDecideApproval)
+	if err != nil {
+		return nil, err
+	}
+	proposalRev := strings.TrimSpace(req.GetProposalRevisionId())
+	reasonRef := strings.TrimSpace(req.GetReasonRef())
+	decision := decisionFromWire(req.GetDecision())
+	switch {
+	case proposalRev == "":
+		return nil, invalid(inv, "proposal_revision_id")
+	case reasonRef == "":
+		return nil, invalid(inv, "reason_ref")
+	case decision == workitem.ApprovalDecisionUnspecified:
+		// A Go/wire zero value never means "decided": an unspecified
+		// decision is refused here rather than reaching the domain at all.
+		return nil, invalid(inv, "decision")
+	}
+	if s.deps.Decisions == nil {
+		return nil, unavailable(inv, p, ErrQueueEmpty)
+	}
+	now := s.now()
+	tenant := p.Tenant().String()
+	expectedRev := req.GetExpectedItemVersion()
+	digest := workitem.DecisionDigest(item.WorkItemID, proposalRev, decision, reasonRef)
+	idemReq := endpoint.Request{
+		Scope:            endpoint.Scope{Principal: p.Subject(), Tenant: tenant, Capability: "humanwork.work_item.decide_approval"},
+		MessageKey:       req.GetIdempotencyKey(),
+		Payload:          []byte(fmt.Sprintf("decide|%s|%d|%s", item.WorkItemID.String(), expectedRev, digest)),
+		ExpectedRevision: &expectedRev,
+		CurrentRevision:  uint64(item.ItemVersion),
+	}
+	meta := workitem.TransitionMeta{ActorPrincipalID: p.Subject(), Reason: "workitem.decided_via_endpoint", Detail: reasonRef, At: now}
+	if _, doErr := s.deps.Idempotency.Do(ctx, idemReq, func(ctx context.Context) (endpoint.Outcome, error) {
+		decided, decErr := s.deps.Decisions.Decide(ctx, tenant, item.WorkItemID.String(), p.SessionRef(), p.Subject(), expectedRev, proposalRev, decision, reasonRef, now, meta)
+		if decErr != nil {
+			return endpoint.Outcome{}, decErr
+		}
+		return endpoint.Outcome{Status: "OK", ResultDigest: decided.WorkItemID.String()}, nil
+	}); doErr != nil {
+		return nil, s.mutationError(inv, p, doErr)
+	}
+	// The result is rebuilt from the reloaded item rather than threaded out
+	// of the idempotency closure: an exact replay never re-runs that closure
+	// at all (ENDPOINT-004's whole point), so DecidingPrincipal and DecidedAt
+	// must come from durable state, not from a side effect that may not have
+	// run this time.
+	final, loadErr := s.deps.Queue.LoadItem(ctx, tenant, item.WorkItemID.String())
+	if loadErr != nil {
+		return nil, unavailable(inv, p, loadErr)
+	}
+	result := workitem.NewDecisionResult(final, proposalRev, decision, reasonRef)
+	return &humanworkv1.DecideApprovalResponse{Decision: projectDecision(result, p)}, nil
+}
+
+// decisionFromWire maps the wire's ApprovalDecisionKind onto this package's
+// domain vocabulary by hand (workitem is domain and must not import the
+// generated wire enum); an unrecognized wire value maps to the domain's own
+// zero value, which DecideApproval already refuses rather than guesses at.
+func decisionFromWire(k intentsv1.ApprovalDecisionKind) workitem.ApprovalDecision {
+	switch k {
+	case intentsv1.ApprovalDecisionKind_APPROVAL_DECISION_KIND_APPROVE:
+		return workitem.ApprovalDecisionApprove
+	case intentsv1.ApprovalDecisionKind_APPROVAL_DECISION_KIND_REJECT:
+		return workitem.ApprovalDecisionReject
+	case intentsv1.ApprovalDecisionKind_APPROVAL_DECISION_KIND_REQUEST_MORE_INFORMATION:
+		return workitem.ApprovalDecisionRequestMoreInformation
+	case intentsv1.ApprovalDecisionKind_APPROVAL_DECISION_KIND_ABSTAIN:
+		return workitem.ApprovalDecisionAbstain
+	default:
+		return workitem.ApprovalDecisionUnspecified
+	}
+}
+
+// decisionToWire is decisionFromWire's inverse, used only to echo the
+// decision back on the response; an unrecognized domain value (never
+// produced by this package) maps to the wire's own unspecified value rather
+// than guessing.
+func decisionToWire(d workitem.ApprovalDecision) intentsv1.ApprovalDecisionKind {
+	switch d {
+	case workitem.ApprovalDecisionApprove:
+		return intentsv1.ApprovalDecisionKind_APPROVAL_DECISION_KIND_APPROVE
+	case workitem.ApprovalDecisionReject:
+		return intentsv1.ApprovalDecisionKind_APPROVAL_DECISION_KIND_REJECT
+	case workitem.ApprovalDecisionRequestMoreInformation:
+		return intentsv1.ApprovalDecisionKind_APPROVAL_DECISION_KIND_REQUEST_MORE_INFORMATION
+	case workitem.ApprovalDecisionAbstain:
+		return intentsv1.ApprovalDecisionKind_APPROVAL_DECISION_KIND_ABSTAIN
+	default:
+		return intentsv1.ApprovalDecisionKind_APPROVAL_DECISION_KIND_UNSPECIFIED
+	}
+}
+
+// projectDecision renders [workitem.DecisionResult] onto the wire. It carries
+// exactly ApprovalDecisionResult's own five fields plus who decided -- never
+// the item's restricted evidence, the candidate set or the assignment
+// history, none of which this message even has a field for.
+func projectDecision(r workitem.DecisionResult, p *trust.Principal) *humanworkv1.ApprovalDecisionResult {
+	out := &humanworkv1.ApprovalDecisionResult{
+		WorkItemId:         r.WorkItemID.String(),
+		ProposalRevisionId: r.ProposalRevisionRef,
+		Decision:           decisionToWire(r.Decision),
+		ReasonRef:          r.ReasonRef,
+	}
+	if r.DecidingPrincipal != "" {
+		out.DecidingPrincipal = &intentsv1.PrincipalReference{
+			PrincipalId: r.DecidingPrincipal, Kind: intentsv1.InitiatorKind_INITIATOR_KIND_HUMAN,
+		}
+	}
+	if !r.DecidedAt.IsZero() {
+		out.DecidedAt = timestamppb.New(r.DecidedAt)
+	}
+	return out
+}
+
+// evidenceRefKeys renders the wire's EvidenceRef set into the stable string
+// keys [workitem.CompletionDigest] binds the completion digest to: the
+// evidence id and its own content digest, never the evidence's kind or any
+// other descriptive field a caller might later change without the reference
+// itself changing.
+func evidenceRefKeys(refs []*commonv1.EvidenceRef) []string {
+	out := make([]string, 0, len(refs))
+	for _, ref := range refs {
+		if ref == nil {
+			continue
+		}
+		out = append(out, ref.GetEvidenceId()+"|"+ref.GetDigest())
+	}
+	return out
 }
 
 func (s *server) authorized(p *trust.Principal, action string) bool {
