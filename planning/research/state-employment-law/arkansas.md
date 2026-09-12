@@ -2,7 +2,7 @@
 
 **State:** Arkansas | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
-## 1. Summary for HCM Next
+## 1. Summary for Human Capital Management Suite
 
 - **Minimum wage ($11/hour)** and **overtime (1.5x after 40h/week)** apply to employers with 4+ employees; platform must record hours worked and calculate qualifying overtime based on actual hours, excluding paid time off.
 - **At-will employment** is the default; limited exceptions exist (public policy, statutory duty, implied contract from handbook). Platform need not record termination justification but employer handbooks can create implied for-cause contracts.

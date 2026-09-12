@@ -1,7 +1,7 @@
 # State Employment Law Research (side task, started 2026-09-03)
 
 Research notes on the employment laws and regulations of each US state that can
-affect how HCM Next operates: what it must record, notify, retain, disclose,
+affect how Human Capital Management Suite operates: what it must record, notify, retain, disclose,
 time, or refuse when it governs a workforce change. One file per state, written
 by a research agent from primary and official sources. These are research
 inputs for the Legal plane's rule packs and for connector/partner scoping. They
@@ -74,7 +74,7 @@ of URLs and the retrieval date. Where a state has no rule on a topic, say so
 explicitly ("no state rule; federal FLSA applies") rather than omitting the
 section.
 
-1. Summary for HCM Next (5–10 bullets: what this state changes about a
+1. Summary for Human Capital Management Suite (5–10 bullets: what this state changes about a
    promotion, base-pay change, manager change, or termination processed
    through the platform)
 2. Employment relationship: at-will status and exceptions; required
@@ -100,7 +100,7 @@ section.
 10. Classification and multi-state: contractor tests, remote-worker rules,
     reciprocity and which state's law applies
 11. Implications for P1A/P1B: which of the above must be modeled as a typed
-    obligation, notice, timing constraint, or field restriction when HCM Next
+    obligation, notice, timing constraint, or field restriction when Human Capital Management Suite
     simulates or executes a promotion and base-pay change for a worker in this
     state; open questions
 12. Sources: numbered list of URLs (official state agency, statute text,

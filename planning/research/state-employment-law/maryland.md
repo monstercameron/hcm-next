@@ -2,7 +2,7 @@
 
 **State:** Maryland | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
-## 1. Summary for HCM Next
+## 1. Summary for Human Capital Management Suite
 
 - **At-will employment with statutory exceptions**: Maryland recognizes employment-at-will but prohibits termination for exercising constitutional rights, filing wage/workers' compensation claims, jury duty, military service, or other public-policy violations.
 - **Wage transparency mandate (Oct 2024)**: Employers must disclose wage range, benefits description, and other compensation in all public and internal job postings (Md. Code, Lab. & Empl. § 3-304.2); applicants may request salary range at any time.

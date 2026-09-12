@@ -2,9 +2,9 @@
 
 **State:** Minnesota | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
-## 1. Summary for HCM Next
+## 1. Summary for Human Capital Management Suite
 
-**Key compliance obligations for HCM Next operating in Minnesota:**
+**Key compliance obligations for Human Capital Management Suite operating in Minnesota:**
 
 - **Wage notice timing (§ 181.032)**: Mandatory written notice at hiring detailing all pay terms (rate, basis, payday, deductions, employer contact, ESST rights, anti-retaliation statement). For promotion/pay change: written notice **prior to effective date** (advance notice required; cannot be retroactive). Violation triggers civil liability. System must enforce pre-effective-date notice timing.
 
@@ -160,7 +160,7 @@ Minnesota is at-will employment with limited exceptions for public policy violat
 
 ## 11. Implications for P1A/P1B (Promotion + Base-Pay Change)
 
-When HCM Next processes a promotion and/or base-pay increase for a Minnesota employee, the following obligations apply:
+When Human Capital Management Suite processes a promotion and/or base-pay increase for a Minnesota employee, the following obligations apply:
 
 **Pre-effective-date notice (P1A trigger):** § 181.032 requires written notice of pay rate or pay-basis change **prior to the date the change takes effect** (not after, not concurrent). Notice is mandatory; no exemption by contract. The system must enforce this timing requirement: generate and send notice at least 5–10 business days before the effective date to ensure timely receipt and employee comprehension. System should validate that notice-send date is before effective date in workflow and prevent workflow completion if timing violates statute. Notice must be in English and any language requested by employee (verify if employee language preference is captured in system; if not, assume English + offer translation).
 

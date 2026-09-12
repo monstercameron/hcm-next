@@ -2,7 +2,7 @@
 
 **State:** Virginia | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
-## 1. Summary for HCM Next
+## 1. Summary for Human Capital Management Suite
 
 - **At-will employment with statutory exceptions**: Exceptions include terminations for wage theft claims, workers' compensation claims, jury duty, military service, whistleblowing, refusal to commit illegal acts, or exercising constitutional rights (Va. Code § 40.1-27.3).
 - **Minimum wage indexed annually**: $12.41/hour (2025), $12.77/hour (2026–2027), $13.75/hour (2027–2028), $15.00/hour (2028–2029); thereafter indexed by CPI (§ 40.1-28.10).

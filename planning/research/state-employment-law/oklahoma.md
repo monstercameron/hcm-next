@@ -2,7 +2,7 @@
 
 **State:** Oklahoma | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
-## 1. Summary for HCM Next
+## 1. Summary for Human Capital Management Suite
 
 - **At-will employment with public-policy exceptions**: Oklahoma recognizes at-will termination except for discharge related to workers' compensation claims, whistleblowing, jury duty, military service, refusal to commit illegal acts, and anti-discrimination (OADA applies to all employers with 1+ employee; federal FLSA applies for some protections).
 - **Semimonthly pay required**: 40 O.S. § 165.2 mandates at least twice-monthly payday (exempt employees and public entities may be paid monthly); max 11 days between end of pay period and payday; max 3 days after payday to comply.

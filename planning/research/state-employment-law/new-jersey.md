@@ -2,7 +2,7 @@
 
 **State:** New Jersey | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
-## 1. Summary for HCM Next
+## 1. Summary for Human Capital Management Suite
 
 - **Employment-at-will with exceptions**: New Jersey recognizes at-will employment but prohibits termination for exercising constitutional rights, filing wage/workers' compensation claims, jury duty, military service, or public policy violations.
 - **Wage Payment Law with Wage Theft Act (2019)**: N.J.S.A. 34:11-4.1 et seq. governs pay timing; Wage Theft Act extends statute of limitations to 6 years with liquidated damages of 200% of wages due, plus attorney fees and costs.

@@ -2,7 +2,7 @@
 
 **State:** Iowa | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
-## 1. Summary for HCM Next
+## 1. Summary for Human Capital Management Suite
 
 - **At-will employment dominates**: Iowa recognizes at-will employment by default; no employment contract required at hire unless parties agree to one.
 - **Minimum wage defers to federal**: Iowa's statutory minimum ($7.25/hour, Iowa Code § 91D.1) equals federal FLSA, so federal floor applies uniformly; no state premium.
@@ -177,9 +177,9 @@ Records may be maintained in any format (paper, digital, spreadsheet, payroll sy
 
 **Reciprocity**: Iowa recognizes only Iowa law for employment disputes involving Iowa-based work. Out-of-state employment contracts may invoke choice-of-law provisions, but if work is performed in Iowa, Iowa law applies to statutory protections.
 
-## 11. Implications for HCM Next (P1A/P1B: Promotion + Base-Pay Change)
+## 11. Implications for Human Capital Management Suite (P1A/P1B: Promotion + Base-Pay Change)
 
-When HCM Next processes a **promotion** and **base-pay change** for a worker in Iowa:
+When Human Capital Management Suite processes a **promotion** and **base-pay change** for a worker in Iowa:
 
 ### Obligations and Constraints:
 

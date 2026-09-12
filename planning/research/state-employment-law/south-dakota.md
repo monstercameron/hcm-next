@@ -2,7 +2,7 @@
 
 **State:** South Dakota | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
-## 1. Summary for HCM Next
+## 1. Summary for Human Capital Management Suite
 
 - **At-will employment**: South Dakota recognizes at-will employment (SDCL 60-4-4); exceptions exist for workers' compensation retaliation (SDCL 62-1-16), public policy violations (whistleblowing, refusal to commit illegal acts), discrimination based on protected class, and tobacco use (SDCL 60-4-11).
 - **Minimum wage $11.85/hour (2026)**: South Dakota indexes minimum wage annually based on CPI-U; rate becomes effective January 1 each year (SDCL 60-11-3); no decrease year-over-year permitted (SDCL 60-11-3.2).
@@ -151,7 +151,7 @@ South Dakota recognizes at-will employment: either party may terminate at will w
 **Ban-the-box (criminal history inquiry)**:
 
 - **Not applicable to private employers** in South Dakota; private employers may inquire about criminal history at any point.
-- Public employers subject to limited restrictions (not relevant to HCM Next private-sector focus).
+- Public employers subject to limited restrictions (not relevant to Human Capital Management Suite private-sector focus).
 
 **Background checks** (private employers):
 

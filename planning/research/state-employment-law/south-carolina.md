@@ -2,7 +2,7 @@
 
 **State:** South Carolina | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
-## 1. Summary for HCM Next
+## 1. Summary for Human Capital Management Suite
 
 - **At-will employment**: South Carolina is at-will; employers may terminate without cause or notice. Exceptions exist for workers' compensation retaliation, jury duty, military service, and public-policy violations.
 - **Minimum wage and overtime**: Federal floor applies ($7.25/hour, federal overtime); no state override.

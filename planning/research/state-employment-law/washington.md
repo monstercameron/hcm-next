@@ -2,7 +2,7 @@
 
 **State:** Washington | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
-## 1. Summary for HCM Next
+## 1. Summary for Human Capital Management Suite
 
 - **Minimum wage $17.13/hour (2026)**: Annual CPI-W adjustment; youth 14–15 at 85%; no regional multiplier (unlike Oregon/California).
 - **Final pay mandate (RCW 49.48.010)**: All wages earned through last workday due by end of pay period; no withholding for unreturned equipment; double damages + attorney fees if willful.

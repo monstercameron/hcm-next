@@ -2,7 +2,7 @@
 
 **State:** New York | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
-## 1. Summary for HCM Next
+## 1. Summary for Human Capital Management Suite
 
 - **At-will employment with strong statutory protections**: New York recognizes at-will termination but prohibits discharge for whistleblowing, jury duty, wage claims, military service, workers' compensation claims, and public-policy violations; violations trigger damages and attorney fees.
 - **Wage Theft Prevention Act (Labor Law § 195)**: Mandatory written notice at hire and 7 days before any pay-rate decrease; notice of pay statements at each payday. Violations subject to 6-year statute of limitations, 200% liquidated damages, attorney fees, and civil penalties (§ 198).
@@ -289,7 +289,7 @@ New York follows at-will employment doctrine but recognizes significant statutor
 
 8. **Ban-the-Box Compliance on Role Change (§ 296(16))**: If promotion posting created for open position, do not request criminal history on initial application. If position legally requires background check, defer criminal inquiry until after first interview and comply with Correction Law Art. 23-A (Rosario factors).
 
-9. **Automated Employment Decision Tool Notice (NYC Local Law 144)**: If HCM Next uses algorithm or ML model to rank promotion candidates, conduct independent annual bias audit, post summary on employer website, and provide 10 business days' notice to candidates before AEDT evaluation. Non-compliance: $500–$1,500/day penalties.
+9. **Automated Employment Decision Tool Notice (NYC Local Law 144)**: If Human Capital Management Suite uses algorithm or ML model to rank promotion candidates, conduct independent annual bias audit, post summary on employer website, and provide 10 business days' notice to candidates before AEDT evaluation. Non-compliance: $500–$1,500/day penalties.
 
 10. **Reproductive Health and Electronic Monitoring Notices**: Ensure employee handbook includes § 203-e (reproductive health nondiscrimination) and § 201-i (electronic monitoring) notices; update as of January 2, 2025.
 

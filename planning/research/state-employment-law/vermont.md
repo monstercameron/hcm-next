@@ -2,7 +2,7 @@
 
 **State:** Vermont | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
-## 1. Summary for HCM Next
+## 1. Summary for Human Capital Management Suite
 
 - **At-will employment with statutory exceptions**: Vermont recognizes employment-at-will under common law, but prohibits termination in violation of public policy (whistleblower protections, jury duty, military service, workers' compensation claims, wage/unemployment claims). No single comprehensive "at-will statute"; exceptions codified in 21 V.S.A. Chapter 5 and Chapter 3 (safety/health).
 

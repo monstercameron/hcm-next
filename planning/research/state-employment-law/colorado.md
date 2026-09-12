@@ -2,7 +2,7 @@
 
 **State:** Colorado | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
-## 1. Summary for HCM Next
+## 1. Summary for Human Capital Management Suite
 
 - **Job postings and promotions** must include hourly or salary range, benefits description, and application-window close date; employers must notify Colorado employees of job opportunities before selection and then notify colleagues of who was hired/promoted within 30 calendar days (EPEWA, CRS § 8-5-101 et seq., amended Jan 1, 2024). Application Fairness Act (CRS § 8-2-131, effective Aug 7, 2023) prohibits requesting or considering applicant age or graduation date.
 - **Base-pay changes** cannot use applicant's salary history; employers cannot enforce pay-secrecy policies; equal-pay rules (CRS § 8-5-101 et seq.) prohibit paying employees of one sex less than another sex for substantially similar work. Pay ranges must be disclosed on or shortly after posting.
@@ -47,7 +47,7 @@ Colorado is an at-will employment state under common law (no codifying statute; 
 
 **Wage claim statute of limitations:** Employees must file wage claims within two years of the unpaid wages becoming due, or within six years for willful violations. Wage claims are filed with the Colorado Department of Labor and Employment, Division of Labor Standards and Statistics, not in court (administrative process, then judicial appeal if necessary). Prevailing employees recover attorney fees and costs.
 
-**Practical wage/hour compliance for HCM Next:** (1) Document all pay changes and overtime calculations. (2) Track hours worked daily, not just aggregated per pay period. (3) Ensure final-pay calculations include all accrued paid leave, commissions, bonuses, and penalties if underpayment occurs. (4) Implement controls to prevent deductions that violate CRS § 8-4-105. (5) Review non-compete agreements for employees earning below highly-compensated threshold; void if unenforceable. (6) Audit job postings for compliance with EPEWA salary-range and benefits requirements. (7) Maintain wage-rate history and selection records for promotions per EPEWA. (8) Flag any wage adjustments or corrections for potential wage-claim exposure if timing suggests retaliatory intent.
+**Practical wage/hour compliance for Human Capital Management Suite:** (1) Document all pay changes and overtime calculations. (2) Track hours worked daily, not just aggregated per pay period. (3) Ensure final-pay calculations include all accrued paid leave, commissions, bonuses, and penalties if underpayment occurs. (4) Implement controls to prevent deductions that violate CRS § 8-4-105. (5) Review non-compete agreements for employees earning below highly-compensated threshold; void if unenforceable. (6) Audit job postings for compliance with EPEWA salary-range and benefits requirements. (7) Maintain wage-rate history and selection records for promotions per EPEWA. (8) Flag any wage adjustments or corrections for potential wage-claim exposure if timing suggests retaliatory intent.
 
 ## 4. Pay Transparency and Equity
 
@@ -121,7 +121,7 @@ Colorado is an at-will employment state under common law (no codifying statute; 
 
 **Breach notification:** Colorado data breach notification law (CRS § 6-1-716) requires employers and other data holders to notify affected individuals of data breaches involving personal information without unreasonable delay or, at latest, 30 days of discovery. Written notice must be provided by mail, email, or telephone. No specific employee-data exemption; general GDPR-adjacent standards apply.
 
-**Colorado AI Act (SB 24-205, effective 2026-02-01 verify):** Employers using artificial intelligence systems to make "high-risk employment decisions" must: (1) conduct impact assessments evaluating potential disparate impact on protected classes; (2) maintain documentation of AI system design, training data, and decision outcomes; (3) notify affected employees when AI is used in hiring, compensation, promotion, or termination decisions; (4) allow employees to request human review of AI decisions affecting them; (5) make impact assessments publicly available or upon request. "High-risk" decisions are those affecting hiring eligibility, compensation, promotion, or termination. Compliance required for systems deployed on or after the effective date. Employers must maintain audit trails of AI-assisted decisions. Colorado Attorney General can enforce violations; private right of action for affected employees may be available. HCM Next must ensure all AI-driven recommendations for promotion or pay changes include impact assessment and employee notification mechanisms.
+**Colorado AI Act (SB 24-205, effective 2026-02-01 verify):** Employers using artificial intelligence systems to make "high-risk employment decisions" must: (1) conduct impact assessments evaluating potential disparate impact on protected classes; (2) maintain documentation of AI system design, training data, and decision outcomes; (3) notify affected employees when AI is used in hiring, compensation, promotion, or termination decisions; (4) allow employees to request human review of AI decisions affecting them; (5) make impact assessments publicly available or upon request. "High-risk" decisions are those affecting hiring eligibility, compensation, promotion, or termination. Compliance required for systems deployed on or after the effective date. Employers must maintain audit trails of AI-assisted decisions. Colorado Attorney General can enforce violations; private right of action for affected employees may be available. Human Capital Management Suite must ensure all AI-driven recommendations for promotion or pay changes include impact assessment and employee notification mechanisms.
 
 ## 8. Hiring and Background
 
@@ -210,10 +210,10 @@ Colorado is an at-will employment state under common law (no codifying statute; 
 - Clarify FAMLI interaction with unpaid leave (e.g., can FAMLI paid leave run concurrently with unpaid FMLA leave? Can employee stack paid + unpaid leave?).
 - Confirm whether severance must be included in final pay or can be a separate disbursement post-termination. Statutory final-pay rules may not require severance in final check if lawfully deferred.
 - Verify COMPS Order #40 overtime calculation rules for shift changes (e.g., does a mid-week role change reset the 12-hour threshold? How are split shifts treated?).
-- Verify applicability of AI Act requirements to HCM Next and when notification to employees is required. Clarify which systems qualify as "high-risk" employment decisions.
+- Verify applicability of AI Act requirements to Human Capital Management Suite and when notification to employees is required. Clarify which systems qualify as "high-risk" employment decisions.
 - Confirm Boulder and Denver local minimum-wage rules and applicability to remote workers based elsewhere.
 - Verify whether job-posting salary ranges must be disclosed publicly or only on request, and whether ranges must cover all compensation or base salary only.
-- Verify whether HCM Next's internal promotion workflows must include notice to all employees before posting (current language requires "reasonable efforts").
+- Verify whether Human Capital Management Suite's internal promotion workflows must include notice to all employees before posting (current language requires "reasonable efforts").
 - Confirm whether accrued vacation is required to be paid out on voluntary resignation or only on involuntary termination.
 
 ## 12. Sources

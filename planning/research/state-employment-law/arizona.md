@@ -2,7 +2,7 @@
 
 **State:** Arizona | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
-## 1. Summary for HCM Next
+## 1. Summary for Human Capital Management Suite
 
 - **At-will employment**: Arizona recognizes pure at-will employment codified in A.R.S. § 23-1501. Termination requires no advance notice unless a written employment contract specifies otherwise.
 - **Minimum wage and geographic variations**: Statewide minimum wage is $15.15/hour (2026), $14.70/hour (2025), adjusted annually for inflation per Proposition 206. Flagstaff: $18.35/hour (no tip credit). Tucson: $15.45/hour (with $3.00 tip credit). Tipped minimum wage statewide: $12.15/hour (2026) with $3.00 tip credit.
@@ -178,7 +178,7 @@ Misclassification as contractor when the person is an employee can result in lia
 
 **Multi-state reciprocity**: When employee works partly in Arizona and partly in another state, Arizona law applies to work performed in Arizona. Interstate employees are covered by employee protection laws of each state where they work. No Arizona statute specifically addresses multi-state reciprocity; apply federal conflict-of-law principles. Recommend determining which state's wage and hour law applies (typically state in which work is performed) and complying with most restrictive rule.
 
-## 11. Implications for HCM Next Platform (P1A/P1B)
+## 11. Implications for Human Capital Management Suite Platform (P1A/P1B)
 
 **Termination workflows**:
 

@@ -3,6 +3,7 @@ package racepolicy_test
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/monstercameron/human-capital-management-suite/tools/policy/racepolicy"
@@ -224,5 +225,34 @@ func TestFindConcurrentPackagesSkipsDotDirectories(t *testing.T) {
 	}
 	if len(pkgs) != 1 || filepath.ToSlash(pkgs[0].Dir) != "internal/live" {
 		t.Fatalf("only the live package must be found, got %+v", pkgs)
+	}
+}
+
+// TestFindConcurrentPackages_SkipsNestedModules pins the boundary that the
+// race step depends on. The workflow feeds this scan straight into
+// `go test -race`, and the root module cannot build a nested module's
+// packages: naming them produced "FAIL ... [setup failed]" for all three
+// src/blocks/go packages and took the whole TOOL-012 step down with them.
+// `go test ./...` never crosses a go.mod, so neither may this walk.
+func TestFindConcurrentPackages_SkipsNestedModules(t *testing.T) {
+	root := t.TempDir()
+	writeFile(t, root, "go.mod", "module example.com/outer\n\ngo 1.26\n")
+	writeFile(t, root, "outer/outer.go", "package outer\n\nimport \"sync\"\n\nvar mu sync.Mutex\n")
+	// A nested module that is itself unmistakably concurrent.
+	writeFile(t, root, "nested/go.mod", "module example.com/nested\n\ngo 1.26\n")
+	writeFile(t, root, "nested/inner.go", "package inner\n\nimport \"sync\"\n\nvar mu sync.Mutex\n")
+	writeFile(t, root, "nested/deep/deep.go", "package deep\n\nimport \"sync\"\n\nvar mu sync.Mutex\n")
+
+	packages, err := racepolicy.FindConcurrentPackages(root, "example.com/outer")
+	if err != nil {
+		t.Fatalf("FindConcurrentPackages: %v", err)
+	}
+	if len(packages) == 0 {
+		t.Fatal("scan returned nothing; the outer concurrent package should still be found")
+	}
+	for _, pkg := range packages {
+		if strings.Contains(pkg.ImportPath, "nested") {
+			t.Errorf("nested module package %q was listed; the root module cannot build it", pkg.ImportPath)
+		}
 	}
 }

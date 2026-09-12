@@ -2,7 +2,7 @@
 
 **State:** New Hampshire | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
-## 1. Summary for HCM Next
+## 1. Summary for Human Capital Management Suite
 
 - **At-will employment**: New Hampshire recognizes employment-at-will; employment may be terminated without cause and without notice (common law). Exceptions include termination for exercising constitutional rights, jury duty, military service, filing wage/workers' compensation claims, or whistleblowing (RSA 275-E).
 - **No state paid sick leave mandate**: Unlike many neighboring states, New Hampshire imposes no requirement for paid or unpaid sick leave. Employers must comply with federal FMLA only if applicable (50+ employees, 12-month history).

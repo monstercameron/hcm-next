@@ -2,7 +2,7 @@
 
 **State:** North Dakota | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
-## 1. Summary for HCM Next
+## 1. Summary for Human Capital Management Suite
 
 - **At-will employment**: North Dakota recognizes at-will employment for both employer and employee; exceptions exist for workers' compensation retaliation, whistleblower protection (unlawful conduct reports), jury duty, and discrimination under Human Rights Act.
 - **Minimum wage $7.25/hour**: North Dakota tracks federal FLSA floor; no state increase since 2009; no tipped-credit sub-minimum.

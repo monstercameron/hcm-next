@@ -2,7 +2,7 @@
 
 **State:** Wyoming | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
-## 1. Summary for HCM Next
+## 1. Summary for Human Capital Management Suite
 
 - **At-will employment with limited exceptions**: Wyoming recognizes at-will employment; public policy exceptions exist for workers' compensation claims, jury duty, whistleblowing, military service, voting, and discrimination under WFEPA; implied contract exception applies if handbook creates binding disciplinary procedures.
 - **Minimum wage $7.25/hour**: Wyoming tracks federal FLSA floor (Wyo. Stat. § 27-4-202); no state increase; tipped employees $2.13/hour with wage guarantee to reach $7.25/hour.

@@ -2,7 +2,7 @@
 
 **State:** Montana | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
-## 1. Summary for HCM Next
+## 1. Summary for Human Capital Management Suite
 
 - **NOT at-will after probation**: Montana is unique among U.S. states; after the default 12-month probationary period (or employer-specified period up to 18 months with extension), employers must have good cause to terminate. This fundamentally changes demotion, pay-cut, and termination workflows and represents a major departure from the at-will default. The Wrongful Discharge From Employment Act (WDEA, MCA §§ 39-2-901 to 39-2-915, enacted 1987) makes Montana the only state to abolish at-will employment by statute.
 - **Probation period is default 12 months**: MCA § 39-2-904 (2021 amendment) sets 12 months as the default; employers may shorten it, eliminate it entirely, or extend once by up to 6 additional months (max 18 total if extended). During probation, at-will termination is permitted without good cause or justification.
@@ -130,7 +130,7 @@ Noncompete agreements for employment are generally unenforceable. However, Monta
 
 **Reciprocity and Choice of Law**: Montana recognizes Montana law for employment disputes when work is performed in Montana. Out-of-state employment contracts may invoke choice-of-law provisions (e.g., "this employment is governed by the law of State X"), but if work is performed in Montana, Montana law (including the wrongful-discharge statute, MCA §§ 39-2-901 to 39-2-915, and pay rules, MCA § 39-3-204 to 39-3-205) applies to the extent it provides stronger protections than the chosen law. Courts may not enforce a choice-of-law provision that deprives a Montana-based employee of Montana statutory protections (e.g., good-cause requirement after probation).
 
-## 11. Implications for HCM Next (P1A/P1B)
+## 11. Implications for Human Capital Management Suite (P1A/P1B)
 
 When the platform processes a promotion, base-pay change, manager change, or termination for a worker based in Montana, the following obligations apply:
 
@@ -208,7 +208,7 @@ The platform should prompt employers to answer the following questions when sett
 
 ### Summary of Unique Montana Constraints
 
-To summarize, Montana's employment law regime creates three critical compliance obligations for HCM Next:
+To summarize, Montana's employment law regime creates three critical compliance obligations for Human Capital Management Suite:
 
 - **Probation-to-good-cause transition**: The platform must track probation end dates and enforce a mandatory good-cause requirement for all terminations after probation expires. This is the defining feature of Montana employment law and requires explicit workflow gates.
 
@@ -216,7 +216,7 @@ To summarize, Montana's employment law regime creates three critical compliance 
 
 - **Final pay timing**: The platform must calculate and enforce final-pay requirements (immediate for discharge unless written policy extends to next payday or 15 days for voluntary separation). Violations carry penalties and create wage-theft claims.
 
-These three elements—probation tracking, grievance procedure enforcement, and final-pay calculation—are the core HCM Next obligations for Montana compliance. All other rules (discrimination, non-competes, drug testing, data breach notification) are standard employment-law constraints that apply in most states; Montana adds the probation-good-cause framework as a structural difference from at-will employment.
+These three elements—probation tracking, grievance procedure enforcement, and final-pay calculation—are the core Human Capital Management Suite obligations for Montana compliance. All other rules (discrimination, non-competes, drug testing, data breach notification) are standard employment-law constraints that apply in most states; Montana adds the probation-good-cause framework as a structural difference from at-will employment.
 
 ## 12. Sources
 

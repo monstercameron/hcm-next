@@ -2,7 +2,7 @@
 
 **State:** Connecticut | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
-## 1. Summary for HCM Next
+## 1. Summary for Human Capital Management Suite
 
 - **Employment-at-will with exceptions**: Connecticut recognizes wrongful discharge for termination violating clear public policy (filed wage claims, workers' comp claims, jury duty, religious freedom); implied employment contracts may also create obligations.
 - **Pay transparency mandate**: As of 2026, job postings must disclose wage range AND general benefits description; wage range must be provided to applicants on request or before offer.

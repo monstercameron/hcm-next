@@ -2,7 +2,7 @@
 
 **State:** Texas | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
-## 1. Summary for HCM Next
+## 1. Summary for Human Capital Management Suite
 
 - **At-will employment with statutory exceptions**: Texas allows termination without cause absent an enforceable agreement; public-policy exceptions prohibit discharge for workers' compensation claims (§ 451.001), OSHA complaints, jury duty (§ 52.051), voting (EC § 276.004), and discrimination-related opposition (Ch. 21).
 - **Minimum wage**: $7.25/hour (federal rate); § 62.151 confirms state law defers to FLSA for covered employees; no local override except preempted ordinances.

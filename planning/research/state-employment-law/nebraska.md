@@ -2,7 +2,7 @@
 
 **State:** Nebraska | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
-## 1. Summary for HCM Next
+## 1. Summary for Human Capital Management Suite
 
 - **At-will employment with discrimination exceptions**: Nebraska recognizes at-will employment by default; employers may terminate at any time except on grounds of illegal discrimination (race, color, religion, sex, disability, marital status, national origin, age, or union activity).
 - **Minimum wage: $15/hour (2026), with annual increases**: Effective January 1, 2026, minimum wage is $15/hour per Initiative 433 (LB 258); increases 1.75% annually starting January 1, 2027, calculated and published by October 15 each year. Tipped workers minimum $2.13/hour plus tips equaling minimum wage.

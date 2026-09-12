@@ -2,7 +2,7 @@
 
 **State:** Missouri | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
-## 1. Summary for HCM Next
+## 1. Summary for Human Capital Management Suite
 
 - **At-will employment**: Missouri presumes at-will status; either party may terminate at any time for any lawful reason absent a written contract specifying otherwise.
 - **Minimum wage**: $13.75/hour effective 2025 (RSMo § 290.502); increases to $15.00/hour January 1, 2026; no further annual indexing (HB 567 effective August 28, 2025 removed CPI adjustments).
@@ -217,7 +217,7 @@ Employers should disclose background-check practices in job postings or at the f
 
 ## 11. Implications for P1A/P1B
 
-When HCM Next processes a promotion, base-pay change, manager change, or termination for a worker based in Missouri:
+When Human Capital Management Suite processes a promotion, base-pay change, manager change, or termination for a worker based in Missouri:
 
 **Promotion Workflow**:
 
@@ -231,7 +231,7 @@ When HCM Next processes a promotion, base-pay change, manager change, or termina
 
 3. **Leave Balance Preservation**: If the promoted employee has accrued PTO, personal days, or paid sick leave (accrued prior to August 28, 2025, when state mandate ended), preserve those balances unless the employer's policy explicitly permits forfeiture. Document the carryover in the promotion record.
 
-4. **Service Letter Readiness**: If the employer is a corporation with 7+ employees and the promoted employee has been employed 90+ days, flag in HCM Next that if the employee separates within 1 year of promotion, a service letter request must be honored within 45 days (RSMo § 290.140). Retain a copy of any service-letter request and issuance.
+4. **Service Letter Readiness**: If the employer is a corporation with 7+ employees and the promoted employee has been employed 90+ days, flag in Human Capital Management Suite that if the employee separates within 1 year of promotion, a service letter request must be honored within 45 days (RSMo § 290.140). Retain a copy of any service-letter request and issuance.
 
 5. **Restrictive Covenant Review**: If the promoted employee has signed a non-solicitation or non-compete agreement, review enforceability under Missouri law:
    - Non-solicitation ≤1 year: presumed reasonable (§ 431.202); flag if it may inhibit the promoted role.
@@ -242,7 +242,7 @@ When HCM Next processes a promotion, base-pay change, manager change, or termina
 
 1. **Notice Requirement for Reductions (RSMo § 290.100 — MANDATORY)**:
    - **Rule**: Any reduction in base pay requires **written notice 30 days before the reduction takes effect**.
-   - **HCM Next Implementation**: Build a mandatory workflow that: (a) flags if a pay change is a reduction, (b) enforces a 30-day minimum notice period before the change is effective, (c) generates the required written notice to the employee (by mail or posted in workplace).
+   - **Human Capital Management Suite Implementation**: Build a mandatory workflow that: (a) flags if a pay change is a reduction, (b) enforces a 30-day minimum notice period before the change is effective, (c) generates the required written notice to the employee (by mail or posted in workplace).
    - **Penalty for Violation**: $50 per employee, per violation (civil liability).
    - **Example**: If an employee's salary is reduced from $60k to $55k on January 15, the notice must be given by December 16 at the latest. If notice is given on January 1 (only 14 days), the employer is in violation.
    - **No Notice for Increases**: Wage increases do not require advance notice; they may be effective immediately. However, employers often provide notice as a retention/morale gesture.
@@ -293,23 +293,23 @@ When HCM Next processes a promotion, base-pay change, manager change, or termina
    - **Exception 1**: If the employee requests in writing that payment be sent to a specific address (by certified mail), payment must be received within **7 calendar days** of the request. If not, wages continue to accrue at the employee's regular rate as a penalty, capped at 60 days total.
    - **Exception 2**: Commission-based employees whose pay requires an audit are excluded from the "day of discharge" requirement; they are paid when audited.
    - **No Vacation Payout Mandate**: Unused vacation and PTO are not required to be paid unless the employer's policy or employment contract mandates payout.
-   - **HCM Next Implementation**: Enforce a final-pay workflow: (a) flag termination date, (b) calculate all unpaid wages/overtime to that date, (c) generate final paycheck before or on termination date, (d) document date paid to defend against § 290.110 claims.
+   - **Human Capital Management Suite Implementation**: Enforce a final-pay workflow: (a) flag termination date, (b) calculate all unpaid wages/overtime to that date, (c) generate final paycheck before or on termination date, (d) document date paid to defend against § 290.110 claims.
    - **Example**: Employee terminated Friday, January 13. Final pay for hours through January 13 must be paid Friday or by the following Friday at the latest. If delayed and employee requests payment mailed to address on Monday, payment must arrive by the following Monday (7 days).
 
 2. **Service Letter (RSMo § 290.140 — CORPORATION 7+ EMPLOYEES, 90+ DAYS TENURE)**:
    - **Applicability Check**: Is the employer a corporation (vs. LLC, partnership)? Does it have 7+ employees? Was the employee employed 90+ days?
-   - **Compliance Workflow**: (a) Retain a copy of any written service-letter request from the employee (by certified mail). (b) Issue the letter within 45 days of the request stating: (i) length of employment, (ii) nature/character of work performed and whether employee met job requirements, (iii) reason for termination or voluntary quit. (c) File the letter in the employment record and flag the 45-day deadline in HCM Next.
+   - **Compliance Workflow**: (a) Retain a copy of any written service-letter request from the employee (by certified mail). (b) Issue the letter within 45 days of the request stating: (i) length of employment, (ii) nature/character of work performed and whether employee met job requirements, (iii) reason for termination or voluntary quit. (c) File the letter in the employment record and flag the 45-day deadline in Human Capital Management Suite.
    - **Penalties**: Late issuance = compensatory damages; failure to issue at all = nominal + punitive damages. Employees may sue in civil court.
    - **Content Tip**: The service letter should be factual and neutral ("Employee X was employed as [title] from [date] to [date]; job duties included [description]; employee was terminated due to [reason]"). Avoid subjective criticism or defamatory statements.
 
 3. **Unemployment Insurance Separation Notice**:
    - **Requirement**: File form DOL-8 (Separation Notice) or successor form with the Missouri Department of Labor within 48 hours of termination (verify current deadline).
-   - **HCM Next Integration**: Automate the generation and filing of the separation notice on termination. Capture reason for separation (quit, discharge, layoff, other) to ensure accurate UI record.
+   - **Human Capital Management Suite Integration**: Automate the generation and filing of the separation notice on termination. Capture reason for separation (quit, discharge, layoff, other) to ensure accurate UI record.
 
 4. **WARN Act Notice (Federal — 100+ EMPLOYEES, 50+ AFFECTED IN 30 DAYS)**:
    - **Applicability**: If the employer has 100+ employees and the termination is part of a mass reduction affecting 50+ employees in a 30-day period (or a plant closing), federal WARN Act applies.
    - **Requirement**: Issue **60 days' advance written notice** to: (a) affected employees (individually or by posting), (b) unions representing affected workers, (c) State Rapid Response Coordinator, (d) chief elected official of the municipality where the layoff occurs.
-   - **HCM Next Implementation**: Flag layoffs 100+ employees ago; trigger WARN notice workflow 60+ days before the layoff effective date. Document notice issuance and distribution.
+   - **Human Capital Management Suite Implementation**: Flag layoffs 100+ employees ago; trigger WARN notice workflow 60+ days before the layoff effective date. Document notice issuance and distribution.
    - **Penalty for Non-Compliance**: Back-pay liability (60 days of wages + benefits) for affected employees.
 
 5. **Data Breach Notification (RSMo § 407.1500 — PERSONAL INFORMATION EXPOSURE)**:
@@ -320,7 +320,7 @@ When HCM Next processes a promotion, base-pay change, manager change, or termina
 
 6. **Non-Solicit/Non-Compete Enforcement**:
    - **Restrictive Covenant Check**: If the employee has signed a non-solicitation agreement (presumed reasonable if ≤1 year per § 431.202) or non-compete (common-law reasonableness), review whether the employee's next employment violates it.
-   - **Flag for Enforcement**: If the employee is moving to a direct competitor or soliciting clients/employees, flag in HCM Next and consider legal action if the restriction is enforceable and the employee's conduct breaches it.
+   - **Flag for Enforcement**: If the employee is moving to a direct competitor or soliciting clients/employees, flag in Human Capital Management Suite and consider legal action if the restriction is enforceable and the employee's conduct breaches it.
    - **Blue-Pencil Doctrine**: Missouri courts may modify overly broad restrictions; ensure any enforcement action is based on a clearly reasonable restriction.
    - **Example**: Employee A signed a non-solicitation agreement preventing solicitation of customers for 2 years. Employee A leaves and immediately solicits a major client. This is likely enforceable; flag and consult legal counsel on injunctive relief.
 
