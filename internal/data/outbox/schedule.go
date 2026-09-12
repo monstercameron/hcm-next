@@ -94,17 +94,47 @@ type ResourcePolicy struct {
 	PerTenantShare int
 }
 
+// PERF-004: named, stable admission-refusal reasons. A shed candidate is
+// evidence that fairness held, not silence -- every refusal path in
+// TryAdmit sets exactly one of these, so a matrix test can assert on the
+// specific quota or resource that caused the shed without depending on the
+// wording of a message. Named after ConnectorLedger's ScheduleReason*
+// constants in internal/connectivity/operation/quota.go, the standard this
+// ledger is brought up to; the two are not shared because outbox cannot
+// import connectivity/operation without inverting the module's layering.
+const (
+	// ReasonAlreadyClaimed means outboxID was already admitted for some
+	// resource by this ledger, whether by a concurrent caller or an earlier
+	// pass; the same physical row can never hold two slots.
+	ReasonAlreadyClaimed = "ALREADY_CLAIMED"
+	// ReasonBackpressureZeroed means a DEFER/STOP admission.BackpressureDecision
+	// (ApplyBackpressure) is currently in effect for resource, so nothing
+	// admits until the caller observes health again -- distinct from ordinary
+	// capacity exhaustion because the cause is a downstream health signal,
+	// not load.
+	ReasonBackpressureZeroed = "BACKPRESSURE_ZEROED"
+	// ReasonResourceCapacityExceeded means resource's effective capacity for
+	// this pass (its configured ResourcePolicy.Capacity, or a QUEUE/SLOW
+	// backpressure ceiling) is already fully in flight.
+	ReasonResourceCapacityExceeded = "RESOURCE_CAPACITY_EXCEEDED"
+	// ReasonTenantShareExceeded means resource is not itself at capacity, but
+	// tenant already holds its configured ResourcePolicy.PerTenantShare of
+	// it -- the noisy-neighbour bound, not the resource bound.
+	ReasonTenantShareExceeded = "TENANT_SHARE_EXCEEDED"
+)
+
 // ResourceLedger is the admission tracker for a set of shared resources. It
 // is safe for concurrent use: multiple goroutines standing in for
 // concurrent pollers or dispatchers share one ledger so a resource's
 // capacity is enforced across all of them, not per caller.
 type ResourceLedger struct {
-	mu       sync.Mutex
-	policy   map[string]ResourcePolicy
-	ceiling  map[string]int // effective capacity for the current pass, after ApplyBackpressure
-	inFlight map[string]int
-	byTenant map[string]map[uuid.UUID]int
-	claimed  map[uuid.UUID]string // outboxID -> resource, fences double-admission of one row
+	mu         sync.Mutex
+	policy     map[string]ResourcePolicy
+	ceiling    map[string]int  // effective capacity for the current pass, after ApplyBackpressure
+	zeroedByBP map[string]bool // true while ceiling[resource] == 0 because of DEFER/STOP, not a configured zero
+	inFlight   map[string]int
+	byTenant   map[string]map[uuid.UUID]int
+	claimed    map[uuid.UUID]string // outboxID -> resource, fences double-admission of one row
 }
 
 // NewResourceLedger builds a ledger from the configured per-resource
@@ -118,11 +148,12 @@ func NewResourceLedger(policy map[string]ResourcePolicy) *ResourceLedger {
 		ceiling[resource] = rp.Capacity
 	}
 	return &ResourceLedger{
-		policy:   p,
-		ceiling:  ceiling,
-		inFlight: make(map[string]int),
-		byTenant: make(map[string]map[uuid.UUID]int),
-		claimed:  make(map[uuid.UUID]string),
+		policy:     p,
+		ceiling:    ceiling,
+		zeroedByBP: make(map[string]bool),
+		inFlight:   make(map[string]int),
+		byTenant:   make(map[string]map[uuid.UUID]int),
+		claimed:    make(map[uuid.UUID]string),
 	}
 }
 
@@ -141,7 +172,9 @@ func (l *ResourceLedger) ApplyBackpressure(resource string, decision admission.B
 	switch decision.Action {
 	case admission.BackpressureDefer, admission.BackpressureStop:
 		l.ceiling[resource] = 0
+		l.zeroedByBP[resource] = true
 	case admission.BackpressureQueue, admission.BackpressureSlowUpstream:
+		l.zeroedByBP[resource] = false
 		if !configured {
 			// An unbounded resource has no baseline to halve. Inventing one
 			// would be a number nobody declared, so the slow-down leaves it
@@ -163,6 +196,7 @@ func (l *ResourceLedger) ApplyBackpressure(resource string, decision admission.B
 		// not to the zero value of a policy that was never configured --
 		// that would let the signal meaning "everything is fine" wedge the
 		// resource shut permanently.
+		l.zeroedByBP[resource] = false
 		if !configured {
 			delete(l.ceiling, resource)
 			return
@@ -182,31 +216,37 @@ func (l *ResourceLedger) capacity(resource string) int {
 }
 
 // TryAdmit reserves one slot for resource on behalf of tenant/outboxID. It
-// returns false when the resource (or the tenant's configured share of it)
-// is already at capacity, or when outboxID was already admitted by a
-// concurrent caller: the same physical row can never be reserved twice out
-// of one ledger, no matter how many goroutines race to claim it.
-func (l *ResourceLedger) TryAdmit(resource string, tenant uuid.UUID, outboxID uuid.UUID) bool {
+// returns (true, "") on admission. On refusal it returns (false, reason)
+// naming exactly one of the ReasonXxx constants above: which quota or
+// resource shed the candidate is never a bare false, so a caller (or a
+// matrix test) can always tell already-claimed apart from resource capacity,
+// a tenant's share, or backpressure having zeroed the resource -- the
+// GREEN half of PERF-004. A zero-value reason is never returned alongside
+// false: refusal always names a cause.
+func (l *ResourceLedger) TryAdmit(resource string, tenant uuid.UUID, outboxID uuid.UUID) (bool, string) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	if _, already := l.claimed[outboxID]; already {
-		return false
+		return false, ReasonAlreadyClaimed
 	}
 	if capacity := l.capacity(resource); capacity >= 0 && l.inFlight[resource] >= capacity {
-		return false
+		if capacity == 0 && l.zeroedByBP[resource] {
+			return false, ReasonBackpressureZeroed
+		}
+		return false, ReasonResourceCapacityExceeded
 	}
 	if share := l.policy[resource].PerTenantShare; share > 0 {
 		if l.byTenant[resource] == nil {
 			l.byTenant[resource] = make(map[uuid.UUID]int)
 		}
 		if l.byTenant[resource][tenant] >= share {
-			return false
+			return false, ReasonTenantShareExceeded
 		}
 		l.byTenant[resource][tenant]++
 	}
 	l.inFlight[resource]++
 	l.claimed[outboxID] = resource
-	return true
+	return true, ""
 }
 
 // Release returns a slot after a dispatch completes or is abandoned, so a
@@ -234,13 +274,36 @@ func (l *ResourceLedger) InFlight(resource string) int {
 	return l.inFlight[resource]
 }
 
+// Deferral pairs one shed Candidate with the specific evidence (one of the
+// ReasonXxx constants above) TryAdmit gave for shedding it. PERF-004's GREEN
+// requirement is that no shed candidate ever carries a bare zero value here:
+// Reason is always populated, never "" or a generic "not admitted".
+type Deferral struct {
+	Candidate Candidate
+	Reason    string
+}
+
 // ScheduleResult is one scheduling pass's outcome. Admitted candidates
 // should be dispatched now; Deferred candidates should be reconsidered on
-// a later pass (their resource or tenant share was at capacity, or
-// backpressure zeroed the resource for this pass).
+// a later pass, each carrying the evidence naming why it was shed.
 type ScheduleResult struct {
 	Admitted []Candidate
-	Deferred []Candidate
+	Deferred []Deferral
+}
+
+// DeferredCandidates extracts the shed Candidates from Deferred, discarding
+// their evidence, for a caller that wants to resubmit them unchanged on a
+// later Schedule pass (evidence is a property of one scheduling decision,
+// not of the candidate itself, so it does not survive resubmission).
+func (r ScheduleResult) DeferredCandidates() []Candidate {
+	if len(r.Deferred) == 0 {
+		return nil
+	}
+	out := make([]Candidate, len(r.Deferred))
+	for i, d := range r.Deferred {
+		out[i] = d.Candidate
+	}
+	return out
 }
 
 // Schedule orders candidates by criticality first - so a P0 item is always
@@ -252,10 +315,10 @@ type ScheduleResult struct {
 func Schedule(candidates []Candidate, ledger *ResourceLedger) ScheduleResult {
 	var result ScheduleResult
 	for _, candidate := range sortCandidates(candidates) {
-		if ledger.TryAdmit(candidate.Resource, candidate.Record.Tenant, candidate.Record.OutboxID) {
+		if ok, reason := ledger.TryAdmit(candidate.Resource, candidate.Record.Tenant, candidate.Record.OutboxID); ok {
 			result.Admitted = append(result.Admitted, candidate)
 		} else {
-			result.Deferred = append(result.Deferred, candidate)
+			result.Deferred = append(result.Deferred, Deferral{Candidate: candidate, Reason: reason})
 		}
 	}
 	return result
