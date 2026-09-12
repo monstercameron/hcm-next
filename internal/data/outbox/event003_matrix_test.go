@@ -35,7 +35,7 @@ func TestTodo_EVENT_003_Race(t *testing.T) {
 			wg.Add(1)
 			go func(i int) {
 				defer wg.Done()
-				if ledger.TryAdmit("shared-dep", uuid.New(), ids[i]) {
+				if ok, _ := ledger.TryAdmit("shared-dep", uuid.New(), ids[i]); ok {
 					atomic.AddInt32(&admittedFlags[i], 1)
 				}
 			}(i)
@@ -67,7 +67,7 @@ func TestTodo_EVENT_003_Race(t *testing.T) {
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
-				if ledger.TryAdmit("dedup-dep", uuid.New(), dup) {
+				if ok, _ := ledger.TryAdmit("dedup-dep", uuid.New(), dup); ok {
 					atomic.AddInt32(&dupAdmits, 1)
 				}
 			}()
@@ -91,7 +91,7 @@ func TestTodo_EVENT_003_Race(t *testing.T) {
 			wg.Add(1)
 			go func(i int) {
 				defer wg.Done()
-				if ledger.TryAdmit("roomy-dep", uuid.New(), ids[i]) {
+				if ok, _ := ledger.TryAdmit("roomy-dep", uuid.New(), ids[i]); ok {
 					atomic.AddInt32(&admitted, 1)
 				}
 			}(i)
@@ -198,8 +198,11 @@ func TestTodo_EVENT_003_Integration(t *testing.T) {
 		t.Fatalf("first admitted = %#v, want tenant A's real P0 row ahead of tenant B's flood claimed from PostgreSQL", result.Admitted[0].Record)
 	}
 	for _, deferred := range result.Deferred {
-		if deferred.Record.Tenant != tenantB {
-			t.Fatalf("wrong tenant deferred: %#v", deferred.Record)
+		if deferred.Candidate.Record.Tenant != tenantB {
+			t.Fatalf("wrong tenant deferred: %#v", deferred.Candidate.Record)
+		}
+		if deferred.Reason == "" {
+			t.Fatalf("deferred candidate %#v carries no evidence for why it was shed", deferred.Candidate.Record)
 		}
 	}
 
@@ -334,9 +337,12 @@ func TestTodo_EVENT_003_Fault(t *testing.T) {
 	// scheduler is not spinning: a second Schedule pass with the ledger
 	// still under DEFER produces the identical deferred outcome rather than
 	// eventually admitting through sheer repetition.
-	again := outbox.Schedule(result.Deferred, ledger)
+	again := outbox.Schedule(result.DeferredCandidates(), ledger)
 	if len(again.Admitted) != 0 || len(again.Deferred) != 1 {
 		t.Fatalf("second pass under sustained DEFER admitted = %d, want 0 (no spin-admission)", len(again.Admitted))
+	}
+	if again.Deferred[0].Reason != outbox.ReasonBackpressureZeroed {
+		t.Fatalf("deferral reason = %q, want %q (a DEFER decision zeroed the resource)", again.Deferred[0].Reason, outbox.ReasonBackpressureZeroed)
 	}
 
 	// Health recovers: CONTINUE restores the resource's baseline capacity so
@@ -347,7 +353,7 @@ func TestTodo_EVENT_003_Fault(t *testing.T) {
 		[]string{resource},
 	)
 	ledger.ApplyBackpressure(resource, healthy)
-	recovered := outbox.Schedule(again.Deferred, ledger)
+	recovered := outbox.Schedule(again.DeferredCandidates(), ledger)
 	if len(recovered.Admitted) != 1 {
 		t.Fatalf("recovered admitted = %d, want 1 once the signal clears", len(recovered.Admitted))
 	}
@@ -359,12 +365,12 @@ func TestTodo_EVENT_003_Fault(t *testing.T) {
 	// everything is fine causing a total stall.
 	unpoliced := outbox.NewResourceLedger(nil)
 	tenant := uuid.New()
-	if !unpoliced.TryAdmit("unpoliced-relay", tenant, uuid.New()) {
-		t.Fatal("unpoliced resource refused admission before any signal")
+	if ok, reason := unpoliced.TryAdmit("unpoliced-relay", tenant, uuid.New()); !ok {
+		t.Fatalf("unpoliced resource refused admission before any signal: reason=%q", reason)
 	}
 	unpoliced.ApplyBackpressure("unpoliced-relay", healthy)
-	if !unpoliced.TryAdmit("unpoliced-relay", tenant, uuid.New()) {
-		t.Fatal("a healthy signal zeroed an unpoliced resource")
+	if ok, reason := unpoliced.TryAdmit("unpoliced-relay", tenant, uuid.New()); !ok {
+		t.Fatalf("a healthy signal zeroed an unpoliced resource: reason=%q", reason)
 	}
 	// The same holds for a slow-down: there is no baseline to halve, so it
 	// must not collapse to zero either.
@@ -373,8 +379,8 @@ func TestTodo_EVENT_003_Fault(t *testing.T) {
 		[]string{"unpoliced-relay"},
 	)
 	unpoliced.ApplyBackpressure("unpoliced-relay", slow)
-	if !unpoliced.TryAdmit("unpoliced-relay", tenant, uuid.New()) {
-		t.Fatal("a slow-down zeroed an unpoliced resource that has no baseline to halve")
+	if ok, reason := unpoliced.TryAdmit("unpoliced-relay", tenant, uuid.New()); !ok {
+		t.Fatalf("a slow-down zeroed an unpoliced resource that has no baseline to halve: reason=%q", reason)
 	}
 
 	// Integer division must not turn a slow-down into a stop for the
@@ -382,8 +388,8 @@ func TestTodo_EVENT_003_Fault(t *testing.T) {
 	// QUEUE/SLOW, where 1/2 would have said zero.
 	single := outbox.NewResourceLedger(map[string]outbox.ResourcePolicy{"single": {Capacity: 1}})
 	single.ApplyBackpressure("single", slow)
-	if !single.TryAdmit("single", tenant, uuid.New()) {
-		t.Fatal("slow-down on a capacity-1 resource admitted nothing, making SLOW mean STOP")
+	if ok, reason := single.TryAdmit("single", tenant, uuid.New()); !ok {
+		t.Fatalf("slow-down on a capacity-1 resource admitted nothing, making SLOW mean STOP: reason=%q", reason)
 	}
 }
 
@@ -435,8 +441,11 @@ func TestTodo_EVENT_003_Security(t *testing.T) {
 		t.Fatalf("fair tenant admitted = %d, want its own item never starved by the other tenant's flood", fairAdmitted)
 	}
 	for _, deferred := range result.Deferred {
-		if deferred.Record.Tenant != floodTenant {
-			t.Fatalf("only the flood tenant's excess should be deferred, found: %#v", deferred.Record)
+		if deferred.Candidate.Record.Tenant != floodTenant {
+			t.Fatalf("only the flood tenant's excess should be deferred, found: %#v", deferred.Candidate.Record)
+		}
+		if deferred.Reason != outbox.ReasonTenantShareExceeded {
+			t.Fatalf("deferral reason = %q, want %q (the flood tenant's configured share, not the resource capacity, bound it)", deferred.Reason, outbox.ReasonTenantShareExceeded)
 		}
 	}
 	if got := ledger.InFlight(resource); got != 7 {

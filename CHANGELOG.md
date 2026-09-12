@@ -1,5 +1,33 @@
 # Changelog
 
+## 2026-09-12 (PERF-004)
+
+- Close PERF-004: prove noisy-neighbor and priority fairness. This closed a real
+  gap in EVENT-003's own scheduler rather than only testing it.
+  `ResourceLedger.TryAdmit` returned a bare bool and `ScheduleResult.Deferred`
+  was a plain `[]Candidate`, so a shed decision recorded no reason at all --
+  capacity exhausted, tenant share exceeded, backpressure, and already-claimed
+  were indistinguishable to a caller, and GREEN ("every shed decision has
+  quota/resource evidence") was unsatisfiable.
+
+  `TryAdmit` now returns `(bool, string)`, matching the standard
+  `ConnectorLedger.TryReserve` already met, with four exported reason constants
+  and a new map distinguishing a backpressure-zeroed resource from one simply
+  configured at zero. `ScheduleResult.Deferred` is now `[]Deferral{Candidate,
+Reason}`, with `DeferredCandidates()` for resubmission. No path returns false
+  with an empty reason. Both signatures changed; every caller in the module is
+  inside `internal/data/outbox`, confirmed by a clean `go build ./...`.
+
+  The fairness proof drives its bounds from
+  `tools/planning/performance.EnvelopeFixtures()` rather than magic numbers, so
+  it fails if a future PERF-ENV-001 change stops declaring the tiers it reads. A
+  3000-item flood queued ahead of a small tenant's P0/P1 work still admits all
+  ten of those first, the flood caps at its declared share while resource
+  capacity is nowhere near reached, and all 2900 deferrals -- every one, not a
+  sample -- carry the tenant-share reason. The evidence is a stable constant
+  carrying no tenant state, asserted by checking the reason never contains
+  either tenant's UUID.
+
 ## 2026-09-12 (CICD-006)
 
 - Close CICD-006: the signed release decision manifest, completing the

@@ -61,8 +61,11 @@ func TestTodo_EVENT_003(t *testing.T) {
 		t.Fatalf("deferred = %d, want the remaining 16 flood items (20 flood - 4 that filled the leftover capacity)", len(result.Deferred))
 	}
 	for _, deferred := range result.Deferred {
-		if deferred.Record.OutboxID == payroll.OutboxID {
+		if deferred.Candidate.Record.OutboxID == payroll.OutboxID {
 			t.Fatal("the P0 payroll item was deferred behind the flood")
+		}
+		if deferred.Reason == "" {
+			t.Fatalf("deferred candidate %#v carries no evidence for why it was shed", deferred.Candidate.Record)
 		}
 	}
 
