@@ -3,9 +3,9 @@
 Generated from the checked-in architecture manifests and the current Go package tree.
 
 - Module: `github.com/monstercameron/human-capital-management-suite`
-- Source graph: d406177716fb09987a615abbacfa78cc028ee3e47615d2d20deed51ac235b9a7
-- Package count: 776
-- Within-module edge count: 1749
+- Source graph: a42d7fca06de49f9954642a052015cb910d02422ca4c66fbeaafd7d4e9af8348
+- Package count: 777
+- Within-module edge count: 1759
 - Source manifests: `definitions/architecture/repository-layout.yaml`, `definitions/architecture/package-dependency-policy.yaml`, `definitions/architecture/dependency-roles.yaml`
 
 ## Declared layers and roots
@@ -52,6 +52,8 @@ Generated from the checked-in architecture manifests and the current Go package 
 | platform | `internal/replan` | platform-foundation | P1A | Declared on 2026-09-06 when the repository-layout policy joined the pre-commit gates; the package existed and was in use before its root was written down here. |
 | data | `internal/resource` | data-and-ledger | P1A | Declared on 2026-09-06 when the repository-layout policy joined the pre-commit gates; the package existed and was in use before its root was written down here. |
 | platform | `internal/store` | platform-foundation | P1A | Declared on 2026-09-06 when the repository-layout policy joined the pre-commit gates; the package existed and was in use before its root was written down here. |
+| platform | `internal/configuration` | platform-foundation | deferred | Configuration-semantics contracts (ARCH-GO-024); declared on 2026-09-10 when CI first ran the layout gate past the quality gate and reported the missing root. Deferred beyond P1A scope; no domain, workflow or store dependencies. |
+| data | `internal/evidence` | data-and-ledger | deferred | Closed-intent execution receipts (EVIDENCE-001); declared on 2026-09-10 when CI first ran the layout gate past the quality gate and reported the missing root. Deferred beyond P1A scope; digests point at owner records, never a second ledger. |
 
 ## Allowed dependency edges
 
@@ -576,6 +578,7 @@ Semantic package roots. Every second-level directory name must be a declared roo
 - `github.com/monstercameron/human-capital-management-suite/internal/transport/envelope`
 - `github.com/monstercameron/human-capital-management-suite/internal/transport/grpcserver`
 - `github.com/monstercameron/human-capital-management-suite/internal/transport/health`
+- `github.com/monstercameron/human-capital-management-suite/internal/transport/humanwork`
 - `github.com/monstercameron/human-capital-management-suite/internal/transport/journey`
 - `github.com/monstercameron/human-capital-management-suite/internal/transport/list`
 - `github.com/monstercameron/human-capital-management-suite/internal/transport/manifest`
@@ -929,4 +932,4 @@ Generated Protobuf/Go artifacts. Content is owned by the generator (TOOL-002/TOO
 
 ## Document digest
 
-`9088b0bb6d5d87d6412933c786524d2afba363c112f1a182040d8ca2c7099555`
+`91ead1e1475e454b935481698341a6a1843c0a2d677d8fe6a48d7a05b39d77ce`

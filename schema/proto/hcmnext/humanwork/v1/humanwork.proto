@@ -61,6 +61,18 @@ message WorkItem {
   google.protobuf.Timestamp created_at = 24;
   optional google.protobuf.Timestamp claimed_at = 25;
   optional google.protobuf.Timestamp completed_at = 26;
+  // proposal_ref binds the item to the material proposal revision digest it
+  // dispositions (planning/specs/human-work-forms-and-rules.md
+  // "ApprovalDecision bound to proposal"); empty for non-approval work.
+  optional string proposal_ref = 27;
+  // permitted_actions is the server-computed action token set the caller may
+  // currently exercise against this item ("claim", "release", "complete",
+  // "decide_approval"), computed against caller membership, current version
+  // and claim state -- never a client-supplied hint.
+  repeated string permitted_actions = 28;
+  // claimed_by is the current claim holder when a live claim exists.
+  optional string claimed_by = 29;
+  optional google.protobuf.Timestamp claim_expires_at = 30;
 }
 
 // ApprovalDecisionResult is an ApprovalDecision bound to an immutable

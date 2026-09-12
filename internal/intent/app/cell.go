@@ -102,6 +102,17 @@ type CellConfig struct {
 	// DevPersonas are immutable server-issued identities for the explicitly
 	// enabled local browser login surface.
 	DevPersonas []workspace.DevPersona
+	// PublicOrigin is the canonical http(s) origin ("scheme://host[:port]")
+	// this cell is publicly reached at, in the form the composition root's
+	// own validation produced. Empty means the cell is reached directly: its
+	// HTTP edge then derives every browser-facing authority from each
+	// request. Set it when a proxy terminates TLS or rewrites Host on the
+	// way in - the browser's Origin, the tunnel address the shells emit and
+	// their connect-src all have to name the public authority, which the
+	// request can no longer carry. Like DevBrowserLogin, this package only
+	// carries the value; internal/transport/cell is what binds it into the
+	// browser policy, the workspace handler and the tunnel's origin check.
+	PublicOrigin string
 	// Evidence is the sink every decision this cell records lands on: the
 	// capability gateway's invocation/refusal evidence (CAP-002),
 	// ExecuteIntent's GATE_ADMITTED/GATE_REFUSED entries (OBS-024) and the
@@ -273,6 +284,10 @@ type Cell struct {
 	// read through [Cell.DevBrowserLogin].
 	devBrowserLogin bool
 	devPersonas     []workspace.DevPersona
+	// publicOrigin records the deployment's declared public origin. Same
+	// reasoning as workspaceEnabled: fixed at composition, read through
+	// [Cell.PublicOrigin].
+	publicOrigin string
 }
 
 // NewCell composes a cell.
@@ -463,6 +478,7 @@ func NewCell(cfg CellConfig) (*Cell, error) {
 		workspaceEnabled: workspaceEnabled,
 		devBrowserLogin:  cfg.DevBrowserLogin,
 		devPersonas:      append([]workspace.DevPersona(nil), cfg.DevPersonas...),
+		publicOrigin:     cfg.PublicOrigin,
 
 		Service:      svc,
 		Definitions:  defs,
@@ -609,3 +625,9 @@ func (c *Cell) DevBrowserLogin() bool { return c.devBrowserLogin }
 func (c *Cell) DevPersonas() []workspace.DevPersona {
 	return append([]workspace.DevPersona(nil), c.devPersonas...)
 }
+
+// PublicOrigin reports the public origin the cell was composed with, or the
+// empty string when the deployment reaches the cell directly.
+// internal/transport/cell reads it when building the workspace handler, the
+// browser policy and the tunnel's origin check.
+func (c *Cell) PublicOrigin() string { return c.publicOrigin }

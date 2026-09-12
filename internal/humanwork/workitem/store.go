@@ -593,6 +593,50 @@ func (Store) ListForInstance(ctx context.Context, ex Executor, tenantID, instanc
 	return out, nil
 }
 
+// ListQueue reads the caller's actionable queue: every live item on which
+// principalRef might hold [Membership] -- a claimant, a direct assignee, or
+// a member of the owning candidate set. The SQL is deliberately coarse
+// (claimed_by or owner_ref or an unexamined candidate-set mention) and the
+// returned slice is then filtered through [MembershipOf] at now, so an
+// excluded or expired-delegation candidate name never reaches the caller.
+// Terminal items are not queue work and are excluded in SQL.
+//
+// Ordering is deadline then identity: stable under replay and monotone in
+// the field a queue consumer sorts by anyway.
+func (Store) ListQueue(ctx context.Context, ex Executor, tenantID uuid.UUID, principalRef string, now time.Time) ([]WorkItem, error) {
+	rows, err := ex.Query(ctx,
+		`SELECT `+workItemColumns+` FROM work_item
+		 WHERE tenant_id = $1
+		   AND status NOT IN ('COMPLETED', 'EXPIRED', 'CANCELLED')
+		   AND (claimed_by = $2
+		        OR (owner_kind = 'PRINCIPAL' AND owner_ref = $2)
+		        OR (owner_kind = 'CANDIDATE_SET' AND EXISTS (
+		            SELECT 1 FROM jsonb_array_elements(assignment -> 'candidates') AS cand
+		            WHERE cand ->> 'principal_id' = $2)))
+		 ORDER BY deadline_at, work_item_id`,
+		tenantID, principalRef)
+	if err != nil {
+		return nil, wrap(CodeStorageFailed, "", err, "list work item queue")
+	}
+	defer rows.Close()
+
+	out := []WorkItem{}
+	for rows.Next() {
+		item, scanErr := scanWorkItem(rows)
+		if scanErr != nil {
+			return nil, wrap(CodeStorageFailed, "", scanErr, "scan work item")
+		}
+		if MembershipOf(item, principalRef, now) == MembershipNone {
+			continue
+		}
+		out = append(out, item)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, wrap(CodeStorageFailed, "", err, "iterate work item queue")
+	}
+	return out, nil
+}
+
 // LoadTransitions reads every recorded transition for one work item, ordered
 // by item_version -- the evidence chain the UNIQUE (tenant_id, work_item_id,
 // item_version) constraint makes gap-free and fork-free by construction. It

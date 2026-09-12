@@ -36,7 +36,7 @@ func (h *Handler) serveProduct(w http.ResponseWriter, r *http.Request) {
 	}
 	principal, _ := trust.FromContext(admitted.Context())
 	config := JourneyConfig{
-		TunnelURL: JourneyTunnelURL(r), Bearer: normalizeBearerInput(BearerFromRequest(r, h.devBrowserLogin)),
+		TunnelURL: h.tunnelURL(r), Bearer: normalizeBearerInput(BearerFromRequest(r, h.devBrowserLogin)),
 		Roles: []string{}, JourneysPath: PathJourney,
 	}
 	if h.devBrowserLogin {
@@ -75,7 +75,7 @@ func (h *Handler) serveProduct(w http.ResponseWriter, r *http.Request) {
 		h.writeProblem(w, http.StatusInternalServerError, "Workspace unavailable", err.Error())
 		return
 	}
-	writeHTMLDocument(w, http.StatusOK, doc, ProductContentSecurityPolicy(r.Host))
+	writeHTMLDocument(w, http.StatusOK, doc, ProductContentSecurityPolicy(h.policyHost(r)))
 }
 
 func productShellDocument(config JourneyConfig, bundleBuilt bool) (string, error) {
