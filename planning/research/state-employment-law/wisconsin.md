@@ -2,7 +2,7 @@
 
 **State:** Wisconsin | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
-## 1. Summary for HCM Next
+## 1. Summary for Human Capital Management Suite
 
 - **At-will employment with public policy exceptions**: Wisconsin presumes all employment is at-will; exceptions protect employees discharged for asserting legal rights, refusing illegal acts, jury duty, voting, whistleblowing, workers' compensation claims, or military service.
 - **Minimum wage $7.25; no local wage ordinances**: Wisconsin adopts the federal minimum wage ($7.25; tipped $2.33, or $2.13 for opportunity employees). Wis. Stat. § 104.001(2) has preempted all local minimum-wage ordinances since 2005, so no Milwaukee wage floor exists.

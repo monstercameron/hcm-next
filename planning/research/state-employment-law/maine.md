@@ -2,7 +2,7 @@
 
 **State:** Maine | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
-## 1. Summary for HCM Next
+## 1. Summary for Human Capital Management Suite
 
 - **At-will employment with exceptions**: Maine recognizes wrongful termination for public-policy violations (wage claims, workers' comp claims, jury duty, OSHA complaints, union activity, refusal to violate law).
 - **Pay frequency and final pay (26 M.R.S. § 621-A, § 626)**: Wages paid at least weekly; final paycheck due on next regular payday unless employee resigns without notice or is discharged (verify timing for discharge final pay).
@@ -333,7 +333,7 @@ Maine is an employment-at-will jurisdiction: either party may terminate without 
 
 ## 11. Implications for P1A/P1B (HCM Platform Modeling)
 
-When a promotion and base-pay change are processed through HCM Next for a Maine-based employee:
+When a promotion and base-pay change are processed through Human Capital Management Suite for a Maine-based employee:
 
 **Required typed obligations and notices**:
 

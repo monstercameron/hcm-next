@@ -2,7 +2,7 @@
 
 **State:** Oregon | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
-## 1. Summary for HCM Next
+## 1. Summary for Human Capital Management Suite
 
 - **Three-tier minimum wage system**: Portland metro $16.80/hr, standard $15.55/hr, nonurban $14.55/hr (effective July 1, 2026; indexed annually by CPI).
 - **Final pay on discharge**: All wages due end of next business day after discharge; resignation with 48 hours' notice due immediately; without notice due within 5 days or next payday (ORS 652.140).

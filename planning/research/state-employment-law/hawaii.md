@@ -2,7 +2,7 @@
 
 **State:** Hawaii | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
-## 1. Summary for HCM Next
+## 1. Summary for Human Capital Management Suite
 
 - **Minimum wage and scheduled increases**: Hawaii minimum wage is $16.00/hour (2026), increasing to $18.00/hour on January 1, 2028 (HRS §387-2); no subminimum allowed for minors or any class of worker.
 - **Overtime requirement**: Employees must be paid 1.5x regular rate for hours worked over 40 in a workweek (HRS §387-3); no daily overtime trigger.

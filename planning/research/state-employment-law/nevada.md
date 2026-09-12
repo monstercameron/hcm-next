@@ -2,7 +2,7 @@
 
 **State:** Nevada | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
-## 1. Summary for HCM Next
+## 1. Summary for Human Capital Management Suite
 
 - **Job postings and promotions** must disclose wage range to applicants after interview (NRS 613.133); employers cannot inquire about or rely on salary history when setting pay.
 - **Base-pay changes** cannot use applicant prior salary; wage decreases require 7 days' written notice before the employee works at the lower rate (NRS 608.100); all pay changes must be documented and recorded for wage-history compliance.

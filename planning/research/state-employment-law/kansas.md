@@ -2,7 +2,7 @@
 
 **State:** Kansas | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
-## 1. Summary for HCM Next
+## 1. Summary for Human Capital Management Suite
 
 - **At-will employment is default**: Kansas recognizes at-will employment unless a written employment contract specifies otherwise; no statutory contract-term requirement at hire or change.
 - **Minimum wage and overtime**: Kansas statutory minimum ($7.25/hour, K.S.A. 44-1202) equals federal FLSA floor. Overtime under federal FLSA (40 hours/week at 1.5×) applies; Kansas employers not covered by FLSA must pay overtime after 46 hours (K.S.A. 44-1204) if applicable (verify coverage triggers).
@@ -171,7 +171,7 @@ Restrictions must protect legitimate business interests: trade secrets, confiden
 
 **Reciprocity**: Kansas recognizes only Kansas law for employment disputes involving Kansas-based work. Federal law supersedes on issues like minimum wage, overtime, and discrimination.
 
-## 11. Typed Obligations and HCM Next Implementation
+## 11. Typed Obligations and Human Capital Management Suite Implementation
 
 When the platform processes a promotion, base-pay change, manager change, or termination for a worker in Kansas, the following obligations, notices, and constraints must be modeled:
 

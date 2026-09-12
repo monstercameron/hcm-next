@@ -2,7 +2,7 @@
 
 **State:** West Virginia | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
-## 1. Summary for HCM Next
+## 1. Summary for Human Capital Management Suite
 
 - **At-will employment dominates**: West Virginia recognizes at-will employment by default; either party may terminate without cause unless a written contract specifies otherwise (no explicit statute, common-law default).
 - **Minimum wage for 6+ employees**: $8.75/hour for employers with six or more non-exempt employees (W. Va. Code § 21-5C-2, effective 2016); employers with fewer than six employees follow federal FLSA minimum of $7.25/hour.
@@ -217,7 +217,7 @@ Employers must file a separation notice (e.g., UK-ES form) with the West Virgini
 
 ## 11. Implications for P1A/P1B
 
-When HCM Next processes a promotion, base-pay change, manager change, or termination for a worker based in West Virginia:
+When Human Capital Management Suite processes a promotion, base-pay change, manager change, or termination for a worker based in West Virginia:
 
 ### Promotion + Base-Pay Change Workflow
 

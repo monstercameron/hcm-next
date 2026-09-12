@@ -2,7 +2,7 @@
 
 **State:** Tennessee | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
-## 1. Summary for HCM Next
+## 1. Summary for Human Capital Management Suite
 
 - **At-will employment with statutory exceptions**: Tennessee recognizes at-will employment as the default; exceptions include discharge for whistleblowing (Public Protection Act § 50-1-304), jury duty, military service, voting, workers' compensation claims, or union affiliation (right-to-work state).
 - **Minimum wage**: $7.25/hour (federal minimum); no state override; federal FLSA applies to overtime (40+ hours/week).

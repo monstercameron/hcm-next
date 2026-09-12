@@ -2,7 +2,7 @@
 
 **State:** Illinois | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
-## 1. Summary for HCM Next
+## 1. Summary for Human Capital Management Suite
 
 - **Pay transparency and Equal Pay Act (820 ILCS 112):** Effective Jan 1, 2025 (PA 103-0539), employers with 15+ employees must include pay scale in job postings, cannot screen applicants by salary history, must disclose pay range before offer, and extend equal pay protections to race-based discrimination; Equal Pay Registration Certificate required for 100+ employees.
 - **Wage payment and final pay (820 ILCS 115):** Wages must be paid at least semimonthly on designated paydays; final pay (including accrued vacation) due immediately on termination or upon employee's written notice of resignation; deductions permitted only if legally required or written-authorized by employee.
@@ -232,7 +232,7 @@ Employers may enforce non-solicits only if:
 
 **Remote workers:** No special remote-work classification rule. Remote Illinois employees are subject to same minimum wage, overtime, pay frequency, and paid leave rules as on-site employees. Employer with Illinois employees must apply Illinois rules regardless of employer headquarters or remote nature of work.
 
-**Multi-state reciprocity:** Illinois does not defer to another state's wage/hour laws if employee works in Illinois (even part-time). HCM Next must apply Illinois rules to any Illinois employee regardless of employer location or classification in other states.
+**Multi-state reciprocity:** Illinois does not defer to another state's wage/hour laws if employee works in Illinois (even part-time). Human Capital Management Suite must apply Illinois rules to any Illinois employee regardless of employer location or classification in other states.
 
 ## 11. Implications for P1A/P1B
 

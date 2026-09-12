@@ -2,7 +2,7 @@
 
 **State:** Louisiana | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
-## 1. Summary for HCM Next
+## 1. Summary for Human Capital Management Suite
 
 - **At-will employment with statutory exceptions**: Louisiana recognizes at-will employment by default; however, public policy exceptions (illegal retaliation, protected activity, illegal discrimination) and some written contracts may limit this right. Exceptions include retaliation for jury duty, voting, workers' compensation claims, FMLA use, environmental whistleblower reporting, and protected-class discrimination.
 - **No state minimum wage; federal FLSA applies**: Louisiana has no separate minimum wage statute; federal minimum ($7.25/hour) applies to all covered employees. No state overtime rule; federal FLSA overtime (1.5× for hours over 40/week) applies.
@@ -151,7 +151,7 @@ Louisiana is an **at-will employment state** under common law and **La. R.S. 23:
 
 **Workers' Compensation Retaliation (La. R.S. 23:1361)**: Louisiana law explicitly prohibits employers from retaliating against employees for filing a workers' compensation claim. Retaliation includes: (1) discharging the employee, (2) demoting or suspending the employee, (3) reducing pay or benefits, (4) harassing or intimidating the employee, (5) refusing to employ or rehire the employee because of a prior workers' compensation claim, or (6) any adverse employment action that would discourage filing a claim. Retaliation is prohibited even if the workers' compensation claim was filed in another state or under federal law (such as the Longshore and Harbor Workers' Compensation Act). **Penalties**: An employer found liable for discrimination against an employee who filed a workers' compensation claim is liable for damages equal to **the amount the employee would have earned but for the discrimination**, based on the starting salary of the position sought or the earnings at the time of discharge, not to exceed one year's earnings, plus **reasonable attorney's fees and court costs**. **Protected period**: The 90-day presumption of retaliation applies; if an adverse action occurs within 90 days of a workers' compensation claim, retaliation is presumed unless the employer provides clear evidence of a legitimate, documented reason. **Reporting**: Employees may file a wrongful-discharge lawsuit in state court within one year (Louisiana's prescriptive period / statute of limitations) or file an administrative complaint with the Louisiana Workforce Commission.
 
-## 11. Implications for HCM Next (P1A/P1B)
+## 11. Implications for Human Capital Management Suite (P1A/P1B)
 
 When the platform processes a promotion, base-pay change, manager change, or termination for a worker based in Louisiana:
 
@@ -230,7 +230,7 @@ When the platform processes a promotion, base-pay change, manager change, or ter
 
 ### Critical compliance checklist
 
-To operationalize this research in HCM Next's workflows, prioritize these controls:
+To operationalize this research in Human Capital Management Suite's workflows, prioritize these controls:
 
 1. **At-Will Documentation**: Confirm written at-will employment status on all hires and in employee handbooks, noting public-policy exceptions (retaliation, discrimination, protected activity).
 2. **Final Pay Compliance**: Implement final-pay workflows triggering within 15 days of termination or next regular payday (La. R.S. 23:631); calculate all earned wages, accrued overtime, and accrued leave payout (if policy mandates).

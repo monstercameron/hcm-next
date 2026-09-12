@@ -2,7 +2,7 @@
 
 **State:** Indiana | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
-## 1. Summary for HCM Next
+## 1. Summary for Human Capital Management Suite
 
 - **At-will employment default**: Indiana recognizes at-will employment by default; no written employment contract required at hire or change unless employer or employee specifics require one.
 - **Minimum wage defers to federal FLSA**: Indiana's statutory minimum ($7.25/hour) is tied to federal FLSA ($7.25/hour); no state floor above federal.
@@ -163,7 +163,7 @@ Misclassification of employees as independent contractors triggers **wage-report
 
 **Reciprocity and Choice of Law**: Indiana recognizes Indiana law for employment disputes where work is performed in Indiana. Out-of-state employment contracts may attempt to invoke choice-of-law provisions (e.g., "This contract shall be governed by the laws of Delaware"), but if work is performed in Indiana, Indiana law applies to statutory protections (minimum wage, overtime, anti-discrimination, at-will status, public-policy exceptions). Indiana courts will not enforce out-of-state choice-of-law provisions that attempt to waive Indiana statutory protections; any agreement to the contrary is void as against public policy.
 
-## 11. Implications for HCM Next (P1A/P1B)
+## 11. Implications for Human Capital Management Suite (P1A/P1B)
 
 When the platform processes a promotion, base-pay change, manager change, or termination for a worker based in Indiana:
 

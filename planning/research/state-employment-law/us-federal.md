@@ -2,7 +2,7 @@
 
 **State:** US federal | **Researched:** 2026-09-03 | **Status:** DRAFTED
 
-## 1. Summary for HCM Next
+## 1. Summary for Human Capital Management Suite
 
 **Wage and overtime rules:**
 
@@ -146,7 +146,7 @@ No federal statute grants employees a right to inspect their own personnel files
 
 ## 11. Implications for P1A/P1B: Promotion and Base-Pay Change
 
-A promotion and base-pay change in HCM Next must trigger evaluation of the following federal obligations:
+A promotion and base-pay change in Human Capital Management Suite must trigger evaluation of the following federal obligations:
 
 **1. FLSA reclassification:** If the base-pay change crosses the EAP threshold ($35,568/year, currently), re-verify whether the _duties_ qualify for exemption. The three-part test requires: (a) salary at or above the threshold; (b) primary duty as executive (supervisory), administrative (discretionary), or professional (specialized knowledge, advanced training); and (c) discretionary exercise of judgment in matters of significance. Reclassifying from non-exempt to exempt requires an affirmative determination that duties meet all three prongs. Reclassifying from exempt to non-exempt requires documenting that the duties no longer meet the test. Updated payroll records must document the change date, new pay rate, new classification, and overtime calculation method going forward (if changing to non-exempt). No waiting period between the decision and implementation. Misclassification carries back-wage liability and liquidated damages.
 

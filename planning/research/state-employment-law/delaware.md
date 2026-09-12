@@ -2,7 +2,7 @@
 
 **State:** Delaware | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
-## 1. Summary for HCM Next
+## 1. Summary for Human Capital Management Suite
 
 - **At-will with implied covenant**: Delaware recognizes employment-at-will with an implied covenant of good faith and fair dealing exception (common law; no statutory codification).
 - **Minimum wage $15.00/hr**: Effective 2025-01-01 (19 Del. C. § 902); tipped $2.23; no state overtime rule (FLSA applies).

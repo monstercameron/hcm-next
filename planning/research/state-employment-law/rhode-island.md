@@ -2,7 +2,7 @@
 
 **State:** Rhode Island | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
-## 1. Summary for HCM Next
+## 1. Summary for Human Capital Management Suite
 
 - **Employment-at-will with limited exceptions**: Rhode Island recognizes at-will employment but prohibits termination for filing wage claims, workers' compensation claims, jury duty, military service, or exercising constitutional rights; § 28-50-1 (Whistleblowers' Protection Act) protects disclosure of legal violations.
 - **Pay frequency**: Weekly (default); employers may petition to pay biweekly/semi-monthly under § 28-14-2 with surety bond if average payroll meets thresholds; advance written notice of any change required.

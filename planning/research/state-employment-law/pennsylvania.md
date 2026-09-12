@@ -2,7 +2,7 @@
 
 **State:** Pennsylvania | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
-## 1. Summary for HCM Next
+## 1. Summary for Human Capital Management Suite
 
 - **Employment-at-will with public-policy exceptions**: Pennsylvania recognizes at-will employment but prohibits termination for exercising constitutional rights, filing wage/workers' compensation claims, jury duty, military service, and public-policy violations (e.g., whistleblowing).
 - **Wage Payment Law with WPCL (43 P.S. § 260 et seq.)**: Employers must pay all wages by next regular payday on termination (any reason); liquidated damages of 25% plus attorney fees for wage withholding; advance notice required for pay-rate changes (§ 260.4).

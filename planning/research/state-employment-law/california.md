@@ -2,7 +2,7 @@
 
 **State:** California | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
-## 1. Summary for HCM Next
+## 1. Summary for Human Capital Management Suite
 
 - **Minimum wage complexity**: Three-tier system (general § 1182.12: $16.90/2026; fast-food § 1474: $20/hour; healthcare § 1182.14: $21–$25/hour by facility type); plus 20+ local ordinances with higher floors.
 - **Wage notice timing**: Labor Code § 2810.5 requires written notice at hiring (not on change of role/pay), with 7-day notice for pay or employment term changes; no federal equivalent applies.
@@ -29,7 +29,7 @@ Exempt employees are excluded from § 2810.5 wage notice requirement. No separat
 
 **Minimum wage—healthcare:** Labor Code § 1182.14 (effective Oct 16, 2024) tiered by employer size and mission: Large hospital systems (10,000+ FTE): $23–$25/hour; community clinics/rural: $21/hour; high-government-payor/rural hospitals: $18–$25/hour (escalating). Employees must earn $300+ and have paid SDI in prior 18 months.
 
-**Local ordinances:** San Francisco, Los Angeles, San Diego, Santa Clara County, and 20+ other cities/counties impose higher minimums (verify: current rates as of 2026; sample 2025 rates include SF $18.50–$20.65 depending on size/tipped status, LA $15.96, Santa Clara $17.20; HCM Next must apply highest applicable rate if employee works in multiple jurisdictions). Some jurisdictions index annually; track effective dates and escalations.
+**Local ordinances:** San Francisco, Los Angeles, San Diego, Santa Clara County, and 20+ other cities/counties impose higher minimums (verify: current rates as of 2026; sample 2025 rates include SF $18.50–$20.65 depending on size/tipped status, LA $15.96, Santa Clara $17.20; Human Capital Management Suite must apply highest applicable rate if employee works in multiple jurisdictions). Some jurisdictions index annually; track effective dates and escalations.
 
 **Overtime:** Labor Code § 510 requires 1.5x regular rate for hours over 8/day or 40/week; 2x rate for hours over 12/day or 8 hours on 7th consecutive day.
 
@@ -162,11 +162,11 @@ Failure to satisfy any single prong = worker is employee. Burden on hiring entit
 
 **Remote workers:** No special remote-work classification rule. Remote California employees are subject to same minimum wage, overtime, meal break, and leave rules as on-site employees. Employer with employees in multiple states must apply most-stringent state rule (California rules apply if any employee is in California, even part-time).
 
-**Multi-state reciprocity:** California does not defer to another state's wage/hour laws if employee works in California (even part-time or temporarily). HCM Next must apply California rules to any California employee regardless of employer headquarters or other-state employment.
+**Multi-state reciprocity:** California does not defer to another state's wage/hour laws if employee works in California (even part-time or temporarily). Human Capital Management Suite must apply California rules to any California employee regardless of employer headquarters or other-state employment.
 
 ## 11. Implications for P1A/P1B: System Design and Obligations for Employment Changes
 
-**Priority rules for tiered compliance:** California's multi-layer wage/leave/privacy rules require HCM Next to apply a waterfall logic:
+**Priority rules for tiered compliance:** California's multi-layer wage/leave/privacy rules require Human Capital Management Suite to apply a waterfall logic:
 
 - Always apply the most-stringent rule (state > local minimum wage; CFRA/PFL concurrency over FMLA).
 - Track effective dates of statutory changes (annual wage adjustments on Jan 1; AB 2499 enforcement July 1, 2025; SB 399 TBD).
@@ -208,7 +208,7 @@ Failure to satisfy any single prong = worker is employee. Burden on hiring entit
 - Does 7-day notice for pay change (§ 2810.5) apply retroactively (notice before or after effective date of change)?
 - What constitutes reasonable verification for CPRA employee-data access requests, and when can request be rejected as unverifiable (90-day threshold)?
 - Does § 203 good-faith dispute defense require employer to articulate the dispute in writing to employee or can it be raised after complaint?
-- Which local minimum-wage ordinances have indexed increases, and how should HCM Next track them?
+- Which local minimum-wage ordinances have indexed increases, and how should Human Capital Management Suite track them?
 - SB 399 captive-audience meeting rule: does it apply to all employers or only certain sizes/industries (verify current status; bill appeared in 2024 session)?
 
 ## 12. Sources

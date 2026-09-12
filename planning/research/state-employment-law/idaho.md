@@ -2,7 +2,7 @@
 
 **State:** Idaho | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
-## 1. Summary for HCM Next
+## 1. Summary for Human Capital Management Suite
 
 - **At-will employment default**: Idaho recognizes at-will employment as the default relationship; either party may terminate without cause unless an exception applies (common law exceptions: public policy violations, implied contract, breach of good faith).
 - **Final pay timing strict (10 days or regular payday)**: Idaho Code § 45-606 requires wages by the earlier of the next regular payday or 10 days after termination; employee request for early payment triggers 48-hour deadline (weekends/holidays excluded).
@@ -243,7 +243,7 @@ Idaho is an at-will employment state. Either party may terminate the employment 
 
 ## 11. Implications for P1A/P1B (HCM Platform Modeling)
 
-When HCM Next processes a promotion or base-pay change for a worker in Idaho, the following obligations, timing constraints, and field restrictions apply:
+When Human Capital Management Suite processes a promotion or base-pay change for a worker in Idaho, the following obligations, timing constraints, and field restrictions apply:
 
 **Required typed obligations and timing**:
 

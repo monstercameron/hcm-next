@@ -2,7 +2,7 @@
 
 **State:** Alabama | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
-## Summary for HCM Next
+## Summary for Human Capital Management Suite
 
 - Alabama is a strict at-will employment state with very limited statutory exceptions; termination without cause is permitted.
 - No state minimum wage, overtime, or mandated pay frequency laws; federal FLSA minimum of $7.25/hour applies.

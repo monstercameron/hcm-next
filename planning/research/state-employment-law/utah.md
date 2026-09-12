@@ -2,7 +2,7 @@
 
 **State:** Utah | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
-## 1. Summary for HCM Next
+## 1. Summary for Human Capital Management Suite
 
 - **At-will employment**: Utah recognizes at-will employment doctrine; either party may terminate without cause. Public-policy exceptions exist for refusal to commit illegal acts, whistleblowing, jury duty, workers' compensation claims, and discrimination.
 - **Minimum wage $7.25/hour**: Utah tracks federal FLSA floor; no state increase; no tipped-credit sub-minimum (tipped employees must earn $7.25/hour combined).

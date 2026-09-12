@@ -2,7 +2,7 @@
 
 **State:** Massachusetts | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
-## 1. Summary for HCM Next
+## 1. Summary for Human Capital Management Suite
 
 - **Employment-at-will with public policy exceptions**: Employers may terminate for any reason unless it violates clear public policy (refusing illegal acts, exercising statutory rights, performing jury duty, filing wage claims, filing personnel record rebuttals).
 - **Pay transparency mandate**: An Act Relative to Salary Range Transparency (the Frances Perkins Workplace Equity Act) was signed 2024-07-31; its pay-range posting duty (M.G.L. c. 149 § 105F) took effect **2025-10-29** for employers with 25+ employees, covering ALL external and internal job postings; promotion offers to existing employees must also include pay range. Its separate pay-data reporting duty (§ 105F(b)) took effect **2025-02-01**. These are two different effective dates for two different duties under the same section — do not merge them into one date.

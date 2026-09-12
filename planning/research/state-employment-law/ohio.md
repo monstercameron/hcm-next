@@ -2,7 +2,7 @@
 
 **State:** Ohio | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
-## 1. Summary for HCM Next
+## 1. Summary for Human Capital Management Suite
 
 - **At-will employment** with public-policy exceptions: termination unlawful if motivated by workers' comp claim (RC 4123.90), whistleblowing (RC 4113.52), OSHA/occupational safety activities (RC 4111 et seq.), jury duty, military service, or refusal to commit illegal act.
 - **Semimonthly pay required** by RC 4113.15: wages for 1st–15th due by end of month; 16th–31st due by 15th of next month; no other statutory pay schedule permitted. Final pay due on next regular payday or within 15 days (whichever sooner).

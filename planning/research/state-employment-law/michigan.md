@@ -2,7 +2,7 @@
 
 **State:** Michigan | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
-## 1. Summary for HCM Next
+## 1. Summary for Human Capital Management Suite
 
 - **Employment-at-will with public policy exceptions**: Michigan presumes all employment is at-will; exceptions protect employees discharged in violation of law, for refusing illegal acts, for workers' compensation claims, whistleblowing, or jury duty.
 - **Earned Sick Time Act (amended Feb 2025)**: Employers with 11+ employees must provide 72 hours paid sick leave annually (1 hour per 30 hours worked); employers with 10 or fewer employees must provide 40 hours paid **plus** 32 hours unpaid (72 hours total), effective October 1, 2025; portable accrual applies.

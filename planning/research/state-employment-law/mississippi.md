@@ -2,7 +2,7 @@
 
 **State:** Mississippi | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
-## 1. Summary for HCM Next
+## 1. Summary for Human Capital Management Suite
 
 - **At-will employment prevails**: Mississippi recognizes at-will employment by default; either party may terminate for any reason, any time, subject to federal discrimination protections and public policy exceptions.
 - **No state minimum wage**: Federal FLSA minimum ($7.25/hour) applies; Mississippi's statutory minimum ($5.15/hour) is preempted.
@@ -170,9 +170,9 @@ Employment contracts are permitted and enforceable if they specify term or condi
 
 **Reciprocity**: Mississippi recognizes Mississippi law for employment disputes involving Mississippi-based work. Out-of-state employment contracts may invoke choice-of-law provisions, but if work is performed in Mississippi, Mississippi law applies to statutory protections.
 
-## 11. Implications for HCM Next (P1A/P1B)
+## 11. Implications for Human Capital Management Suite (P1A/P1B)
 
-When HCM Next processes a promotion, base-pay change, manager change, or termination for a worker based in Mississippi, the following rules and validations must be modeled as typed obligations, notices, timing constraints, or field restrictions:
+When Human Capital Management Suite processes a promotion, base-pay change, manager change, or termination for a worker based in Mississippi, the following rules and validations must be modeled as typed obligations, notices, timing constraints, or field restrictions:
 
 ### Mandatory Typed Obligations and System Fields
 
@@ -287,7 +287,7 @@ When HCM Next processes a promotion, base-pay change, manager change, or termina
 
 ### Promotion Workflow Summary
 
-When HCM Next processes a promotion for a Mississippi-based employee:
+When Human Capital Management Suite processes a promotion for a Mississippi-based employee:
 
 1. Verify `eVerifyRequired: true` and E-Verify status is "verified."
 2. If `employerHeadcount: 5+`, capture equal-pay audit trail: `payChangeReason`, job comparators, skill/effort/responsibility/working conditions, salary documentation.

@@ -2,7 +2,7 @@
 
 **State:** Georgia | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
-## 1. Summary for HCM Next
+## 1. Summary for Human Capital Management Suite
 
 - **At-will employment dominates**: Georgia recognizes at-will employment by default except where illegal discrimination occurs; no written employment contract required at hire or on change.
 - **Minimum wage defers to federal**: Georgia's statutory minimum (O.C.G.A. § 34-4-3: $5.15/hour) is superseded by federal FLSA ($7.25/hour); federal floor applies.
@@ -127,7 +127,7 @@ When an employee is separated, employers must file a **Separation Notice (DOL-80
 
 **Reciprocity**: Georgia recognizes **only Georgia law** for employment disputes involving Georgia-based work. Out-of-state employment contracts may invoke choice-of-law provisions ("This agreement is governed by Florida law"), but if work is performed in Georgia, **Georgia statutes** (wage-and-hour law, discrimination law, breach notification, privacy protections) **apply to those portions of employment** regardless of choice-of-law language. Employers cannot contractually waive or avoid Georgia law for Georgia-based work.
 
-## 11. Implications for HCM Next (P1A/P1B)
+## 11. Implications for Human Capital Management Suite (P1A/P1B)
 
 **Typed Obligations and Workflow Triggers for Promotion, Base-Pay Change, Manager Change, Termination:**
 
@@ -255,7 +255,7 @@ When an employee is separated, employers must file a **Separation Notice (DOL-80
 
 ### Critical compliance checklist
 
-To operationalize this research in HCM Next's workflows, prioritize these controls:
+To operationalize this research in Human Capital Management Suite's workflows, prioritize these controls:
 
 1. **At-Will Documentation**: Confirm written at-will employment status on all hire and in employee handbooks; document any exceptions (fixed-term contracts).
 2. **Payroll Retention**: Implement 4-year retention for all payroll records and time sheets (exceeds federal 3-year FLSA requirement).

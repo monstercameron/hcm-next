@@ -2,7 +2,7 @@
 
 **State:** North Carolina | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
-## 1. Summary for HCM Next
+## 1. Summary for Human Capital Management Suite
 
 - **At-will employment with REDA protections**: North Carolina is at-will; Retaliatory Employment Discrimination Act (§ 95-240 et seq.) protects employees from discharge, demotion, or retaliation for filing workers' compensation claims, OSHA complaints, wage-and-hour complaints, and other legally protected activities.
 - **Minimum wage**: $7.25/hour (federal minimum); no state override.
@@ -195,7 +195,7 @@ North Carolina follows at-will employment doctrine: employers and employees may 
 
 9. **Lawful products protection** (§ 95-28.2, applies 3+ employees): Promotion cannot be denied or conditioned on employee's lawful off-duty use of lawful products (tobacco, alcohol, etc.).
 
-10. **Salary history**: No statewide private-sector restriction exists (corrected 2026-09-03 — there is no "2024 ban"; only Executive Order 93 (2019) binds state agencies). For a private-sector HCM Next tenant, salary history may lawfully be used; base compensation-fairness controls on internal policy, not a state mandate, unless the employer is itself a NC state agency.
+10. **Salary history**: No statewide private-sector restriction exists (corrected 2026-09-03 — there is no "2024 ban"; only Executive Order 93 (2019) binds state agencies). For a private-sector Human Capital Management Suite tenant, salary history may lawfully be used; base compensation-fairness controls on internal policy, not a state mandate, unless the employer is itself a NC state agency.
 
 11. **Records retention** (§ 95-25.15): Retain promotion documents (wage change, effective date, justification, business rationale) per employer record policy (verify whether 3 years or employer-set); support labor commissioner inspection.
 

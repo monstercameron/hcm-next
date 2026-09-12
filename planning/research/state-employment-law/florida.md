@@ -2,7 +2,7 @@
 
 **State:** Florida | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
-## 1. Summary for HCM Next
+## 1. Summary for Human Capital Management Suite
 
 - **Minimum wage (effective Sept 30, 2025):** $14.00/hr general, $10.98/hr tipped employees; escalates to $15.00 on Sept 30, 2026, then annual CPI adjustments thereafter (Fla. Const. Art. X § 24).
 - **At-will employment:** Default rule under common law; exceptions: whistleblower retaliation (Fla. Stat. § 448.101–105), jury duty, unlawful discrimination, workers' compensation retaliation (Fla. Stat. § 440.205).
@@ -145,7 +145,7 @@ For non-covered employees and non-covered employers, existing § 542.335 presump
 
 **Remote workers:** No state law restricting remote work or imposing different rules for employees working from home vs. office. Federal wage-and-hour laws apply equally to remote and in-office employees. Verify whether employer must withhold Florida income tax (Florida has no state income tax, simplifying calculation).
 
-**Multi-state employment:** If employee works in multiple states, the state where work is performed may impose its own wage, hour, leave, and tax obligations. Employer must comply with each applicable state's requirements. No blanket Florida rule determining which state's law applies; typically the state of work performance governs. **Verify** state-specific multi-state guidance for your HCM Next connector; multi-state rules vary widely.
+**Multi-state employment:** If employee works in multiple states, the state where work is performed may impose its own wage, hour, leave, and tax obligations. Employer must comply with each applicable state's requirements. No blanket Florida rule determining which state's law applies; typically the state of work performance governs. **Verify** state-specific multi-state guidance for your Human Capital Management Suite connector; multi-state rules vary widely.
 
 **Reciprocity:** No Florida statute on interstate employment reciprocity. Federal law applies (e.g., FLSA, Title VII). Multi-state employers must model each state's rules and trigger appropriate notifications/restrictions based on employee location.
 
@@ -180,7 +180,7 @@ For non-covered employees and non-covered employers, existing § 542.335 presump
 
 **Open questions for product design:**
 
-1. **E-Verify compliance modeling:** Does HCM Next model E-Verify compliance triggering for new-hire workflows? If so, flag non-compliance for employers with 25+ employees who bypass E-Verify; track enforcement date (July 1, 2024) when penalties began. Implement audit trail for E-Verify verification dates (must be within 3 business days of hire).
+1. **E-Verify compliance modeling:** Does Human Capital Management Suite model E-Verify compliance triggering for new-hire workflows? If so, flag non-compliance for employers with 25+ employees who bypass E-Verify; track enforcement date (July 1, 2024) when penalties began. Implement audit trail for E-Verify verification dates (must be within 3 business days of hire).
 
 2. **CHOICE Act transition (July 1, 2025):** For Florida employers with 25+ employees, platform must distinguish between covered employees (earning >2x county mean wage) and non-covered employees when enforcing non-compete agreements. Covered employees can have non-competes up to 4 years; non-covered employees limited to 2-year presumption under § 542.335. Platform must:
    - Capture county determination (employer principal place or employee residence location)
@@ -251,6 +251,6 @@ For non-covered employees and non-covered employers, existing § 542.335 presump
 
 ---
 
-**File prepared by:** Research agent for HCM Next  
+**File prepared by:** Research agent for Human Capital Management Suite  
 **Date:** 2026-09-03  
 **Note:** This research summarizes applicable statutes and federal law as of the research date. State law may change; users should verify all citations and consult legal counsel for jurisdiction-specific compliance and interpretation. Uncertainty markers ("verify") indicate topics where primary source confirmation was not obtained and should be confirmed before product modeling.

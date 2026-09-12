@@ -2,7 +2,7 @@
 
 **State:** Kentucky | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
-## 1. Summary for HCM Next
+## 1. Summary for Human Capital Management Suite
 
 - **At-will employment dominates**: Kentucky recognizes at-will employment by default; either party may terminate without cause unless a written contract specifies otherwise.
 - **Minimum wage matches federal**: Kentucky minimum wage is $7.25/hour (KRS 337.275), equal to the federal FLSA floor; no state-specific premium.
@@ -203,7 +203,7 @@ No Kentucky state law mandates paid sick leave or paid family leave for private-
 
 **Reciprocity**: Kentucky law applies to employment disputes where work is performed in Kentucky, regardless of choice-of-law provisions in an employment contract. Out-of-state employees working remotely for Kentucky employers may be subject to Kentucky wage laws (verify: depends on employee location and nature of work).
 
-## 11. Implications for HCM Next (P1A/P1B)
+## 11. Implications for Human Capital Management Suite (P1A/P1B)
 
 When the platform processes a promotion, base-pay change, manager change, or termination for a worker based in Kentucky:
 

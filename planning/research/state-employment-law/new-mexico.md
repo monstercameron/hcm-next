@@ -2,7 +2,7 @@
 
 **State:** New Mexico | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
-## 1. Summary for HCM Next
+## 1. Summary for Human Capital Management Suite
 
 - **At-will employment**: New Mexico recognizes employment-at-will with public-policy exceptions for workers' compensation claims, OSHA complaints, whistleblowing, jury duty, and anti-discrimination (implied contracts also recognized).
 - **Semimonthly pay required**: Employers must designate regular paydays not more than 16 days apart (NMSA 1978 § 50-4-2); semimonthly payments due by last day of month (for days 1-15) or 15th of next month (for days 16-31).

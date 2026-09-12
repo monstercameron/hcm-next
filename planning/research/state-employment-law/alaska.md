@@ -2,7 +2,7 @@
 
 **State:** Alaska | **Researched:** 2026-09-03 | **Status:** REVIEWED
 
-## 1. Summary for HCM Next
+## 1. Summary for Human Capital Management Suite
 
 - **Minimum wage:** $14.00/hour as of 2026-07-01 (July 1, 2026); scheduled to increase to $15.00/hour on July 1, 2027, then adjust annually for inflation starting January 1, 2028 based on Anchorage CPI-U (AS § 23.10.065). No tipped credit allowed; server minimum = regular minimum wage.
 - **Exempt salary threshold:** White-collar exemptions require minimum weekly pay of $1,120 as of July 1, 2026, increasing to $1,200 on July 1, 2027, then adjusting annually with minimum wage (AS § 23.10.055(b)).
@@ -175,7 +175,7 @@ All three prongs must be satisfied; Alaska does not provide an independent contr
 
 **Promotions and base-pay changes:**
 
-- **Written notice requirement:** Any change in pay rate, payday, or place of pay must be communicated in writing no later than the payday preceding the effective date of the change (AS § 23.05.160's "on the payday before the time of change"), which is stricter than a flat "before the next pay period" rule. HCM Next must support a pre-promotion notification workflow and log the date and method of delivery.
+- **Written notice requirement:** Any change in pay rate, payday, or place of pay must be communicated in writing no later than the payday preceding the effective date of the change (AS § 23.05.160's "on the payday before the time of change"), which is stricter than a flat "before the next pay period" rule. Human Capital Management Suite must support a pre-promotion notification workflow and log the date and method of delivery.
 - **Sick-leave accrual continuity:** Promotion or role change does not reset sick-leave accrual; accrual continues at 1 hour per 30 hours worked. Platform must track and display current sick-leave balance at all times.
 - **Overtime reclassification:** If a promotion or role change affects overtime exemption status (e.g., shifting to executive/administrative exempt role), the platform must validate exemption criteria and alert to the minimum-salary threshold ($1,120/week as of 2026-07-01 for exempt employees).
 - **Pay frequency verification:** If a role change alters pay frequency, the platform must enforce the requirement that final notice goes out by the payday preceding the change (AS § 23.05.160), not merely before the next pay period.
@@ -194,7 +194,7 @@ All three prongs must be satisfied; Alaska does not provide an independent contr
 
 **Compensation and equity:**
 
-- **No salary-history restriction:** Alaska places no restriction on inquiring about or relying on prior salary in setting pay; platform need not enforce salary-history ban (unlike Colorado, California, etc.). HCM Next may include optional salary-history fields for context but is not required to restrict or hide such fields.
+- **No salary-history restriction:** Alaska places no restriction on inquiring about or relying on prior salary in setting pay; platform need not enforce salary-history ban (unlike Colorado, California, etc.). Human Capital Management Suite may include optional salary-history fields for context but is not required to restrict or hide such fields.
 - **Equal-pay audit:** No state mandate for pay-data reporting, equal-pay audits, or demographic pay-gap analysis; federal Equal Pay Act and Title VII audits apply if employer conducts them. Platform need not include mandatory equal-pay reporting features for Alaska (though federal compliance tools remain useful).
 
 **Sick-leave module requirements:**
