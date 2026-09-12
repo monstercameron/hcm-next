@@ -209,20 +209,37 @@ func TestTodo_PROMO_007_Integration(t *testing.T) {
 		t.Fatalf("request_digest = %q, want the canonical %q", got, want)
 	}
 
-	t.Run("a different client request id is a second intent with one content digest", func(t *testing.T) {
-		second, err := c.tunnel.ProposePromotion(ctx, promotionProposeRequest("req-parity-2"))
-		if err != nil {
-			t.Fatalf("ProposePromotion over the tunnel: %v", err)
+	t.Run("a different client request id for the same worker and window is refused, not a second intent", func(t *testing.T) {
+		// PROMOUX-002: req-parity-1 already holds an active window for this
+		// worker's effective date, and this content is otherwise identical
+		// (only client_request_id differs). Before PROMOUX-002 this was two
+		// distinct intents sharing one content digest; that is exactly the
+		// "concurrent starts create more than one active promotion" defect
+		// PROMOUX-002 closes, so a different idempotency key for the same
+		// worker and window must now be refused as a conflict rather than
+		// admitted as a second intent.
+		secondReq := promotionProposeRequest("req-parity-2")
+		owned := assertPromotionRefusal(t, mustFail(c.tunnel.ProposePromotion(ctx, secondReq)), envelope.CodeAlreadyExists)
+		if owned.ReasonRef() != "journey.propose_promotion.active_conflict" {
+			t.Fatalf("refusal reason = %q, want journey.propose_promotion.active_conflict", owned.ReasonRef())
 		}
-		if second.GetIntentId() == overGRPC.GetIntentId() {
-			t.Fatal("a distinct client request id replayed the first intent")
+
+		// The content-digest claim this subtest exists to prove -- one
+		// canonical request digest for one promotion regardless of which
+		// idempotency key asked for it -- still holds and is proven without
+		// needing the second request to actually be admitted: the digest is
+		// a pure function of everything except client_request_id.
+		if got := app.PromotionProposeRequestDigest(secondReq); got != overGRPC.GetRequestDigest() {
+			t.Fatalf("PromotionProposeRequestDigest(secondReq) = %q, want the same content digest %q the first request carried",
+				got, overGRPC.GetRequestDigest())
 		}
-		if second.GetRequestDigest() != overGRPC.GetRequestDigest() {
-			t.Fatalf("the same promotion digested differently: %q vs %q",
-				second.GetRequestDigest(), overGRPC.GetRequestDigest())
-		}
-		if second.GetCanonicalRequestDigest() == overGRPC.GetCanonicalRequestDigest() {
-			t.Fatal("two intents under different idempotency keys share one canonical request digest")
+
+		// And the refusal left no second intent behind to have a canonical
+		// digest at all.
+		if n := queryOne[int](t, c.harness.cell,
+			`SELECT count(*) FROM intent_instance WHERE tenant_id = $1`, pgstore.TenantID(testTenant),
+		); n != 1 {
+			t.Fatalf("intent_instance rows for this tenant = %d, want exactly 1 (the refusal must not have created a second)", n)
 		}
 	})
 
@@ -403,7 +420,14 @@ func TestTodo_PROMO_007_Mutation(t *testing.T) {
 	intentsBefore := intentCount(t, c)
 
 	for i, client := range []journeyv1.JourneyServiceClient{c.direct, c.tunnel} {
-		res, err := client.ProposePromotion(ctx, promotionProposeRequest("req-mutation-"+string(rune('a'+i))))
+		req := promotionProposeRequest("req-mutation-" + string(rune('a'+i)))
+		// PROMOUX-002: two distinct client request ids for the same worker's
+		// same effective date would now be an active-intent conflict, not
+		// two admitted proposals. This test's own point is the zero-effect
+		// claim over two genuinely admitted proposes, so each targets a
+		// distinct, non-overlapping effective date.
+		req.EffectiveDate = fmt.Sprintf("2026-06-%02d", i+1)
+		res, err := client.ProposePromotion(ctx, req)
 		if err != nil {
 			t.Fatalf("ProposePromotion: %v", err)
 		}

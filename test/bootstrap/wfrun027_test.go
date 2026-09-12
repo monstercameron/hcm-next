@@ -217,7 +217,17 @@ func TestTodo_WF_RUN_027_Bootstrap_Security(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Propose(first): %v", err)
 	}
-	second, err := h.engine.Propose(ctx, journeyProposal())
+	// PROMOUX-002: two proposals for the same worker on the same effective
+	// date are now admitted at most once (an active-intent guard refuses the
+	// second as a conflict). This test's own point is supersession, not
+	// concurrent-start admission, so its second proposal targets a
+	// genuinely different, non-overlapping effective date -- exactly the
+	// case PROMOUX-002's GREEN clause carves out as not a conflict -- rather
+	// than relying on the two-distinct-intents-for-one-window behavior this
+	// todo closes.
+	secondInput := journeyProposal()
+	secondInput.EffectiveDate = "2026-07-01"
+	second, err := h.engine.Propose(ctx, secondInput)
 	if err != nil {
 		t.Fatalf("Propose(second): %v", err)
 	}

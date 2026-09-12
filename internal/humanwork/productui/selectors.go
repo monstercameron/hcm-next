@@ -182,6 +182,25 @@ func personPromotionEligible(person Person) bool {
 	return person.PromotionAvailability == PromotionEligible
 }
 
+// activePromotionWorkItem finds the nonterminal promotion journey PROMOUX-002's
+// PromotionActiveConflict verdict refers to for personID, so the row and the
+// profile can link "Open active promotion" to the journey that is actually
+// blocking a new one rather than merely stating that one exists.
+//
+// The zero WorkItem plus false is not an error: it is the honest fallback for
+// a Person built directly (a fixture, a test, or a future caller) that set
+// PromotionAvailability without also seeding the matching entry in view.Work.
+// Callers must render the reason text they already have in that case rather
+// than link to a journey this view was never given.
+func activePromotionWorkItem(view View, personID string) (WorkItem, bool) {
+	for _, item := range view.Work {
+		if !item.Terminal && item.PersonRef == personID {
+			return item, true
+		}
+	}
+	return WorkItem{}, false
+}
+
 func sortedPeople(people []Person, field, direction string) []Person {
 	parsedField, parsedDirection := ParsePeopleSort(field, direction)
 	return SortPeopleDirectory(people, parsedField, parsedDirection)

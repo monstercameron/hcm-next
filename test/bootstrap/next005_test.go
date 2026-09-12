@@ -213,7 +213,18 @@ func TestP1APromotionProducesExactEvidenceAndZeroAuthoritativeOrProviderEffect(t
 		}
 	})
 
-	t.Run("every governed write is refused, not partially performed", func(t *testing.T) {
+	// EP-INTENT-003 implemented SubmitIntent, CancelIntent and SupersedeIntent,
+	// so the P1A stub that refused every one of them with FAILED_PRECONDITION
+	// citing release.p1a_zero_effect_ceiling no longer exists. Asserting that
+	// ceiling here described a stub rather than the system, and had been
+	// failing since that change. What is still true, and is what this subtest
+	// now pins, is that each of these governed writes refuses an incomplete
+	// request outright rather than performing part of it -- none of these
+	// calls carries the expected_instance_version every one of them requires.
+	// The zero-effect half of the claim is proven independently, and far more
+	// strongly, by the whole-database snapshot comparison in the subtest
+	// below, whose own oracle is validated against a deliberate mutation.
+	t.Run("every governed write refuses an incomplete request outright", func(t *testing.T) {
 		cases := map[string]func() error{
 			"SubmitIntent": func() error {
 				_, err := c.grpcIntent.SubmitIntent(c.grpcContext(ctx), &intentsv1.SubmitIntentRequest{
@@ -250,20 +261,14 @@ func TestP1APromotionProducesExactEvidenceAndZeroAuthoritativeOrProviderEffect(t
 			if !ok {
 				t.Fatalf("%s failed with an unowned error: %v", name, err)
 			}
-			if owned.Code() != envelope.CodeFailedPrecondition {
-				t.Fatalf("%s refused with %s, want FAILED_PRECONDITION", name, owned.Code())
+			if owned.Code() != envelope.CodeInvalidArgument {
+				t.Fatalf("%s refused with %s, want INVALID_ARGUMENT for a request missing a required field", name, owned.Code())
 			}
-			// The owned reason identifier is server-side telemetry and is not
-			// projected onto the wire; what a caller is told is the condition
-			// plus the rule that produced it.
-			ceiling := false
-			for _, violation := range owned.Violations() {
-				if violation.RuleRef == "release.p1a_zero_effect_ceiling" {
-					ceiling = true
-				}
-			}
-			if !ceiling {
-				t.Fatalf("%s refused without citing the P1A ceiling: %v", name, owned.Violations())
+			// The refusal must name the field it is refusing on, so a caller
+			// can tell a malformed request from a rejected one. A refusal that
+			// named nothing would leave the caller unable to act on it.
+			if len(owned.Violations()) == 0 {
+				t.Fatalf("%s refused without naming a field violation", name)
 			}
 		}
 	})

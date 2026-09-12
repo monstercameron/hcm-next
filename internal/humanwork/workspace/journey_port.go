@@ -41,6 +41,13 @@ var (
 	// ErrJourneyInput means the proposal input is malformed. The message
 	// names the field.
 	ErrJourneyInput = errors.New("workspace: invalid proposal input")
+	// ErrJourneyActiveConflict means this worker already has a nonterminal
+	// promotion whose effective window overlaps the one being proposed
+	// (PROMOUX-002). The admission decision is made by
+	// internal/data/promotionguard, at the database, before any intent is
+	// created; this sentinel is what the page renders instead of a second
+	// proposal.
+	ErrJourneyActiveConflict = errors.New("workspace: an active promotion already claims this worker and effective window")
 )
 
 // JourneyStage is where one promotion journey currently stands. It is

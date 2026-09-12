@@ -4984,6 +4984,42 @@ tables:
     notes: >-
       Active semantic-overlap fences acquired under transaction-scoped database
       locks and removed when the owning intent releases them.
+  - table: ledger_payload_disposition
+    migration: 00285_ledger_011_payload_disposition.sql
+    owner_package: internal/data/ledger/disposition
+    plane: DATA
+    data_role: EVIDENCE
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: true
+    retention_class: EVIDENCE
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Append-only record that one ledger event's inline payload was withheld
+      under retention, hold or crypto-erasure, naming the event it disposes and
+      carrying that event's own digest and algorithm as evidence the
+      chronology-bearing columns were read and never altered. ledger_event
+      itself stays append-only and untouched; this table is what the read path
+      consults to withhold a payload.
+  - table: promotion_active_intent_guard
+    migration: 00286_promoux002_active_promotion_guard.sql
+    owner_package: internal/data/promotionguard
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Admission reservations that admit exactly one active promotion per worker
+      and overlapping effective window. The partial unique index on
+      (tenant_id, worker_ref, effective_date) WHERE status = 'ACTIVE' is the
+      integrity boundary, enforced as part of each INSERT's commit rather than
+      by a read that precedes the write; UI suppression is a courtesy on top of
+      it. Rows transition ACTIVE -> CLOSED and are never deleted.
   - table: admission_retry_budget
     migration: 00280_admission_retry_budgets.sql
     owner_package: internal/data/admissionstore
