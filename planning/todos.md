@@ -4713,7 +4713,7 @@ closed.
   - **REFACTOR:** retry reuses the same logical-effect key only after policy permits.
   - **Refs:** [Integration ambiguity](specs/integration-platform.md), [workflow context edge cases](workflows/samples/workflow-context-edge-cases.md).
 
-- [ ] `INTG-015` **[GATE_B][SOL_HIGH] Enforce rate-aware fair connector scheduling.**
+- [x] `INTG-015` **[GATE_B][SOL_HIGH] Enforce rate-aware fair connector scheduling.**
   - **Depends:** `INTG-011`, `ADMISSION-001`, `ADMISSION-002`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.INTEGRATION; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_INTG_015`.
@@ -4722,6 +4722,7 @@ closed.
   - **GREEN:** per-tenant/connection/resource/criticality limits honor provider reset/concurrency and expose queue age/predicted completion.
   - **REFACTOR:** reserved capacity never violates vendor quota.
   - **Refs:** [Rate-limit manager](specs/integration-platform.md), [platform correctness](plan.md#519-platform-correctness-is-business-correctness).
+  - **Evidence (2026-09-11):** `TestTodo_INTG_015` (per-tenant/connection/resource/criticality limits honoured together; a P0 is scheduled ahead of a P3 backlog; queue age and predicted completion populated), `FuzzTodo_INTG_015` (oracle is the REFACTOR invariant -- reserved capacity never exceeds the vendor quota -- 10,831,071 executions over 30s, 189 interesting inputs, no crasher), `_Race` (real goroutines contending for one quota; counts are exact), `_Integration`, `_Fault` (a 429 with a reset window refuses until the vendor's own reset instead of multiplying retries, and an undeclared quota fails closed) and `_Security` (tenant scoping) in `internal/connectivity/operation` (`quota.go`: `ConnectorQuota`, `UnknownConnectorQuota`, `ConnectorPolicy`, `ConnectorLedger` with `TryReserve`/`Release`/`Observe429`/`Schedule`, `CandidateFromOperation`); no migration required. `go test -count=1 -cover ./internal/connectivity/operation/` PASS at 79.9% coverage with all 51 pre-existing tests unmodified, `go vet` clean, gofmt clean and `go run ./tools/quality` PASSED on windows/arm64 (Go 1.26.3); branch main. The package had no rate, quota, concurrency or throttle concept at all before this, so a 429 read as an ordinary FAILURE and each one minted another retry. Reviewer-found defect, fixed: a connection named in the policy map but given no quota resolved to the zero value, and every check is gated on `Limit > 0`/`MaxConcurrent > 0`, so `ConnectorPolicy{}` admitted 50 of 50 reservations -- RED's "unknown quota assumes unlimited" in the one case the struct's zero value makes the default. A wholly zero quota now means UNDECLARED and resolves to `UnknownConnectorQuota`; a negative bound is the explicit unbounded escape hatch. `_Fault` pins both directions.
 
 - [x] `INTG-016` **[GATE_B][SOL_HIGH] Redrive one failed operation without rerunning its parent.**
   - **Evidence (2026-09-05):** `TestTodo_INTG_016` in `internal/connectivity/operation` (one failed operation is redriven in isolation with lineage and approval evidence (migration 00068) without rerunning its siblings; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/connectivity/operation/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
