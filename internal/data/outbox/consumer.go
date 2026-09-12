@@ -9,6 +9,7 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
+	"github.com/monstercameron/human-capital-management-suite/internal/operations/admission"
 )
 
 // DefaultLease is how long a claimed message stays IN_FLIGHT before another
@@ -42,6 +43,14 @@ type Consumer struct {
 	// of PENDING so a poison message stops spinning the sweep. Zero (the
 	// default) means unlimited, preserving redeliver-forever behavior.
 	maxAttempts int
+	// retryAccount, when set via WithRetryAccounting, routes every failed
+	// delivery through one externally-owned admission.Provisioner budget so
+	// this consumer's own redelivery counts against the same
+	// logical-operation budget any other layer consumes from (EVENT-003):
+	// one token per logical attempt, never one per layer.
+	retryAccount *RetryAccount
+	retrySpec    func(Record) admission.ProvisionSpec
+	retryFailure func(Record, error) admission.FailureClass
 }
 
 // ConsumerOption configures a Consumer.
@@ -64,6 +73,28 @@ func WithMaxAttempts(n int) ConsumerOption {
 // WithClock replaces the consumer's source of time, for deterministic lease
 // expiry tests.
 func WithClock(now func() time.Time) ConsumerOption { return func(c *Consumer) { c.now = now } }
+
+// WithRetryAccounting shares one logical retry budget across every layer
+// that might retry the same logical operation. On each failed delivery the
+// consumer computes the record's attempt identity (AttemptIdentity: its
+// LogicalOperationID when known, else its OutboxID, joined with the
+// physical attempt number) and consumes one token from spec(record)'s
+// budget via account. Because admission.Provisioner.Consume is replay-safe
+// by attempt identity, a token another layer already consumed for the same
+// logical attempt - a transaction coordinator's own retry callback, say -
+// is not consumed a second time here; and once the shared budget is
+// exhausted the message is parked ABANDONED even if this consumer's own
+// maxAttempts would otherwise allow another try. failureOf classifies the
+// delivery error into the admission.FailureClass vocabulary the budget's
+// Retryable set was provisioned with; nil defaults every failure to
+// admission.FailureTransient.
+func WithRetryAccounting(account *RetryAccount, spec func(Record) admission.ProvisionSpec, failureOf func(Record, error) admission.FailureClass) ConsumerOption {
+	return func(c *Consumer) {
+		c.retryAccount = account
+		c.retrySpec = spec
+		c.retryFailure = failureOf
+	}
+}
 
 // NewConsumer builds a Consumer over a connection or pool that can open
 // transactions.
@@ -309,10 +340,11 @@ func (c *Consumer) failRow(ctx context.Context, tenant, outboxID, token uuid.UUI
 	var status string
 	var leaseToken *uuid.UUID
 	var leaseUntil *time.Time
+	var logicalOperationID *string
 	err = tx.QueryRow(ctx, `
-		SELECT attempts, status, lease_token, lease_until FROM outbox
+		SELECT attempts, status, lease_token, lease_until, logical_operation_id FROM outbox
 		WHERE tenant_id = $1 AND outbox_id = $2 FOR UPDATE`,
-		tenant, outboxID).Scan(&attempts, &status, &leaseToken, &leaseUntil)
+		tenant, outboxID).Scan(&attempts, &status, &leaseToken, &leaseUntil, &logicalOperationID)
 	if err != nil {
 		if errors.Is(err, dbport.ErrNoRows) {
 			return fmt.Errorf("outbox: fail %s: %w", outboxID, ErrLeaseFence)
@@ -330,6 +362,34 @@ func (c *Consumer) failRow(ctx context.Context, tenant, outboxID, token uuid.UUI
 	target := StatusPending
 	if c.maxAttempts > 0 && attempts >= c.maxAttempts {
 		target = StatusAbandoned
+	}
+	if c.retryAccount != nil && c.retrySpec != nil && target != StatusAbandoned {
+		identityRecord := Record{OutboxID: outboxID}
+		if logicalOperationID != nil && *logicalOperationID != "" {
+			identityRecord.Causal = &CausalMetadata{LogicalOperationID: *logicalOperationID}
+		}
+		rec := Record{Tenant: tenant, OutboxID: outboxID}
+		spec := c.retrySpec(rec)
+		failureClass := admission.FailureTransient
+		if c.retryFailure != nil {
+			failureClass = c.retryFailure(rec, cause)
+		}
+		attemptID := AttemptIdentity(identityRecord, attempts)
+		receipt, rErr := c.retryAccount.Consume(spec, attemptID, admission.RetryAttempt{
+			LogicalOperationID: spec.LogicalOperationID,
+			OperationKind:      spec.OperationKind,
+			TenantID:           spec.TenantID,
+			Dependency:         spec.Dependency,
+			Failure:            failureClass,
+			Attempt:            attempts,
+		})
+		if rErr != nil {
+			return fmt.Errorf("outbox: fail %s: retry accounting: %w", outboxID, rErr)
+		}
+		if receipt.Disposition != admission.RetryAllowed {
+			target = StatusAbandoned
+			cause = fmt.Errorf("%w: %s", cause, receipt.Reason)
+		}
 	}
 	affected, err := tx.Exec(ctx, `
 		UPDATE outbox SET status = $3, last_error = $4, available_at = $5, updated_at = $5,
