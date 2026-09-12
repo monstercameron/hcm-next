@@ -13267,7 +13267,8 @@
     "refactor": "keep shared mechanics in kernel/engines and this package as the sole owner of the stated HCM meaning, lifecycle and correction semantics",
     "refs": "[BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestFXCorrectionAppendsSuccessorAndRecomputesOnlyAffectedResults` (the PRIMARY named in the TEST field) and its full declared matrix in `internal/domains/fx`; `go test -count=1 -cover ./internal/domains/fx/` PASS at 72.3% on windows/arm64 (Go 1.26.3); branch main. No behaviour changed: implemented but unticked. The primary test's name is its contract -- a correction appends a successor quote rather than overwriting, and only affected results recompute, which is RED's \"overwrites a quote\" and \"recomputes unrelated currencies\" closed together"
   },
   {
     "id": "GARN-001",
@@ -14885,7 +14886,8 @@
     "refactor": "reuse shared engines for mechanics while this domain retains authoritative meaning, lifecycle, correction and evidence policy",
     "refs": "[BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](specs/competitive-positioning-and-authority-expansion.md#authority-absorption-gate)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestIncentiveConformanceHandlesRestatementClawbackAndPayrollWithoutRewrite` (the PRIMARY named in the TEST field) and its full declared matrix in `internal/domains/incentive`; `go test -count=1 -cover ./internal/domains/incentive/` PASS at 72.6% on windows/arm64 (Go 1.26.3); branch main. No behaviour changed: implemented but unticked. RED's central clause -- a clawback must not become negative history deletion -- is what \"WithoutRewrite\" in the primary name asserts: the restatement emits a successor calculation and a governed correction rather than editing the prior award"
   },
   {
     "id": "INTEL-001",
@@ -30290,8 +30292,8 @@
     "refactor": "reuse shared engines for mechanics while this domain retains authoritative meaning, lifecycle, correction and evidence policy",
     "refs": "[BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](specs/competitive-positioning-and-authority-expansion.md#authority-absorption-gate)",
     "retired": false,
-    "done": false,
-    "evidence": "`TestSafetyConformancePreservesFilingPaymentRestrictionAndCorrectionHistory`, `TestTodo_SAFETY_002_*`, and `TestResubmitFilingRequiresFreshObservedRejection`; `go test -count=1 -cover ./internal/domains/safety/` PASS on windows/arm64 (58.5%, existing exact exception expires 2026-12-31); scoped vet PASS. Luna implementation, Sol refinement and integration review verify append-only fixture lineage, exact payment reversal, observed-rejection-only resubmission, and fresh-observation closure. No medical/legal determination, live filing, or ledger payment execution is claimed; detector-backed races remain CI-only"
+    "done": true,
+    "evidence": "`TestSafetyConformancePreservesFilingPaymentRestrictionAndCorrectionHistory`, `TestTodo_SAFETY_002_*`, and `TestResubmitFilingRequiresFreshObservedRejection`; `go test -count=1 -cover ./internal/domains/safety/` PASS on windows/arm64 (58.5%, existing exact exception expires 2026-12-31); scoped vet PASS. Luna implementation, Sol refinement and integration review verify append-only fixture lineage, exact payment reversal, observed-rejection-only resubmission, and fresh-observation closure. No medical/legal determination, live filing, or ledger payment execution is claimed; detector-backed races remain CI-only | `TestSafetyConformancePreservesFilingPaymentRestrictionAndCorrectionHistory` (the PRIMARY named in the TEST field) and its full declared matrix in `internal/domains/safety`; `go test -count=1 -cover ./internal/domains/safety/` PASS on windows/arm64 (Go 1.26.3); branch main. No behaviour changed: implemented but unticked. Coverage note: the package reports 58.5%, below the 70% floor, but carries a governed and unexpired `below_floor` exception in `definitions/toolchain/coverage-gate.yaml` (owner backlog, expiry 2026-12-31) recorded when it stood at 46.5%; it has since improved. The floor is formally waived here rather than silently violated, and raising the package to the floor remains that exception's open obligation"
   },
   {
     "id": "SANDBOX-001",
@@ -31878,7 +31880,8 @@
     "refactor": "reuse shared engines for mechanics while this domain retains authoritative meaning, lifecycle, correction and evidence policy",
     "refs": "[BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [domain model coverage](data/models/intent-coverage-matrix.md), [authority expansion](specs/competitive-positioning-and-authority-expansion.md#authority-absorption-gate)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestSkillConformanceUsesOnePinnedEvidenceRevisionAcrossConsumers` (the PRIMARY named in the TEST field) and its full declared matrix in `internal/domains/skill`; `go test -count=1 -cover ./internal/domains/skill/` PASS at 71.4% on windows/arm64 (Go 1.26.3); branch main. No behaviour changed: implemented but unticked. RED's expired-credential clause is modelled rather than assumed: `EvidenceStatus` carries an explicit `EXPIRED` state and `resolve.go` states that expired evidence never becomes effective, exercised by `TestSkillExpirationAndReviewedEquivalence` against an expired credential fixture -- so a lapsed credential cannot remain qualified"
   },
   {
     "id": "SLICE-001",
@@ -33690,7 +33693,8 @@
     "refactor": "keep shared mechanics in kernel/engines and this package as the sole owner of the stated HCM meaning, lifecycle and correction semantics",
     "refs": "[BusinessIntent partitions](specs/business-intent-catalog.md#vocabulary-list-non-normative), [model coverage](data/models/intent-coverage-matrix.md), [engine ownership](#businessintent-context-required-by-every-todo)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTaxProfileSnapshotFeedsPinnedTaxCalculationAndPayrollRun` (the PRIMARY named in the TEST field) and its full declared matrix in `internal/domains/taxprofile`; `go test -count=1 -cover ./internal/domains/taxprofile/` PASS at 72.4% on windows/arm64 (Go 1.26.3); branch main. No behaviour changed: implemented but unticked. Both of RED's unsafe-default clauses are refused explicitly and asserted in `snapshot_test.go`: a `RegistrationPresence` of `PresenceUnknown` fails with `ErrSnapshotInvalid` rather than defaulting to resident, and a `PresenceRedacted` election is refused rather than collapsing to zero withholding. Presence is a three-state enum -- present, unknown, redacted -- precisely so an absent fact cannot be read as a benign zero"
   },
   {
     "id": "TENANT-001",

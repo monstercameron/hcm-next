@@ -1,5 +1,30 @@
 # Changelog
 
+## 2026-09-12 (CONFORMANCE reconciliation)
+
+- Ticked the five CONFORMANCE todos the backlog sweep identified as built but
+  unrecorded: FX-003, INCENTIVE-002, SAFETY-002, SKILL-002 and TAXPROFILE-003.
+  No behaviour changed in any of them; each was verified against its contract
+  rather than accepted on a green run.
+
+  TAXPROFILE-003 is the one worth reading. Both of its unsafe-default clauses
+  are refused explicitly: a registration presence of UNKNOWN fails rather than
+  defaulting to resident, and a REDACTED election is refused rather than
+  collapsing to zero withholding. Presence is a three-state enum -- present,
+  unknown, redacted -- precisely so an absent fact cannot be read as a benign
+  zero. That is the same defect class found four times in this session's own
+  lanes, already solved here.
+
+  SKILL-002 models expiry as an explicit EXPIRED evidence status with "expired
+  evidence never becomes effective" enforced in resolve, so a lapsed credential
+  cannot remain qualified.
+
+  SAFETY-002 carries a coverage caveat recorded rather than glossed: the package
+  sits at 58.5%, below the 70% floor, but under a governed and unexpired
+  below_floor exception (owner backlog, expiry 2026-12-31) logged when it stood
+  at 46.5%. The floor is formally waived, not silently violated, and raising the
+  package remains that exception's open obligation.
+
 ## 2026-09-12 (backlog reconciliation)
 
 - Swept the backlog for todos whose entire declared test matrix already exists,
