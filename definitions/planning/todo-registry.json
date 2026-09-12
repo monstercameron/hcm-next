@@ -3661,7 +3661,8 @@
     "refactor": "prefer assigning another worker role or scaling an existing process before creating a remote boundary",
     "refs": "[Platform architecture](specs/platform-architecture-catalog.md), [SLOs](specs/slo-sli-error-budget.md), [risk register](specs/risk-register.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestDecompositionDecisionRejectsTopologyDrivenSplit` (the PRIMARY named in the TEST field) and its full declared matrix in `tools/quality/decomposition`; `go test -count=1 -cover ./tools/quality/decomposition/` PASS at 77.8% on windows/arm64 (Go 1.26.3); branch main. No behaviour changed: implemented but unticked. RED's second clause -- detecting a domain package duplicated across processes -- is a named diagnostic rather than an inference: `DuplicateDomainOwner` reports \"domain package %q is also owned by process %q\", so a split that quietly duplicates ownership is refused with the offending pair named"
   },
   {
     "id": "ARCH-GO-020",
@@ -9788,7 +9789,8 @@
     "refactor": "simulation output is the proposal input, not an alternate write path",
     "refs": "[Data migration lifecycle](specs/hris-admin-dataops.md), [transaction simulation](specs/transaction-ledger-reconciliation-and-repair.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_DATAOPS_005` and its full declared matrix in `internal/domains/dataops/importing`; `go test -count=1 -cover ./internal/domains/dataops/importing/` PASS at 82.5% on windows/arm64 (Go 1.26.3); branch main. No behaviour changed: implemented but unticked. RED's replay clause is enforced by content addressing rather than convention -- `rowDigest` binds the header digest into every row id and the batch `Digest` binds source, schema and retrieval time, with tests that fail if two stagings of identical input produce different digests or if identical inputs reproduce different error sets. The zero-value trap is closed explicitly at the type level too: `SourceKindUnspecified is the zero value and is never legal`"
   },
   {
     "id": "DATAOPS-006",
