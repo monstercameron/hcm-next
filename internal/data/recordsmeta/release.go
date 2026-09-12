@@ -128,20 +128,35 @@ func ReleaseHold(ctx context.Context, tx dbport.Tx, tenantID, holdID, scopeDecla
 		var link CopyLink
 		var declarationID uuid.UUID
 		var storedOutboxID *uuid.UUID
+
+		// Take the row lock first, as its own statement. The previous version
+		// folded the surviving-grip test into correlated EXISTS subqueries
+		// inside the UPDATE's SET list. Under READ COMMITTED a statement that
+		// blocks on a concurrent writer's row lock re-evaluates through
+		// EvalPlanQual, and relying on a SET-list subquery to be recomputed
+		// against the post-lock snapshot is exactly the kind of subtlety that
+		// produced "copy ... is RELEASED/PENDING after releasing H1, want
+		// HELD/HELD: H2 still grips it" under the race detector in CI: a
+		// concurrent PropagateHold for a second hold had inserted its ACTIVE
+		// intersection, and the release still resurrected the copy.
+		//
+		// Locking the row, then asking the question, then writing a literal
+		// answer makes the ordering explicit rather than implied.
+		if _, err := tx.Exec(ctx, `SELECT 1 FROM record_copy_link WHERE tenant_id=$1 AND link_id=$2 FOR UPDATE`, tenantID, linkID); err != nil {
+			return HoldReleaseResult{}, fmt.Errorf("recordsmeta: lock copy %s: %w", linkID, err)
+		}
+		var stillGripped bool
+		if err := tx.QueryRow(ctx, `SELECT EXISTS (SELECT 1 FROM hold_intersection WHERE tenant_id=$1 AND link_id=$2 AND state='ACTIVE')`, tenantID, linkID).Scan(&stillGripped); err != nil {
+			return HoldReleaseResult{}, fmt.Errorf("recordsmeta: surviving grips for copy %s: %w", linkID, err)
+		}
 		err := tx.QueryRow(ctx, `
 			UPDATE record_copy_link SET
-				hold_state = CASE WHEN EXISTS (
-					SELECT 1 FROM hold_intersection hi
-					WHERE hi.tenant_id = record_copy_link.tenant_id AND hi.link_id = record_copy_link.link_id AND hi.state = 'ACTIVE'
-				) THEN hold_state ELSE 'RELEASED' END,
-				disposition_state = CASE WHEN EXISTS (
-					SELECT 1 FROM hold_intersection hi
-					WHERE hi.tenant_id = record_copy_link.tenant_id AND hi.link_id = record_copy_link.link_id AND hi.state = 'ACTIVE'
-				) THEN disposition_state ELSE 'PENDING' END,
+				hold_state = CASE WHEN $4 THEN hold_state ELSE 'RELEASED' END,
+				disposition_state = CASE WHEN $4 THEN disposition_state ELSE 'PENDING' END,
 				updated_at = $3
 			WHERE tenant_id=$1 AND link_id=$2
 			RETURNING declaration_id, copy_type, store_ref, artifact_ref, ledger_stream, ledger_sequence, outbox_id, hold_state, disposition_state, exception_reason`,
-			tenantID, linkID, at.UTC()).
+			tenantID, linkID, at.UTC(), stillGripped).
 			Scan(&declarationID, &link.CopyType, &link.StoreRef, &link.ArtifactRef, &link.LedgerStream, &link.LedgerSequence, &storedOutboxID, &link.HoldState, &link.DispositionState, &link.ExceptionReason)
 		if err != nil {
 			return HoldReleaseResult{}, fmt.Errorf("recordsmeta: recalculate copy %s: %w", linkID, err)
