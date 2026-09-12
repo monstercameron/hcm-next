@@ -22,7 +22,7 @@ func peoplePage(view View) ui.Node {
 	filtered := filteredPeople(scoped)
 	ordered := sortedPeople(filtered, view.PeopleSort, view.PeopleDirection)
 	window := paginatePeople(ordered, view.PeoplePage, view.PeoplePageSize)
-	filterActive := view.Query != "" || view.PeopleTeam != "" || view.PeopleLocation != ""
+	filterActive := view.Query != "" || view.PeopleTeam != "" || view.PeopleLocation != "" || view.PeopleEligibleOnly
 	props := PeoplePageProps{
 		I18nProps: I18nProps{Locale: view.Locale},
 		Summary: PeopleSummaryProps{
@@ -30,7 +30,7 @@ func peoplePage(view View) ui.Node {
 			ScopeLabel: view.Locale.Text("people.scope", map[string]string{"scope": valueOrUnavailableFor(view.Locale, view.Scope)}),
 		},
 		Filter: PeopleFilterProps{
-			Query: view.Query, Team: view.PeopleTeam, Location: view.PeopleLocation,
+			Query: view.Query, Team: view.PeopleTeam, Location: view.PeopleLocation, EligibleOnly: view.PeopleEligibleOnly,
 			Teams:     peopleFilterOptions(peopleFacetOptions(population, func(person Person) string { return person.Team })),
 			Locations: peopleFilterOptions(peopleFacetOptions(population, func(person Person) string { return person.Location })),
 			Sort:      view.PeopleSort, Direction: view.PeopleDirection,
@@ -42,8 +42,8 @@ func peoplePage(view View) ui.Node {
 		},
 	}
 	if view.Navigate != nil {
-		props.Filter.OnFilter = func(query, team, location string) {
-			view.Navigate(peopleDirectoryHref(view, 1, strings.TrimSpace(query), strings.TrimSpace(team), strings.TrimSpace(location), view.PeopleSort, view.PeopleDirection))
+		props.Filter.OnFilter = func(query, team, location string, eligibleOnly bool) {
+			view.Navigate(peopleDirectoryHref(view, 1, strings.TrimSpace(query), strings.TrimSpace(team), strings.TrimSpace(location), eligibleOnly, view.PeopleSort, view.PeopleDirection))
 		}
 	}
 	if window.Total > 0 {
@@ -105,8 +105,8 @@ func peopleDirectoryInputKey(props PeopleDirectoryProps) string {
 }
 
 func peopleClearHref(view View) string {
-	href := peopleDirectoryHref(view, 1, "", "", "", view.PeopleSort, view.PeopleDirection)
-	return withExplicitEmptyQuery(href, "q", "team", "location")
+	href := peopleDirectoryHref(view, 1, "", "", "", false, view.PeopleSort, view.PeopleDirection)
+	return withExplicitEmptyQuery(href, "q", "team", "location", "eligible")
 }
 
 func peopleCountLabel(locale LocaleContext, filtered bool, filteredCount, totalCount int) string {
@@ -145,7 +145,7 @@ func peopleSortColumns(view View) []PeopleSortColumnProps {
 		}
 		result = append(result, PeopleSortColumnProps{
 			ID: column.field, Label: column.label, Active: active == column.field, Descending: active == column.field && direction == peopleSortDescending,
-			Href: peopleDirectoryHref(view, 1, view.Query, view.PeopleTeam, view.PeopleLocation, column.field, nextDirection), Navigate: view.Navigate,
+			Href: peopleDirectoryHref(view, 1, view.Query, view.PeopleTeam, view.PeopleLocation, view.PeopleEligibleOnly, column.field, nextDirection), Navigate: view.Navigate,
 		})
 	}
 	return result
@@ -154,13 +154,28 @@ func peopleSortColumns(view View) []PeopleSortColumnProps {
 func peopleRowProps(view View, window peoplePageWindow) []PeopleRowProps {
 	rows := make([]PeopleRowProps, 0, len(window.People))
 	workflows := rankedPersonWorkflows(view.PersonWorkflows, view.WorkflowUses)
-	if len(view.EffectivePermissions) > 0 && !view.Can(PageJourneys, "create") {
+	unauthorized := len(view.EffectivePermissions) > 0 && !view.Can(PageJourneys, "create")
+	if unauthorized {
 		workflows = nil
 	}
 	for _, person := range window.People {
 		actions := make([]PeopleQuickActionProps, 0, len(view.PersonWorkflows))
+		reason := ""
+		if unauthorized {
+			// The same reason PromotionAvailability would have resolved to
+			// for this viewer had a per-worker verdict even been asked for:
+			// every worker collapses to the identical, non-revealing
+			// withheld text once no workflow at all is offered, rather than
+			// the bare, unexplained fallback this gate used to leave behind.
+			reason = PromotionAvailabilityReason(view.Locale, PromotionWithheld)
+		}
 		for _, workflow := range workflows {
-			if workflow.ID == "promotion" && person.PromotionUnavailable {
+			if workflow.ID == "promotion" && !personPromotionEligible(person) {
+				// GREEN #2: a suppressed promotion action always leaves a
+				// server-provided reason behind for the empty-workflow-menu
+				// fallback, instead of the bare "no available workflows"
+				// people_components.go used to render unconditionally.
+				reason = PromotionAvailabilityReason(view.Locale, person.PromotionAvailability)
 				continue
 			}
 			href := workflow.Href
@@ -178,6 +193,7 @@ func peopleRowProps(view View, window peoplePageWindow) []PeopleRowProps {
 			ID: person.ID, Initials: person.Initials, PhotoURL: person.PhotoURL, Name: person.Name, WorkerNumber: person.WorkerNumber, Role: person.Role, Team: person.Team,
 			Manager: person.Manager, Location: person.Location, Navigate: view.Navigate,
 			Href: peoplePersonHref(view, person.ID, window.Page), QuickActions: actions,
+			WorkflowsUnavailableReason: reason,
 		})
 	}
 	return rows
@@ -190,7 +206,8 @@ func peoplePaginationProps(view View, window peoplePageWindow) PeoplePaginationP
 		Previous: paginationLinkProps(view, view.Locale.Text("common.previous"), window.Page-1, window.Page <= 1),
 		Next:     paginationLinkProps(view, view.Locale.Text("common.next"), window.Page+1, window.Page >= window.PageCount),
 		PageSize: pageSizeControlProps(view, PagePeople, "page_size", view.PeoplePageSize, map[string]string{
-			"q": view.Query, "team": view.PeopleTeam, "location": view.PeopleLocation, "sort": view.PeopleSort, "dir": view.PeopleDirection,
+			"q": view.Query, "team": view.PeopleTeam, "location": view.PeopleLocation, "eligible": eligibleQueryValue(view.PeopleEligibleOnly),
+			"sort": view.PeopleSort, "dir": view.PeopleDirection,
 		}),
 	}
 }
@@ -198,11 +215,11 @@ func peoplePaginationProps(view View, window peoplePageWindow) PeoplePaginationP
 func paginationLinkProps(view View, label string, page int, disabled bool) PaginationLinkProps {
 	return PaginationLinkProps{
 		Label: label, Disabled: disabled, Navigate: view.Navigate,
-		Href: peopleDirectoryHref(view, page, view.Query, view.PeopleTeam, view.PeopleLocation, view.PeopleSort, view.PeopleDirection),
+		Href: peopleDirectoryHref(view, page, view.Query, view.PeopleTeam, view.PeopleLocation, view.PeopleEligibleOnly, view.PeopleSort, view.PeopleDirection),
 	}
 }
 
-func peopleDirectoryHref(view View, page int, query, team, location, sortField, direction string) string {
+func peopleDirectoryHref(view View, page int, query, team, location string, eligibleOnly bool, sortField, direction string) string {
 	sortField = normalizePeopleSort(sortField)
 	direction = normalizePeopleDirection(direction)
 	if sortField == peopleSortName {
@@ -213,7 +230,18 @@ func peopleDirectoryHref(view View, page int, query, team, location, sortField, 
 	}
 	return statefulHref(view, PagePeople,
 		"q", strings.TrimSpace(query), "team", strings.TrimSpace(team), "location", strings.TrimSpace(location),
+		"eligible", eligibleQueryValue(eligibleOnly),
 		"sort", sortField, "dir", direction, "page", peoplePageValue(page), "page_size", pageSizeValue(view.PeoplePageSize))
+}
+
+// eligibleQueryValue renders the boolean as the one non-empty token the
+// route recognizes ("1"); statefulHref already drops empty pairs, so false
+// simply omits the parameter.
+func eligibleQueryValue(eligibleOnly bool) string {
+	if eligibleOnly {
+		return "1"
+	}
+	return ""
 }
 
 func peoplePersonHref(view View, personID string, page int) string {
@@ -227,6 +255,7 @@ func peoplePersonHref(view View, personID string, page int) string {
 	}
 	return statefulHref(view, PagePerson,
 		"person", personID, "q", view.Query, "team", view.PeopleTeam, "location", view.PeopleLocation,
+		"eligible", eligibleQueryValue(view.PeopleEligibleOnly),
 		"sort", sortField, "dir", direction, "page", peoplePageValue(page), "page_size", pageSizeValue(view.PeoplePageSize))
 }
 

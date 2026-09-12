@@ -232,7 +232,9 @@ func TestPromotionEligibilityProjectsPublishedChoices(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(view.People) != 2 || view.People[0].PromotionUnavailable || !view.People[1].PromotionUnavailable {
+	if len(view.People) != 2 ||
+		view.People[0].PromotionAvailability != productui.PromotionEligible ||
+		view.People[1].PromotionAvailability != productui.PromotionIneligible {
 		t.Fatalf("published eligibility not preserved: %+v", view.People)
 	}
 }

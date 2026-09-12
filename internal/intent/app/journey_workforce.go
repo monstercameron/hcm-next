@@ -11,6 +11,8 @@ import (
 	"github.com/google/uuid"
 
 	"github.com/monstercameron/human-capital-management-suite/internal/capability"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/demoworkforce"
 	"github.com/monstercameron/human-capital-management-suite/internal/data/workforce"
 	"github.com/monstercameron/human-capital-management-suite/internal/domains/fixtures"
 	"github.com/monstercameron/human-capital-management-suite/internal/domains/promotion"
@@ -279,7 +281,84 @@ func workforceOptions() (workspace.WorkforceOptions, error) {
 	if declared := currencies.sorted(); len(declared) == 1 {
 		options.Currency = declared[0]
 	}
+	appendDemoWorkforcePromotionPaths(&options)
 	return options, nil
+}
+
+// appendDemoWorkforcePromotionPaths adds the seeded demo company's own
+// career-ladder edges to the published catalog.
+//
+// PROMOUX-001: before this, workforceOptions only ever published the fixed
+// four-worker conformance corpus's job architecture (internal/domains/fixtures,
+// job-architecture.json). None of that catalog's job codes match any of the
+// demo company's own staffing roles (internal/data/demoworkforce), so every
+// demoworkforce-seeded worker resolved zero governed promotion choices for a
+// purely structural reason -- a catalog gap, not a real eligibility
+// verdict -- and looked identical to a worker the rules had actually
+// evaluated and refused. Publishing the demo company's own ladder here (the
+// same workspace.PromotionPathOption/WorkforcePlacementOption contract the
+// fixed corpus already speaks) gives both populations one governed
+// job-architecture model, which is what a client's eligibility read can
+// finally tell apart.
+//
+// This is intentionally unscoped by tenant, matching corpusWorkers' own
+// unconditional append just above: this release's journey engine already
+// publishes the fixed four-worker corpus to every tenant that reaches it, so
+// adding one more fixed, non-secret demo catalog does not introduce a new
+// category of cross-tenant leakage. A tenant-scoped job architecture is a
+// larger, separate change.
+func appendDemoWorkforcePromotionPaths(options *workspace.WorkforceOptions) {
+	edges := demoworkforce.PromotionPaths()
+	if len(edges) == 0 {
+		return
+	}
+	zones := demoworkforce.PayZones()
+	jobCodes, grades := newStringSet(), newStringSet()
+	seenPlacement := map[string]bool{}
+	for _, edge := range edges {
+		jobCodes.add(edge.SourceJobCode)
+		jobCodes.add(edge.TargetJobCode)
+		grades.add(edge.SourceGrade)
+		grades.add(edge.TargetGrade)
+		options.PromotionPaths = append(options.PromotionPaths, workspace.PromotionPathOption{
+			PathRef:       "demoworkforce:" + edge.OrgUnit + ":" + edge.SourceJobCode + "->" + edge.TargetJobCode,
+			Revision:      "1",
+			SourceJobCode: edge.SourceJobCode, SourceGrade: edge.SourceGrade,
+			TargetJobCode: edge.TargetJobCode, TargetGrade: edge.TargetGrade,
+			TargetTitle: edge.TargetTitle, Kind: "UPWARD",
+		})
+		for _, zone := range zones {
+			key := edge.TargetJobCode + "|" + edge.TargetGrade + "|" + zone
+			if seenPlacement[key] {
+				continue
+			}
+			seenPlacement[key] = true
+			options.Placements = append(options.Placements, workspace.WorkforcePlacementOption{
+				JobCode: edge.TargetJobCode, Grade: edge.TargetGrade, PayZone: zone, Currency: "USD",
+			})
+		}
+	}
+	for _, code := range jobCodes.sorted() {
+		if !containsString(options.JobCodes, code) {
+			options.JobCodes = append(options.JobCodes, code)
+		}
+	}
+	sort.Strings(options.JobCodes)
+	for _, grade := range grades.sorted() {
+		if !containsString(options.Grades, grade) {
+			options.Grades = append(options.Grades, grade)
+		}
+	}
+	sort.Strings(options.Grades)
+}
+
+func containsString(values []string, value string) bool {
+	for _, v := range values {
+		if v == value {
+			return true
+		}
+	}
+	return false
 }
 
 // bandCovers reports whether the catalog carries a band for exactly this
@@ -363,38 +442,49 @@ func (e *journeyEngine) CreateWorker(ctx context.Context, in workspace.WorkerInp
 	if err != nil {
 		return workspace.WorkerSummary{}, err
 	}
-	row, err := e.newWorkerRowContext(ctx, principal, in, options)
+
+	// The reservation and the row it names share one transaction now
+	// (PROMOUX-001 follow-up): worker_id_reservation is append-only, so a
+	// reservation made in its own transaction and then orphaned by a
+	// failure in a later, separate transaction (the shape newWorkerRowContext
+	// + insertWorker used to have) could never be released or reused --
+	// every retry burned another number while creating nothing. Opening the
+	// transaction here and threading it through both steps means a failure
+	// anywhere rolls back the reservation with it.
+	tx, err := e.beginTenant(ctx, principal)
+	if err != nil {
+		return workspace.WorkerSummary{}, err
+	}
+	defer func() { _ = tx.Rollback(ctx) }()
+
+	row, err := e.newWorkerRowContext(ctx, tx, principal, in, options)
 	if err != nil {
 		e.recordWorkforceEvidence(ctx, EvidenceKindWorkerRefused, workforceSubject(in), reasonWorkforceInput)
 		return workspace.WorkerSummary{}, err
 	}
 
-	stored, err := e.insertWorker(ctx, principal, row)
+	stored, err := e.insertWorker(ctx, tx, row)
 	if err != nil {
 		e.recordWorkforceEvidence(ctx, EvidenceKindWorkerRefused, row.WorkerKey, reasonWorkforceInput)
 		return workspace.WorkerSummary{}, err
+	}
+	if err := tx.Commit(ctx); err != nil {
+		return workspace.WorkerSummary{}, fmt.Errorf("app: journey: commit the worker: %w", err)
 	}
 	e.recordWorkforceEvidence(ctx, EvidenceKindWorkerCreated, stored.WorkerKey, "")
 	return createdWorkerSummary(stored), nil
 }
 
-// insertWorker commits one worker inside its own tenant-scoped transaction and
-// projects a duplicate key onto the port's input refusal.
+// insertWorker inserts one worker inside tx, which the caller owns and will
+// itself commit or roll back, and projects a duplicate key onto the port's
+// input refusal.
 //
 // A duplicate is [workspace.ErrJourneyInput] and not a stage refusal: the name
 // the key was derived from is a field on the form, so it is a field the person
 // can change. The message names worker_key rather than the name field because
 // the key is what actually collided, and two different people can legitimately
 // share a name.
-func (e *journeyEngine) insertWorker(
-	ctx context.Context, principal *trust.Principal, row workforce.WorkerRow,
-) (workforce.WorkerRow, error) {
-	tx, err := e.beginTenant(ctx, principal)
-	if err != nil {
-		return workforce.WorkerRow{}, err
-	}
-	defer func() { _ = tx.Rollback(ctx) }()
-
+func (e *journeyEngine) insertWorker(ctx context.Context, tx dbport.Tx, row workforce.WorkerRow) (workforce.WorkerRow, error) {
 	stored, err := (workforce.Store{}).Create(ctx, tx, row)
 	if err != nil {
 		switch {
@@ -406,9 +496,6 @@ func (e *journeyEngine) insertWorker(
 		}
 		return workforce.WorkerRow{}, fmt.Errorf("app: journey: create the worker: %w", err)
 	}
-	if err := tx.Commit(ctx); err != nil {
-		return workforce.WorkerRow{}, fmt.Errorf("app: journey: commit the worker: %w", err)
-	}
 	return stored, nil
 }
 
@@ -418,11 +505,31 @@ func (e *journeyEngine) insertWorker(
 func (e *journeyEngine) newWorkerRow(
 	principal *trust.Principal, in workspace.WorkerInput, options workspace.WorkforceOptions,
 ) (workforce.WorkerRow, error) {
-	return e.newWorkerRowContext(context.Background(), principal, in, options)
+	return e.newWorkerRowContext(context.Background(), nil, principal, in, options)
 }
 
+// txReserver is the additional capability a workerids.Store may offer:
+// reserving a worker number inside a transaction the caller already owns,
+// rather than in one Reserve commits by itself. It is declared here, not
+// widened onto workerids.Store, because every other caller of that
+// interface (the Worker IDs admin settings page) reserves nothing that a
+// worker row needs to land atomically with -- only worker creation does.
+// *workeridstore.Store implements it; a test double that implements only
+// workerids.Store falls back to the older, non-atomic Reserve path below.
+type txReserver interface {
+	ReserveTx(ctx context.Context, tx dbport.Tx, tenantID uuid.UUID, organization, actor string, fc workerids.FormatContext) (string, error)
+}
+
+// newWorkerRowContext derives everything a create-worker request needs,
+// including the reserved worker number. When tx is non-nil and e.workerIDs
+// supports it, the reservation is made inside tx -- the same transaction
+// CreateWorker will use to insert the row -- so a subsequent insert failure
+// rolls the reservation back with it instead of permanently burning a
+// number nothing was ever created for. tx is nil for the test-only
+// newWorkerRow wrapper, which always uses the older, self-committing
+// Reserve (e.workerIDs is nil in every existing internal/intent/app test).
 func (e *journeyEngine) newWorkerRowContext(
-	ctx context.Context, principal *trust.Principal, in workspace.WorkerInput, options workspace.WorkforceOptions,
+	ctx context.Context, tx dbport.Tx, principal *trust.Principal, in workspace.WorkerInput, options workspace.WorkforceOptions,
 ) (workforce.WorkerRow, error) {
 	legal := strings.TrimSpace(in.LegalName)
 	if legal == "" {
@@ -487,7 +594,14 @@ func (e *journeyEngine) newWorkerRowContext(
 	short := shortID(workerID)
 	workerNumber := journeyWorkerNumberPrefix + strings.ToUpper(short)
 	if e.workerIDs != nil {
-		workerNumber, err = e.workerIDs.Reserve(ctx, principal.Tenant(), principal.OrganizationScopeID(), principal.Subject(), workerids.FormatContext{At: now, UnitCode: placement.OrgUnit})
+		fc := workerids.FormatContext{At: now, UnitCode: placement.OrgUnit}
+		reserver, txCapable := e.workerIDs.(txReserver)
+		switch {
+		case tx != nil && txCapable && e.svc.tenantUUID != nil:
+			workerNumber, err = reserver.ReserveTx(ctx, tx, e.svc.tenantUUID(principal.Tenant()), principal.OrganizationScopeID(), principal.Subject(), fc)
+		default:
+			workerNumber, err = e.workerIDs.Reserve(ctx, principal.Tenant(), principal.OrganizationScopeID(), principal.Subject(), fc)
+		}
 		if err != nil {
 			return workforce.WorkerRow{}, fmt.Errorf("app: journey: reserve worker number: %w", err)
 		}

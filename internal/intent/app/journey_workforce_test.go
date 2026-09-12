@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 
+	"github.com/monstercameron/human-capital-management-suite/internal/data/demoworkforce"
 	"github.com/monstercameron/human-capital-management-suite/internal/data/workforce"
 	"github.com/monstercameron/human-capital-management-suite/internal/domains/fixtures"
 	"github.com/monstercameron/human-capital-management-suite/internal/humanwork/workspace"
@@ -52,9 +53,20 @@ func TestWorkforceOptionsAreDerivedFromTheCatalogAndTheCorpus(t *testing.T) {
 	if err != nil {
 		t.Fatalf("fixtures.BandScopes: %v", err)
 	}
+	// PROMOUX-001: workforceOptions now also publishes the demo company's own
+	// career ladder (internal/data/demoworkforce), so job codes, grades,
+	// placements and promotion paths are the UNION of the fixed four-worker
+	// corpus's catalog and the demoworkforce ladder -- one governed
+	// job-architecture model instead of the corpus catalog alone, which
+	// never mentioned any of the seeded workers' real job codes.
+	demoEdges := demoworkforce.PromotionPaths()
 	jobCodes, grades, payZones := map[string]bool{}, map[string]bool{}, map[string]bool{}
 	for _, s := range scopes {
 		jobCodes[s.JobCode], grades[s.Grade], payZones[s.PayZone] = true, true, true
+	}
+	for _, edge := range demoEdges {
+		jobCodes[edge.SourceJobCode], jobCodes[edge.TargetJobCode] = true, true
+		grades[edge.SourceGrade], grades[edge.TargetGrade] = true, true
 	}
 	for _, tc := range []struct {
 		name  string
@@ -70,7 +82,7 @@ func TestWorkforceOptionsAreDerivedFromTheCatalogAndTheCorpus(t *testing.T) {
 		}
 		for _, v := range tc.got {
 			if !tc.valid[v] {
-				t.Errorf("%s offers %q, which no pay band declares", tc.name, v)
+				t.Errorf("%s offers %q, which no pay band or demo ladder edge declares", tc.name, v)
 			}
 		}
 		for i := 1; i < len(tc.got); i++ {
@@ -80,8 +92,8 @@ func TestWorkforceOptionsAreDerivedFromTheCatalogAndTheCorpus(t *testing.T) {
 			}
 		}
 	}
-	if len(options.Placements) != len(scopes) {
-		t.Fatalf("exact placements = %d, want one for each of %d catalog scopes", len(options.Placements), len(scopes))
+	if len(options.Placements) < len(scopes) {
+		t.Fatalf("placements = %d, want at least one for each of %d catalog scopes", len(options.Placements), len(scopes))
 	}
 	for i, scope := range scopes {
 		placement := options.Placements[i]
@@ -89,15 +101,45 @@ func TestWorkforceOptionsAreDerivedFromTheCatalogAndTheCorpus(t *testing.T) {
 			t.Errorf("placements[%d] = %+v, want exact scope %+v", i, placement, scope)
 		}
 	}
+	demoZones := demoworkforce.PayZones()
+	wantDemoPlacements := map[string]bool{}
+	for _, edge := range demoEdges {
+		for _, zone := range demoZones {
+			wantDemoPlacements[edge.TargetJobCode+"|"+edge.TargetGrade+"|"+zone] = true
+		}
+	}
+	for _, placement := range options.Placements[len(scopes):] {
+		key := placement.JobCode + "|" + placement.Grade + "|" + placement.PayZone
+		if !wantDemoPlacements[key] || placement.Currency != "USD" {
+			t.Errorf("unexpected demo placement %+v", placement)
+		}
+	}
+	if got, want := len(options.Placements)-len(scopes), len(wantDemoPlacements); got != want {
+		t.Fatalf("demo placements = %d, want exactly %d (one per target job/grade/zone, deduplicated)", got, want)
+	}
+
 	paths, err := fixtures.PromotionPaths()
 	if err != nil {
 		t.Fatalf("fixtures.PromotionPaths: %v", err)
 	}
-	if len(options.PromotionPaths) != len(paths) {
-		t.Fatalf("promotion paths = %d, want the published %d", len(options.PromotionPaths), len(paths))
+	if len(options.PromotionPaths) != len(paths)+len(demoEdges) {
+		t.Fatalf("promotion paths = %d, want the published %d fixture paths plus %d demo ladder edges", len(options.PromotionPaths), len(paths), len(demoEdges))
 	}
 	if got := options.PromotionPaths[0]; got.SourceJobCode != "OPS-HRBP2" || got.SourceGrade != "P2" || got.TargetJobCode != "OPS-HRBP3" || got.TargetGrade != "P3" || got.MinimumBaseIncrease != "0.0500" || got.MaximumBaseIncrease != "0.1500" {
 		t.Fatalf("first promotion path lost its governed identity or rules: %+v", got)
+	}
+	for _, edge := range demoEdges {
+		found := false
+		for _, path := range options.PromotionPaths[len(paths):] {
+			if path.SourceJobCode == edge.SourceJobCode && path.SourceGrade == edge.SourceGrade &&
+				path.TargetJobCode == edge.TargetJobCode && path.TargetGrade == edge.TargetGrade && path.Kind == "UPWARD" {
+				found = true
+				break
+			}
+		}
+		if !found {
+			t.Errorf("demo ladder edge %+v is not published in workforceOptions", edge)
+		}
 	}
 
 	profiles, err := fixtures.Workers()

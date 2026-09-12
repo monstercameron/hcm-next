@@ -143,7 +143,7 @@ func ParseState(pathname, rawQuery string) (State, error) {
 	state := State{Page: definition.ID, Provided: provided, Request: productui.PageRequest{
 		Page: definition.ID, Locale: routeValue(values, "locale"), Query: routeValue(values, "q"), Mode: routeValue(values, "mode"),
 		SelectedWork: routeValue(values, "selected"), SelectedPerson: routeValue(values, "person"),
-		PeoplePage: peoplePage, PeoplePageSize: peoplePageSize, PeopleTeam: routeValue(values, "team"), PeopleLocation: routeValue(values, "location"), PeopleSort: routeValue(values, "sort"), PeopleDirection: routeValue(values, "dir"),
+		PeoplePage: peoplePage, PeoplePageSize: peoplePageSize, PeopleTeam: routeValue(values, "team"), PeopleLocation: routeValue(values, "location"), PeopleEligibleOnly: routeValue(values, "eligible") == "1", PeopleSort: routeValue(values, "sort"), PeopleDirection: routeValue(values, "dir"),
 		OrganizationView: routeValue(values, "org_view"),
 		WorkflowQuery:    routeValue(values, "workflow_q"), HistoryQuery: routeValue(values, "history_q"), HistoryOutcome: routeValue(values, "outcome"),
 		HistoryPerson: routeValue(values, "history_person"), HistoryYear: routeValue(values, "history_year"), HistorySort: routeValue(values, "history_sort"), HistoryDirection: routeValue(values, "history_dir"), HistoryPage: historyPage, HistoryPageSize: historyPageSize,
@@ -174,8 +174,8 @@ var pageRouteQueryKeys = map[productui.PageID][]string{
 	productui.PageJourneys:     {"journey", "mode", "worker"},
 	productui.PageWork:         {"filter", "selected"},
 	productui.PageHistory:      {"history_q", "outcome", "history_person", "history_year", "history_sort", "history_dir", "history_page", "history_page_size"},
-	productui.PagePeople:       {"q", "page", "page_size", "team", "location", "sort", "dir"},
-	productui.PagePerson:       {"person", "q", "page", "page_size", "team", "location", "sort", "dir", "workflow_q", "history_q", "outcome", "history_person", "history_year", "history_sort", "history_dir", "history_page", "history_page_size"},
+	productui.PagePeople:       {"q", "page", "page_size", "team", "location", "eligible", "sort", "dir"},
+	productui.PagePerson:       {"person", "q", "page", "page_size", "team", "location", "eligible", "sort", "dir", "workflow_q", "history_q", "outcome", "history_person", "history_year", "history_sort", "history_dir", "history_page", "history_page_size"},
 	productui.PageOrganization: {"org_view"},
 	productui.PageStudio:       {"mode"},
 	productui.PageRoles:        {"q"},
@@ -223,6 +223,7 @@ func validControlledRouteValues(page productui.PageID, values url.Values) bool {
 	}
 	if !oneOf("sort", "name", "role", "team", "manager", "location") ||
 		!oneOf("dir", "asc", "desc") ||
+		!oneOf("eligible", "1") ||
 		!oneOf("history_sort", "person", "change", "closed", "outcome") ||
 		!oneOf("history_dir", "asc", "desc") ||
 		!oneOf("outcome", "completed", "rejected", "failed") {
@@ -341,6 +342,11 @@ func setPeopleRouteValues(values url.Values, state State) {
 	setProvidedRouteInt(values, state, "page_size", request.PeoplePageSize)
 	setProvidedRouteValue(values, state, "team", request.PeopleTeam)
 	setProvidedRouteValue(values, state, "location", request.PeopleLocation)
+	eligibleValue := ""
+	if request.PeopleEligibleOnly {
+		eligibleValue = "1"
+	}
+	setProvidedRouteValue(values, state, "eligible", eligibleValue)
 	setProvidedRouteValue(values, state, "sort", request.PeopleSort)
 	setProvidedRouteValue(values, state, "dir", request.PeopleDirection)
 }
@@ -408,7 +414,13 @@ func requirementsForPage(page productui.PageID) pageDataRequirements {
 	case productui.PageHome, productui.PageMyself, productui.PageWork, productui.PageHistory,
 		productui.PagePerson, productui.PageInsights:
 		return pageDataRequirements{journeys: true, workers: true}
-	case productui.PagePeople, productui.PageOrganization, productui.PageRoles, productui.PageOrganizationVisibility:
+	case productui.PagePeople:
+		// PROMOUX-001: the directory's per-worker promotion-availability
+		// verdict needs to know about a nonterminal journey already in
+		// flight for that worker (PromotionActiveConflict), so People also
+		// reads journeys now -- not just workers.
+		return pageDataRequirements{journeys: true, workers: true}
+	case productui.PageOrganization, productui.PageRoles, productui.PageOrganizationVisibility:
 		return pageDataRequirements{workers: true}
 	default:
 		return pageDataRequirements{}
@@ -544,14 +556,27 @@ func load(ctx context.Context, service Service, session Session, state State, ba
 		var projectionErr error
 		view.People, projectionErr = projectWorkers(workersResponse.GetWorkers())
 		if options := workersResponse.GetOptions(); options != nil {
-			unavailable := make(map[string]bool, len(workersResponse.GetWorkers()))
+			// PROMOUX-001: the server-owned four-state verdict. authorized
+			// is the same create-authority gate the page adapters already
+			// use to hide every workflow from a denied viewer; asking it
+			// first is what keeps an unauthorized read from leaking which
+			// workers would otherwise have been eligible, ineligible or
+			// conflicted (every one of them collapses to PromotionWithheld
+			// alike). activeConflicts comes from the journeys this same
+			// load just answered with -- requirementsForPage now asks for
+			// them on PagePeople specifically so this is never stale.
+			authorized := len(view.EffectivePermissions) == 0 || view.Can(productui.PageJourneys, "create")
+			activeConflicts := activePromotionConflicts(view.Work)
+			availability := make(map[string]productui.PromotionAvailabilityCode, len(workersResponse.GetWorkers()))
 			for _, worker := range workersResponse.GetWorkers() {
-				if worker != nil {
-					unavailable[worker.GetWorkerRef()] = !journeyclient.HasPromotionChoices(options, worker)
+				if worker == nil {
+					continue
 				}
+				hasPath := journeyclient.HasPromotionChoices(options, worker)
+				availability[worker.GetWorkerRef()] = productui.ResolvePromotionAvailability(authorized, hasPath, activeConflicts[worker.GetWorkerRef()])
 			}
 			for index := range view.People {
-				view.People[index].PromotionUnavailable = unavailable[view.People[index].ID]
+				view.People[index].PromotionAvailability = availability[view.People[index].ID]
 			}
 		}
 		if projectionErr != nil {
@@ -757,6 +782,21 @@ func applyTableDefaults(request *productui.PageRequest, provided map[string]bool
 	if !provided["dir"] && !provided["sort"] {
 		request.PeopleDirection = table.GetDirection()
 	}
+}
+
+// activePromotionConflicts reports, per worker reference, whether a
+// nonterminal promotion journey already exists for them. Every journey this
+// service returns is a promotion journey (projectJourneys hard-codes the
+// title), so PersonRef plus !Terminal is a complete answer with no need to
+// filter by workflow kind.
+func activePromotionConflicts(work []productui.WorkItem) map[string]bool {
+	conflicts := make(map[string]bool, len(work))
+	for _, item := range work {
+		if !item.Terminal && item.PersonRef != "" {
+			conflicts[item.PersonRef] = true
+		}
+	}
+	return conflicts
 }
 
 func projectJourneys(journeys []*journeyv1.Journey) ([]productui.WorkItem, error) {

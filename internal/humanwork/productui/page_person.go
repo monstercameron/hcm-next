@@ -111,7 +111,7 @@ func personWorkflowLauncherProps(view View, person Person, target PageID) Workfl
 	}
 	workflows := make([]WorkflowCardProps, 0, len(filtered))
 	for _, workflow := range filtered {
-		if workflow.ID == "promotion" && person.PromotionUnavailable {
+		if workflow.ID == "promotion" && !personPromotionEligible(person) {
 			continue
 		}
 		href := workflow.Href
@@ -144,9 +144,22 @@ func personWorkflowLauncherProps(view View, person Person, target PageID) Workfl
 				"page", peoplePageValue(view.PeoplePage), "workflow_q", query))
 		}
 	}
+	// GREEN #2: every displayed availability state carries a server-provided
+	// reason -- including a viewer this page has already denied every
+	// workflow to above, who previously saw a blank UnavailableDetail. The
+	// local create-authority check is asked again here (matching the
+	// `filtered = nil` gate above) rather than trusted from
+	// person.PromotionAvailability alone, because a caller may construct a
+	// Person directly (as component tests here do) without routing it
+	// through the productclient projection that would otherwise have baked
+	// the same authorization into the code.
+	authorized := len(view.EffectivePermissions) == 0 || view.Can(PageJourneys, "create")
 	unavailableDetail := ""
-	if person.PromotionUnavailable && (len(view.EffectivePermissions) == 0 || view.Can(PageJourneys, "create")) {
-		unavailableDetail = view.Locale.Text("workflow.no_promotion_path")
+	switch {
+	case !authorized:
+		unavailableDetail = PromotionAvailabilityReason(view.Locale, PromotionWithheld)
+	case !personPromotionEligible(person):
+		unavailableDetail = PromotionAvailabilityReason(view.Locale, person.PromotionAvailability)
 	}
 	return WorkflowLauncherProps{
 		UnavailableDetail: unavailableDetail,
@@ -155,5 +168,5 @@ func personWorkflowLauncherProps(view View, person Person, target PageID) Workfl
 }
 
 func peopleReturnHref(view View) string {
-	return peopleDirectoryHref(view, view.PeoplePage, view.Query, view.PeopleTeam, view.PeopleLocation, view.PeopleSort, view.PeopleDirection)
+	return peopleDirectoryHref(view, view.PeoplePage, view.Query, view.PeopleTeam, view.PeopleLocation, view.PeopleEligibleOnly, view.PeopleSort, view.PeopleDirection)
 }

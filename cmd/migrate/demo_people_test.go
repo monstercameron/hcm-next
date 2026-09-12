@@ -41,6 +41,58 @@ func TestIngestDemoPhotosUsesPrivateOriginalsAndPublicProxies(t *testing.T) {
 	}
 }
 
+// TestIngestDemoPhotosSkipsAlreadyPublishedProxy proves the PROMOUX-001
+// seeding-path fix: a proxy already published under its target name is left
+// alone rather than re-derived and byte-compared, so a source photo that has
+// legitimately drifted (retouch, recompression) since the proxy was
+// committed does not turn every re-run of `migrate demo-people` into a hard
+// failure. Without this, ingestDemoPhotos would call profilephoto.Upload,
+// which would in turn hit FileStore.atomicWrite's fail-closed "already
+// exists with different content" error the moment the freshly computed JPEG
+// bytes disagree with what is on disk -- exactly the failure this todo's
+// brief reports for hc-042.png/hc-055.png.
+func TestIngestDemoPhotosSkipsAlreadyPublishedProxy(t *testing.T) {
+	t.Parallel()
+
+	sourceDir, assetDir, originalDir := t.TempDir(), t.TempDir(), t.TempDir()
+	// A source photo that would NOT reproduce the tracked proxy's bytes: a
+	// single flat color the pipeline could never have produced (the
+	// checked-in proxy is a fixed, unrelated marker string). If
+	// ingestDemoPhotos attempted to regenerate and byte-compare, this would
+	// fail with FileStore's "already exists with different content" error.
+	if err := os.WriteFile(filepath.Join(sourceDir, "hc-002.png"), demoPNG(t), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	proxyPath := filepath.Join(assetDir, "person-hc-002-small.jpg")
+	if err := os.MkdirAll(assetDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	staleContent := []byte("stale-tracked-proxy-bytes-unrelated-to-any-real-jpeg")
+	if err := os.WriteFile(proxyPath, staleContent, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	employees := []demoworkforce.Employee{
+		{Row: workforce.WorkerRow{WorkerKey: "hc-002-test"}, HasProfilePhoto: true, PhotoSourceName: "hc-002.png",
+			PhotoOriginalRef: "profile-originals/hc-002.png", PhotoProxyRef: "/workspace/assets/person-hc-002-small.jpg"},
+	}
+	if err := ingestDemoPhotos(context.Background(), employees, sourceDir, assetDir, originalDir); err != nil {
+		t.Fatalf("ingestion of an already-published proxy must not fail: %v", err)
+	}
+	after, err := os.ReadFile(proxyPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(after, staleContent) {
+		t.Fatal("already-published proxy was overwritten instead of left alone")
+	}
+	// The retained original is a private, non-served path this test does not
+	// assert on: the point under test is the proxy, which is the file the
+	// FileStore's collision guard fails closed on.
+	if err := ingestDemoPhotos(context.Background(), employees, sourceDir, assetDir, originalDir); err != nil {
+		t.Fatalf("re-running ingestion against the same already-published proxy must stay idempotent: %v", err)
+	}
+}
+
 func TestIngestDemoPhotosRefusesAMissingSelectedSource(t *testing.T) {
 	t.Parallel()
 

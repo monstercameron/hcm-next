@@ -40,6 +40,14 @@ func (s *web035JourneyService) ListWorkers(context.Context, *journeyv1.ListWorke
 	}}}, nil
 }
 
+// ListJourneys is answered trivially: PROMOUX-001 made PagePeople also
+// require journeys (the directory's per-worker promotion availability needs
+// to know about an in-flight journey), so this test's People-page load now
+// exercises both RPCs; this fixture is not testing journey data at all.
+func (s *web035JourneyService) ListJourneys(context.Context, *journeyv1.ListJourneysRequest) (*journeyv1.ListJourneysResponse, error) {
+	return &journeyv1.ListJourneysResponse{}, nil
+}
+
 // TestTodo_WEB_035_Integration proves that accepting a hint reaches
 // productclient.LoadWithBaseline through the generated Journey gRPC client.
 // The only applied view is the fresh RPC projection; no display field exists
@@ -83,6 +91,9 @@ func TestTodo_WEB_035_Integration(t *testing.T) {
 	liveService := productclient.Service{
 		ListWorkers: func(ctx context.Context, request *journeyv1.ListWorkersRequest) (*journeyv1.ListWorkersResponse, error) {
 			return qualified.ListWorkers(ctx, request)
+		},
+		ListJourneys: func(ctx context.Context, request *journeyv1.ListJourneysRequest) (*journeyv1.ListJourneysResponse, error) {
+			return qualified.ListJourneys(ctx, request)
 		},
 	}
 	session := productclient.Session{Tenant: "acme", Principal: "authorized-reader", Scope: "people-directory"}

@@ -5,17 +5,29 @@ import (
 	"testing"
 )
 
+// TestProfileWorkflowEmptyReasonRespectsCreatePermission proves the person
+// workflow launcher never renders a bare, unexplained empty state.
+//
+// PROMOUX-001 changed the unauthorized branch's expectation: before, a
+// denied requester saw a blank UnavailableDetail alongside zero workflows --
+// exactly the "no available workflows, no reason" defect this todo's RED
+// names. A denied requester must still see zero launchable workflows (no
+// job-ladder detail that would tell them anything about this specific
+// person), but the reason itself is never blank: it is the generic,
+// viewer-safe PromotionWithheld text every worker gets under a denied
+// create authority, so it carries no signal about this person's real
+// ladder or conflict state.
 func TestProfileWorkflowEmptyReasonRespectsCreatePermission(t *testing.T) {
 	for _, allowed := range []bool{false, true} {
 		view := testView(PageMyself)
 		view.EffectivePermissions = []RolePagePermission{{Page: PageJourneys, View: true, Create: allowed}}
-		person := Person{ID: "worker-avery", Name: "Avery", PromotionUnavailable: true}
+		person := Person{ID: "worker-avery", Name: "Avery", PromotionAvailability: PromotionIneligible}
 		props := personWorkflowLauncherProps(view, person, PageMyself)
 		if allowed && props.UnavailableDetail != view.Locale.Text("workflow.no_promotion_path") {
 			t.Fatal("authorized requester lost the job-ladder explanation")
 		}
-		if !allowed && (props.UnavailableDetail != "" || len(props.Workflows) != 0) {
-			t.Fatal("denied requester received job-ladder advice or launch actions")
+		if !allowed && (props.UnavailableDetail != view.Locale.Text("workflow.promotion_withheld") || len(props.Workflows) != 0) {
+			t.Fatal("denied requester either received job-ladder advice/launch actions, or lost the generic withheld reason")
 		}
 	}
 }

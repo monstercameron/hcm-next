@@ -114,11 +114,22 @@ func TestTodo_SVC_013_Integration(t *testing.T) {
 		t.Fatalf("status output = %q, want a schema-version report line", statusOut.String())
 	}
 
+	// Rolling the newest migration back must be refused, not succeed. Every
+	// migration from 00279 onward declares itself irreversible on purpose --
+	// they write durable evidence (legal-hold notices, admission-retry
+	// records, ledger payload dispositions) that cannot be safely unwound --
+	// and goose runs Down newest-first, so the newest migration is always one
+	// of them. Asserting a successful rollback here asserted behaviour the
+	// migration chain deliberately forbids, and had been failing for that
+	// reason; the command is still exercised, but against the outcome the
+	// design actually specifies. migrations.TestNewestReversibleVersionStops-
+	// BelowDeclaredIrreversibles pins the same rule from the other side.
 	var downOut bytes.Buffer
-	if err := runMigrateCommand(ctx, "down", db.SQL, &downOut); err != nil {
-		t.Fatalf("down: %v", err)
+	err := runMigrateCommand(ctx, "down", db.SQL, &downOut)
+	if err == nil {
+		t.Fatalf("down succeeded against an irreversible chain head; output = %q", downOut.String())
 	}
-	if !strings.Contains(downOut.String(), "rolled back") {
-		t.Fatalf("down output = %q, want a rolled-back report line", downOut.String())
+	if !strings.Contains(err.Error(), "irreversible") {
+		t.Fatalf("down error = %v, want a refusal citing irreversibility", err)
 	}
 }

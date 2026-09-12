@@ -479,10 +479,10 @@ func TestPeopleColumnHeadersAreIndependentGridItems(t *testing.T) {
 func TestPeopleDirectoryCombinesFacetsSortAndPagination(t *testing.T) {
 	view := testView(PagePeople)
 	view.People = []Person{
-		{ID: "worker-z", Name: "Zara", Role: "Engineer", Team: "Platform", Location: "Boston"},
-		{ID: "worker-a", Name: "Avery", Role: "Designer", Team: "Product", Location: "Boston"},
-		{ID: "worker-m", Name: "Mateo", Role: "Engineer", Team: "Platform", Location: "Denver"},
-		{ID: "worker-b", Name: "Bianca", Role: "Engineer", Team: "Platform", Location: "Boston"},
+		{ID: "worker-z", Name: "Zara", Role: "Engineer", Team: "Platform", Location: "Boston", PromotionAvailability: PromotionEligible},
+		{ID: "worker-a", Name: "Avery", Role: "Designer", Team: "Product", Location: "Boston", PromotionAvailability: PromotionEligible},
+		{ID: "worker-m", Name: "Mateo", Role: "Engineer", Team: "Platform", Location: "Denver", PromotionAvailability: PromotionEligible},
+		{ID: "worker-b", Name: "Bianca", Role: "Engineer", Team: "Platform", Location: "Boston", PromotionAvailability: PromotionEligible},
 	}
 	view.Query = "engineer"
 	view.PeopleTeam = "Platform"
@@ -497,7 +497,7 @@ func TestPeopleDirectoryCombinesFacetsSortAndPagination(t *testing.T) {
 		"2 of 4 people", ">Zara</strong>", ">Bianca</strong>", `name="team"`, `value="Platform"`,
 		`name="location"`, `value="Boston"`, `>Person ↓</a>`,
 		`href="/workspace/app/people?location=Boston&amp;q=engineer&amp;sort=role&amp;team=Platform"`,
-		`href="/workspace/app/people?dir=desc&amp;location=&amp;q=&amp;team="`,
+		`href="/workspace/app/people?dir=desc&amp;eligible=&amp;location=&amp;q=&amp;team="`,
 	} {
 		if !strings.Contains(doc, want) {
 			t.Fatalf("faceted sorted directory missing %q", want)
@@ -531,6 +531,7 @@ func TestPeopleDirectoryPaginatesFilteredLiveProjection(t *testing.T) {
 		view.People[index] = Person{
 			ID: fmt.Sprintf("worker-%02d", number), Initials: "P", Name: fmt.Sprintf("Person %02d", number),
 			Role: "Engineer", Team: "Platform", Location: "Remote", WorkerNumber: fmt.Sprintf("NW-%02d", number),
+			PromotionAvailability: PromotionEligible,
 		}
 	}
 	view.Query = "Engineer"
