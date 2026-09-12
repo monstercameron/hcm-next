@@ -24,6 +24,7 @@ import (
 	"sort"
 
 	"github.com/monstercameron/human-capital-management-suite/internal/domains/evidence"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/org"
 	"github.com/monstercameron/human-capital-management-suite/internal/domains/people"
 	"github.com/monstercameron/human-capital-management-suite/internal/domains/position"
 	"github.com/monstercameron/human-capital-management-suite/internal/domains/rewards"
@@ -566,6 +567,10 @@ type InputSnapshot struct {
 	Policy         Policy
 	Annualization  rewards.AnnualizationRule
 	BandQuery      *rewards.BandQuery
+	// ManagementImpact is PROMOUX-005's typed review requirement: what a
+	// management promotion changes in the reporting graph. Its zero value
+	// means no target-manager selection was evaluated.
+	ManagementImpact ManagementImpact
 }
 
 // Canonical returns the canonical byte encoding, or nil when incoherent.
@@ -593,6 +598,7 @@ func (s InputSnapshot) Canonical() []byte {
 	if s.BandQuery != nil {
 		w.Value("band_query", *s.BandQuery)
 	}
+	w.Field("management_impact", s.ManagementImpact.Canonical())
 	raw, err := w.Bytes()
 	if err != nil {
 		return nil
@@ -641,6 +647,20 @@ type PreflightRequest struct {
 	// legacy Target.PositionID is refused rather than trusted as-is (see
 	// [evaluateTargetPositionSelection]).
 	TargetPositionSelection *PositionSelection
+
+	// ManagerFacts answers the Organization capability's own
+	// org.WorkerFacts port (PROMOUX-005): existence, disclosure and
+	// reporting-chain reachability for a selected target manager and every
+	// affected direct report. Required whenever TargetManagerSelection is
+	// set; a nil reader with no selection is fine, because a promotion that
+	// names no target manager never needs one.
+	ManagerFacts org.WorkerFacts
+	// TargetManagerSelection is the caller-declared management-promotion
+	// intention (PROMOUX-005): the candidate manager and the affected
+	// direct-report scope. nil means this is not a management promotion in
+	// that sense -- the job/grade/org-only preflight this package always
+	// ran is unaffected. See [evaluateTargetManagerSelection].
+	TargetManagerSelection *TargetManagerSelection
 }
 
 // Validate reports whether the request is well formed. Business problems are

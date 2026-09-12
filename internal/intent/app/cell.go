@@ -10,10 +10,12 @@ import (
 	"github.com/monstercameron/human-capital-management-suite/internal/connectivity/fakeincumbent"
 	"github.com/monstercameron/human-capital-management-suite/internal/connectivity/observe"
 	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/orgfacts"
 	"github.com/monstercameron/human-capital-management-suite/internal/data/positionfacts"
 	"github.com/monstercameron/human-capital-management-suite/internal/data/workforce"
 	"github.com/monstercameron/human-capital-management-suite/internal/domains/fixtures"
 	"github.com/monstercameron/human-capital-management-suite/internal/domains/intelligence"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/org"
 	"github.com/monstercameron/human-capital-management-suite/internal/domains/people"
 	"github.com/monstercameron/human-capital-management-suite/internal/domains/position"
 	"github.com/monstercameron/human-capital-management-suite/internal/domains/rewards"
@@ -299,6 +301,15 @@ type Cell struct {
 	// goes".
 	positionReader position.PositionFacts
 
+	// managerFacts is PROMOUX-005's real org.WorkerFacts adapter
+	// (internal/data/orgfacts), composed on the same condition as
+	// positionReader above: without an execution database and a tenant
+	// mapping there is no journey_worker table to walk a reporting chain
+	// over. Nil on a cell composed without both -- the workspace's read
+	// surface and any target-manager selection then treat a candidate as
+	// unprovable, never as pre-authorized.
+	managerFacts org.WorkerFacts
+
 	// workspaceEnabled records whether the edge publishes the human-facing
 	// workspace. It is not exported: whether a surface is served is decided
 	// at composition, and a handler that could be switched on afterwards
@@ -399,6 +410,17 @@ func NewCell(cfg CellConfig) (*Cell, error) {
 	var positionReader position.PositionFacts
 	if cfg.ExecutionDB != nil && cfg.TenantUUID != nil {
 		positionReader = positionfacts.Reader{DB: cfg.ExecutionDB, TenantUUID: cfg.TenantUUID}
+	}
+
+	// PROMOUX-005: the same condition as positionReader above. Without an
+	// execution database and a tenant mapping there is no journey_worker
+	// table this cell could walk a reporting chain over, and managerFacts
+	// stays nil -- which the workspace's read surface and
+	// evaluateTargetManagerSelection both treat as "cannot be checked", not
+	// "assume safe".
+	var managerFacts org.WorkerFacts
+	if cfg.ExecutionDB != nil && cfg.TenantUUID != nil {
+		managerFacts = orgfacts.NewReader(cfg.ExecutionDB, cfg.TenantUUID)
 	}
 
 	incumbent, connection, err := resolveConnectivity(cfg)
@@ -514,6 +536,7 @@ func NewCell(cfg CellConfig) (*Cell, error) {
 		WorkerIDs:      cfg.WorkerIDs,
 		locateWorker:   locateWorker,
 		positionReader: positionReader,
+		managerFacts:   managerFacts,
 
 		workspaceEnabled: workspaceEnabled,
 		devBrowserLogin:  cfg.DevBrowserLogin,

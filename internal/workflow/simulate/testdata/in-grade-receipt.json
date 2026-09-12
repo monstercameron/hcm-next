@@ -130,8 +130,8 @@
       "route_key": "SUCCEEDED",
       "next_node_id": "raise_threshold",
       "input_digest": "7f04861e335640dd035889f996d766915218dca3a4e69a23510f94212389019c",
-      "output_digest": "0be9e436df1b06d86a345fc2f24ae0f14c36c7dff1955af73e6edc1b80fe741f",
-      "detail": "proposal sha256:ae291799c simulated: preflight READY, compensation EVALUATED, executable=true",
+      "output_digest": "a03e7e4e87f06321d7e9f028cb05b45794b73aa950a9be678ca8aacbbd78ff57",
+      "detail": "proposal sha256:51b71c40e simulated: preflight READY, compensation EVALUATED, executable=true",
       "evidence": [
         {
           "ref": "transform_execution_id",
@@ -340,6 +340,6 @@
       "version": "hcmnext.workflow.simulate/v1"
     }
   ],
-  "zero_effect_digest": "a442e80cea1b2b8afc6bcba50085657dcae6f583155a44574d37d90a8a3e1aca",
-  "digest": "b6c8f6969af82db82beac39bf598bb62d8bf4dd6d302a98d3dcbab41fe44f604"
+  "zero_effect_digest": "bf7b29a4824a665c9f46c2cf974c8e66e1abe0746e7e394806c707fd8f92d66c",
+  "digest": "9d14a338431b4c345801e2e5e11c9cc45a6bb808be5ada3fc728e4b18d77d422"
 }

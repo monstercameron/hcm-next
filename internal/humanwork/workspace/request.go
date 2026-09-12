@@ -199,6 +199,14 @@ type Request struct {
 	Budget         *promotion.BudgetAuthorityRef
 	Policy         promotion.Policy
 	Annualization  rewards.AnnualizationRule
+
+	// TargetManagerSelection is PROMOUX-005's management-promotion
+	// intention: the candidate manager and the affected direct-report
+	// scope. nil means this request names no target manager -- the
+	// job/grade/org-only preflight this page always ran is unaffected. The
+	// query/form vocabulary (Query, Typed) does not populate this field yet;
+	// a caller that wants it checked builds a Request directly.
+	TargetManagerSelection *promotion.TargetManagerSelection
 }
 
 // Typed turns the string query into the typed domain request, or reports

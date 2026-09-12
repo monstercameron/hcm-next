@@ -130,8 +130,8 @@
       "route_key": "SUCCEEDED",
       "next_node_id": "raise_threshold",
       "input_digest": "3504c52063ef7d5f3894a00bc9d6504ef8e2a68941d8f1b7c8a2c6194b9e235e",
-      "output_digest": "efa1927e263ca33b96b61690747952637a67eb72dacd7f9e6ac3e3d459faa76b",
-      "detail": "proposal sha256:5f4dd0b22 simulated: preflight READY, compensation EVALUATED, executable=true",
+      "output_digest": "c1b384fcbc13f77fb95c060496d369b2a6d8cbfc8ab43d264843780403c7f50a",
+      "detail": "proposal sha256:0e57cc769 simulated: preflight READY, compensation EVALUATED, executable=true",
       "evidence": [
         {
           "ref": "transform_execution_id",
@@ -189,7 +189,7 @@
       "exited_at": "2026-09-03T12:00:01.5Z",
       "elapsed_ns": 250000000,
       "outcome": "SIMULATION_APPROVAL_REQUIRED",
-      "input_digest": "933afbfd4fa65d26ad0cc6bec82403206562c02e473b3b234e074e087cfdcbde",
+      "input_digest": "c95cbde5c017a480e616fcc6e40d0fdad20442076c34cb86feeb5b71498e82dc",
       "output_digest": "87c91ae38d3d03565d36750c20d2b3b52b2e05f3b7eacc091dd9cd02e8542979",
       "detail": "reached terminal SIMULATION_APPROVAL_REQUIRED with runtime status COMPLETED",
       "evidence": [
@@ -330,6 +330,6 @@
       "version": "hcmnext.workflow.simulate/v1"
     }
   ],
-  "zero_effect_digest": "6fb32dffcabb0d2c0bb3f81cb35188e4351923683b9f0e732d70c90deaea6d4c",
-  "digest": "06823524e8f18a1dab9450b011d30699965f851d878ef43365bc9577a5cefec3"
+  "zero_effect_digest": "b6b226875072576f83175d3d9e9f93c3e718f3b506391b5d61fc12c981dd3e84",
+  "digest": "21c325af415bca435cefe5287184715d192b0832ffa633dbeb3138df9586a1db"
 }
