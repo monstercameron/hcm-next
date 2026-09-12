@@ -86,6 +86,19 @@ func FindConcurrentPackages(root, modulePath string) ([]ConcurrentPackage, error
 			if name != "." && (skipDirNames[name] || strings.HasPrefix(name, ".")) {
 				return filepath.SkipDir
 			}
+			// A directory carrying its own go.mod is a separate module.
+			// `go test ./...` never crosses that boundary, so neither may a
+			// filesystem scan that feeds `go test`: the root module cannot
+			// build a nested module's packages, and naming them turns the
+			// race step into "FAIL ... [setup failed]". src/blocks/go is
+			// covered by its own CI job. Checking for go.mod rather than
+			// hard-coding that path keeps any future nested module correct
+			// without another edit here.
+			if path != root {
+				if _, statErr := os.Stat(filepath.Join(path, "go.mod")); statErr == nil {
+					return filepath.SkipDir
+				}
+			}
 			return nil
 		}
 		if !strings.HasSuffix(path, ".go") {
