@@ -25,6 +25,18 @@ import (
 // immutable-output trigger (surfaced here as an illegal transition once the
 // item is already COMPLETED) are what make Complete safe to call from more
 // than one racing writer.
+//
+// PROMOUX-003: before any of that, Complete locks every APPROVAL work item
+// sharing this item's (tenant, proposal_ref) -- [workitem.Store.LockApprovalSiblings]
+// -- and refuses with [ErrSeparationConflict] when the decision's approver
+// already completed a *different* requirement on the same proposal
+// ([workitem.ConflictingCompletion]). This is the domain-side enforcement
+// PROMOUX-003's REFACTOR clause requires: separation is evaluated by the
+// approval owner, here, before the completing write, never left to whichever
+// surface happens to call this function. The lock is held for the rest of
+// this call, so two concurrent completions of the two requirements on one
+// proposal by the same principal serialize on it: whichever transaction
+// commits first is what the second one's lookup sees.
 func Complete(
 	ctx context.Context, tx workitem.Executor, store workitem.Port,
 	item workitem.WorkItem, decision intentapproval.ApprovalDecision,
@@ -32,6 +44,9 @@ func Complete(
 ) (workitem.WorkItem, error) {
 	if item.Kind != workitem.KindApproval || item.ApprovalRequirementRef == "" {
 		return workitem.WorkItem{}, fmt.Errorf("%w: work item %s is not an approval task", ErrBindingMismatch, item.WorkItemID)
+	}
+	if item.ProposalRef == "" {
+		return workitem.WorkItem{}, fmt.Errorf("%w: work item %s names no proposal to evaluate separation of duties against", ErrBindingMismatch, item.WorkItemID)
 	}
 	if !decision.Outcome.Valid() {
 		return workitem.WorkItem{}, fmt.Errorf("%w: decision outcome %q is not declared", ErrInvalidEvidence, decision.Outcome)
@@ -53,6 +68,16 @@ func Complete(
 	digest := decision.Digest()
 	if digest == "" {
 		return workitem.WorkItem{}, fmt.Errorf("%w: decision has no digest", ErrInvalidEvidence)
+	}
+
+	siblings, err := (workitem.Store{}).LockApprovalSiblings(ctx, tx, item.TenantID, item.ProposalRef)
+	if err != nil {
+		return workitem.WorkItem{}, err
+	}
+	if conflict, found := workitem.ConflictingCompletion(siblings, item.WorkItemID, item.ApprovalRequirementRef, decision.Approver.PrincipalID); found {
+		return workitem.WorkItem{}, fmt.Errorf(
+			"%w: %q already completed requirement %q for this proposal and may not also decide %q",
+			ErrSeparationConflict, decision.Approver.PrincipalID, conflict.ApprovalRequirementRef, item.ApprovalRequirementRef)
 	}
 
 	completed, err := store.Complete(ctx, tx, workitem.CompleteInput{

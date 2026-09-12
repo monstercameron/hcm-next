@@ -62,7 +62,7 @@ func TestApprovalDecisionIsBuiltFromDurableFactsOnly(t *testing.T) {
 	item, inst, proposal, at := journeyDecideFixtures()
 	engine := newJourneyEngine(nil, nil, "", nil, nil)
 	decision := engine.approvalDecision(item, inst, "revision-1", proposal,
-		workspace.Decision{Approve: true, Reason: "supported"}, at)
+		workspace.Decision{Approve: true, Reason: "supported"}, at, engine.approver)
 
 	if decision.Binding.RequirementID != item.ApprovalRequirementRef {
 		t.Errorf("binding requirement = %q, want the item's own requirement", decision.Binding.RequirementID)
@@ -101,7 +101,7 @@ func TestApprovalDecisionRecordsARejection(t *testing.T) {
 	item, inst, proposal, at := journeyDecideFixtures()
 	engine := newJourneyEngine(nil, nil, "", nil, nil)
 	decision := engine.approvalDecision(item, inst, "revision-1", proposal,
-		workspace.Decision{Approve: false, Reason: "not now"}, at)
+		workspace.Decision{Approve: false, Reason: "not now"}, at, engine.approver)
 	if decision.Outcome != intentapproval.OutcomeRejected {
 		t.Fatalf("outcome = %s, want REJECTED", decision.Outcome)
 	}
@@ -112,7 +112,7 @@ func TestApprovalDecisionDigestsIdenticallyOnEveryRebuild(t *testing.T) {
 	engine := newJourneyEngine(nil, nil, "", nil, nil)
 	build := func() intentapproval.ApprovalDecision {
 		return engine.approvalDecision(item, inst, "revision-1", proposal,
-			workspace.Decision{Approve: true, Reason: "supported"}, at)
+			workspace.Decision{Approve: true, Reason: "supported"}, at, engine.approver)
 	}
 	first, second := build(), build()
 	if first.Digest() == "" {
@@ -125,7 +125,7 @@ func TestApprovalDecisionDigestsIdenticallyOnEveryRebuild(t *testing.T) {
 	// digest, which is why Decide uses one reading for both the completion and
 	// the resume.
 	later := engine.approvalDecision(item, inst, "revision-1", proposal,
-		workspace.Decision{Approve: true, Reason: "supported"}, at.Add(time.Second))
+		workspace.Decision{Approve: true, Reason: "supported"}, at.Add(time.Second), engine.approver)
 	if later.Digest() == first.Digest() {
 		t.Fatal("two instants must not digest identically")
 	}
@@ -134,7 +134,7 @@ func TestApprovalDecisionDigestsIdenticallyOnEveryRebuild(t *testing.T) {
 func TestApprovalDecisionUsesTheConfiguredApprover(t *testing.T) {
 	item, inst, proposal, at := journeyDecideFixtures()
 	engine := newJourneyEngine(nil, nil, "principal:other-approver", nil, nil)
-	decision := engine.approvalDecision(item, inst, "revision-1", proposal, workspace.Decision{Approve: true}, at)
+	decision := engine.approvalDecision(item, inst, "revision-1", proposal, workspace.Decision{Approve: true}, at, engine.approver)
 	if decision.Approver.PrincipalID != "principal:other-approver" {
 		t.Fatalf("approver = %q, want the configured principal", decision.Approver.PrincipalID)
 	}
@@ -189,7 +189,7 @@ func journeyRoutedFixtures(t *testing.T, approve bool) (
 	}
 	engine := newJourneyEngine(nil, nil, "", nil, nil)
 	decision := engine.approvalDecision(item, intent.Instance{IntentID: intentID}, revisionID,
-		revision.MaterialDigest, workspace.Decision{Approve: approve, Reason: "reason"}, at)
+		revision.MaterialDigest, workspace.Decision{Approve: approve, Reason: "reason"}, at, engine.approver)
 	// What stepsapproval.Complete would have recorded.
 	item.Status = workitem.StatusCompleted
 	item.CompletedBy = decision.Approver.PrincipalID

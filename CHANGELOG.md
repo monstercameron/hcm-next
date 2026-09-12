@@ -1,5 +1,44 @@
 # Changelog
 
+## 2026-09-12 (PROMOUX-003)
+
+- One principal can no longer complete both the finance and the manager
+  approval on the same proposal, and the refusal is enforced by the database
+  rather than by a check that runs before the write.
+
+  `LockApprovalSiblings` issues `SELECT ... FOR UPDATE` over every approval row
+  sharing the proposal, ordered by work-item id so racing callers acquire the
+  same locks in the same order and cannot deadlock. Because both requirements
+  name the same row set, only one transaction can hold them; `Complete` takes
+  that lock before reading any state and before writing, so the loser blocks,
+  sees the committed conflict, and refuses. Two real connections released from a
+  barrier prove it.
+
+- The undifferentiated owner is closed structurally: finance and manager
+  approvers are now provably distinct principals derived from one base, instead
+  of the single shared approver identity both requirements had been routed to.
+
+- Reassignment is proven not to disturb what is being approved by diffing the
+  durable record field by field -- fourteen immutable facts plus the proposal
+  reference -- while requiring the owner to have actually moved, so the equality
+  claim cannot pass vacuously.
+
+- Separation is evaluated by the approval owner with the UI entirely absent: a
+  conflicted principal is refused driving the domain write directly, no HTTP, no
+  journey engine, no page. That fills the concrete authority-recheck seam
+  EP-WORK-003 left unimplemented and recorded as a boundary when it closed.
+
+- Presentation consumes the disposition rather than recomputing it. The card
+  states the five facts the todo names, and both the props and the rendered HTML
+  are asserted not to leak: a group-owned item renders a generic protected-group
+  phrase with the internal candidate-set reference and its digest required
+  absent, and a conflicted viewer's refusal names no second principal.
+
+- Also raised a hardcoded 20s budget in an unrelated serializable-retry test
+  that turned machine load into a false failure. Confirmed pre-existing by
+  running it against a worktree of unmodified HEAD, where it failed identically;
+  every assertion is unchanged.
+
 ## 2026-09-12 (UXAUDIT-007)
 
 - The shell stops announcing context that has not changed. An ordinary

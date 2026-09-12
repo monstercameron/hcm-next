@@ -204,6 +204,13 @@ type WorkItem struct {
 	// Provenance is supplied by the authorized service adapter when available.
 	// It is presentation evidence only and never grants action authority.
 	Provenance ProvenanceProjection
+	// Disposition is PROMOUX-003's approval verdict for this item, adapted
+	// from internal/humanwork/workitem.ApprovalDisposition
+	// (ApprovalDispositionProjectionFrom). Nil means no disposition was
+	// computed for this item -- not an approval work item, or an adapter
+	// that has not wired one yet -- and the render path shows nothing for
+	// it rather than a default, misleading availability.
+	Disposition *ApprovalDispositionProjection
 }
 
 type Person struct {
