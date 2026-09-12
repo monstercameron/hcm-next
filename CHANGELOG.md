@@ -1,5 +1,37 @@
 # Changelog
 
+## 2026-09-12 (EP-WORK-002)
+
+- Close EP-WORK-002: ClaimWorkItem and ReleaseWorkItem. The RPCs and their
+  generated types already existed; this wires real handlers to them, with the
+  claim/lease state machine in `internal/humanwork/workitem` rather than in
+  transport. No migration needed.
+
+  ENDPOINT-004's Coordinator is composed rather than forked, so exact replay and
+  the stale-revision precondition share one mechanism. Exclusivity is
+  two-layered by design: the coordinator refuses many concurrent losers early on
+  a stale revision, and anyone slipping past is caught by the existing
+  `UPDATE ... WHERE item_version = $n` compare-and-swap. No second CAS was
+  written.
+
+  Append-only assignment evidence is enforced three ways and proven directly:
+  the write paths only INSERT, the database grants refuse a raw UPDATE or DELETE
+  (the mutation test executes one and asserts "permission denied for table
+  work_item_transition"), and migration 00017's forbid_mutation trigger stands
+  behind both.
+
+  Two boundaries recorded rather than glossed. `Invocation` discards raw
+  transport headers after admission, so only the message-level idempotency key
+  reaches the handler -- replay and revision behaviour are unaffected, but the
+  header/message folding is not exercised at this call site. And production
+  composition is not connected: `internal/transport/cell/cell.go` has only a
+  read port in scope, so both endpoints fail closed with UNAVAILABLE until a
+  write port is threaded through the cell builder. Raised separately.
+
+  Two EP-WORK-001 conformance cases asserting Claim and Release return the P1B
+  stub refusal were removed, because implementing them made those assertions
+  false. The Complete and DecideApproval stub cases remain.
+
 ## 2026-09-12 (ENDPOINT-004)
 
 - Close ENDPOINT-004: unify endpoint idempotency, expected revision, ETag and
