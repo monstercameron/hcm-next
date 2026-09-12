@@ -1,0 +1,14 @@
+# LEDGER-011 classification -> mechanism -> state
+STANDARD -> mechanism=OVERWRITE state=PAYLOAD_ERASED
+ENCRYPTED_AT_REST -> mechanism=CRYPTO_ERASURE state=RESTRICTED
+# unrecognized classifications are refused, never defaulted
+"" -> error=true
+"standard" -> error=true
+"ENCRYPTED" -> error=true
+"TOP_SECRET" -> error=true
+# declared PayloadState vocabulary
+PRESENT
+REFERENCED
+HELD
+RESTRICTED
+PAYLOAD_ERASED
