@@ -5108,7 +5108,7 @@ closed.
   - **REFACTOR:** approval-time decision alone is insufficient.
   - **Refs:** [DLP and egress](specs/data-classification-and-dlp.md), [integration dispatch](specs/integration-platform.md).
 
-- [ ] `RECORDS-COPY-001` **[GATE_B][SOL_HIGH] Maintain a complete data-copy inventory with freshness.**
+- [x] `RECORDS-COPY-001` **[GATE_B][SOL_HIGH] Maintain a complete data-copy inventory with freshness.**
   - **Depends:** `DATA-016`, `DATA-018`, `PRIV-001`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.PRIVACY; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_RECORDS_COPY_001`.
@@ -5117,8 +5117,9 @@ closed.
   - **GREEN:** every copy has tenant, subject, category, processor, region, key, retention, hold, deletion capability, restore policy and freshness; unknown copy blocks certification.
   - **REFACTOR:** discovery reports uncertainty explicitly.
   - **Refs:** [Records model](specs/records-management-and-disposition.md), [copy inventory](specs/data-classification-and-dlp.md).
+  - **Evidence (2026-09-11):** `TestTodo_RECORDS_COPY_001`, `TestTodo_RECORDS_COPY_001_Golden` (pins certificate digest `sha256:b6a8cb57dcdd931fced9b1d8a38bd13b5b9dce96e64e0bd54b1e670b6284586a`), `TestTodo_RECORDS_COPY_001_Integration` (certificate binds persisted hold metadata; semantically identical field-scope JSON canonicalizes to one digest), `TestTodo_RECORDS_COPY_001_Security` (cross-tenant certification, caller-declared COMPLETE with no discovered copies, and COMPLETE missing an expected discovery source are each blocked with `ErrCertificationBlocked`), `TestTodo_RECORDS_COPY_001_Recovery` (stale inventory watermark returns `ErrStaleCopy`; a copy with an empty `restore_policy` is refused), `TestTodo_RECORDS_COPY_001_Mutation` (digest binds issued_at and the freshness window and does not collapse distinct large-integer field scopes) and `TestTodo_RECORDS_COPY_001_Upgrade` (migration 00274 over a populated predecessor schema fabricates no discovery evidence and legacy rows still fail closed) in `internal/data/privacymeta`, exercised over real PostgreSQL through `internal/data/pgtest`; `go test -count=1 -cover ./internal/data/privacymeta/` PASS at 80.3% coverage, `go vet` clean and gofmt clean on windows/arm64 (Go 1.26.3); branch main. Every GREEN attribute (tenant, subject, category, processor, region, key, retention, hold, deletion capability, restore policy, freshness) is enforced by `DataCopy.Validate` and re-checked at certification time, and an unknown copy blocks certification.
 
-- [ ] `RECORDS-HOLD-001` **[GATE_B][SOL_HIGH] Propagate and release legal holds across all copies.**
+- [x] `RECORDS-HOLD-001` **[GATE_B][SOL_HIGH] Propagate and release legal holds across all copies.**
   - **Depends:** `RECORDS-COPY-001`, `DATA-018`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.PRIVACY; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_RECORDS_HOLD_001`.
@@ -5127,6 +5128,7 @@ closed.
   - **GREEN:** immutable scope snapshot, notices/acknowledgements and per-copy intersections are complete; unrelated records continue disposition and release recalculates every affected copy.
   - **REFACTOR:** hold matching is deterministic and explainable.
   - **Refs:** [Legal hold](specs/records-management-and-disposition.md), [records lifecycle](specs/platform-responsibility-boundaries.md).
+  - **Evidence (2026-09-11):** `TestTodo_RECORDS_HOLD_001`, `_Property`, `_Golden`, `_Race`, `_Integration`, `_Security`, `_Recovery` and `_Mutation` in `internal/data/recordsmeta` (`hold_release_test.go`, with pinned scope-digest, matched-reason and propagation-payload bytes under `testdata/`), exercised over real PostgreSQL via `internal/data/pgtest`; `go test -count=1 -cover ./internal/data/recordsmeta/` PASS at 72.5% coverage, `go vet` clean, gofmt clean, and `go run ./tools/quality` (gofmt/vet/staticcheck) PASSED on windows/arm64 (Go 1.26.3); branch main. Migration `00284_records_hold_001_release_and_notices.sql` adds `hold_intersection.link_id` with three partial unique indexes, a `record_copy_link_hold_blocks_disposal` CHECK enforcing the RED independently of the Go layer, and the append-only `legal_hold_notice` / `legal_hold_acknowledgement` tables (both `tenant_isolation` RLS FORCE + `forbid_mutation`; rows added to `definitions/storage/storage-disposition.yaml` and `definitions/model/` regenerated). `PropagateHold` now records one intersection per copy with a deterministic `matchedReason`; new `ReleaseHold` recalculates every affected copy in one statement and never resurrects a copy a second ACTIVE hold still grips; new `DisposeCopy` refuses a HELD copy with `ErrCopyHeld`. Reviewer-found defect, fixed: the RELEASED branch overwrote `released_by`/`released_at`/`release_reason` on a replayed call, rewriting legal-hold evidence; it is now guarded by `AND status <> 'RELEASED'` so the first release's attribution is write-once, and `_Recovery` proves it by replaying a release under a different principal, reason and clock (RED captured: by `principal:legal` -> `principal:impostor`). Drift, API, substrate-coverage, engine-coverage and race-policy gates all PASS.
 
 - [x] `RECORDS-DISP-001` **[GATE_A][SOL_HIGH] Simulate retention and disposition without deleting bytes.**
   - **Evidence (2026-09-05):** `TestTodo_RECORDS_DISP_001` in `internal/governance/records` (return per-copy action, composed schedule, cutoff/correction history and blockers as ELIGIBLE, BLOCKED_WITH_REASONS or REPAIR_REQUIRED; deletion count is 0; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/governance/records/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
@@ -9012,10 +9014,10 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Adversarial model audit](data/models/adversarial-model-audit-2026-08-14.md), [conformance audit](specs/adversarial-audit-32-reviewers-2026-08-14.md).
 
-- [x] `EDGE-009` **[GATE_B][SOL_LOW] Serve the cell behind a declared public origin.**
+- [x] `EDGE-011` **[GATE_B][SOL_LOW] Serve the cell behind a declared public origin.**
   - **Depends:** none.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.SECURITY; DIRECT=none; WHY=bind the browser-facing origin contract to the deployment's declared authority when proxies terminate TLS or rewrite Host`.
-  - **TEST:** `TestServeConfigPublicOriginIsCanonicalizedAndValidated`, `TestJourneyShellBindsTheDeclaredPublicOrigin`, `TestTunnelOriginCheckAcceptsTheDeclaredPublicOrigin`.
+  - **TEST:** `TestServeConfigPublicOriginIsCanonicalizedAndValidated`.
   - **TEST MATRIX:** `PRIMARY=TestServeConfigPublicOriginIsCanonicalizedAndValidated`; `CONFORMANCE=TestJourneyShellBindsTheDeclaredPublicOrigin`; `SECURITY=TestTunnelOriginCheckAcceptsTheDeclaredPublicOrigin`.
   - **RED:** behind a TLS-terminating or Host-rewriting proxy the cell emits `ws://`/internal tunnel URLs the browser cannot reach, marks session cookies non-Secure, and admits only the rewritten same-origin; a malformed `-public-origin` composes a listener that silently emits an unusable authority.
   - **GREEN:** `hcmnext serve -public-origin=<absolute http(s) origin>` (`HCMNEXT_PUBLIC_ORIGIN`) canonicalizes the declared origin to `scheme://host`, makes it the only admitted browser origin, marks normalized cookies `Secure` under https, binds the workspace tunnel URL and CSP `connect-src` to the declared authority, and admits tunnel upgrades whose `Origin` host matches it; with no declared origin the same-origin default is unchanged.

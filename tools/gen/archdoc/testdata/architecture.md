@@ -52,6 +52,8 @@ Generated from the checked-in architecture manifests and the current Go package 
 | platform | `internal/replan` | platform-foundation | P1A | Declared on 2026-09-06 when the repository-layout policy joined the pre-commit gates; the package existed and was in use before its root was written down here. |
 | data | `internal/resource` | data-and-ledger | P1A | Declared on 2026-09-06 when the repository-layout policy joined the pre-commit gates; the package existed and was in use before its root was written down here. |
 | platform | `internal/store` | platform-foundation | P1A | Declared on 2026-09-06 when the repository-layout policy joined the pre-commit gates; the package existed and was in use before its root was written down here. |
+| platform | `internal/configuration` | platform-foundation | deferred | Configuration-semantics contracts (ARCH-GO-024); declared on 2026-09-10 when CI first ran the layout gate past the quality gate and reported the missing root. Deferred beyond P1A scope; no domain, workflow or store dependencies. |
+| data | `internal/evidence` | data-and-ledger | deferred | Closed-intent execution receipts (EVIDENCE-001); declared on 2026-09-10 when CI first ran the layout gate past the quality gate and reported the missing root. Deferred beyond P1A scope; digests point at owner records, never a second ledger. |
 
 ## Allowed dependency edges
 
@@ -930,4 +932,4 @@ Generated Protobuf/Go artifacts. Content is owned by the generator (TOOL-002/TOO
 
 ## Document digest
 
-`349d6b8782492b293cd57edee6cd4b800946ccf50d7f1e54d9caab980715741b`
+`91ead1e1475e454b935481698341a6a1843c0a2d677d8fe6a48d7a05b39d77ce`

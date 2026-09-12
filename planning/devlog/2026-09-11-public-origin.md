@@ -1,4 +1,4 @@
-# 2026-09-11 — Public origin serve configuration (EDGE-009)
+# 2026-09-11 — Public origin serve configuration (EDGE-011)
 
 ## What
 

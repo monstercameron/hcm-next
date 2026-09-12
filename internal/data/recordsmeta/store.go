@@ -253,15 +253,24 @@ func LoadLegalHold(ctx context.Context, q dbport.Querier, tenantID, holdID uuid.
 	return h, nil
 }
 
-// HoldIntersection is one hold's grip on one declared record. It is what
-// makes a hold enforceable against a specific disposition rather than a
-// statement of intent.
+// HoldIntersection is one hold's grip on one declared record, or on one
+// specific material copy of it. It is what makes a hold enforceable against
+// a specific disposition rather than a statement of intent.
+//
+// CopyID references privacymeta's discovery-inventory data_copy row; LinkID
+// references recordsmeta's own lifecycle-tracked record_copy_link row (what
+// [PropagateHold] grips, one per tracked copy). A row may name neither (the
+// original DB-015 shape: one declaration-level grip), or exactly one of the
+// two; migration 00284's partial unique indexes enforce that at most one
+// ACTIVE intersection exists per hold/declaration for each of those three
+// shapes.
 type HoldIntersection struct {
 	TenantID       uuid.UUID  `json:"tenant_id"`
 	IntersectionID uuid.UUID  `json:"intersection_id"`
 	HoldID         uuid.UUID  `json:"hold_id"`
 	DeclarationID  uuid.UUID  `json:"declaration_id"`
 	CopyID         *uuid.UUID `json:"copy_id"`
+	LinkID         *uuid.UUID `json:"link_id"`
 	MatchedReason  string     `json:"matched_reason"`
 	MatchedAt      time.Time  `json:"matched_at"`
 	ReleasedAt     *time.Time `json:"released_at"`
@@ -294,21 +303,22 @@ func InsertHoldIntersection(ctx context.Context, tx dbport.Tx, i HoldIntersectio
 	if err := ensureTenant(ctx, tx, i.TenantID); err != nil {
 		return err
 	}
-	_, err := tx.Exec(ctx, `INSERT INTO hold_intersection (tenant_id, intersection_id, hold_id, declaration_id, copy_id, matched_reason, matched_at, released_at, state) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
-		i.TenantID, i.IntersectionID, i.HoldID, i.DeclarationID, i.CopyID, i.MatchedReason, i.MatchedAt, i.ReleasedAt, i.State)
+	_, err := tx.Exec(ctx, `INSERT INTO hold_intersection (tenant_id, intersection_id, hold_id, declaration_id, copy_id, link_id, matched_reason, matched_at, released_at, state) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,
+		i.TenantID, i.IntersectionID, i.HoldID, i.DeclarationID, i.CopyID, i.LinkID, i.MatchedReason, i.MatchedAt, i.ReleasedAt, i.State)
 	return err
 }
 
 func LoadHoldIntersection(ctx context.Context, q dbport.Querier, tenantID, intersectionID uuid.UUID) (HoldIntersection, error) {
 	var i HoldIntersection
-	var copyID *uuid.UUID
+	var copyID, linkID *uuid.UUID
 	var released *time.Time
-	err := q.QueryRow(ctx, `SELECT tenant_id, intersection_id, hold_id, declaration_id, copy_id, matched_reason, matched_at, released_at, state FROM hold_intersection WHERE tenant_id=$1 AND intersection_id=$2`, tenantID, intersectionID).
-		Scan(&i.TenantID, &i.IntersectionID, &i.HoldID, &i.DeclarationID, &copyID, &i.MatchedReason, &i.MatchedAt, &released, &i.State)
+	err := q.QueryRow(ctx, `SELECT tenant_id, intersection_id, hold_id, declaration_id, copy_id, link_id, matched_reason, matched_at, released_at, state FROM hold_intersection WHERE tenant_id=$1 AND intersection_id=$2`, tenantID, intersectionID).
+		Scan(&i.TenantID, &i.IntersectionID, &i.HoldID, &i.DeclarationID, &copyID, &linkID, &i.MatchedReason, &i.MatchedAt, &released, &i.State)
 	if err != nil {
 		return HoldIntersection{}, err
 	}
 	i.CopyID = copyID
+	i.LinkID = linkID
 	i.ReleasedAt = released
 	return i, nil
 }
