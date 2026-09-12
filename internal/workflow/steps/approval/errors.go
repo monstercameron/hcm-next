@@ -14,4 +14,9 @@ var (
 	// ErrInvalidEvidence reports a completed WorkItem without the exact immutable
 	// ApprovalDecision whose digest it records.
 	ErrInvalidEvidence = errors.New("workflow approval: invalid evidence")
+	// ErrSeparationConflict reports PROMOUX-003's core refusal: the decision's
+	// approver already completed a different approval requirement on the same
+	// proposal. It is returned by [Complete], never by [Resolve], because the
+	// conflict is about who may act, not about how a completed row resolves.
+	ErrSeparationConflict = errors.New("workflow approval: separation of duties refuses this completion")
 )

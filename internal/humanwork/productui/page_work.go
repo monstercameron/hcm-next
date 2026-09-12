@@ -52,6 +52,7 @@ func workCollectionProps(view View, options workCollectionOptions) WorkCollectio
 			ID: item.ID, Initials: item.Initials, PhotoURL: item.PhotoURL, Title: item.Title, Person: item.Person,
 			Summary: item.Summary, Due: item.Due, JourneyStage: item.Status,
 			StatusProjection: item.StatusProjection,
+			Disposition:      approvalDispositionCardProps(view.Locale, item.Disposition),
 			Href:             statefulHref(view, PageWork, "filter", view.WorkFilter, "selected", item.ID),
 			Selected:         options.ListDetail && item.ID == selectedID, Navigate: view.Navigate,
 		})
@@ -100,7 +101,8 @@ func workPreviewProps(view View, item WorkItem) WorkPreviewProps {
 	}
 	return WorkPreviewProps{
 		ID: item.ID, Initials: item.Initials, PhotoURL: item.PhotoURL, Title: item.Title, Person: item.Person,
-		Summary: item.Summary, JourneyStage: item.Status, StatusProjection: item.StatusProjection, Provenance: item.Provenance, FactsTitle: view.Locale.Text("work.server_proposal"),
+		Summary: item.Summary, JourneyStage: item.Status, StatusProjection: item.StatusProjection, Provenance: item.Provenance,
+		Disposition: approvalDispositionCardProps(view.Locale, item.Disposition), FactsTitle: view.Locale.Text("work.server_proposal"),
 		Facts: []FactProps{
 			{Label: view.Locale.Text("work.effective_date"), Value: valueOrUnavailableFor(view.Locale, item.EffectiveDate)},
 			{Label: view.Locale.Text("work.current_base"), Value: money(view.Locale, item.CurrentBase)},

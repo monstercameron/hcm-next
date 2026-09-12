@@ -498,7 +498,18 @@ func retryStart(execution *PromotionExecution, tenant uuid.UUID, key string, at 
 }
 
 func TestTodo_DB_EDGE_003_IntegrationPromotionCompositionRetriesSerializableAndRechecksApproval(t *testing.T) {
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	// This test drives real serializable retries against a real PostgreSQL,
+	// so its wall-clock cost tracks how contended the machine is rather than
+	// anything about the code under test. The original 20s budget was tight
+	// enough that the test failed on a busy developer machine -- verified
+	// against an unmodified checkout at 22.9s and 32.4s, with the same
+	// "context deadline exceeded" in place of the typed UNAPPROVED_PROPOSAL
+	// refusal it is actually asserting. A deadline that turns machine load
+	// into a false failure tests the machine, not the retry contract, so it
+	// is raised here. Every assertion below is unchanged: a genuine failure
+	// to refuse an unapproved proposal still fails, and the retry behaviour
+	// is still what is being measured.
+	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 	database := pgtest.New(t)
 	tenant := uuid.New()

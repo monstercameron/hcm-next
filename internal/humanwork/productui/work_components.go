@@ -43,9 +43,44 @@ type WorkRowProps struct {
 	// BusinessIntent lifecycle tuple. Never derive StatusProjection from it.
 	JourneyStage     string
 	StatusProjection StatusProjection
-	Href             string
-	Selected         bool
-	Navigate         func(string)
+	// Disposition is PROMOUX-003's approval verdict for this item, already
+	// localized by approvalDispositionCardProps. Show is false when the item
+	// carries no disposition (not an approval, or none was resolved), and
+	// the row renders exactly as it did before this field existed.
+	Disposition ApprovalDispositionCardProps
+	Href        string
+	Selected    bool
+	Navigate    func(string)
+}
+
+// ApprovalDispositionCardProps is PROMOUX-003's rendered approval
+// disposition: the five GREEN facts, already localized by
+// approvalDispositionCardProps from a [workitem.ApprovalDisposition]. Every
+// field here is presentation-ready text; this package's render functions
+// never resolve locale copy from Reason codes or references themselves.
+type ApprovalDispositionCardProps struct {
+	// Show is false when the owning work item carries no disposition at
+	// all -- render nothing, not an empty or default-valued card.
+	Show bool
+	// WaitingFor states the authority class this item awaits, e.g.
+	// "Waiting for Finance Partner".
+	WaitingFor string
+	// AssignedTo names the assigned person or protected-group label, e.g.
+	// "Assigned to Jane Smith" or "Assigned to a protected group of
+	// approvers".
+	AssignedTo      string
+	AssignedIsGroup bool
+	// Due states the item's own deadline, e.g. "Due September 12, 2026".
+	Due string
+	// ViewerAuthority states the viewer's own acting authority against this
+	// item, e.g. "You are acting as Finance Partner" or "You hold no acting
+	// authority for this approval".
+	ViewerAuthority string
+	Available       bool
+	// Reason explains why the action is, or is not, available. It is always
+	// populated when Show is true, and never names the identity of a
+	// conflicting sibling's completer -- only the stable rule that applies.
+	Reason string
 }
 
 type WorkCollectionFooterProps struct {
@@ -65,11 +100,14 @@ type WorkPreviewProps struct {
 	JourneyStage     string
 	StatusProjection StatusProjection
 	Provenance       ProvenanceProjection
-	FactsTitle       string
-	Facts            []FactProps
-	Action           ActionLinkProps
-	EmptyTitle       string
-	EmptyDetail      string
+	// Disposition is PROMOUX-003's approval verdict for this item; see
+	// WorkRowProps.Disposition.
+	Disposition ApprovalDispositionCardProps
+	FactsTitle  string
+	Facts       []FactProps
+	Action      ActionLinkProps
+	EmptyTitle  string
+	EmptyDetail string
 }
 
 func WorkPage(props WorkPageProps) ui.Node {
@@ -133,12 +171,51 @@ func WorkRow(props WorkRowProps) ui.Node {
 		linkProps.Aria = map[string]string{"current": "true"}
 	}
 	status := workStatus(props.I18nProps, "work-row-status-"+props.ID, props.StatusProjection, props.JourneyStage)
+	main := []ui.Node{
+		html.Strong(html.Props{}, ui.Text(props.Title)),
+		html.Small(html.Props{}, ui.Text(props.Person)),
+		html.Small(html.Props{}, ui.Text(props.Summary)),
+	}
+	// PROMOUX-003: the row's own compact disposition summary -- "Waiting
+	// for <role>" -- so an approver scanning the list learns whose turn it
+	// is without opening the preview. It renders only what
+	// approvalDispositionCardProps already localized.
+	if props.Disposition.Show {
+		main = append(main, html.Small(html.Props{Class: "row-disposition"}, ui.Text(props.Disposition.WaitingFor)))
+	}
 	return html.Li(html.Props{Class: "work-row-item"}, softwareLink(props.Navigate, linkProps, props.Href,
 		personAvatar(props.Person, props.Initials, props.PhotoURL, ""),
-		html.Span(html.Props{Class: "row-main"}, html.Strong(html.Props{}, ui.Text(props.Title)), html.Small(html.Props{}, ui.Text(props.Person)), html.Small(html.Props{}, ui.Text(props.Summary))),
+		html.Span(html.Props{Class: "row-main"}, main...),
 		html.Span(html.Props{Class: "row-end"}, status, html.Small(html.Props{}, ui.Text(props.Due))),
 		html.Span(html.Props{Aria: map[string]string{"hidden": "true"}}, ui.Text("›")),
 	))
+}
+
+// ApprovalDispositionCard renders PROMOUX-003's five GREEN facts -- waiting
+// for, assigned to, due date, the viewer's acting authority and why the
+// action is or is not available -- exactly as approvalDispositionCardProps
+// already localized them. It renders nothing when props.Show is false, and
+// it never resolves locale copy or recomputes availability itself: every
+// string here is presentation-ready input.
+func ApprovalDispositionCard(props ApprovalDispositionCardProps) ui.Node {
+	if !props.Show {
+		return nil
+	}
+	tone := "disposition-available"
+	if !props.Available {
+		tone = "disposition-unavailable"
+	}
+	assignedClass := "disposition-assigned"
+	if props.AssignedIsGroup {
+		assignedClass += " disposition-assigned-group"
+	}
+	return html.Div(html.Props{Class: "approval-disposition " + tone, Raw: map[string]any{"role": "group"}},
+		html.P(html.Props{Class: "disposition-waiting-for"}, ui.Text(props.WaitingFor)),
+		html.P(html.Props{Class: assignedClass}, ui.Text(props.AssignedTo)),
+		html.P(html.Props{Class: "disposition-due"}, ui.Text(props.Due)),
+		html.P(html.Props{Class: "disposition-viewer-authority"}, ui.Text(props.ViewerAuthority)),
+		html.P(html.Props{Class: "disposition-reason"}, ui.Text(props.Reason)),
+	)
 }
 
 func workStatus(i18n I18nProps, id string, projection StatusProjection, stage string) ui.Node {
@@ -157,14 +234,20 @@ func WorkPreview(props WorkPreviewProps) ui.Node {
 	facts := append([]ui.Node{html.H3(html.Props{}, ui.Text(props.FactsTitle))}, factRows(props.Facts)...)
 	status := workStatus(props.I18nProps, "work-preview-status-"+props.ID, props.StatusProjection, props.JourneyStage)
 	provenance := ui.CreateElement(ProvenancePresentation, ProvenancePresentationProps{I18nProps: props.I18nProps, IDSeed: "work-preview-provenance-" + props.ID, Projection: props.Provenance})
-	return html.Aside(html.Props{Class: "surface work-preview", Aria: map[string]string{"label": props.Text("work.selected_summary")}},
+	children := []ui.Node{
 		html.Div(html.Props{Class: "preview-head"},
 			personAvatar(props.Person, props.Initials, props.PhotoURL, ""),
 			html.Div(html.Props{}, html.Small(html.Props{}, ui.Text(props.Text("work.selected_label"))), html.H2(html.Props{}, ui.Text(props.Title)), html.P(html.Props{Class: "muted"}, ui.Text(fmt.Sprintf("%s · %s", props.Person, props.Summary)))),
 			status,
 		),
-		html.Div(html.Props{Class: "facts"}, facts...),
-		provenance,
-		ui.CreateElement(ActionLink, props.Action),
-	)
+	}
+	// PROMOUX-003: the full disposition card -- rendered before the facts
+	// and the action, since "why the action is or is not available" is what
+	// an approver needs to read before deciding whether to open the journey
+	// at all.
+	if props.Disposition.Show {
+		children = append(children, ui.CreateElement(ApprovalDispositionCard, props.Disposition))
+	}
+	children = append(children, html.Div(html.Props{Class: "facts"}, facts...), provenance, ui.CreateElement(ActionLink, props.Action))
+	return html.Aside(html.Props{Class: "surface work-preview", Aria: map[string]string{"label": props.Text("work.selected_summary")}}, children...)
 }

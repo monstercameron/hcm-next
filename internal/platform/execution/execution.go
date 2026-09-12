@@ -555,15 +555,31 @@ func (f promotionWorkItems) CreateAndRoute(ctx context.Context, ex workitem.Exec
 	}
 	var requirement humanwork.ApprovalRequirement
 	var err error
+	// owner is who this specific node's WorkItem is routed to. For the
+	// executable plan it is never f.approver directly: PROMOUX-003 requires
+	// the finance and manager approvals to bind to distinct authority-class
+	// principals (promotionexec.FinanceApproverFor/ManagerApproverFor derive
+	// two provably different identities from the one configured base), so a
+	// composition naming only one approver can never route both approvals to
+	// an undifferentiated owner.
+	owner := f.approver
 	deadline := req.CreatedAt.Add(approvalDecisionWindow)
 	if plan == PLAN_EXECUTE {
 		if req.Continuation.TargetNodeID == promotionexec.NodeApproveFinance {
-			requirement, err = promotionexec.CompileFinanceApprovalRequirement(f.approver, deadline)
+			owner, err = promotionexec.FinanceApproverFor(f.approver)
+			if err != nil {
+				return workitem.WorkItem{}, fmt.Errorf("platform execution: derive the finance approver: %w", err)
+			}
+			requirement, err = promotionexec.CompileFinanceApprovalRequirement(owner, deadline)
 		} else {
-			requirement, err = promotionexec.CompileManagerApprovalRequirement(f.approver, deadline)
+			owner, err = promotionexec.ManagerApproverFor(f.approver)
+			if err != nil {
+				return workitem.WorkItem{}, fmt.Errorf("platform execution: derive the manager approver: %w", err)
+			}
+			requirement, err = promotionexec.CompileManagerApprovalRequirement(owner, deadline)
 		}
 	} else {
-		requirement, err = prototype.CompileApprovalRequirement(f.approver, deadline)
+		requirement, err = prototype.CompileApprovalRequirement(owner, deadline)
 	}
 	if err != nil {
 		return workitem.WorkItem{}, fmt.Errorf("platform execution: compile the approval requirement: %w", err)
@@ -594,7 +610,7 @@ func (f promotionWorkItems) CreateAndRoute(ctx context.Context, ex workitem.Exec
 		RequirementID: requirement.RequirementID, RequirementRevision: requirement.Revision,
 		Outcome: humanwork.OutcomeResolved,
 		Candidates: []humanwork.Candidate{
-			{PrincipalID: f.approver, Via: humanwork.SourceDirect, TermRef: "term:execution-authority-approver"},
+			{PrincipalID: owner, Via: humanwork.SourceDirect, TermRef: "term:execution-authority-approver"},
 		},
 		ResolvedAt: values.NewInstant(req.CreatedAt), EffectiveAt: values.NewInstant(req.CreatedAt),
 		DirectoryVersion:  "directory.execution-authority/1",
@@ -604,7 +620,7 @@ func (f promotionWorkItems) CreateAndRoute(ctx context.Context, ex workitem.Exec
 	}
 	assignment := workitem.Assignment{
 		Resolution: resolution, GovernancePolicyRef: requirement.Source.GovernancePolicyRef,
-		Trigger: workitem.TriggerInitialRouting, ChosenOwner: f.approver,
+		Trigger: workitem.TriggerInitialRouting, ChosenOwner: owner,
 	}
 	return store.Route(ctx, ex, created.TenantID, created.WorkItemID, created.ItemVersion, assignment,
 		workitem.TransitionMeta{

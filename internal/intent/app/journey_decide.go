@@ -430,10 +430,19 @@ func (e *journeyEngine) completeApproval(
 		return decidedApproval{}, fmt.Errorf("%w: the approval deadline %s has passed", ErrProposalDecisionExpired, item.DeadlineAt.UTC().Format(time.RFC3339))
 	}
 
+	// PROMOUX-003: the principal this engine acts as depends on which node's
+	// item is open, never a single engine-wide approver -- otherwise finance
+	// and manager approvals would always be claimed and completed as the
+	// identical identity, exactly RED clause 2's "undifferentiated owner".
+	nodeApprover, err := e.approverForNode(item.NodeID)
+	if err != nil {
+		return decidedApproval{}, fmt.Errorf("app: journey: derive the routed approver for %s: %w", item.NodeID, err)
+	}
+
 	actor := principal.Subject()
 	claimed, err := store.Claim(ctx, tx, workitem.ClaimInput{
 		TenantID: tenantID, WorkItemID: item.WorkItemID, ExpectedVersion: item.ItemVersion,
-		ClaimantPrincipalID: e.approver,
+		ClaimantPrincipalID: nodeApprover,
 		ClaimExpiresAt:      decidedAt.Add(journeyClaimWindow), Now: decidedAt,
 		Meta: workitem.TransitionMeta{ActorPrincipalID: actor, Reason: journeyReasonClaimed, At: decidedAt},
 	})
@@ -452,7 +461,7 @@ func (e *journeyEngine) completeApproval(
 	if started.Kind == workitem.KindTask {
 		completed, err = store.Complete(ctx, tx, workitem.CompleteInput{
 			TenantID: started.TenantID, WorkItemID: started.WorkItemID, ExpectedVersion: started.ItemVersion,
-			CompletedBy: e.approver, CompletedOutputDigest: "sha256:" + strings.Repeat("0", 64), Now: decidedAt,
+			CompletedBy: nodeApprover, CompletedOutputDigest: "sha256:" + strings.Repeat("0", 64), Now: decidedAt,
 			Meta: workitem.TransitionMeta{ActorPrincipalID: actor, Reason: journeyReasonDecided, At: decidedAt},
 		})
 		if err != nil {
@@ -464,7 +473,7 @@ func (e *journeyEngine) completeApproval(
 		}
 		outcome = frontier.NodeOutcome{NodeID: completed.NodeID, Outcome: result, OutputDigest: completed.CompletedOutputDigest}
 	} else {
-		decision = e.approvalDecision(started, inst, revision.ProposalRevisionID, revision.MaterialDigest, d, decidedAt)
+		decision = e.approvalDecision(started, inst, revision.ProposalRevisionID, revision.MaterialDigest, d, decidedAt, nodeApprover)
 		completed, err = stepsapproval.Complete(ctx, tx, store, started, decision, decidedAt,
 			workitem.TransitionMeta{ActorPrincipalID: actor, Reason: journeyReasonDecided, At: decidedAt})
 		if err != nil {
@@ -492,6 +501,30 @@ func (e *journeyEngine) completeApproval(
 		return decidedApproval{}, fmt.Errorf("app: journey: commit the decision: %w", err)
 	}
 	return decidedApproval{item: completed, instance: instance, decision: decision, outcome: outcome}, nil
+}
+
+// approverForNode is PROMOUX-003's fix for RED clause 2: the principal this
+// engine claims and completes a WorkItem as depends on which node's item is
+// open, not on one engine-wide approver. The finance and manager approval
+// nodes each derive their own authority-class-scoped identity from the
+// engine's one configured base approver
+// (promotionexec.FinanceApproverFor/ManagerApproverFor), which is the exact
+// derivation internal/platform/execution's WorkItemFactory used when it
+// routed and pinned the item's candidate -- so the identity this engine acts
+// as always matches the one the item was actually assigned to, and finance
+// and manager approvals are never claimed or completed as the identical
+// principal. Every other node (the prototype's single generic approval, and
+// the plain reapproval Task) has no authority class to differentiate and
+// keeps the base approver unchanged.
+func (e *journeyEngine) approverForNode(nodeID string) (string, error) {
+	switch nodeID {
+	case promotionexec.NodeApproveFinance:
+		return promotionexec.FinanceApproverFor(e.approver)
+	case promotionexec.NodeApproveManager:
+		return promotionexec.ManagerApproverFor(e.approver)
+	default:
+		return e.approver, nil
+	}
 }
 
 // recordApprovalDecision writes the approver's decision into intent_decision
@@ -558,6 +591,7 @@ func (e *journeyEngine) approvalDecision(
 	proposalDigest digest.Reference,
 	d workspace.Decision,
 	decidedAt time.Time,
+	approver string,
 ) intentapproval.ApprovalDecision {
 	outcome := intentapproval.OutcomeApproved
 	if !d.Approve {
@@ -580,7 +614,7 @@ func (e *journeyEngine) approvalDecision(
 		},
 		Outcome: outcome,
 		Approver: intentapproval.ApproverReference{
-			PrincipalID:          e.approver,
+			PrincipalID:          approver,
 			IdentityAssuranceRef: "assurance.journey.execution-authority/v1",
 			SessionRef:           "session:journey:" + item.WorkItemID.String(),
 			Via:                  humanwork.SourceDirect,
@@ -614,11 +648,24 @@ func journeyApprovalOutcome(
 ) (frontier.NodeOutcome, error) {
 	var requirement humanwork.ApprovalRequirement
 	var err error
+	// PROMOUX-003: approver is the engine's one configured base identity;
+	// the finance and manager nodes each rebuild their requirement against
+	// their own authority-class-scoped derivation of it
+	// (promotionexec.FinanceApproverFor/ManagerApproverFor), the same
+	// derivation execution.go's WorkItemFactory used when it routed and
+	// pinned this item's candidate, so the requirement rebuilt here always
+	// matches the one that was compiled at routing time.
 	switch item.NodeID {
 	case promotionexec.NodeApproveFinance:
-		requirement, err = promotionexec.CompileFinanceApprovalRequirement(approver, item.DeadlineAt)
+		var financeApprover string
+		if financeApprover, err = promotionexec.FinanceApproverFor(approver); err == nil {
+			requirement, err = promotionexec.CompileFinanceApprovalRequirement(financeApprover, item.DeadlineAt)
+		}
 	case promotionexec.NodeApproveManager:
-		requirement, err = promotionexec.CompileManagerApprovalRequirement(approver, item.DeadlineAt)
+		var managerApprover string
+		if managerApprover, err = promotionexec.ManagerApproverFor(approver); err == nil {
+			requirement, err = promotionexec.CompileManagerApprovalRequirement(managerApprover, item.DeadlineAt)
+		}
 	default:
 		requirement, err = prototype.CompileApprovalRequirement(approver, item.DeadlineAt)
 	}
