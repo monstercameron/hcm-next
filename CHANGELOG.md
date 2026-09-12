@@ -1,5 +1,46 @@
 # Changelog
 
+## 2026-09-12 (PROMOUX-006)
+
+- The promotion form can show an authorized proposer the real compensation
+  guardrail -- current exact Money, permitted increase percent, exact minimum
+  and maximum annual Money, band position, currency and effective-date basis --
+  instead of a dash beside a hidden percentage rule.
+
+- No floating-point arithmetic anywhere on the money or percentage path, proven
+  by a test that would actually catch a float rather than by inspection. It
+  picks the textbook double-precision trap scaled to salary figures and **first
+  proves the trap is real on this platform**, failing with an explicit
+  instruction to choose different cents if a float64 subtraction of those
+  literals ever does reproduce the exact answer, before asserting the guardrail
+  returns it exactly. A test using round numbers would have proven nothing,
+  because those survive floats fine.
+
+- The client is proven not to recompute the guardrail adversarially rather than
+  agreeably: the projection supplied to the renderer deliberately is _not_ what
+  the naive percentage arithmetic would produce, and the rendered output must
+  match the projection. A well-formed fixture would have agreed either way and
+  hidden a client-side calculation.
+
+- An unauthorized viewer cannot infer pay, which matters because a permitted
+  range discloses the baseline -- a maximum of base x 1.18 lets a reader solve
+  for base. Every non-value presence state leaves the data fields zero and
+  encodes byte-identically, so the cause is not itself a signal; and the
+  rendered output is checked with tags stripped for zero digits, no percent
+  sign, and none of the authorized render's strings, with an authorized control
+  proving the check is not vacuous.
+
+- The locale test distinguishes locales rather than rendering three and
+  asserting one string: grouping and decimal separators genuinely swap between
+  en-US and de-DE for both money and percent, currency stays correct, and the
+  Arabic render is right-to-left with distinct script.
+
+- Known gap, escalated as a group: this is the third card in a row -- after the
+  approval disposition and the promotion review -- that is fully built and
+  tested but rendered on no page a user reaches. These todos remediate a live
+  product audit, so all three are now escalated together to be wired onto a real
+  surface and verified in a browser.
+
 ## 2026-09-12 (PROMOUX-005)
 
 - A management promotion can no longer reach approval without resolving the
