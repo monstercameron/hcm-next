@@ -101,23 +101,30 @@ func DefaultQuery() (Query, error) {
 		TargetJobCode:      set.Target.JobCode,
 		TargetGrade:        set.Target.Grade,
 		TargetOrgUnit:      defaultOrgUnit,
-		TargetPositionID:   defaultPositionID,
-		TargetPayZone:      set.Target.PayZone,
-		EffectiveDate:      s.EffectiveAt,
-		EvaluationDate:     s.EvaluationAt,
-		BusinessReason:     s.BusinessReason,
-		BudgetAvailable:    set.BudgetAvailable,
+		// TargetPositionID is deliberately left unset. PROMOUX-004 makes a
+		// non-empty value here mean a specific, checkable thing -- a
+		// server-issued position.RevisionRef the real Position domain can
+		// verify -- and this page has no picker yet to issue one, and this
+		// environment has no job_position row backing the legacy corpus
+		// scenario (that corpus predates the Position domain). Seeding a
+		// fabricated identifier here would either always fail existence
+		// (dishonest theater) or require inventing backing data this
+		// package has no authority to declare. The promotion this seed
+		// describes still runs the full preflight on job/grade/org alone,
+		// which internal/domains/promotion.checkPlacement already accepts.
+		TargetPayZone:   set.Target.PayZone,
+		EffectiveDate:   s.EffectiveAt,
+		EvaluationDate:  s.EvaluationAt,
+		BusinessReason:  s.BusinessReason,
+		BudgetAvailable: set.BudgetAvailable,
 	}, nil
 }
 
-// The organizational placement the corpus scenario implies but does not
-// state. The legacy corpus carries a job code, a grade and a pay zone; the
-// org unit and position are the P1A promotion context the same scenario runs
+// defaultOrgUnit is the organizational placement the corpus scenario implies
+// but does not state. The legacy corpus carries a job code, a grade and a
+// pay zone; the org unit is the P1A promotion context the same scenario runs
 // inside (test/bootstrap drives the identical pair).
-const (
-	defaultOrgUnit    = "people-ops"
-	defaultPositionID = "POS-HRBP-301"
-)
+const defaultOrgUnit = "people-ops"
 
 // revisionStreamPrefix names the compensation revision stream a declared
 // baseline snapshot pins. The snapshot is an input, so the revision it cites

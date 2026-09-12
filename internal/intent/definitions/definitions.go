@@ -253,7 +253,15 @@ func promoteWorker() intent.Definition {
 		},
 		RequiredInputs: []intent.RequiredInput{
 			{Path: "employment_ref", Kind: intent.InputKindSubjectRef, Required: true},
-			{Path: "target_position_ref", Kind: intent.InputKindReference, Required: true},
+			// PROMOUX-004: a target position is no longer required at the
+			// kernel level. checkPlacement (internal/domains/promotion)
+			// already accepts a job/grade/org-only placement on its own;
+			// when a position IS named, it is now checked against the real
+			// Position domain (existence, compatibility, vacancy,
+			// effective-date capacity, reservation ownership) rather than
+			// trusted as a free-text reference, which is a stronger
+			// guarantee than a kernel presence check ever gave.
+			{Path: "target_position_ref", Kind: intent.InputKindReference, Required: false},
 			{Path: "effective_time", Kind: intent.InputKindEffectiveTime, Required: true},
 			{Path: "proposed_base_pay", Kind: intent.InputKindMoney, Required: false},
 			{Path: "reason_ref", Kind: intent.InputKindReference, Required: true},

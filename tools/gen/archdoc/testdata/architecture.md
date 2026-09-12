@@ -3,9 +3,9 @@
 Generated from the checked-in architecture manifests and the current Go package tree.
 
 - Module: `github.com/monstercameron/human-capital-management-suite`
-- Source graph: 3981d45228f3d810b9615904cac0589a8b0e3091a171277119af25cf97fd03f5
-- Package count: 781
-- Within-module edge count: 1790
+- Source graph: 4821a355e61c1191c3b614f0e59995a5a0c14fe7673dfcfb13ead448b2a73553
+- Package count: 784
+- Within-module edge count: 1806
 - Source manifests: `definitions/architecture/repository-layout.yaml`, `definitions/architecture/package-dependency-policy.yaml`, `definitions/architecture/dependency-roles.yaml`
 
 ## Declared layers and roots
@@ -258,6 +258,8 @@ Semantic package roots. Every second-level directory name must be a declared roo
 - `github.com/monstercameron/human-capital-management-suite/internal/data/pgtest`
 - `github.com/monstercameron/human-capital-management-suite/internal/data/pgxadapter`
 - `github.com/monstercameron/human-capital-management-suite/internal/data/planningstore`
+- `github.com/monstercameron/human-capital-management-suite/internal/data/positionfacts`
+- `github.com/monstercameron/human-capital-management-suite/internal/data/positionguard`
 - `github.com/monstercameron/human-capital-management-suite/internal/data/positionstore`
 - `github.com/monstercameron/human-capital-management-suite/internal/data/preferencestore`
 - `github.com/monstercameron/human-capital-management-suite/internal/data/privacymeta`
@@ -359,6 +361,7 @@ Semantic package roots. Every second-level directory name must be a declared roo
 - `github.com/monstercameron/human-capital-management-suite/internal/domains/promotion`
 - `github.com/monstercameron/human-capital-management-suite/internal/domains/promotion/commit`
 - `github.com/monstercameron/human-capital-management-suite/internal/domains/promotion/localcommit`
+- `github.com/monstercameron/human-capital-management-suite/internal/domains/promotion/positionpicker`
 - `github.com/monstercameron/human-capital-management-suite/internal/domains/promotion/simassign`
 - `github.com/monstercameron/human-capital-management-suite/internal/domains/promotion/simcomp`
 - `github.com/monstercameron/human-capital-management-suite/internal/domains/promotion/simcontract`
@@ -936,4 +939,4 @@ Generated Protobuf/Go artifacts. Content is owned by the generator (TOOL-002/TOO
 
 ## Document digest
 
-`02254b148348ffa075ebf5c9c13a027018564bdec91d6575aa41991895ac1f91`
+`4405d09f9917c1ace696fdd00cdda41d7a31acadc099f15d78f1a61bae4fc697`

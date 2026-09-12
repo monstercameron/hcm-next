@@ -35,6 +35,11 @@ func PreflightPromotion(ctx context.Context, catalog rewards.PayBandCatalog, req
 	}
 
 	findings = append(findings, checkPlacement(req, baseline)...)
+	targetPositionFindings, err := evaluateTargetPositionSelection(ctx, req)
+	if err != nil {
+		return PreflightResult{}, err
+	}
+	findings = append(findings, targetPositionFindings...)
 	compFindings, comparable := checkCompensation(req)
 	findings = append(findings, compFindings...)
 	findings = append(findings, checkEffectiveDate(req, baseline)...)

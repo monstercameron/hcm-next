@@ -10,10 +10,12 @@ import (
 	"github.com/monstercameron/human-capital-management-suite/internal/connectivity/fakeincumbent"
 	"github.com/monstercameron/human-capital-management-suite/internal/connectivity/observe"
 	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
+	"github.com/monstercameron/human-capital-management-suite/internal/data/positionfacts"
 	"github.com/monstercameron/human-capital-management-suite/internal/data/workforce"
 	"github.com/monstercameron/human-capital-management-suite/internal/domains/fixtures"
 	"github.com/monstercameron/human-capital-management-suite/internal/domains/intelligence"
 	"github.com/monstercameron/human-capital-management-suite/internal/domains/people"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/position"
 	"github.com/monstercameron/human-capital-management-suite/internal/domains/rewards"
 	"github.com/monstercameron/human-capital-management-suite/internal/experience/preferences"
 	"github.com/monstercameron/human-capital-management-suite/internal/experience/roleaccess"
@@ -287,6 +289,16 @@ type Cell struct {
 	// afterwards would be a second answer to "who is this".
 	locateWorker WorkerLocator
 
+	// positionReader is PROMOUX-004's real position.PositionFacts adapter
+	// (internal/data/positionfacts), composed on the same condition as the
+	// layered worker read below: without an execution database and a
+	// tenant mapping there is no job_position table to read. Nil on a cell
+	// composed without both, exactly like locateWorker falling back to the
+	// corpus-only locator -- the workspace's read surface treats a nil
+	// reader as "no position selected can be checked", never as "anything
+	// goes".
+	positionReader position.PositionFacts
+
 	// workspaceEnabled records whether the edge publishes the human-facing
 	// workspace. It is not exported: whether a surface is served is decided
 	// at composition, and a handler that could be switched on afterwards
@@ -377,6 +389,16 @@ func NewCell(cfg CellConfig) (*Cell, error) {
 	locateWorker := newWorkerLocator(cfg.ExecutionDB, cfg.TenantUUID)
 	if fixtureBacked != nil {
 		fixtureBacked.BindWorkerLocator(locateWorker)
+	}
+
+	// PROMOUX-004: the same condition as the layered worker read above.
+	// Without an execution database and a tenant mapping there is no
+	// job_position table this cell could read at all, and positionReader
+	// stays nil -- which the workspace's read surface and the domain-input
+	// resolver both treat as "cannot be checked", not "assume valid".
+	var positionReader position.PositionFacts
+	if cfg.ExecutionDB != nil && cfg.TenantUUID != nil {
+		positionReader = positionfacts.Reader{DB: cfg.ExecutionDB, TenantUUID: cfg.TenantUUID}
 	}
 
 	incumbent, connection, err := resolveConnectivity(cfg)
@@ -488,9 +510,10 @@ func NewCell(cfg CellConfig) (*Cell, error) {
 	}
 
 	return &Cell{
-		Journey:      journey,
-		WorkerIDs:    cfg.WorkerIDs,
-		locateWorker: locateWorker,
+		Journey:        journey,
+		WorkerIDs:      cfg.WorkerIDs,
+		locateWorker:   locateWorker,
+		positionReader: positionReader,
 
 		workspaceEnabled: workspaceEnabled,
 		devBrowserLogin:  cfg.DevBrowserLogin,

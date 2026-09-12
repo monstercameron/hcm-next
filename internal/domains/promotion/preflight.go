@@ -25,6 +25,7 @@ import (
 
 	"github.com/monstercameron/human-capital-management-suite/internal/domains/evidence"
 	"github.com/monstercameron/human-capital-management-suite/internal/domains/people"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/position"
 	"github.com/monstercameron/human-capital-management-suite/internal/domains/rewards"
 	"github.com/monstercameron/human-capital-management-suite/internal/engines/canonicalbytes"
 	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
@@ -623,6 +624,23 @@ type PreflightRequest struct {
 	Budget         *BudgetAuthorityRef
 	Policy         Policy
 	Annualization  rewards.AnnualizationRule
+
+	// PositionReader answers the Position domain's own ports
+	// (CheckCompatibility, CalculateCapacity) fresh for a selected target
+	// position (PROMOUX-004). It is required whenever TargetPositionSelection
+	// is set; a nil reader with no selection is fine, because the
+	// legacy job/grade-only path never consults it.
+	PositionReader position.PositionFacts
+	// Reservations is PROMOUX-004's ground-five boundary: reservation
+	// ownership. Required whenever TargetPositionSelection is set. See
+	// [PositionReservationAdmitter].
+	Reservations PositionReservationAdmitter
+	// TargetPositionSelection is the picker-disclosed position reference a
+	// promotion binds its target position to (PROMOUX-004). nil means no
+	// position was selected through the picker; in that case a non-empty
+	// legacy Target.PositionID is refused rather than trusted as-is (see
+	// [evaluateTargetPositionSelection]).
+	TargetPositionSelection *PositionSelection
 }
 
 // Validate reports whether the request is well formed. Business problems are

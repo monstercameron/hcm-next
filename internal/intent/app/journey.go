@@ -373,10 +373,12 @@ func (e *journeyEngine) Propose(ctx context.Context, in workspace.ProposalInput)
 			Kind:                 journeyInitiatorKind(principal.SubjectKind()),
 			IdentityAssuranceRef: principal.EvidenceID(),
 		},
-		Subjects: []*intentsv1.SubjectReference{
-			{SubjectKind: "EMPLOYMENT", SubjectId: worker.Id, AuthorityDomain: "PEOPLE"},
-			{SubjectKind: "POSITION", SubjectId: in.TargetPositionID, AuthorityDomain: "POSITION"},
-		},
+		// The POSITION subject is declared only when the form actually named
+		// one: an empty SubjectId is a structurally invalid reference, not
+		// an unnamed position (PROMOUX-004 made target_position_id
+		// optional; see validateProposalInput and
+		// internal/intent/definitions.definitions.go's target_position_ref).
+		Subjects: journeySubjects(worker.Id, in.TargetPositionID),
 		Request: &intentsv1.TypedPayload{
 			Schema: &intentsv1.SchemaReference{
 				SchemaId:         def.InputSchema.SchemaID,
@@ -422,14 +424,36 @@ func (e *journeyEngine) Propose(ctx context.Context, in workspace.ProposalInput)
 	return summary, nil
 }
 
+// journeySubjects declares the intent's subjects: the worker always, and a
+// POSITION subject only when the form named one. An empty SubjectId is a
+// structurally invalid reference (CreateIntent refuses it), not "no
+// position" -- so a job/grade-only promotion, which checkPlacement already
+// accepts on its own, declares only the worker subject.
+func journeySubjects(workerID, targetPositionID string) []*intentsv1.SubjectReference {
+	subjects := []*intentsv1.SubjectReference{
+		{SubjectKind: "EMPLOYMENT", SubjectId: workerID, AuthorityDomain: "PEOPLE"},
+	}
+	if strings.TrimSpace(targetPositionID) != "" {
+		subjects = append(subjects, &intentsv1.SubjectReference{
+			SubjectKind: "POSITION", SubjectId: targetPositionID, AuthorityDomain: "POSITION",
+		})
+	}
+	return subjects
+}
+
 // validateProposalInput refuses a form the engine cannot turn into a governed
 // promotion request, naming the field that has to change.
+//
+// target_position_id is deliberately not in this required list.
+// PROMOUX-004 makes a non-empty value here mean something specific -- a
+// reference the real Position domain checks -- and no picker exists yet on
+// this form to issue one. A field that was mandatory but never validated is
+// a worse contract than one that is optional and validated.
 func validateProposalInput(in workspace.ProposalInput) error {
 	for _, field := range []struct{ name, value string }{
 		{"worker_ref", in.WorkerRef},
 		{"target_job_code", in.TargetJobCode},
 		{"target_grade", in.TargetGrade},
-		{"target_position_id", in.TargetPositionID},
 		{"proposed_base", in.ProposedBase},
 		{"effective_date", in.EffectiveDate},
 		{"business_reason", in.BusinessReason},

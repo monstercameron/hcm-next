@@ -130,8 +130,8 @@
       "route_key": "SUCCEEDED",
       "next_node_id": "raise_threshold",
       "input_digest": "7f04861e335640dd035889f996d766915218dca3a4e69a23510f94212389019c",
-      "output_digest": "635eea040c2626490c64513f4b3072bf2df267f81041f94113e7542062ee8053",
-      "detail": "proposal sha256:2591babb0 simulated: preflight READY, compensation EVALUATED, executable=true",
+      "output_digest": "0be9e436df1b06d86a345fc2f24ae0f14c36c7dff1955af73e6edc1b80fe741f",
+      "detail": "proposal sha256:ae291799c simulated: preflight READY, compensation EVALUATED, executable=true",
       "evidence": [
         {
           "ref": "transform_execution_id",
@@ -340,6 +340,6 @@
       "version": "hcmnext.workflow.simulate/v1"
     }
   ],
-  "zero_effect_digest": "58beeb4ff2088c8f1ba3995e63faed6280021198b26bb779449b4fd5c1248c53",
-  "digest": "3dbd08d8c171a69110f744898ed4c77b285a004f8c9ce7d2495339cabc546a57"
+  "zero_effect_digest": "a442e80cea1b2b8afc6bcba50085657dcae6f583155a44574d37d90a8a3e1aca",
+  "digest": "b6c8f6969af82db82beac39bf598bb62d8bf4dd6d302a98d3dcbab41fe44f604"
 }

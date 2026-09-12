@@ -134,12 +134,17 @@ func NewPromotionEnvironment() (*Environment, error) {
 		KnownAt:        knownAt,
 		EffectiveDate:  effective,
 		EvaluationDate: evaluation,
+		// PositionID is deliberately absent: PROMOUX-004 checks a non-empty
+		// value against the real Position domain, and this reference
+		// workflow environment wires no PositionReader (it exercises
+		// workflow simulation mechanics, not position selection).
+		// JobCode/Grade/OrgUnit alone already satisfy checkPlacement's
+		// placement requirement.
 		Target: promotion.TargetPlacement{
-			JobCode:    "ENG-MGR1",
-			Grade:      "M1",
-			OrgUnit:    "eng-platform",
-			PositionID: "POS-MGR-42",
-			PayZone:    "US-WEST",
+			JobCode: "ENG-MGR1",
+			Grade:   "M1",
+			OrgUnit: "eng-platform",
+			PayZone: "US-WEST",
 		},
 		Current: rewards.CompensationSnapshot{
 			Base:               values.Value(currentBase),

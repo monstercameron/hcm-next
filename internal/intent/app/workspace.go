@@ -9,6 +9,7 @@ import (
 
 	"github.com/monstercameron/human-capital-management-suite/internal/domains/fixtures"
 	"github.com/monstercameron/human-capital-management-suite/internal/domains/people"
+	"github.com/monstercameron/human-capital-management-suite/internal/domains/position"
 	"github.com/monstercameron/human-capital-management-suite/internal/domains/promotion"
 	"github.com/monstercameron/human-capital-management-suite/internal/domains/rewards"
 	"github.com/monstercameron/human-capital-management-suite/internal/humanwork/workspace"
@@ -51,6 +52,12 @@ type workspaceReader struct {
 	// now supplies the knowledge cut-off the governed read is taken at and
 	// the instant the authorization decision is evaluated at.
 	now func() time.Time
+	// positionReader is PROMOUX-004's real position.PositionFacts adapter,
+	// the cell's own (nil on a cell with no execution database). This page
+	// never writes -- ground five (reservation ownership) is deliberately
+	// never reached here; see promotion.evaluateTargetPositionSelection's
+	// package doc for why a bare identifier's check stops at ground four.
+	positionReader position.PositionFacts
 }
 
 var _ workspace.Cell = workspaceReader{}
@@ -61,7 +68,7 @@ func (c *Cell) WorkspacePort() workspace.Cell {
 	if now == nil {
 		now = func() time.Time { return time.Now().UTC() }
 	}
-	return workspaceReader{svc: c.Service, now: now, locate: c.locateWorker}
+	return workspaceReader{svc: c.Service, now: now, locate: c.locateWorker, positionReader: c.positionReader}
 }
 
 // WorkspaceHandler builds the workspace HTTP surface over this cell, admitted
@@ -212,6 +219,13 @@ func (a workspaceReader) ReadPromotion(ctx context.Context, req workspace.Reques
 		Policy:         req.Policy,
 		Annualization:  req.Annualization,
 		WorkerState:    explanation,
+		// PROMOUX-004: whenever req.Target.PositionID is non-empty,
+		// PreflightPromotion checks it against the real Position domain
+		// through this reader rather than trusting it. A nil reader (no
+		// execution database composed) still refuses a non-empty value --
+		// see evaluateTargetPositionSelection -- rather than accepting it
+		// unproven.
+		PositionReader: a.positionReader,
 	}
 	preflight, evidenceID, ownedErr := invokePromotion(ctx, a.svc, principal, purpose,
 		promotionCall{Mode: promotionModePreflight, Request: preflightRequest})

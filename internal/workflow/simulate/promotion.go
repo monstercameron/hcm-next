@@ -65,12 +65,16 @@ func NewInGradeSetup(proposedBasePay string) (*PromotionSetup, error) {
 	if err != nil {
 		return nil, err
 	}
+	// PositionID is deliberately absent: PROMOUX-004 checks a non-empty
+	// value against the real Position domain, and this reference workflow
+	// scenario wires no PositionReader (it exercises workflow simulation
+	// mechanics, not position selection). JobCode/Grade/OrgUnit alone
+	// already satisfy checkPlacement's placement requirement.
 	env.Target = promotion.TargetPlacement{
-		JobCode:    "ENG-SWE3",
-		Grade:      "P3",
-		OrgUnit:    "eng-platform",
-		PositionID: "POS-SWE-118",
-		PayZone:    "US-WEST",
+		JobCode: "ENG-SWE3",
+		Grade:   "P3",
+		OrgUnit: "eng-platform",
+		PayZone: "US-WEST",
 	}
 	env.Policy.Version = "people.promotion.policy.in_grade/1.0.0"
 	env.Policy.AllowSameGrade = true

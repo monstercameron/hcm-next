@@ -5002,6 +5002,24 @@ tables:
       chronology-bearing columns were read and never altered. ledger_event
       itself stays append-only and untouched; this table is what the read path
       consults to withhold a payload.
+  - table: promotion_target_position_guard
+    migration: 00287_promoux004_position_slot_guard.sql
+    owner_package: internal/data/positionguard
+    plane: DATA
+    data_role: CONTROL
+    tenant_scoping_column: tenant_id
+    isolation_package: internal/data/tenancy
+    append_only: false
+    retention_class: OPERATIONAL
+    encryption_class: PLATFORM_MANAGED
+    rebuild_source: null
+    notes: >-
+      Reservation ownership for a promotion's target position. The partial unique
+      index on (tenant_id, position_ref, effective_date) WHERE status = 'ACTIVE'
+      is the integrity boundary, evaluated as part of each INSERT's own commit
+      rather than by a read preceding the write, so two callers reserving the
+      same slot and window cannot both succeed. Rows transition ACTIVE -> CLOSED
+      and are never deleted.
   - table: promotion_active_intent_guard
     migration: 00286_promoux002_active_promotion_guard.sql
     owner_package: internal/data/promotionguard
