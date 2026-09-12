@@ -1,5 +1,30 @@
 # Changelog
 
+## 2026-09-12 (ENDPOINT-004)
+
+- Close ENDPOINT-004: unify endpoint idempotency, expected revision, ETag and
+  conflict semantics. `idempotency.go` resolves the HTTP-header key and the
+  message-body key before hashing -- if both are present and disagree the
+  request is refused rather than silently preferring one -- and hashes the
+  resolved key together with the principal/tenant/capability scope, so the same
+  logical request over either transport lands on one digest.
+
+  Two things a naive implementation gets wrong, both closed here. An exact
+  replay returns the _stored_ outcome rather than re-executing, which is
+  observable because the effect counter stays at one. And the same key with a
+  changed payload returns a conflict without touching the effect at all --
+  a key-only cache would return the prior success and pass every happy-path
+  test.
+
+  The digest encodes its fields length-prefixed, so ("ab","c") and ("a","bc")
+  hash differently and concatenation cannot collide across field boundaries.
+  `ExpectedRevision` is a pointer so "no precondition requested" stays distinct
+  from "expected revision zero", and a zero on either side is refused rather
+  than matched. The executor closes its ready channel in a defer, so a failing
+  effect cannot strand the waiters.
+
+  No migration needed.
+
 ## 2026-09-12 (PERF-005)
 
 - Close PERF-005: size PostgreSQL, queues, timers and artifact throughput. Read
