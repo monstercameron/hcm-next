@@ -61,14 +61,18 @@ func TestPublishedPromotionPathGuardsRoleAndExactBaseIncrease(t *testing.T) {
 }
 
 func TestValidateProposalInputNamesTheMissingField(t *testing.T) {
+	// target_position_id is deliberately absent from this table: PROMOUX-004
+	// made it optional (a non-empty value is now checked against the real
+	// Position domain instead of merely required to be present), and
+	// TestValidateProposalInputAcceptsAFormWithNoTargetPosition covers that
+	// case explicitly.
 	cases := map[string]func(*workspace.ProposalInput){
-		"worker_ref":         func(in *workspace.ProposalInput) { in.WorkerRef = "  " },
-		"target_job_code":    func(in *workspace.ProposalInput) { in.TargetJobCode = "" },
-		"target_grade":       func(in *workspace.ProposalInput) { in.TargetGrade = "" },
-		"target_position_id": func(in *workspace.ProposalInput) { in.TargetPositionID = "" },
-		"proposed_base":      func(in *workspace.ProposalInput) { in.ProposedBase = "" },
-		"effective_date":     func(in *workspace.ProposalInput) { in.EffectiveDate = "" },
-		"business_reason":    func(in *workspace.ProposalInput) { in.BusinessReason = "" },
+		"worker_ref":      func(in *workspace.ProposalInput) { in.WorkerRef = "  " },
+		"target_job_code": func(in *workspace.ProposalInput) { in.TargetJobCode = "" },
+		"target_grade":    func(in *workspace.ProposalInput) { in.TargetGrade = "" },
+		"proposed_base":   func(in *workspace.ProposalInput) { in.ProposedBase = "" },
+		"effective_date":  func(in *workspace.ProposalInput) { in.EffectiveDate = "" },
+		"business_reason": func(in *workspace.ProposalInput) { in.BusinessReason = "" },
 	}
 	for field, mutate := range cases {
 		t.Run(field, func(t *testing.T) {
@@ -82,6 +86,19 @@ func TestValidateProposalInputNamesTheMissingField(t *testing.T) {
 				t.Fatalf("refusal %q does not name the field %q", err, field)
 			}
 		})
+	}
+}
+
+// TestValidateProposalInputAcceptsAFormWithNoTargetPosition proves
+// target_position_id is genuinely optional: checkPlacement already accepts
+// a job/grade/org-only placement on its own, and PROMOUX-004 does not make
+// the field mandatory again -- it makes a non-empty value mean something
+// checkable.
+func TestValidateProposalInputAcceptsAFormWithNoTargetPosition(t *testing.T) {
+	in := journeyProposalFixture()
+	in.TargetPositionID = ""
+	if err := validateProposalInput(in); err != nil {
+		t.Fatalf("validateProposalInput(no target position) = %v, want nil", err)
 	}
 }
 

@@ -230,8 +230,11 @@ func TestTodo_PROMO_EXEC_SERVE_ExecutePlanJourneyOverPGTest(t *testing.T) {
 	}
 	ctx := trust.WithPrincipal(context.Background(), principal)
 	journey := composed.Cell().Journey
+	// TargetPositionID is deliberately absent: PROMOUX-004 checks a
+	// non-empty value against the real Position domain, and this
+	// environment has no job_position row for any corpus fixture.
 	proposed, err := journey.Propose(ctx, workspace.ProposalInput{
-		WorkerRef: "omar-reyes", TargetJobCode: "OPS-HRBP3", TargetGrade: "P3", TargetPositionID: "POS-HRBP-301",
+		WorkerRef: "omar-reyes", TargetJobCode: "OPS-HRBP3", TargetGrade: "P3",
 		ProposedBase: "98000.00", EffectiveDate: "2026-06-01", BusinessReason: "promotion_into_senior_hrbp",
 	})
 	if err != nil {

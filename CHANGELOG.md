@@ -1,5 +1,46 @@
 # Changelog
 
+## 2026-09-12 (PROMOUX-004)
+
+- A guessed target position is no longer accepted. Any non-empty position
+  identifier is decoded as a server-issued revision reference and checked
+  against the real Position domain on five separate grounds -- existence,
+  compatibility, vacancy, effective-date revision currency and reservation
+  ownership -- each with its own test constructing a case where only that ground
+  fails, so a mapping that wired four of five cannot pass.
+
+  The decisive proof is on the path a user reaches, not in the evaluator alone: a
+  Cell composed the way a live deployment composes one, driven through its
+  workspace port, returns BLOCKED with a not-found finding for `POS-ENG-MGR-101`,
+  while a request naming no position at all still reaches READY.
+
+- Reservation ownership is settled by the database -- a partial unique index
+  PostgreSQL evaluates as part of each insert's own commit, never by a read that
+  precedes the write -- proven with twelve concurrent goroutines on independent
+  connections. The refusal for an unauthorized position is byte-for-byte
+  identical to the refusal for one that does not exist, so the error cannot be
+  used to discover which position ids are real.
+
+- Three real defects surfaced while building it. The revision-currency check used
+  an ordering comparison that errors outright on the opaque revisions the real
+  adapter mints; it now compares for equality, which is the exact binding the
+  contract asks for. And building the production position adapter against real
+  PostgreSQL caught a timezone bug -- dates were extracted without normalizing to
+  UTC first, so a server in another zone shifted every date by up to a day -- and
+  an off-by-one translating an exclusive database boundary into the domain's
+  inclusive end-date convention.
+
+- One deliberate contract change: the target position is no longer a required
+  kernel input. The kernel had been stricter than the domain while proving less
+  -- placement has never required a position, only a target job and grade, so the
+  presence check guaranteed nothing but a non-empty string and a guessed value
+  satisfied it. A named position is now genuinely proven, which is the stronger
+  guarantee; job and grade remain blocking.
+
+- Known gap: the durable reservation is still never exercised on the live propose
+  path, because only the read-only preview reaches a wired position reader. That
+  needs real position rows in the dev corpus and the commit path wired.
+
 ## 2026-09-12 (PROMOUX-003)
 
 - One principal can no longer complete both the finance and the manager

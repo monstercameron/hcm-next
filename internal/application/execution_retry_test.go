@@ -71,7 +71,18 @@ func (retryCompositionResolver) ResolveWorkflowInTx(context.Context, dbport.Tx, 
 }
 
 func TestTodo_ADMISSION_002_ComposedRetryFactoryRevalidatesPersistedBudgetBeforeStart(t *testing.T) {
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	// This test stands up its own embedded PostgreSQL and drives a real retry
+	// factory against it, so its wall-clock cost tracks machine contention
+	// rather than anything about the behaviour under test. Run alone the whole
+	// package finishes in about 16s; run inside the pre-commit sweep, where
+	// covergate exercises a dozen packages concurrently and many of them start
+	// their own PostgreSQL, the same unchanged test takes over 96s and dies on
+	// this deadline instead of reaching its assertions. A deadline that turns
+	// unrelated load into a false failure is testing the machine, not the
+	// revalidation contract, so it is raised here. Every assertion below is
+	// unchanged: a factory that genuinely fails to revalidate its persisted
+	// budget before starting still fails.
+	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
 	defer cancel()
 	db := pgtest.New(t)
 	pool, err := pgxadapter.NewPool(ctx, db.URL, map[string]string{"search_path": db.Schema})

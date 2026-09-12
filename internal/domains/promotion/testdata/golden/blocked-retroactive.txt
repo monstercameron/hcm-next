@@ -7,7 +7,7 @@ findings:
 change assignment.job_code: "OPS-HRBP2" -> "OPS-HRBP3" changed=true
 change assignment.grade: "P2" -> "P3" changed=true
 change assignment.org_unit: "people-ops" -> "people-ops" changed=false
-change assignment.position_id: "" -> "POS-HRBP-301" changed=true
+change assignment.position_id: "" -> "" changed=false
 change assignment.pay_zone: "US-EAST" -> "US-EAST" changed=false
 compensation_state: EVALUATED
 annualized_base_delta: 5000.00 USD
@@ -24,5 +24,5 @@ control promotion_rule_pack@people.promotion.preflight.rules/1.0.0
 effects_zero: true
 receipt_mode: SIMULATE
 receipt_execution_state: NOT_PLANNED
-inputs_digest: sha256:f110e0899692b9286637cc81cda13fa90c0cb23a648166199eb88861182ca3dd
-result_digest: sha256:9ed94aed0008506b359979fa436f759199fcd53e067b768c0be61584ae92a096
+inputs_digest: sha256:7a2887027ea4fad87b5e80e85677301fab96a806ac4b38c959be2154e6794103
+result_digest: sha256:8a6a8dd49f390d78e67b1e7482e9a2f14524e58b3e496147b4c8c159c16419d0

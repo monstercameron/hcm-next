@@ -146,10 +146,16 @@ func baseRequest(t *testing.T) promotion.PreflightRequest {
 		t.Fatalf("subject: %v", err)
 	}
 	return promotion.PreflightRequest{
-		Tenant:         fixtures.Tenant,
-		Subject:        subject,
-		WorkerState:    explain(t, "omar-reyes", nil),
-		Target:         promotion.TargetPlacement{JobCode: "OPS-HRBP3", Grade: "P3", OrgUnit: "people-ops", PositionID: "POS-HRBP-301", PayZone: "US-EAST"},
+		Tenant:      fixtures.Tenant,
+		Subject:     subject,
+		WorkerState: explain(t, "omar-reyes", nil),
+		// PositionID is deliberately absent: PROMOUX-004 replaces the
+		// free-text identifier with a picker-issued PositionSelection
+		// (internal/domains/promotion/target_position.go), and this fixture
+		// exercises the pre-existing job/grade/org placement path, which
+		// checkPlacement's "at least one of job/grade/org/position" rule
+		// already accepts on JobCode alone.
+		Target:         promotion.TargetPlacement{JobCode: "OPS-HRBP3", Grade: "P3", OrgUnit: "people-ops", PayZone: "US-EAST"},
 		Current:        snapshot(t, "93000.00", "USD", "0.0500", 11),
 		Proposed:       snapshot(t, "98000.00", "USD", "0.0500", 11),
 		EffectiveDate:  date(t, "2026-06-01"),

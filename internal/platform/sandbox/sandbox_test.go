@@ -99,15 +99,22 @@ func mutableTenantRows(t *testing.T, pool *pgxadapter.Pool, sb *Sandbox) int64 {
 // internal/domains/promotion certifies as READY. [workspace.JourneyEngine]
 // mints its own idempotency key per Propose call, so two calls with this same
 // input are two distinct intents, not a replay of one.
+//
+// TargetPositionID is deliberately absent: PROMOUX-004 checks a non-empty
+// value against the real Position domain, target_position_ref is no longer
+// a required kernel input (internal/intent/definitions/definitions.go), and
+// this environment has no job_position row for any corpus fixture (the
+// corpus predates the Position domain). internal/domains/promotion's own
+// promotion_test.go baseRequest -- the exact scenario this fixture mirrors
+// -- drops the field for the identical reason.
 func promotionInput() workspace.ProposalInput {
 	return workspace.ProposalInput{
-		WorkerRef:        "omar-reyes",
-		TargetJobCode:    "OPS-HRBP3",
-		TargetGrade:      "P3",
-		TargetPositionID: "POS-HRBP-301",
-		ProposedBase:     "98000.00",
-		EffectiveDate:    "2026-06-01",
-		BusinessReason:   "promotion_into_senior_hrbp",
+		WorkerRef:      "omar-reyes",
+		TargetJobCode:  "OPS-HRBP3",
+		TargetGrade:    "P3",
+		ProposedBase:   "98000.00",
+		EffectiveDate:  "2026-06-01",
+		BusinessReason: "promotion_into_senior_hrbp",
 	}
 }
 
