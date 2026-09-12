@@ -335,6 +335,75 @@ type Observation struct {
 	Authority           string
 }
 
+// ProviderReadBack is unnormalized, provider-specific evidence gathered when
+// checking whether a semantic write actually took effect. It carries no
+// verdict: NormalizeObservation is the only place a [ObservationVerdict] is
+// computed, from identity and content comparison against what this package
+// actually dispatched, never from a caller's own assertion.
+type ProviderReadBack struct {
+	ExternalResourceKey string
+	Found               bool
+	Ambiguous           bool
+	ExternalObjectRef   string
+	ExternalVersion     string
+	ObservedDigest      string
+}
+
+// NormalizeObservation turns one provider-specific read-back into the typed
+// Observation RecordObservation accepts. A caller cannot manufacture an
+// APPLIED verdict by construction: this is the single place a verdict is
+// computed, by comparing the read-back's resource identity and content digest
+// against the operation this package dispatched.
+func NormalizeObservation(op Operation, raw ProviderReadBack, observationID uuid.UUID, observedAt time.Time, authority string) (Observation, error) {
+	if observationID == uuid.Nil {
+		return Observation{}, fmt.Errorf("%w: observation id is required", ErrObservationRequired)
+	}
+	if observedAt.IsZero() {
+		return Observation{}, fmt.Errorf("%w: observation time is required", ErrObservationRequired)
+	}
+	if strings.TrimSpace(raw.ExternalResourceKey) == "" || raw.ExternalResourceKey != op.ExternalResourceKey {
+		return Observation{}, fmt.Errorf("%w: read-back resource does not match operation", ErrObservationRequired)
+	}
+	var verdict ObservationVerdict
+	switch {
+	case raw.Ambiguous:
+		verdict = ObservationUnknown
+	case !raw.Found:
+		verdict = ObservationNotApplied
+	case attemptDigestMatches(op, raw.ObservedDigest):
+		verdict = ObservationApplied
+	default:
+		verdict = ObservationConflict
+	}
+	return Observation{
+		TenantID:            op.TenantID,
+		ObservationID:       observationID,
+		OperationID:         op.OperationID,
+		ExternalResourceKey: raw.ExternalResourceKey,
+		Verdict:             verdict,
+		ExternalObjectRef:   raw.ExternalObjectRef,
+		ExternalVersion:     raw.ExternalVersion,
+		ObservedDigest:      raw.ObservedDigest,
+		ObservedAt:          observedAt.UTC(),
+		Authority:           authority,
+	}, nil
+}
+
+// attemptDigestMatches reports whether a read-back's content digest matches
+// any attempt this package sent, so a re-read of the provider's own record
+// can be recognized as the effect of our write rather than someone else's.
+func attemptDigestMatches(op Operation, digest string) bool {
+	if strings.TrimSpace(digest) == "" {
+		return false
+	}
+	for _, attempt := range op.Attempts {
+		if attempt.RequestDigest == digest {
+			return true
+		}
+	}
+	return false
+}
+
 // RedriveRequest is the current-state comparison used before a failed
 // operation is put back in the queue. It never changes the original payload.
 type RedriveRequest struct {
