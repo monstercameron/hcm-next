@@ -1,5 +1,29 @@
 # Changelog
 
+## 2026-09-12 (ASSURANCE-001)
+
+- Tick ASSURANCE-001. The independent-assurance register in
+  `internal/operations/assurance` was already implemented and passing at 96.6%
+  coverage with all six matrix tests present; it simply sat unticked, which
+  reads as work nobody started. No behaviour changed.
+
+  Verified against the contract rather than accepted on a green run:
+  `Assessment.Validate` requires an independent assessor, refuses an assessment
+  whose expiry is zero or not after its date, and refuses evidence once the
+  clock reaches expiry, so expiry is enforced rather than advisory. A CRITICAL
+  or HIGH finding must additionally be RETESTED by an independent assessor with
+  a passing result, a name and a date -- so an open critical finding cannot
+  validate and therefore cannot permit the gate. `Register.Gate` on an empty
+  register returns a decision whose `Allowed` is the zero value false, so
+  absence fails closed. `Claim` carries exact scope and excluded surfaces and
+  ends "This statement is not a certification".
+
+  The tick itself tripped the traceability gate first: the evidence line used
+  `_Golden`-style shorthand for the matrix variants, which the scanner appends
+  to the preceding full name, inventing `TestTodo_ASSURANCE_001_Property_Golden`.
+  That is the same failure mode as the brace-expansion orphan fixed earlier
+  today, in a different spelling. Evidence lines must name each test in full.
+
 ## 2026-09-12 (PERF-004)
 
 - Close PERF-004: prove noisy-neighbor and priority fairness. This closed a real
