@@ -87,9 +87,10 @@ func TestTodo_PROTO_010_Property(t *testing.T) {
 	}
 }
 
-// TestTodo_PROTO_010_Golden pins the exact disposition distribution: ten
-// SERVED, four REFUSED_P1A, zero NOT_EXPOSED, across the fourteen current
-// methods of IntentService and RegistryService.
+// TestTodo_PROTO_010_Golden pins the exact disposition distribution: thirteen
+// SERVED, one REFUSED_P1A, zero NOT_EXPOSED, across the fourteen current
+// methods of IntentService and RegistryService. ExecuteIntent is the one
+// method still refused for the duration of P1A.
 func TestTodo_PROTO_010_Golden(t *testing.T) {
 	m, err := Build()
 	if err != nil {

@@ -1,5 +1,46 @@
 # Changelog
 
+## 2026-09-12 (EP-EVID-001)
+
+- `GetExecutionReceipt` and `ExportIntentEvidence` land in a new
+  `internal/transport/evidence`, composing EVIDENCE-001's receipt model,
+  EXPORT-001's artifact rendering, the existing long-running-operation record
+  and `internal/cryptoagility` for signing. Nothing is reimplemented.
+
+  The clause worth the most here is that a receipt describes what happened at
+  execution time. An export reads its lineage source exactly once and every
+  artifact derives from that single read, so the manifest can never disagree
+  with the bytes it describes. The test proves it by drifting: the injected
+  source returns different content on every call and counts them, so an
+  implementation that re-read mid-run is caught. Verified failable by injecting
+  that regression and watching it fail, then pass again on revert.
+
+  Package integrity is layered and real: signature, then AES-256-GCM
+  authentication tag, then manifest digest, then per-artifact digests. A flipped
+  ciphertext byte, a stripped signature and a wrong key are each rejected.
+  Formula injection is neutralised in the human artifact and the exact bytes
+  preserved in the machine artifact, tested with values beginning `=`, `+`, `-`,
+  `@`, tab and carriage return. The six lineage hops are asserted one at a time
+  rather than by a non-empty check.
+
+- Reported rather than forced: `GetExecutionReceiptResponse`'s receipt field is
+  wire-typed `ZeroEffectReceipt`, whose constructor rejects a non-zero effect
+  count and whose mode admits only PREFLIGHT and SIMULATE. This todo's clauses
+  describe an executed intent's receipt, where effects are legitimately present.
+  Putting one inside the other would either misstate the effect count or leave
+  the message's own invariant unchecked, so the full lineage-bearing receipt is
+  carried by the export operation's result instead. Closing that properly needs
+  a proto change.
+
+- The endpoints are contract-complete but not yet reachable in a running server:
+  the four ports have in-memory implementations only and `EvidenceService` is
+  registered in no composition root. Escalated separately. Key custody is also
+  out of scope -- the signer and package key are supplied directly.
+
+- Corrected a stale doc comment on `TestTodo_PROTO_010_Golden` left behind by
+  the previous change, which still said ten SERVED and four REFUSED_P1A while
+  the assertion underneath it checked thirteen and one.
+
 ## 2026-09-12 (repository drift found when CI first ran green)
 
 - Lands the discrete drift the CI fix uncovered, all of it pre-existing and
