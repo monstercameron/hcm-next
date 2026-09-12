@@ -1,5 +1,34 @@
 # Changelog
 
+## 2026-09-11 (EVENT-003)
+
+- Close EVENT-003: enforce queue priority, backpressure and one global retry
+  budget. `Consumer.Poll` orders by criticality only _within_ one tenant's rows
+  (`WHERE tenant_id = $1`), so nothing arbitrated across tenants or across a
+  shared downstream resource, and a P3/P4 flood could crowd out a P0
+  payroll/IAM item. New `outbox.Schedule` + `ResourceLedger` arbitrate a
+  combined candidate pool by criticality first, globally, against shared
+  resource capacity with an optional per-tenant share.
+
+  `internal/data/outbox` also had no reference to `internal/operations/admission`
+  at all, so a downstream slow-down signal never reached the queue.
+  `ResourceLedger.ApplyBackpressure` now folds a real
+  `admission.BackpressureDecision` into the next pass. And retry accounting
+  lived in three unconnected places (outbox backoff, the coordinator's retry
+  callback, admission's budgets), so nested layers each charged their own retry
+  for one logical attempt; `AttemptIdentity` + `RetryAccount` route every layer
+  through one `admission.Provisioner`, so a replayed attempt collides on one
+  stored receipt. Wired into `failRow` behind an opt-in `WithRetryAccounting`,
+  nil by default, so existing callers are unaffected. No migration needed.
+
+  Review caught two defects in the backpressure switch before the tick. It read
+  its baseline from `l.policy[resource]`, whose zero value is capacity 0, so a
+  CONTINUE/healthy decision on a resource with no configured policy wedged that
+  resource shut permanently -- the signal meaning "everything is fine" causing a
+  total stall. Separately, integer division made QUEUE/SLOW on a capacity-1
+  resource admit nothing, silently turning SLOW into STOP. Both are now explicit
+  branches and the FAULT test pins them.
+
 ## 2026-09-11
 
 - Add `hcmnext serve -public-origin` (`HCMNEXT_PUBLIC_ORIGIN`): declares the
