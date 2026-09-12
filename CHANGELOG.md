@@ -1,5 +1,26 @@
 # Changelog
 
+## 2026-09-11 (ARTIFACT-006)
+
+- Close ARTIFACT-006: verify and repair artifact-byte integrity.
+  `internal/store/object` had no integrity checking of any kind -- nothing
+  detected bit rot, compared replicas, quarantined, or produced a receipt. New
+  `integrity.go` adds `IntegrityStore` with verify-on-read, quarantine, repair
+  and an immutable receipt log. No migration needed.
+
+  The design point that matters: ground truth (digest and generation) is always
+  read live from `Stat`, never from anything a replica claims about itself. That
+  is what makes a generation swap detectable -- a stale replica whose bytes hash
+  exactly to what that generation always produced is internally consistent and
+  would otherwise pass.
+
+  Review found a TOCTOU in the one guarantee the todo exists for. `Repair`
+  called the exported `Verify`, which releases the mutex, then re-read the
+  source replica under a second lock. A concurrent `PublishReplica` landing in
+  that window would have made repair copy bytes nothing had verified. Evaluation
+  and copy now happen under a single lock hold via the pure `evaluateReplica`,
+  so the bytes written are byte-for-byte the ones that passed.
+
 ## 2026-09-11 (ARTIFACT-004)
 
 - Close ARTIFACT-004: object bytes are sealed with tenant-bound envelope keys.

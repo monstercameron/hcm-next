@@ -169,6 +169,60 @@ func (s *SealedObjectStore) Put(ctx context.Context, cctx custody.Context, objec
 	return info, nil
 }
 
+// PutNewGeneration reseals plaintext as the next generation of an existing
+// object, preserving its identity (ArtifactID) while advancing Generation
+// by exactly one. Unlike Put, which is create-only, this is the one path
+// that lets an object's content and recorded digest legitimately change; it
+// is what makes "an older generation of the same object" a real, otherwise
+// unreachable state instead of a hypothetical one, which integrity
+// verification (ARTIFACT-006) must be able to detect on a replica that
+// never advanced. Sealing follows the same fail-closed contract as Put: any
+// error leaves the previous generation untouched.
+func (s *SealedObjectStore) PutNewGeneration(ctx context.Context, cctx custody.Context, objectID, mediaType string, plaintext []byte) (Info, error) {
+	if err := ctx.Err(); err != nil {
+		return Info{}, err
+	}
+	if s == nil || s.manager == nil {
+		return Info{}, ErrEncryptionUnavailable
+	}
+	if err := validateID(objectID); err != nil {
+		return Info{}, err
+	}
+	if len(plaintext) == 0 {
+		return Info{}, fmt.Errorf("%w: content is empty", ErrInvalidRequest)
+	}
+	s.mu.RLock()
+	before, exists := s.objects[objectID]
+	s.mu.RUnlock()
+	if !exists {
+		return Info{}, fmt.Errorf("%w: %s", ErrNotFound, objectID)
+	}
+
+	env, err := sealObject(s.manager, cctx, objectID, plaintext)
+	if err != nil {
+		return Info{}, err
+	}
+	envBytes, err := json.Marshal(env)
+	if err != nil {
+		return Info{}, fmt.Errorf("%w: encode envelope: %v", ErrEncryptionUnavailable, err)
+	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	current, exists := s.objects[objectID]
+	if !exists {
+		return Info{}, fmt.Errorf("%w: %s", ErrNotFound, objectID)
+	}
+	if current.stat.Generation != before.stat.Generation {
+		// Another write landed a newer generation first; refuse rather than
+		// silently clobbering it or skipping a generation number.
+		return Info{}, ErrRewrapConflict
+	}
+	info := Info{ArtifactID: objectID, Digest: digest(envBytes), Size: int64(len(plaintext)), MediaType: mediaType, Generation: current.stat.Generation + 1}
+	s.objects[objectID] = sealedEntry{envelope: env, stat: info}
+	return info, nil
+}
+
 // Get opens the envelope stored under objectID and returns the original
 // plaintext. Decryption fails closed on tenant mismatch, unknown or revoked
 // key, tampered ciphertext or header, or an object-identity mismatch.
