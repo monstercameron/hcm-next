@@ -1,5 +1,28 @@
 # Changelog
 
+## 2026-09-12 (SVC-008)
+
+- Close SVC-008: host connector execution as a `cmd/worker` role. New
+  `connector_role.go` follows the established `messagingDeliveryRole` shape and
+  funnels every dispatch through one path: reserve capacity on the
+  `ConnectorLedger` (INTG-015), claim a fenced lease on the operation journal
+  (INTG-011), obtain a credential bound to the operation's own destination, and
+  only then dispatch. Each of RED's four bypasses -- no queue claim, no
+  credential lease, no rate policy, no journal entry -- is independently
+  unreachable and independently tested. No migration needed.
+
+  Provider neutrality holds: the role imports only the operation journal,
+  custody, lease and bootstrap packages. No provider package.
+
+  Scope boundary, recorded rather than glossed: production wiring uses
+  fail-closed credential/writer/authorizer stand-ins, because no
+  destination-credential authority or connector provider adapter exists yet.
+  That follows the `unavailableMessagingTransport` pattern already in
+  `messaging_role.go`. The `connector-role` flag defaults to false and its usage
+  string says plainly that it is inert until those land. The role's own contract
+  is proven against a real journal, ledger and credential source; what is
+  deferred is the production authority it binds to.
+
 ## 2026-09-11 (CICD-004)
 
 - Close CICD-004: fail-closed deployment admission. `tools/policy/release`
