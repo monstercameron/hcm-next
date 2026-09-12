@@ -1,5 +1,30 @@
 # Changelog
 
+## 2026-09-12 (PERF-006)
+
+- Close PERF-006: bound external latency, quotas and retries. Most of the
+  contract already held and is now pinned by tests rather than rewritten -- the
+  four budget dimensions and drain prediction from INTG-015, the 429 backoff
+  from `Observe429`, the timeout-after-send ambiguity from CONN-RT-007 (AMBIGUOUS
+  is not leaseable, so a retry loop cannot multiply provider calls), and the
+  undeclared-quota fail-closed default.
+
+  The one genuine gap was 5xx. RED names it alongside 429, but only `Observe429`
+  existed, so a server fault was silently indistinguishable from a rate limit
+  despite having different retry semantics -- a 429 carries the vendor's own
+  reset, a 5xx does not. Added `ObserveServerFault`/`ServerFaultUntil` and
+  `ScheduleReasonServerFault`, tracked in their own map so the two are never
+  conflated. Proven by asserting `ThrottledUntil` stays empty for a 5xx-only
+  connection and `ServerFaultUntil` stays empty for a 429-only one.
+
+  A non-positive backoff is floored at one second, so observing a fault can
+  never produce a zero-length no-op that would amplify rather than bound.
+
+  The FAULT test asserts the actual attempt count for each of the five
+  conditions rather than merely that an error surfaced -- "never amplify
+  retries" is a counting claim, and a test that only checks for an error would
+  pass against an implementation that retried fifty times first.
+
 ## 2026-09-12 (ASSURANCE-001)
 
 - Tick ASSURANCE-001. The independent-assurance register in
