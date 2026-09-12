@@ -9014,10 +9014,10 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Adversarial model audit](data/models/adversarial-model-audit-2026-08-14.md), [conformance audit](specs/adversarial-audit-32-reviewers-2026-08-14.md).
 
-- [x] `EDGE-009` **[GATE_B][SOL_LOW] Serve the cell behind a declared public origin.**
+- [x] `EDGE-011` **[GATE_B][SOL_LOW] Serve the cell behind a declared public origin.**
   - **Depends:** none.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.SECURITY; DIRECT=none; WHY=bind the browser-facing origin contract to the deployment's declared authority when proxies terminate TLS or rewrite Host`.
-  - **TEST:** `TestServeConfigPublicOriginIsCanonicalizedAndValidated`, `TestJourneyShellBindsTheDeclaredPublicOrigin`, `TestTunnelOriginCheckAcceptsTheDeclaredPublicOrigin`.
+  - **TEST:** `TestServeConfigPublicOriginIsCanonicalizedAndValidated`.
   - **TEST MATRIX:** `PRIMARY=TestServeConfigPublicOriginIsCanonicalizedAndValidated`; `CONFORMANCE=TestJourneyShellBindsTheDeclaredPublicOrigin`; `SECURITY=TestTunnelOriginCheckAcceptsTheDeclaredPublicOrigin`.
   - **RED:** behind a TLS-terminating or Host-rewriting proxy the cell emits `ws://`/internal tunnel URLs the browser cannot reach, marks session cookies non-Secure, and admits only the rewritten same-origin; a malformed `-public-origin` composes a listener that silently emits an unusable authority.
   - **GREEN:** `hcmnext serve -public-origin=<absolute http(s) origin>` (`HCMNEXT_PUBLIC_ORIGIN`) canonicalizes the declared origin to `scheme://host`, makes it the only admitted browser origin, marks normalized cookies `Secure` under https, binds the workspace tunnel URL and CSP `connect-src` to the declared authority, and admits tunnel upgrades whose `Origin` host matches it; with no declared origin the same-origin default is unchanged.

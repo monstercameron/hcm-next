@@ -9,7 +9,7 @@
   workspace emits its gRPC tunnel URL and CSP `connect-src` against the
   declared authority, and tunnel upgrades whose `Origin` host matches it
   admit. With no flag the same-origin default for localhost and direct VPS
-  serving is unchanged. Ticked as `EDGE-009` (see devlog).
+  serving is unchanged. Ticked as `EDGE-011` (see devlog).
 - Close EP-PROMO-001's reopened gap: a facade propose now records the durable
   candidates migration 00024 defines instead of leaving the minted proposal
   in memory only. `internal/intent/app/journey_candidates.go` writes the

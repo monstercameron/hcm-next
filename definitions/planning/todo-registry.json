@@ -11391,6 +11391,27 @@
     "evidence": "`TestEdgeImplementationManifestRejectsAbstractWildcardOrUnverifiedRouteControl` in `internal/connectivity/edge` (concrete manifest proves exact route/method/body/TLS/DNS/east-west/egress allowlist, logging/redaction, rate/abuse budgets, ownership, degraded/outage and migration behavior against endpoint and threat registries; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/connectivity/edge/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
+    "id": "EDGE-011",
+    "phase": "GATE_B",
+    "model": "SOL_LOW",
+    "title": "Serve the cell behind a declared public origin",
+    "section": "32. Production identity, key custody and edge enforcement",
+    "depends": [],
+    "test": "TestServeConfigPublicOriginIsCanonicalizedAndValidated",
+    "test_matrix": {
+      "CONFORMANCE": "TestJourneyShellBindsTheDeclaredPublicOrigin",
+      "PRIMARY": "TestServeConfigPublicOriginIsCanonicalizedAndValidated",
+      "SECURITY": "TestTunnelOriginCheckAcceptsTheDeclaredPublicOrigin"
+    },
+    "red": "behind a TLS-terminating or Host-rewriting proxy the cell emits `ws://`/internal tunnel URLs the browser cannot reach, marks session cookies non-Secure, and admits only the rewritten same-origin; a malformed `-public-origin` composes a listener that silently emits an unusable authority",
+    "green": "`hcmnext serve -public-origin=\u003cabsolute http(s) origin\u003e` (`HCMNEXT_PUBLIC_ORIGIN`) canonicalizes the declared origin to `scheme://host`, makes it the only admitted browser origin, marks normalized cookies `Secure` under https, binds the workspace tunnel URL and CSP `connect-src` to the declared authority, and admits tunnel upgrades whose `Origin` host matches it; with no declared origin the same-origin default is unchanged",
+    "refactor": "parsing/canonicalization is validated once at the composition root (`internal/application`) and again fail-closed at each boundary that consumes it (`internal/transport/cell`, `internal/humanwork/workspace`); no request-header guessing replaces the declared value",
+    "refs": "[Go-only transport](specs/go-only-technology-constitution.md), [endpoint contract](specs/http-grpc-endpoint-contract.md)",
+    "retired": false,
+    "done": true,
+    "evidence": "`TestServeConfigPublicOriginIsCanonicalizedAndValidated` plus `FieldPublicOrigin` resolution in `TestServeConfigFieldsDeclareEveryConfigurationTheRoleReads`/`TestServeConfigFromValuesResolvesEveryFieldOnce` in `internal/application`; `TestJourneyShellBindsTheDeclaredPublicOrigin`, `TestJourneyShellRejectsAPublicOriginItCannotServe` in `internal/humanwork/workspace`; `TestTunnelOriginCheckAcceptsTheDeclaredPublicOrigin`, `TestCellPublicOriginParsesTheDeclaredOrigin`, `TestBrowserPolicyOptionsDerivesTheDeclaredOrigin` in `internal/transport/cell`; `go test -count=1 ./internal/application/ ./internal/humanwork/workspace/ ./internal/transport/cell/ ./internal/intent/app/` PASS on linux/amd64 (Go 1.26.8); `go vet` and `gofmt -l` clean on every touched package. Live deployment verification behind a Host/Origin-rewriting proxy: persona login 303 with `Secure` session cookie, journey shell 200 emitting `wss://\u003cpublic host\u003e/workspace/grpc`, websocket upgrade 101"
+  },
+  {
     "id": "EFFECT-001",
     "phase": "GATE_B",
     "model": "SOL_HIGH",
@@ -12222,8 +12243,8 @@
     "refactor": "promotion façade only maps typed input to `promotion.propose`; generic lifecycle endpoints own subsequent simulate/submit/inspect operations",
     "refs": "[Promotion endpoint](specs/http-grpc-endpoint-contract.md#gate-b-promotion-slice), [Promotion workflow](reference-workflows/promote-into-management.md), [intent-only request](#5-phase-1-people-organization-position-compensation-and-budget-domains)",
     "retired": false,
-    "done": false,
-    "evidence": "`TestProposeIntoManagementEndpointAcceptsOnlyIntentAndResolvesServerTruth` in `internal/transport/journey` (typed request accepts worker, desired job/position/org/manager/compensation/effective date/reason/expected revision/client id; server resolves facts and creates exactly one PromoteWorker intent/change request plus immutable snapshot/simulation/proposal candidates with zero author; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/transport/journey/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
+    "done": true,
+    "evidence": "`TestTodo_EP_PROMO_001_Integration` in `test/bootstrap/promotionpropose_test.go` (one facade propose writes, inside one tenant-scoped transaction: one `intent_input_snapshot` at purpose SIMULATION sequence 1 carrying the request digest and source baselines; the minted `proposal_revision` row with its `EncodeFullProposal` payload, `produced_by='hcmnext:intent-cell'` and the wire's material digest; the ordinal write and approval item sets; and one `intent_simulation_result` at READY binding snapshot and proposal digests; a replayed request over the tunnel returns the same intent and records no second candidate set; a store recomposed over the same pool re-reads the same material digest and payload) and `TestTodo_EP_PROMO_001_Unit` in `internal/intent/app` (derived-not-allocated candidate identities, the canonical snapshot/simulation bodies, proposal-set mapping, and the no-op cases: a blocked simulation with no revision and an engine composed with no durable database); `go test -count=1 ./test/bootstrap/ ./internal/intent/app/` PASS on linux/amd64 (Go 1.26.8); the recording lives in `internal/intent/app/journey_candidates.go`, invoked by both `journeyEngine.Propose` and `ProposePromotion`, with derived UUIDv5 identities so the stores' own ON CONFLICT semantics make replay a no-op | `TestProposeIntoManagementEndpointAcceptsOnlyIntentAndResolvesServerTruth` in `internal/transport/journey` (typed request accepts worker, desired job/position/org/manager/compensation/effective date/reason/expected revision/client id; server resolves facts and creates exactly one PromoteWorker intent/change request plus immutable snapshot/simulation/proposal candidates with zero author; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/transport/journey/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
     "id": "EP-REG-001",
@@ -12346,7 +12367,8 @@
     "refactor": "use Human Work projections and evidence views; endpoints never query workflow/domain tables directly",
     "refs": "[work endpoints](specs/http-grpc-endpoint-contract.md#human-work-and-approvals), [human work](specs/human-work-forms-and-rules.md), [work visibility](#24-human-decision-safety-and-continuity)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestWorkItemReadEndpointsEnforceAssignmentQueueAndEvidenceVisibility` and the full matrix (`TestTodo_EP_WORK_001_{Property,Golden,Race,Security,Conformance,Mutation}`) in `internal/transport/humanwork`; `TestTodo_EP_WORK_001_Edge` in `internal/transport/edge`; `TestTodo_EP_WORK_001_{Membership→Property,Queue}` coverage in `internal/humanwork/workitem` (membership, visibility classification, permitted-action sweep, durable `Store.ListQueue`); `TestTodo_EP_WORK_001_Reader` in `internal/intent/app`; `TestTodo_EP_WORK_001_Integration` in `test/bootstrap` reaching the real store through direct gRPC, the websocket tunnel and the Connect edge. `go test -count=1 ./internal/humanwork/workitem/` `go test -count=1 -race ./internal/transport/humanwork/ ./internal/transport/edge/` `go test -count=1 ./internal/transport/cell/ ./internal/intent/app/ ./internal/application/ ./test/bootstrap/` all PASS on linux/amd64 (Go 1.26.8, HCMNEXT_TEST_DATABASE_URL against the dockerized PostgreSQL 17); `go vet` clean on every touched package; `npm run check:coverage:staged` PASS. Queue snapshot and item detail return version/claim/deadline/proposal digest with classification-filtered context, server-computed permitted_actions, HMAC-signed snapshot-bound cursors and the single non-disclosing NOT_FOUND for absent/invisible/other-tenant reads; the mutating WorkService methods refuse with FAILED_PRECONDITION on both transports per the P1A proto contract"
   },
   {
     "id": "EP-WORK-002",
