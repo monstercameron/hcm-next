@@ -106,8 +106,11 @@ func TestTodo_PROTO_010_Golden(t *testing.T) {
 			notExposed++
 		}
 	}
-	if served != 10 || refused != 4 || notExposed != 0 || len(m.Endpoints) != 14 {
-		t.Fatalf("disposition distribution = {served:%d refused:%d not_exposed:%d total:%d}, want {10 4 0 14}",
+	// EP-INTENT-003 served SubmitIntent, CancelIntent and SupersedeIntent,
+	// moving three methods from refused to served. ExecuteIntent is the one
+	// write still refused for the duration of P1A.
+	if served != 13 || refused != 1 || notExposed != 0 || len(m.Endpoints) != 14 {
+		t.Fatalf("disposition distribution = {served:%d refused:%d not_exposed:%d total:%d}, want {13 1 0 14}",
 			served, refused, notExposed, len(m.Endpoints))
 	}
 }

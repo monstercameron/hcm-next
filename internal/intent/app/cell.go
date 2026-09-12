@@ -26,6 +26,7 @@ import (
 	hcmotel "github.com/monstercameron/human-capital-management-suite/internal/platform/telemetry/otel"
 	"github.com/monstercameron/human-capital-management-suite/internal/platform/timeauth"
 	"github.com/monstercameron/human-capital-management-suite/internal/transport"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/endpoint"
 	"github.com/monstercameron/human-capital-management-suite/internal/transport/manifest"
 	"github.com/monstercameron/human-capital-management-suite/internal/trust"
 	"github.com/monstercameron/human-capital-management-suite/internal/workflow/runtime"
@@ -143,6 +144,19 @@ type CellConfig struct {
 	// reservations. Nil keeps legacy UUID-derived numbers for non-workspace
 	// compositions.
 	WorkerIDs workerids.Store
+
+	// Idempotency composes ENDPOINT-004's Coordinator for SubmitIntent,
+	// CancelIntent and SupersedeIntent (EP-INTENT-003). Nil means a fresh
+	// [endpoint.NewCoordinator]: unlike ExecutionAuthority/Executor, an
+	// idempotent replay guard for a governed write carries no authority of
+	// its own, so a composed cell gets one by default rather than by opt-in.
+	Idempotency *endpoint.Coordinator
+	// SafePoints resolves CancelIntent's safe-point question for an
+	// EXECUTING intent (WF-RUN-010). Nil leaves every such intent answered
+	// as [intent.CancellationPointUnknown] (CANCELLATION_PENDING): no
+	// composition here wires a real workflow safe-point reader yet, so a
+	// cell never claims a clean cancel it cannot prove.
+	SafePoints SafePoints
 
 	// Executor is the caller-driven workflow driver ExecuteIntent runs an
 	// approved promotion proposal through. Nil (the default for every
@@ -445,6 +459,9 @@ func NewCell(cfg CellConfig) (*Cell, error) {
 		// back from one place.
 		Evidence:      sink,
 		LegalEvidence: cfg.LegalEvidence,
+
+		Idempotency: idempotencyOf(cfg),
+		SafePoints:  cfg.SafePoints,
 	})
 	if err != nil {
 		return nil, err
@@ -505,6 +522,16 @@ func NewCell(cfg CellConfig) (*Cell, error) {
 			Logger:      cfg.Logger,
 		},
 	}, nil
+}
+
+// idempotencyOf returns cfg's own coordinator, or a fresh one. A cell always
+// gets a working idempotency coordinator for its governed writes; only the
+// choice of instance (shared across cells, or one per cell) is cfg's to make.
+func idempotencyOf(cfg CellConfig) *endpoint.Coordinator {
+	if cfg.Idempotency != nil {
+		return cfg.Idempotency
+	}
+	return endpoint.NewCoordinator()
 }
 
 // resolveConnectivity returns the connector and the usable connection the

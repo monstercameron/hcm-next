@@ -197,10 +197,12 @@ func fieldVisibility(r Reading) contract.FieldVisibility {
 
 // actionVisibility offers the one action this release can honour.
 //
-// P1A grants no write authority: SubmitIntent, CancelIntent and
-// SupersedeIntent all refuse with FAILED_PRECONDITION. Offering a control
-// that would reach one of them would be a button whose only outcome is a
-// refusal, so the two write actions are declared and masked instead.
+// SubmitIntent, CancelIntent and SupersedeIntent are real governed writes as
+// of EP-INTENT-003, but this workspace surface has not been wired to call
+// them: it has no claim/version/reason-ref form for any of the three, and
+// offering a control with nothing behind it would be a button whose only
+// outcome is a client-side error. The two write actions stay declared and
+// masked until this package grows that form.
 func actionVisibility() contract.ActionVisibility {
 	return contract.Allow(ActionRunSimulation)
 }

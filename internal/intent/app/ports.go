@@ -126,6 +126,64 @@ type Store interface {
 	Timeline(ctx context.Context, tenant, intentID string) ([]TimelineEntry, error)
 }
 
+// ErrLifecycleWritesUnavailable is returned by [IntentService.SubmitIntent],
+// [IntentService.CancelIntent] and [IntentService.SupersedeIntent] when this
+// cell's composed [Store] does not implement [LifecycleMutator]. It leaves
+// these RPCs answering UNAVAILABLE rather than reporting a false success:
+// exactly the treatment a nil [OutcomeBinder] already gives ExecuteIntent's
+// terminal write.
+var ErrLifecycleWritesUnavailable = errors.New("app: this cell's store does not support lifecycle-mutating writes")
+
+// LifecycleMutation is one governed lifecycle transition beyond creation:
+// Submit, Cancel and Supersede all advance the five projected lifecycle
+// columns (and, when applicable, the commit/repair references) under a
+// compare-and-swap against the caller's own last-read instance version,
+// exactly like [OutcomeBinder]'s terminal write. The intent's own envelope —
+// the immutable creation fact a ledger event carries — is never rewritten by
+// a lifecycle mutation; only the mutable projection moves.
+type LifecycleMutation struct {
+	Tenant                  string
+	IntentID                string
+	ExpectedInstanceVersion uint64
+	Lifecycle               lifecycle.Dimensions
+	// CommitReceiptRef and RepairRef mirror the fields [OutcomeBinder] already
+	// projects; a mutation that does not touch one leaves it as the store's
+	// current value (an empty string here means "no change", not "clear it").
+	CommitReceiptRef string
+	RepairRef        string
+	RecordedAt       time.Time
+}
+
+// LifecycleMutator is implemented by a [Store] that supports the durable
+// governed writes SubmitIntent, CancelIntent and SupersedeIntent perform
+// beyond creation. It is optional exactly like [OutcomeBinder]: an adapter
+// that does not implement it leaves these three RPCs answering UNAVAILABLE
+// once past authorization and idempotency, rather than silently no-op
+// persisting a transition the caller was told succeeded.
+type LifecycleMutator interface {
+	MutateLifecycle(ctx context.Context, m LifecycleMutation) (IntentRecord, error)
+}
+
+// SafePoints resolves whether the workflow execution currently bound to an
+// intent is stopped at a declared safe point (internal/workflow/compile.go's
+// placeSafePoints/Node.SafePoint, WF-RUN-010) right now, and whether a
+// partial effect landed there that cancellation cannot cleanly reverse.
+//
+// It is a port, not a direct workflow-runtime read, because
+// internal/intent/app must not import the workflow runtime's mutable
+// execution tables — exactly the same layering reason [ProposalExecutor] is
+// a narrow port rather than a concrete driver. A cell composed with a nil
+// SafePoints leaves [IntentService.CancelIntent] treating every EXECUTING
+// intent as [intent.CancellationPointUnknown]: it never claims a clean
+// cancel it cannot prove.
+type SafePoints interface {
+	// At answers the safe-point question for the workflow execution bound to
+	// intentID. repairRef is populated only when point is
+	// [intent.CancellationPointPartialEffect]; it names the RepairPlan or
+	// incident the resulting REPAIR_REQUIRED tuple binds.
+	At(ctx context.Context, tenant, intentID string) (point intent.CancellationPoint, repairRef string, err error)
+}
+
 // DomainCall is everything the service needs to answer one P1A intent: the
 // kernel's baseline snapshot, the governed read that must run first, and the
 // one typed domain request the owning domain package consumes.

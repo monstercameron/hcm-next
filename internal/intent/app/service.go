@@ -20,6 +20,7 @@ import (
 	"github.com/monstercameron/human-capital-management-suite/internal/intent/protomap"
 	"github.com/monstercameron/human-capital-management-suite/internal/kernel/values"
 	"github.com/monstercameron/human-capital-management-suite/internal/transport"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/endpoint"
 	"github.com/monstercameron/human-capital-management-suite/internal/transport/envelope"
 	"github.com/monstercameron/human-capital-management-suite/internal/trust"
 	"github.com/monstercameron/human-capital-management-suite/internal/workflow/runtime"
@@ -149,6 +150,20 @@ type Options struct {
 	// from one place ([Cell.Evidence]).
 	Evidence      capability.EvidenceSink
 	LegalEvidence LegalEvidenceVerifier
+	// Idempotency composes ENDPOINT-004's Coordinator for the three governed
+	// writes beyond creation: SubmitIntent, CancelIntent and SupersedeIntent
+	// each carry an idempotency_key, and exact replay of the same key and
+	// payload must return the original result without re-running the
+	// transition. Nil is treated as those three write surfaces being
+	// unavailable ([ErrLifecycleWritesUnavailable]) rather than silently
+	// skipping idempotency, exactly like a nil Coordinator in
+	// internal/transport/humanwork.
+	Idempotency *endpoint.Coordinator
+	// SafePoints resolves the safe-point question CancelIntent asks only for
+	// an EXECUTING intent. Nil leaves every such intent answered as
+	// [intent.CancellationPointUnknown] (CANCELLATION_PENDING): a missing
+	// port never allows a clean cancel it cannot prove.
+	SafePoints SafePoints
 }
 
 // IntentService is the application service behind both transports.
@@ -186,6 +201,12 @@ type IntentService struct {
 	// [IntentService.ExecuteIntent] is the only reader.
 	evidence      capability.EvidenceSink
 	legalEvidence LegalEvidenceVerifier
+	// idempotency is ENDPOINT-004's Coordinator, shared by SubmitIntent,
+	// CancelIntent and SupersedeIntent. Nil leaves all three unavailable.
+	idempotency *endpoint.Coordinator
+	// safePoints is CancelIntent's safe-point resolver. Nil means "unknown"
+	// for every EXECUTING intent.
+	safePoints SafePoints
 }
 
 var (
@@ -229,6 +250,8 @@ func NewIntentService(opts Options) (*IntentService, error) {
 		executionFacts:     opts.ExecutionFacts,
 		evidence:           opts.Evidence,
 		legalEvidence:      opts.LegalEvidence,
+		idempotency:        opts.Idempotency,
+		safePoints:         opts.SafePoints,
 	}
 	if svc.ids == nil {
 		svc.ids = intent.UUIDv7Source
@@ -711,20 +734,11 @@ func (s *IntentService) SimulateIntent(ctx context.Context, req *intentsv1.Simul
 	return &intentsv1.SimulateIntentResponse{Simulation: artifact}, nil
 }
 
-// SubmitIntent is the governed write P1A does not have.
-func (s *IntentService) SubmitIntent(context.Context, *intentsv1.SubmitIntentRequest) (*intentsv1.SubmitIntentResponse, error) {
-	return nil, p1aRefusal("SubmitIntent", "submitting an intent for approval")
-}
-
-// CancelIntent is the governed write P1A does not have.
-func (s *IntentService) CancelIntent(context.Context, *intentsv1.CancelIntentRequest) (*intentsv1.CancelIntentResponse, error) {
-	return nil, p1aRefusal("CancelIntent", "cancelling a submitted intent")
-}
-
-// SupersedeIntent is the governed write P1A does not have.
-func (s *IntentService) SupersedeIntent(context.Context, *intentsv1.SupersedeIntentRequest) (*intentsv1.SupersedeIntentResponse, error) {
-	return nil, p1aRefusal("SupersedeIntent", "superseding an intent")
-}
+// SubmitIntent, CancelIntent and SupersedeIntent are implemented in
+// lifecycle_endpoints.go (EP-INTENT-003). They are declared there rather than
+// here only because this file was already at the size where one more RPC
+// family belonged in its own file; they are exactly as much a part of
+// IntentHandler as every method above.
 
 // p1aRefusal is the one typed answer for a method whose semantics are a
 // governed write.

@@ -190,9 +190,9 @@ func TestTodo_ENDPOINT_001_Golden(t *testing.T) {
 		"hcmnext.intents.v1.IntentService/ListIntents":        {DispositionServed, "GET", "/v1/intents", []string{}},
 		"hcmnext.intents.v1.IntentService/SimulateIntent":     {DispositionServed, "POST", "/v1/intents/{intent}:simulate", []string{"intent_id"}},
 		"hcmnext.intents.v1.IntentService/ExecuteIntent":      {DispositionRefusedP1A, "POST", "/v1/intents/{intent}:execute", []string{"idempotency_key", "intent_id", "approval.proposal_revision_id", "approval.approval_ref"}},
-		"hcmnext.intents.v1.IntentService/SubmitIntent":       {DispositionRefusedP1A, "POST", "/v1/intents/{intent}:submit", []string{"idempotency_key", "intent_id", "proposal_revision_id"}},
-		"hcmnext.intents.v1.IntentService/CancelIntent":       {DispositionRefusedP1A, "POST", "/v1/intents/{intent}:cancel", []string{"idempotency_key", "intent_id", "reason_ref"}},
-		"hcmnext.intents.v1.IntentService/SupersedeIntent":    {DispositionRefusedP1A, "POST", "/v1/intents/{intent}:supersede", []string{"definition.intent_type_id", "idempotency_key", "reason_ref", "superseded_intent_id"}},
+		"hcmnext.intents.v1.IntentService/SubmitIntent":       {DispositionServed, "POST", "/v1/intents/{intent}:submit", []string{"idempotency_key", "intent_id", "proposal_revision_id"}},
+		"hcmnext.intents.v1.IntentService/CancelIntent":       {DispositionServed, "POST", "/v1/intents/{intent}:cancel", []string{"idempotency_key", "intent_id", "reason_ref"}},
+		"hcmnext.intents.v1.IntentService/SupersedeIntent":    {DispositionServed, "POST", "/v1/intents/{intent}:supersede", []string{"definition.intent_type_id", "idempotency_key", "reason_ref", "superseded_intent_id"}},
 		"hcmnext.intents.v1.IntentService/ExplainIntent":      {DispositionServed, "GET", "/v1/intents/{intent}/explanation", []string{"intent_id"}},
 		"hcmnext.intents.v1.IntentService/ListIntentTimeline": {DispositionServed, "GET", "/v1/intents/{intent}/timeline", []string{"intent_id"}},
 
@@ -240,14 +240,23 @@ func TestTodo_ENDPOINT_001_Security(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Build: %v", err)
 	}
-	writeShaped := map[string]bool{
+	// Write-shaped methods split into two sets, and the point of this test is
+	// that a caller can tell which is which by reading the manifest alone.
+	// ExecuteIntent is still refused for the duration of P1A. The three
+	// intent-lifecycle writes were served by EP-INTENT-003, and a manifest
+	// that kept calling them refused would send a working endpoint's callers
+	// away — the failure mode this assertion now also covers.
+	refusedWrites := map[string]bool{
+		"hcmnext.intents.v1.IntentService/ExecuteIntent": true,
+	}
+	servedWrites := map[string]bool{
 		"hcmnext.intents.v1.IntentService/SubmitIntent":    true,
 		"hcmnext.intents.v1.IntentService/CancelIntent":    true,
 		"hcmnext.intents.v1.IntentService/SupersedeIntent": true,
-		"hcmnext.intents.v1.IntentService/ExecuteIntent":   true,
 	}
+	seenServedWrites := 0
 	for _, e := range m.Endpoints {
-		if writeShaped[e.EndpointID] {
+		if refusedWrites[e.EndpointID] {
 			if e.Disposition != DispositionRefusedP1A {
 				t.Errorf("%s: write-shaped method must be REFUSED_P1A, got %s", e.EndpointID, e.Disposition)
 			}
@@ -256,6 +265,21 @@ func TestTodo_ENDPOINT_001_Security(t *testing.T) {
 			}
 			if e.DispositionReason == "" || !strings.Contains(e.DispositionReason, "P1A") {
 				t.Errorf("%s: expected a P1A-citing disposition reason, got %q", e.EndpointID, e.DispositionReason)
+			}
+		}
+		if servedWrites[e.EndpointID] {
+			seenServedWrites++
+			if e.Disposition != DispositionServed {
+				t.Errorf("%s: this write is implemented and must be SERVED, got %s", e.EndpointID, e.Disposition)
+			}
+			if len(e.AcceptedIntentDefinitionRefs) == 0 {
+				t.Errorf("%s: a served lifecycle write must publish the definitions it accepts, got none", e.EndpointID)
+			}
+			if strings.Contains(e.DispositionReason, "refused") {
+				t.Errorf("%s: a served method must not carry a refusal reason, got %q", e.EndpointID, e.DispositionReason)
+			}
+			if e.IdempotencyClass != IdempotencyKey {
+				t.Errorf("%s: a served governed write must be idempotency-key deduped, got %s", e.EndpointID, e.IdempotencyClass)
 			}
 		}
 		if e.AuthnAssurance == "" {
@@ -267,6 +291,11 @@ func TestTodo_ENDPOINT_001_Security(t *testing.T) {
 		if len(e.CapabilityRefs) == 0 {
 			t.Errorf("%s: has no capability binding", e.EndpointID)
 		}
+	}
+	// Without this the served-write assertions above would pass vacuously if a
+	// method were renamed out of the manifest.
+	if seenServedWrites != len(servedWrites) {
+		t.Errorf("saw %d served governed writes in the manifest, want %d", seenServedWrites, len(servedWrites))
 	}
 }
 

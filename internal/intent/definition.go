@@ -412,6 +412,19 @@ func (d Definition) validateRelease() error {
 // LifecycleProfiles returns the lifecycle profiles that apply to this
 // definition: the kernel profiles, narrowed by AllowedTransitions where the
 // definition declares a narrower set.
+//
+// The state and terminal lists are narrowed alongside the transitions, to
+// exactly the states the narrowed edges actually reference (plus the
+// profile's own Initial state). A kernel state a narrower edge set never
+// declares an edge into or out of — SUBMITTED->APPROVED is absent from a
+// P1A-only definition's request edges, for example — is not reachable under
+// that edge set, and [lifecycle.Profile.Validate] refuses a profile that
+// declares an unreachable state; keeping the full kernel state list here
+// while narrowing only Transitions made every such definition's own profile
+// fail its own validation the moment anything tried to build a
+// [lifecycle.Machine] from it, which is exactly the state [lifecycle.Machine]
+// is for. This was found, not designed around: no prior caller of this
+// method ever constructed a Machine from its result.
 func (d Definition) LifecycleProfiles() map[lifecycle.Dimension]lifecycle.Profile {
 	profiles := lifecycle.KernelProfiles()
 	for dim, rules := range d.AllowedTransitions {
@@ -422,6 +435,27 @@ func (d Definition) LifecycleProfiles() map[lifecycle.Dimension]lifecycle.Profil
 		narrowed := base
 		narrowed.ID = base.ID + "#" + d.Ref.String()
 		narrowed.Transitions = append([]lifecycle.TransitionRule(nil), rules...)
+
+		referenced := map[lifecycle.StateID]bool{narrowed.Initial: true}
+		for _, r := range rules {
+			referenced[r.From] = true
+			referenced[r.To] = true
+		}
+		var states []lifecycle.StateID
+		for _, s := range base.States {
+			if referenced[s] {
+				states = append(states, s)
+			}
+		}
+		narrowed.States = states
+		var terminal []lifecycle.StateID
+		for _, s := range base.Terminal {
+			if referenced[s] {
+				terminal = append(terminal, s)
+			}
+		}
+		narrowed.Terminal = terminal
+
 		profiles[dim] = narrowed
 	}
 	return profiles
