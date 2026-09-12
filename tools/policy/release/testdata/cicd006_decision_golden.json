@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "id": "rel-golden",
+  "verdict": "PROCEED",
+  "classes": {
+    "source": true,
+    "toolchain": true,
+    "artifact": true,
+    "schema": true,
+    "config": true,
+    "test": true,
+    "conformance": true,
+    "rollout": true,
+    "rollback": true,
+    "owner": true,
+    "blocker": true
+  },
+  "evaluated_at": "2026-09-12T18:00:00Z",
+  "signature": {
+    "algorithm": "ed25519",
+    "public_key": "93019e7b15fc44dbfb7f36e105e465486e5d5a6ddec109abda44507e0d45332b",
+    "value": "8e262c9c56cddcb783a7bb7c47824f9092af0b42db0044c4453ff28064be97fc237acbbe8582b40dcd68b6b1a0c8e65fe3d7112cc99562ba83589a8315387c03",
+    "key_fixture": ""
+  }
+}

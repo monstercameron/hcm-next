@@ -1,5 +1,34 @@
 # Changelog
 
+## 2026-09-12 (CICD-006)
+
+- Close CICD-006: the signed release decision manifest, completing the
+  CICD-003/004/005/006 chain in one package. `decision.go` gathers eleven
+  evidence classes into one canonical, signed document returning
+  PROCEED/REMEDIATE/QUARANTINE/STOP. No migration needed.
+
+  Every presence check keys off a real observation rather than a bare bool.
+  Source needs repository, ref and commit; test needs a run timestamp and a
+  non-zero total, so a run that executed nothing is not evidence; owner needs a
+  name and a confirmation time. The sharpest is
+  `BlockerEvidence.present() == !CheckedAt.IsZero()` -- "nobody looked for
+  blockers" is not the same as "there are no blockers", which is exactly the
+  distinction a bare bool would erase. All eleven run before any positive check.
+
+  The four verdicts mean different things rather than being synonyms for "not
+  proceed": REMEDIATE is a fixable signal on a trustworthy candidate (failing
+  tests, invalid config, stale conformance, a merely paused rollout); QUARANTINE
+  is a candidate that is not trustworthy (schema mismatch, a rollback target
+  Admit refuses, a rollout already fenced); STOP is absence of evidence or an
+  explicit open blocker. A paused rollout remediates where a fenced one
+  quarantines, and an open blocker stops rather than remediating -- both proven
+  separately.
+
+  Composed rather than re-derived throughout: artifact evidence wraps
+  VerifyBundle's Verification, rollback evidence wraps Admit's AdmissionDecision,
+  rollout evidence reads a Snapshot's already-computed status, and signing reuses
+  the existing KeySource path with the signature excluded from the digest.
+
 ## 2026-09-12 (EDGE-007)
 
 - Close EDGE-007: propagate overload, retry and circuit state end to end.
