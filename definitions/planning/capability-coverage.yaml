@@ -535,6 +535,11 @@ items:
       - TestTodo_PROMO_007_Integration
       - TestTodo_PROMO_007_Mutation
       - TestTodo_PROMO_007_Security
+      - TestTodo_PROMO_008
+      - TestTodo_PROMO_008_Golden
+      - TestTodo_PROMO_008_Mutation
+      - TestTodo_PROMO_008_Race
+      - TestTodo_PROMO_008_Recovery
       - TestTunnelServesAServerStreamingRPC
       - TestTunnelUpgradeRefusesACrossOriginBrowser
       - TestWatchJourneyEmitsOneMessagePerChange
@@ -901,7 +906,7 @@ items:
     kind: intent
     display_name: ChangeManager
     owner_domain: PEOPLE
-    state: PARTIAL
+    state: DEFINED
     claims:
       - CONF-025:DIRECT
       - CONTACT-001:DOMAIN
@@ -997,7 +1002,8 @@ items:
       - WEB-191:DOMAIN
       - WEB-192:DOMAIN
       - WF-DISC-006:DOMAIN
-    tests: []
+    tests:
+      - TestChangeManagerIntentConformancePreservesGraphAuthorityAndZeroProductionExposure
   - id: hcmnext.people.explain_worker_state
     kind: intent
     display_name: ExplainWorkerState
@@ -1233,6 +1239,11 @@ items:
       - TestTodo_PROMO_007_Integration
       - TestTodo_PROMO_007_Mutation
       - TestTodo_PROMO_007_Security
+      - TestTodo_PROMO_008
+      - TestTodo_PROMO_008_Golden
+      - TestTodo_PROMO_008_Mutation
+      - TestTodo_PROMO_008_Race
+      - TestTodo_PROMO_008_Recovery
       - TestTunnelServesAServerStreamingRPC
       - TestTunnelUpgradeRefusesACrossOriginBrowser
       - TestWatchJourneyEmitsOneMessagePerChange

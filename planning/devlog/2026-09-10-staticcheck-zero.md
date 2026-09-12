@@ -153,3 +153,19 @@ fully green: `quality: PASSED`.
   every assertion untouched — a broken command still fails all three, so
   only infra flakes are absorbed. Same treatment will be needed if the
   `go list` based phaseonegate live tests flake again (seen once).
+
+## CI-green batch: layout roots, goldens, evidence allowlist
+
+- CI's first full run past the fixed quality gate failed ~400 tests. All
+  but a handful share one environmental root cause: the stock postgres:16
+  service container exhausts shared lock memory (SQLSTATE 53200) under the
+  race run's schema fan-out (fixed in the workflow, next commit).
+- Discrete repo drift, all pre-existing at c0a28ebe and masked while the
+  quality gate was red: internal/configuration and internal/evidence
+  (landed without layout roots; declared now as platform/deferred and
+  data/deferred — judgment call, reviewable), the layer-graph golden
+  (+data->transaction from the earlier conflictstore import),
+  capability-coverage golden (PROMO-008 tests, ChangeManager DEFINED),
+  and 986 pre-GOV-008 evidence-freshness gaps recorded in
+  known-defects.yaml with owner backlog and 2026-12-31 expiry instead of
+  fabricated evidence lines. Test files untouched throughout.

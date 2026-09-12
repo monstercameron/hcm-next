@@ -269,6 +269,16 @@ internal_package_roots:
     layer: platform
     phase: P1A
     description: Declared on 2026-09-06 when the repository-layout policy joined the pre-commit gates; the package existed and was in use before its root was written down here.
+  - name: configuration
+    owner: platform-foundation
+    layer: platform
+    phase: deferred
+    description: Configuration-semantics contracts (ARCH-GO-024); declared on 2026-09-10 when CI first ran the layout gate past the quality gate and reported the missing root. Deferred beyond P1A scope; no domain, workflow or store dependencies.
+  - name: evidence
+    owner: data-and-ledger
+    layer: data
+    phase: deferred
+    description: Closed-intent execution receipts (EVIDENCE-001); declared on 2026-09-10 when CI first ran the layout gate past the quality gate and reported the missing root. Deferred beyond P1A scope; digests point at owner records, never a second ledger.
 
 # Approved process set (companion to definitions/architecture/process-roles.yaml, SVC-001).
 approved_commands:
