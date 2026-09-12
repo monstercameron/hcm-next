@@ -1,5 +1,32 @@
 # Changelog
 
+## 2026-09-12 (CONN-RT-008)
+
+- Close CONN-RT-008: certify connector maturity with an automated conformance
+  harness. `certification.go` adds maturity levels and a certification decision
+  over ten evidence classes, built on the existing providercontract fixture
+  harness. Read as a pure decision over supplied evidence, per RED's "persist
+  zero authoritative rows" clause -- nothing stands up a real connector. No
+  migration needed.
+
+  Expiry is enforced rather than reduced to a bare bool, which is what RED's
+  expired-credential case demands. Every class embeds an observed/expires window
+  and `classify` returns MISSING before EXPIRED before FAILED, so an expired
+  credential is refused before its pass flag is ever consulted. A `Passed bool`
+  alone cannot distinguish "verified last year" from "verified this morning",
+  which is precisely the defect the todo names.
+
+  The level cascade matches GREEN exactly: L3 requires all ten classes, and L4
+  additionally requires peak load tested at or above the declared quota and
+  99.9% availability. The rejection is a typed value carrying code, field,
+  state, model version, connector id and requested level, unwrapping to a
+  sentinel, so a caller can branch on the family or read the offending class.
+
+  The mutation matrix breaks one class at a time while the other nine stay
+  valid, proving each blocks L3 and L4 independently rather than in aggregate,
+  and the fuzz oracle ran 13.1M executions asserting no evidence set missing a
+  required class or carrying an expired one ever certifies at L3 or above.
+
 ## 2026-09-12 (EP-WORK-002)
 
 - Close EP-WORK-002: ClaimWorkItem and ReleaseWorkItem. The RPCs and their
