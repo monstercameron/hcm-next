@@ -456,7 +456,11 @@ func TestTodo_EP_WORK_001_Conformance(t *testing.T) {
 	envErr := &envelope.Error{}
 
 	// Malformed requests land INVALID_ARGUMENT, absent resources NOT_FOUND,
-	// and the mutating surface refuses with the contract's FAILED_PRECONDITION.
+	// and the still-unimplemented mutating surface refuses with the
+	// contract's FAILED_PRECONDITION. ClaimWorkItem and ReleaseWorkItem are
+	// EP-WORK-002 and are exercised by their own test suite below; an empty
+	// request to either now fails validation (INVALID_ARGUMENT), not the
+	// P1B stub refusal this todo's methods no longer carry.
 	for _, tc := range []struct {
 		name string
 		call func() error
@@ -474,14 +478,6 @@ func TestTodo_EP_WORK_001_Conformance(t *testing.T) {
 			_, err := srv.GetWorkItem(ctx, &humanworkv1.GetWorkItemRequest{WorkItemId: uuid.NewString()})
 			return err
 		}, envelope.CodeNotFound},
-		{"claim refused", func() error {
-			_, err := srv.ClaimWorkItem(ctx, &humanworkv1.ClaimWorkItemRequest{})
-			return err
-		}, envelope.CodeFailedPrecondition},
-		{"release refused", func() error {
-			_, err := srv.ReleaseWorkItem(ctx, &humanworkv1.ReleaseWorkItemRequest{})
-			return err
-		}, envelope.CodeFailedPrecondition},
 		{"complete refused", func() error {
 			_, err := srv.CompleteWorkItem(ctx, &humanworkv1.CompleteWorkItemRequest{})
 			return err

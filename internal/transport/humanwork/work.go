@@ -1,14 +1,18 @@
-// Package humanwork exposes the human-work queue read surface: WorkService
-// ListWorkItems and GetWorkItem (EP-WORK-001).
+// Package humanwork exposes the human-work queue read surface (WorkService
+// ListWorkItems and GetWorkItem, EP-WORK-001) and the exclusive claim/release
+// write surface (ClaimWorkItem and ReleaseWorkItem, EP-WORK-002).
 //
 // The service is deliberately thin (ARCH-GO-023): membership, visibility
-// classification and the permitted-action set are the workitem package's
-// read rules; this package owns protocol, authorization, the signed stable
-// queue cursor and the wire projection. The four mutating WorkService
-// methods are P1B acceptance items (EP-WORK-002/003): they are registered
-// and refuse with FAILED_PRECONDITION exactly as the proto contract
-// specifies, rather than answering UNIMPLEMENTED. GetThresholdTable is a
-// separate read todo and is left unimplemented.
+// classification, the permitted-action set and current-authority claim/lease
+// logic are all the workitem package's rules, reached through [Reader] and
+// [Claims]; this package owns protocol, wire-level authorization, the signed
+// stable queue cursor, idempotent replay (composed from
+// internal/transport/endpoint's Coordinator) and the wire projection.
+// CompleteWorkItem and DecideApproval remain P1B acceptance items
+// (EP-WORK-003): they are registered and refuse with FAILED_PRECONDITION
+// exactly as the proto contract specifies, rather than answering
+// UNIMPLEMENTED. GetThresholdTable is a separate read todo and is left
+// unimplemented.
 package humanwork
 
 import (
@@ -34,22 +38,45 @@ import (
 	humanworkv1 "github.com/monstercameron/human-capital-management-suite/gen/go/hcmnext/humanwork/v1"
 	"github.com/monstercameron/human-capital-management-suite/internal/humanwork/workitem"
 	"github.com/monstercameron/human-capital-management-suite/internal/transport"
+	"github.com/monstercameron/human-capital-management-suite/internal/transport/endpoint"
 	"github.com/monstercameron/human-capital-management-suite/internal/transport/envelope"
 	"github.com/monstercameron/human-capital-management-suite/internal/trust"
 )
 
 const (
-	ListWorkItemsProcedure = "/hcmnext.humanwork.v1.WorkService/ListWorkItems"
-	GetWorkItemProcedure   = "/hcmnext.humanwork.v1.WorkService/GetWorkItem"
+	ListWorkItemsProcedure   = "/hcmnext.humanwork.v1.WorkService/ListWorkItems"
+	GetWorkItemProcedure     = "/hcmnext.humanwork.v1.WorkService/GetWorkItem"
+	ClaimWorkItemProcedure   = "/hcmnext.humanwork.v1.WorkService/ClaimWorkItem"
+	ReleaseWorkItemProcedure = "/hcmnext.humanwork.v1.WorkService/ReleaseWorkItem"
 
 	ActionListWorkItems      = "list_work_items"
 	ActionGetWorkItem        = "get_work_item"
 	ActionWorkItemGovernance = "work_item_governance_view"
+	// ActionClaimWorkItem and ActionReleaseWorkItem are EP-WORK-002: the
+	// wire-level "may this principal call this method at all" gate. They are
+	// deliberately separate from the per-item current-authority check
+	// [workitem.Store.ClaimCurrent] and [workitem.Store.Release] perform
+	// fresh against the loaded row: this gate answers "is claiming or
+	// releasing work items a capability this principal has", the domain
+	// answers "does this principal currently stand as this item's assignee,
+	// candidate or claimant".
+	ActionClaimWorkItem   = "claim_work_item"
+	ActionReleaseWorkItem = "release_work_item"
 
 	defaultPageSize = 20
 	maxPageSize     = 100
 	cursorTTL       = 5 * time.Minute
 	cursorVersion   = 1
+
+	// defaultClaimLease is how long a claim [server.ClaimWorkItem] mints
+	// stays live before it is eligible for the expiry release every read and
+	// write in [workitem.Store] already performs on touch. It is a transport
+	// policy default, overridable per deployment through
+	// [Dependencies.ClaimLease]; EP-WORK-002's spec calls the lease
+	// "optional" but [workitem.Store.Claim] itself requires a concrete
+	// expiry, so some default has to live somewhere, and here is as narrow a
+	// scope as that decision gets without inventing a policy document for it.
+	defaultClaimLease = 15 * time.Minute
 )
 
 var (
@@ -74,11 +101,41 @@ type Reader interface {
 	LoadItem(ctx context.Context, tenant, workItemID string) (workitem.WorkItem, error)
 }
 
+// Claims is the deliberately small write port ClaimWorkItem and
+// ReleaseWorkItem call through (EP-WORK-002). Like [Reader], tenant, work
+// item id and principal arrive as strings: the driver behind this port owns
+// their typed forms and how a refusal is classified. Each method is expected
+// to perform [workitem.Store.ClaimCurrent]/[workitem.Store.Release]'s own
+// current-authority check and exclusive item_version compare-and-swap in one
+// durable transaction; this package supplies no authorization or CAS logic
+// of its own; it only decides whether the caller may reach this port at all
+// and how the port's typed refusal projects onto the wire.
+type Claims interface {
+	// Claim performs one current-authority, version-bound, exclusive claim.
+	Claim(ctx context.Context, tenant, workItemID, principal string, expectedVersion uint64, claimExpiresAt, now time.Time, meta workitem.TransitionMeta) (workitem.WorkItem, error)
+	// Release performs one current-authority release of a live claim. An
+	// already-expired lease is never released as if it were current: the
+	// port is expected to refuse [workitem.CodeClaimExpired] exactly as
+	// [workitem.Store.Release] does, rather than complete the release.
+	Release(ctx context.Context, tenant, workItemID, principal string, expectedVersion uint64, now time.Time, meta workitem.TransitionMeta) (workitem.WorkItem, error)
+}
+
 type Dependencies struct {
 	Queue     Reader
+	Claims    Claims
 	Authorize func(*trust.Principal, string) bool
 	CursorKey []byte
 	Now       func() time.Time
+	// Idempotency composes ENDPOINT-004's Coordinator: exact replay of the
+	// same idempotency key and payload returns the original result without
+	// re-running the claim or release effect, and a stale expected revision
+	// refuses with the current revision attached rather than reaching the
+	// effect at all. Required for ClaimWorkItem and ReleaseWorkItem; a nil
+	// Coordinator is treated as the write surface being unavailable rather
+	// than silently skipping idempotency.
+	Idempotency *endpoint.Coordinator
+	// ClaimLease overrides [defaultClaimLease]. Zero means the default.
+	ClaimLease time.Duration
 }
 
 type server struct {
@@ -124,14 +181,14 @@ func NewHandler(deps Dependencies, opts ...connect.HandlerOption) http.Handler {
 	// The mutating procedures are mounted to refuse, not to 404: the proto's
 	// P1A disposition fixes their answer as FAILED_PRECONDITION on both
 	// transports.
-	mux.Handle("/hcmnext.humanwork.v1.WorkService/ClaimWorkItem", connect.NewUnaryHandler("/hcmnext.humanwork.v1.WorkService/ClaimWorkItem", func(ctx context.Context, req *connect.Request[humanworkv1.ClaimWorkItemRequest]) (*connect.Response[humanworkv1.ClaimWorkItemResponse], error) {
+	mux.Handle(ClaimWorkItemProcedure, connect.NewUnaryHandler(ClaimWorkItemProcedure, func(ctx context.Context, req *connect.Request[humanworkv1.ClaimWorkItemRequest]) (*connect.Response[humanworkv1.ClaimWorkItemResponse], error) {
 		res, err := s.ClaimWorkItem(ctx, req.Msg)
 		if err != nil {
 			return nil, err
 		}
 		return connect.NewResponse(res), nil
 	}, opts...))
-	mux.Handle("/hcmnext.humanwork.v1.WorkService/ReleaseWorkItem", connect.NewUnaryHandler("/hcmnext.humanwork.v1.WorkService/ReleaseWorkItem", func(ctx context.Context, req *connect.Request[humanworkv1.ReleaseWorkItemRequest]) (*connect.Response[humanworkv1.ReleaseWorkItemResponse], error) {
+	mux.Handle(ReleaseWorkItemProcedure, connect.NewUnaryHandler(ReleaseWorkItemProcedure, func(ctx context.Context, req *connect.Request[humanworkv1.ReleaseWorkItemRequest]) (*connect.Response[humanworkv1.ReleaseWorkItemResponse], error) {
 		res, err := s.ReleaseWorkItem(ctx, req.Msg)
 		if err != nil {
 			return nil, err
@@ -273,12 +330,225 @@ func (s *server) refused(ctx context.Context, reason string) error {
 	return err
 }
 
-func (s *server) ClaimWorkItem(ctx context.Context, _ *humanworkv1.ClaimWorkItemRequest) (*humanworkv1.ClaimWorkItemResponse, error) {
-	return nil, s.refused(ctx, "workitem.claim_unavailable")
+// ClaimWorkItem is EP-WORK-002: an atomic, version-bound, current-authority,
+// idempotent claim. The wire-level authorization gate and non-disclosing
+// visibility answer are this package's own (matching GetWorkItem exactly);
+// current authority, the exclusive item_version compare-and-swap and the
+// append-only evidence write are entirely [Dependencies.Claims]' job, driven
+// by [workitem.Store.ClaimCurrent]. Idempotent replay and the stale-revision
+// precondition are composed from ENDPOINT-004's [endpoint.Coordinator]
+// rather than reimplemented here.
+func (s *server) ClaimWorkItem(ctx context.Context, req *humanworkv1.ClaimWorkItemRequest) (*humanworkv1.ClaimWorkItemResponse, error) {
+	item, inv, p, err := s.prepareMutation(ctx, req.GetWorkItemId(), req.GetIdempotencyKey(), req.GetExpectedItemVersion(), req.GetScope(), ActionClaimWorkItem)
+	if err != nil {
+		return nil, err
+	}
+	now := s.now()
+	tenant := p.Tenant().String()
+	expectedRev := req.GetExpectedItemVersion()
+	idemReq := endpoint.Request{
+		Scope:            endpoint.Scope{Principal: p.Subject(), Tenant: tenant, Capability: "humanwork.work_item.claim"},
+		MessageKey:       req.GetIdempotencyKey(),
+		Payload:          []byte(fmt.Sprintf("claim|%s|%d", item.WorkItemID.String(), expectedRev)),
+		ExpectedRevision: &expectedRev,
+		CurrentRevision:  uint64(item.ItemVersion),
+	}
+	lease := s.claimLease()
+	meta := workitem.TransitionMeta{ActorPrincipalID: p.Subject(), Reason: "workitem.claimed_via_endpoint", At: now}
+	if _, doErr := s.deps.Idempotency.Do(ctx, idemReq, func(ctx context.Context) (endpoint.Outcome, error) {
+		claimed, claimErr := s.deps.Claims.Claim(ctx, tenant, item.WorkItemID.String(), p.Subject(), expectedRev, now.Add(lease), now, meta)
+		if claimErr != nil {
+			return endpoint.Outcome{}, claimErr
+		}
+		return endpoint.Outcome{Status: "OK", ResultDigest: claimed.WorkItemID.String()}, nil
+	}); doErr != nil {
+		return nil, s.mutationError(inv, p, doErr)
+	}
+	final, loadErr := s.deps.Queue.LoadItem(ctx, tenant, item.WorkItemID.String())
+	if loadErr != nil {
+		return nil, unavailable(inv, p, loadErr)
+	}
+	governed := s.authorized(p, ActionWorkItemGovernance)
+	return &humanworkv1.ClaimWorkItemResponse{WorkItem: projectItem(final, workitem.MembershipOf(final, p.Subject(), now), governed)}, nil
 }
 
-func (s *server) ReleaseWorkItem(ctx context.Context, _ *humanworkv1.ReleaseWorkItemRequest) (*humanworkv1.ReleaseWorkItemResponse, error) {
-	return nil, s.refused(ctx, "workitem.release_unavailable")
+// ReleaseWorkItem is EP-WORK-002's voluntary release, built the same way as
+// ClaimWorkItem: only the driver behind [Dependencies.Claims] decides
+// current authority (only the item's current live claimant may release) and
+// performs the transition; the transport's own job is the visibility gate,
+// idempotent replay and error projection.
+func (s *server) ReleaseWorkItem(ctx context.Context, req *humanworkv1.ReleaseWorkItemRequest) (*humanworkv1.ReleaseWorkItemResponse, error) {
+	item, inv, p, err := s.prepareMutation(ctx, req.GetWorkItemId(), req.GetIdempotencyKey(), req.GetExpectedItemVersion(), req.GetScope(), ActionReleaseWorkItem)
+	if err != nil {
+		return nil, err
+	}
+	now := s.now()
+	tenant := p.Tenant().String()
+	expectedRev := req.GetExpectedItemVersion()
+	reasonRef := strings.TrimSpace(req.GetReasonRef())
+	idemReq := endpoint.Request{
+		Scope:            endpoint.Scope{Principal: p.Subject(), Tenant: tenant, Capability: "humanwork.work_item.release"},
+		MessageKey:       req.GetIdempotencyKey(),
+		Payload:          []byte(fmt.Sprintf("release|%s|%d|%s", item.WorkItemID.String(), expectedRev, reasonRef)),
+		ExpectedRevision: &expectedRev,
+		CurrentRevision:  uint64(item.ItemVersion),
+	}
+	meta := workitem.TransitionMeta{ActorPrincipalID: p.Subject(), Reason: "workitem.released_via_endpoint", Detail: reasonRef, At: now}
+	if _, doErr := s.deps.Idempotency.Do(ctx, idemReq, func(ctx context.Context) (endpoint.Outcome, error) {
+		released, relErr := s.deps.Claims.Release(ctx, tenant, item.WorkItemID.String(), p.Subject(), expectedRev, now, meta)
+		if relErr != nil {
+			return endpoint.Outcome{}, relErr
+		}
+		return endpoint.Outcome{Status: "OK", ResultDigest: released.WorkItemID.String()}, nil
+	}); doErr != nil {
+		return nil, s.mutationError(inv, p, doErr)
+	}
+	final, loadErr := s.deps.Queue.LoadItem(ctx, tenant, item.WorkItemID.String())
+	if loadErr != nil {
+		return nil, unavailable(inv, p, loadErr)
+	}
+	governed := s.authorized(p, ActionWorkItemGovernance)
+	return &humanworkv1.ReleaseWorkItemResponse{WorkItem: projectItem(final, workitem.MembershipOf(final, p.Subject(), now), governed)}, nil
+}
+
+// prepareMutation is ClaimWorkItem and ReleaseWorkItem's shared boundary:
+// authenticate, validate the three fields every mutating WorkService method
+// requires, authorize the wire-level capability, and load-then-apply the
+// exact non-disclosing visibility rule GetWorkItem uses, so a caller who
+// cannot see an item cannot learn anything about it by trying to claim or
+// release it either.
+func (s *server) prepareMutation(
+	ctx context.Context, workItemID, idempotencyKey string, expectedVersion uint64, scope *commonv1.ScopeContext, action string,
+) (workitem.WorkItem, *transport.Invocation, *trust.Principal, error) {
+	p, inv, err := trustedContext(ctx)
+	if err != nil {
+		return workitem.WorkItem{}, nil, nil, err
+	}
+	workItemID = strings.TrimSpace(workItemID)
+	switch {
+	case workItemID == "":
+		return workitem.WorkItem{}, inv, p, invalid(inv, "work_item_id")
+	case strings.TrimSpace(idempotencyKey) == "":
+		return workitem.WorkItem{}, inv, p, invalid(inv, "idempotency_key")
+	case expectedVersion == 0:
+		// A work item's own version starts at 1 and only ever increases
+		// (workitem.NewWorkItem); a zero here is a Go zero value asserting
+		// "current" and must be refused, never treated as a wildcard match.
+		return workitem.WorkItem{}, inv, p, invalid(inv, "expected_item_version")
+	}
+	if !s.authorized(p, action) {
+		return workitem.WorkItem{}, inv, p, denied(inv, p)
+	}
+	tenant := p.Tenant().String()
+	if scope != nil && scope.GetTenantId() != "" && scope.GetTenantId() != tenant {
+		return workitem.WorkItem{}, inv, p, notFound(inv, p)
+	}
+	if s.deps.Queue == nil || s.deps.Claims == nil || s.deps.Idempotency == nil {
+		return workitem.WorkItem{}, inv, p, unavailable(inv, p, ErrQueueEmpty)
+	}
+	item, loadErr := s.deps.Queue.LoadItem(ctx, tenant, workItemID)
+	if loadErr != nil {
+		if errors.Is(loadErr, ErrNotFound) || workitem.CodeOf(loadErr) == workitem.CodeWorkItemNotFound {
+			return workitem.WorkItem{}, inv, p, notFound(inv, p)
+		}
+		return workitem.WorkItem{}, inv, p, unavailable(inv, p, loadErr)
+	}
+	now := s.now()
+	m := workitem.MembershipOf(item, p.Subject(), now)
+	governed := s.authorized(p, ActionWorkItemGovernance)
+	inScope := item.OrganizationScopeID != "" && item.OrganizationScopeID == p.OrganizationScopeID()
+	if !workitem.Visible(item, m, inScope, governed) {
+		return workitem.WorkItem{}, inv, p, notFound(inv, p)
+	}
+	return item, inv, p, nil
+}
+
+// mutationError projects a Claim/Release failure onto the canonical error
+// model, per planning/specs/http-grpc-endpoint-contract.md's table: an
+// idempotency payload mismatch or a current-state conflict (the item is no
+// longer claimable at the version the caller expected -- including having
+// lost a claim race) is ALREADY_EXISTS/ABORTED; a stale expected revision or
+// an unmet business precondition is FAILED_PRECONDITION; an authorization
+// refusal is PERMISSION_DENIED. Every branch is a safe, owned summary: none
+// of them echo who currently holds the item, only that it is not currently
+// claimable and, for a revision conflict, what its current version is --
+// exactly the "current-safe precondition data" GREEN requires without
+// crossing the claim/candidate evidence compartment [workitem.EvidenceVisible]
+// already draws for reads.
+func (s *server) mutationError(inv *transport.Invocation, p *trust.Principal, err error) error {
+	var revConflict *endpoint.RevisionConflict
+	if errors.As(err, &revConflict) {
+		e := envelope.New(envelope.CodeFailedPrecondition, "humanwork.stale_revision", "the expected item version is stale")
+		e.WithViolation("expected_item_version", fmt.Sprintf("current item version is %d", revConflict.Current), "humanwork.stale_revision")
+		if inv != nil {
+			e.WithCorrelation(inv.RequestID())
+		}
+		return e
+	}
+	var payloadConflict *endpoint.PayloadConflict
+	if errors.As(err, &payloadConflict) {
+		e := envelope.New(envelope.CodeAborted, "humanwork.idempotency_key_reused", "the idempotency key was already used for a different request")
+		if inv != nil {
+			e.WithCorrelation(inv.RequestID())
+		}
+		return e
+	}
+	if errors.Is(err, endpoint.ErrIdempotencyKeyRequired) || errors.Is(err, endpoint.ErrIdempotencyKeyMismatch) || errors.Is(err, endpoint.ErrScopeRequired) {
+		return invalid(inv, "idempotency_key")
+	}
+	switch workitem.CodeOf(err) {
+	case workitem.CodeWorkItemNotFound:
+		return notFound(inv, p)
+	case workitem.CodeUnauthorizedClaimant:
+		e := envelope.New(envelope.CodePermissionDenied, "humanwork.unauthorized_claimant",
+			"the caller does not currently hold authority over this work item")
+		if inv != nil {
+			e.WithCorrelation(inv.RequestID())
+		}
+		if p != nil {
+			e.WithEvidence(envelope.Evidence{ID: p.EvidenceID(), Kind: "authentication"})
+		}
+		return e
+	case workitem.CodeAlreadyClaimed:
+		e := envelope.New(envelope.CodeAborted, "humanwork.already_claimed",
+			"the work item is no longer claimable at the expected version")
+		if inv != nil {
+			e.WithCorrelation(inv.RequestID())
+		}
+		return e
+	case workitem.CodeStaleItem:
+		e := envelope.New(envelope.CodeFailedPrecondition, "humanwork.stale_item", "the expected item version is stale")
+		if inv != nil {
+			e.WithCorrelation(inv.RequestID())
+		}
+		return e
+	case workitem.CodeClaimExpired:
+		e := envelope.New(envelope.CodeFailedPrecondition, "humanwork.claim_expired",
+			"the claim expired and the item returned to its policy route")
+		if inv != nil {
+			e.WithCorrelation(inv.RequestID())
+		}
+		return e
+	case workitem.CodeIllegalTransition:
+		e := envelope.New(envelope.CodeFailedPrecondition, "humanwork.illegal_transition",
+			"the work item is not in a state that accepts this action")
+		if inv != nil {
+			e.WithCorrelation(inv.RequestID())
+		}
+		return e
+	case workitem.CodeInvalidRecord:
+		return invalid(inv, "work_item")
+	default:
+		return unavailable(inv, p, err)
+	}
+}
+
+// claimLease returns the effective claim lease duration.
+func (s *server) claimLease() time.Duration {
+	if s.deps.ClaimLease > 0 {
+		return s.deps.ClaimLease
+	}
+	return defaultClaimLease
 }
 
 func (s *server) CompleteWorkItem(ctx context.Context, _ *humanworkv1.CompleteWorkItemRequest) (*humanworkv1.CompleteWorkItemResponse, error) {
