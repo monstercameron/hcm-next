@@ -170,6 +170,22 @@ func peopleRowProps(view View, window peoplePageWindow) []PeopleRowProps {
 			reason = PromotionAvailabilityReason(view.Locale, PromotionWithheld)
 		}
 		for _, workflow := range workflows {
+			if workflow.ID == "promotion" && person.PromotionAvailability == PromotionActiveConflict {
+				// PROMOUX-002 GREEN #3: a conflicting worker never loses the
+				// action entirely -- Start is replaced with a link to the
+				// journey already blocking a new one, so continuity survives
+				// the refusal rather than dead-ending at a bare reason.
+				if item, ok := activePromotionWorkItem(view, person.ID); ok {
+					actions = append(actions, PeopleQuickActionProps{
+						Label:           view.Locale.Text("people.open_active_promotion"),
+						AccessibleLabel: view.Locale.Text("people.open_active_promotion_aria", map[string]string{"name": person.Name}),
+						Href:            JourneyDetailHref(view, item.ID),
+					})
+					continue
+				}
+				reason = PromotionAvailabilityReason(view.Locale, person.PromotionAvailability)
+				continue
+			}
 			if workflow.ID == "promotion" && !personPromotionEligible(person) {
 				// GREEN #2: a suppressed promotion action always leaves a
 				// server-provided reason behind for the empty-workflow-menu

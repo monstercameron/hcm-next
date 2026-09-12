@@ -1,5 +1,49 @@
 # Changelog
 
+## 2026-09-12 (PROMOUX-002)
+
+- Two people can no longer start overlapping promotions for the same worker.
+  The todo's REFACTOR clause says it plainly -- the guard belongs to promotion
+  admission, and UI suppression is not the integrity boundary -- so the
+  guarantee is a database constraint, not an application check.
+
+  `promotion_active_intent_guard` carries a partial unique index on
+  `(tenant_id, worker_ref, effective_date) WHERE status = 'ACTIVE'`, and
+  `Admit` is a single INSERT .. ON CONFLICT .. RETURNING, never a SELECT that
+  precedes the write. Two concurrent transactions may both read no conflict;
+  only one can commit, because PostgreSQL evaluates the index as part of each
+  INSERT's own commit. Twelve goroutines on independent connections, released
+  from a common barrier with distinct idempotency keys, prove exactly one wins.
+
+  The window is modelled as the single effective date the request contract
+  carries, so two promotions for one worker on different dates are both
+  admitted; only the same date collides.
+
+- The zero-mutation clause is proven by counting rather than by asserting
+  success: a counting executor wrapping the real transaction requires every
+  mutating statement a refused start issues to target the guard table and
+  nothing else, and the security test additionally diffs row counts across
+  intents, ledger events, work items and the domain tables. That test calls the
+  engine directly, with no HTTP, gRPC or page involved, which is what makes the
+  REFACTOR clause true rather than asserted.
+
+- Four pre-existing tests were updated rather than weakened. Each had assumed
+  two proposals for one worker's single effective date are both admitted --
+  precisely the defect this closes. The digest subtest keeps its original claim
+  by computing the content digest on the refused request directly, and gains a
+  row count proving no second intent was created.
+
+- Known gap, recorded rather than implied: `Release` is implemented and tested
+  but called from no production code, because nothing fires when an intent
+  reaches a terminal stage. A guard row is created ACTIVE and never closed, so
+  re-proposing for the same worker and date after a rejection is refused
+  permanently, and the UI -- which still reads the non-terminal journey scan --
+  offers Start where the server refuses. Escalated separately.
+
+- Added two storage-disposition registry rows, including one for
+  `ledger_payload_disposition`, which LEDGER-011 shipped without and which had
+  left the schema classification gate red since that merge.
+
 ## 2026-09-12 (PROMOUX-001)
 
 - The People directory can now tell you _why_ a worker has no promotion

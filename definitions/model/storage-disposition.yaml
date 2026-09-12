@@ -137,6 +137,7 @@ migrationfiles:
   - 00283_admission_retry_force_rls.sql
   - 00284_records_hold_001_release_and_notices.sql
   - 00285_ledger_011_payload_disposition.sql
+  - 00286_promoux002_active_promotion_guard.sql
 entities:
   - entityref: ApprovalBinding/v1
     key: approval_binding

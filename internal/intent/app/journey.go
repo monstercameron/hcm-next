@@ -128,6 +128,8 @@ func journeyError(err error) error {
 		return fmt.Errorf("%w: %s", workspace.ErrJourneyUnavailable, owned.Error())
 	case reasonProposalDecisionSeparation:
 		return fmt.Errorf("%w: %s", workspace.ErrDenied, owned.Error())
+	case reasonPromotionActiveConflict:
+		return fmt.Errorf("%w: %s", workspace.ErrJourneyActiveConflict, owned.Error())
 	}
 	return fmt.Errorf("app: journey: %w", err)
 }
@@ -347,9 +349,19 @@ func (e *journeyEngine) Propose(ctx context.Context, in workspace.ProposalInput)
 	if keyErr != nil {
 		return workspace.JourneySummary{}, fmt.Errorf("app: journey: mint an idempotency key: %w", keyErr)
 	}
+	proposeIdempotencyKey := "journey:propose:" + key
+
+	// PROMOUX-002: admitted before CreateIntent is ever reached, so a
+	// conflicting caller's refusal leaves no intent, proposal revision, work
+	// item or ledger row behind. See admitPromotionWindow's own doc for the
+	// guarantee this relies on.
+	guardID, guardErr := e.admitPromotionWindow(ctx, principal, worker.String(), baseline.effectiveText, proposeIdempotencyKey)
+	if guardErr != nil {
+		return workspace.JourneySummary{}, guardErr
+	}
 
 	created, createErr := e.svc.CreateIntent(ctx, &intentsv1.CreateIntentRequest{
-		IdempotencyKey: "journey:propose:" + key,
+		IdempotencyKey: proposeIdempotencyKey,
 		Definition:     &intentsv1.DefinitionReference{IntentTypeId: def.Ref.TypeID, Version: def.Ref.Version},
 		// The initiator is server-derived. On the RPC surfaces the transport's
 		// own trusted-field pass fills it from the verified credential
@@ -377,6 +389,9 @@ func (e *journeyEngine) Propose(ctx context.Context, in workspace.ProposalInput)
 	})
 	if createErr != nil {
 		return workspace.JourneySummary{}, journeyError(createErr)
+	}
+	if confirmErr := e.confirmPromotionWindow(ctx, principal, guardID, proposeIdempotencyKey, created.GetIntent().GetIntentId()); confirmErr != nil {
+		trace.SpanFromContext(ctx).AddEvent("promotion.guard.confirm_failed")
 	}
 
 	summary, sumErr := journeySummaryFromProto(created.GetIntent())

@@ -28,6 +28,7 @@ func TestJourneySentinelsAreDistinct(t *testing.T) {
 		"unknown":     workspace.ErrJourneyUnknown,
 		"stage":       workspace.ErrJourneyStage,
 		"input":       workspace.ErrJourneyInput,
+		"conflict":    workspace.ErrJourneyActiveConflict,
 	}
 	for name, err := range sentinels {
 		for otherName, other := range sentinels {

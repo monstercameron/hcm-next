@@ -691,7 +691,17 @@ func TestJourneyDecideRejectReachesTheRejectedTerminal(t *testing.T) {
 		t.Fatalf("Decide(approve): %v", err)
 	}
 
-	rejectedJourney, err := h.engine.Propose(ctx, journeyProposal())
+	// PROMOUX-002: the approved journey above still holds an active window on
+	// journeyProposal()'s effective date (nothing in this test advances it to
+	// a terminal, ledger-recorded stage), so a second proposal for the same
+	// worker and date would now be refused as a conflict rather than admitted
+	// as this test's own second, independently decided journey. A distinct,
+	// non-overlapping effective date is exactly GREEN's carve-out and keeps
+	// this test's real point -- two decisions reaching two different
+	// terminals -- intact.
+	secondProposal := journeyProposal()
+	secondProposal.EffectiveDate = "2026-08-01"
+	rejectedJourney, err := h.engine.Propose(ctx, secondProposal)
 	if err != nil {
 		t.Fatalf("Propose(second): %v", err)
 	}

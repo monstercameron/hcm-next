@@ -173,6 +173,7 @@ const engineErrorPrefix = "workspace: "
 //	workspace.ErrJourneyStage        -> FAILED_PRECONDITION
 //	workspace.ErrJourneyInput        -> INVALID_ARGUMENT, naming the field
 //	workspace.ErrJourneyUnavailable  -> UNAVAILABLE
+//	workspace.ErrJourneyActiveConflict -> ALREADY_EXISTS (PROMOUX-002)
 //	anything else                    -> INTERNAL, with the original error
 //	                                    kept only as the nested diagnostic
 //
@@ -216,6 +217,10 @@ func ownedError(err error, principal *trust.Principal, inv *transport.Invocation
 		out = envelope.New(envelope.CodeUnavailable,
 			"journey."+op+".engine_unavailable",
 			"the journey engine is not composed on this cell")
+	case errors.Is(err, workspace.ErrJourneyActiveConflict):
+		out = envelope.New(envelope.CodeAlreadyExists,
+			"journey."+op+".active_conflict",
+			"an active promotion already claims this worker and effective window")
 	default:
 		out = envelope.New(envelope.CodeUnspecified,
 			"journey."+op+".failed",
