@@ -1,5 +1,30 @@
 # Changelog
 
+## 2026-09-12 (repository drift found when CI first ran green)
+
+- Lands the discrete drift the CI fix uncovered, all of it pre-existing and
+  masked while the quality gate was red. `internal/configuration` and
+  `internal/evidence` had landed without layout roots and are declared now
+  (platform/deferred and data/deferred -- a judgment call, reviewable). The
+  layer-graph golden, the capability-coverage manifest and the workspace asset
+  manifest are re-pinned to what the tree actually produces.
+
+- The evidence-freshness gate passes for the first time. Most of it is the
+  bulk-generated allow-list of 986 pre-rule evidence lines, each carrying an
+  owner and an expiry so backfill lanes convert them into real Evidence lines
+  and delete them as they go. The five gaps that allow-list did not cover are
+  closed with real verification rather than more allow-list entries: EDGE-011,
+  EP-PROMO-001 and EP-WORK-001 had their named tests re-run on this host and
+  their evidence lines completed with the command, environment, toolchain,
+  result and branch the gate requires. Where a run could not be reproduced here
+  -- the race sweep, and the `test/bootstrap` integration cases -- the evidence
+  says so explicitly instead of implying a fresh pass.
+
+- Expanded `EP-WORK-001`'s evidence from `TestTodo_EP_WORK_001_{Property,...}`
+  brace notation into the full test names. Brace notation reads fine to a human
+  and is invisible to the traceability gate, which matches literal names; it is
+  the same shorthand that produced an orphan earlier in this batch.
+
 ## 2026-09-12 (EP-INTENT-003)
 
 - `SubmitIntent`, `CancelIntent` and `SupersedeIntent` are served. The

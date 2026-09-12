@@ -559,7 +559,9 @@ Go product core (github.com/monstercameron/human-capital-management-suite)
 │   ├── internal/performance [platform; P1A; owner=platform-foundation]
 │   ├── internal/replan [platform; P1A; owner=platform-foundation]
 │   ├── internal/resource [data; P1A; owner=data-and-ledger]
-│   └── internal/store [platform; P1A; owner=platform-foundation]
+│   ├── internal/store [platform; P1A; owner=platform-foundation]
+│   ├── internal/configuration [platform; deferred; owner=platform-foundation]
+│   └── internal/evidence [data; deferred; owner=data-and-ledger]
 └── replaceable mechanics (versions and roles below)
 ```
 
