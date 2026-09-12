@@ -1,5 +1,28 @@
 # Changelog
 
+## 2026-09-11 (ARTIFACT-004)
+
+- Close ARTIFACT-004: object bytes are sealed with tenant-bound envelope keys.
+  `internal/store/object` handled bytes in the clear; new `sealed.go` adds
+  `SealedObjectStore` (Put/Get/Stat/RewrapOne/RewrapBatch) over
+  `internal/trust/envelope.Manager`. No crypto was hand-rolled and no migration
+  was needed. There is no plaintext fallback: an unregistered tenant KEK or an
+  unavailable custody provider returns `ErrEncryptionUnavailable` and leaves the
+  store untouched rather than writing cleartext. Rewrap is a compare-and-swap
+  per object, so an interrupted batch is resumable and never leaves an object
+  unreadable, and crypto-erasure keeps `Stat` truthful about an object that can
+  no longer be decrypted.
+
+  Found while wiring it, raised separately rather than fixed here:
+  `envelope.Encrypt(ctx, objectID, plaintext)` validates `objectID` and then
+  never folds it into the AES-GCM AAD -- `headerBytes` authenticates only
+  Version, Tenant, DEKID, Algorithm and Nonce. Two envelopes of one tenant can
+  therefore be swapped and both still decrypt, while the parameter reads to any
+  caller like context binding. ARTIFACT-004 defends itself with a
+  `sealedPayload{ObjectID, Data}` wrapper re-checked after decrypt, which is
+  deterministic and fail-closed, but the cryptographic binding belongs in
+  TRUST-028 and a change there has envelope-format compatibility consequences.
+
 ## 2026-09-11 (INTG-015)
 
 - Close INTG-015: rate-aware fair connector scheduling. `internal/connectivity/
