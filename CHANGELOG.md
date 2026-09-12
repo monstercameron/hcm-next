@@ -1,5 +1,52 @@
 # Changelog
 
+## 2026-09-12 (EP-INTENT-003)
+
+- `SubmitIntent`, `CancelIntent` and `SupersedeIntent` are served. The
+  interesting constraint is that `CancelIntentResponse` carries only an
+  `IntentInstance` and the proto has no cancellation-outcome enum, so the four
+  answers the contract requires -- CANCELLED, CANCELLATION_PENDING, TOO_LATE,
+  REPAIR_REQUIRED -- have to be told through the dimensional tuple alone.
+  CANCELLED moves the request state and leaves execution NOT_PLANNED or
+  BLOCKED. TOO_LATE moves nothing: execution already committed, and recording
+  CANCELLED would falsify the record. CANCELLATION_PENDING moves nothing
+  either, because nothing has been decided yet. REPAIR_REQUIRED moves
+  execution and refuses without a repair reference.
+
+  `CancelInstance` switches over every execution state and every cancellation
+  point by name with no permissive default, and the integration test seeds four
+  intents in four conditions and requires the four returned tuples to be
+  pairwise distinct reading nothing but the response. A mapping that collapsed
+  two outcomes together fails there rather than passing on the common case.
+
+- Supersede never mutates the original, proven by diff rather than by an
+  existence check: the original's encoding is captured before and after, only
+  the request state, version and two timestamps are cleared, and `proto.Equal`
+  must hold over everything else. Authority cannot widen through a supersede --
+  tenant, scope, initiator and purpose come from the authenticated caller and
+  never from the original -- and that is now asserted by value, with the
+  original seeded with a delegation chain the successor must not inherit.
+
+- Discovery was lying. `internal/transport/manifest` still published these
+  three methods as `REFUSED_P1A`, so a client reading the discovery document
+  would have been told three working endpoints were refused. All three are now
+  `SERVED`; `ExecuteIntent` alone stays refused. The ENDPOINT-001 security test
+  was widened rather than weakened: it still pins that the refused write stays
+  refused, and additionally requires each served write to publish its accepted
+  definitions, carry no refusal reason and be idempotency-key deduped, with a
+  count assertion so a rename cannot make it vacuous.
+
+- Fixed a latent defect in `Definition.LifecycleProfiles`: it narrowed the
+  transition set but kept the full kernel state list, so any narrowed
+  definition's profile failed its own reachability validation the moment a
+  `lifecycle.Machine` was built from it. Nothing had ever built one, which is
+  why it had never fired.
+
+- Known gap, recorded rather than implied: CANCELLATION_PENDING is reported but
+  not durably recorded, and no real safe-point reader is wired yet, so a
+  cancellation requested against a mid-flight intent is not yet honoured later.
+  Escalated separately.
+
 ## 2026-09-12 (EP-WORK-003)
 
 - `CompleteWorkItem` and `DecideApproval` land on the humanwork transport,

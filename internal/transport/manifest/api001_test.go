@@ -85,7 +85,7 @@ func TestTodo_API_001_Golden(t *testing.T) {
 	if !ok {
 		t.Fatal("SubmitIntent is missing from the discovery document")
 	}
-	if submit.Disposition != DispositionRefusedP1A || submit.DispositionReason == "" {
+	if submit.Disposition != DispositionServed || submit.DispositionReason == "" {
 		t.Fatalf("SubmitIntent golden mismatch: %+v", submit)
 	}
 

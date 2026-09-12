@@ -69,8 +69,12 @@ type rule struct {
 }
 
 const (
-	servedReason  = "one of the eight P1A executable intent contracts, or the RegistryService discovery surface that publishes them (planning/next-steps.md)"
-	refusedReason = "exists in the compiled service descriptor so the P1B write path needs no breaking wire change, but every invocation is refused for the duration of P1A (planning/next-steps.md: \"must persist zero worker, employment, assignment, organization, position, compensation or budget mutations\")"
+	servedReason = "one of the eight P1A executable intent contracts, or the RegistryService discovery surface that publishes them (planning/next-steps.md)"
+	// servedWriteReason marks the governed writes that left the P1A refusal
+	// behind. A method carrying it accepts real requests and persists real
+	// state, so discovery must not keep telling callers it is refused.
+	servedWriteReason = "a governed intent-lifecycle write served from Gate B onward (EP-INTENT-003): the request binds an exact revision, is deduplicated by idempotency key, and reports its outcome truthfully rather than refusing"
+	refusedReason     = "exists in the compiled service descriptor so the P1B write path needs no breaking wire change, but every invocation is refused for the duration of P1A (planning/next-steps.md: \"must persist zero worker, employment, assignment, organization, position, compensation or budget mutations\")"
 )
 
 // authnAssuranceSubstantial is the uniform minimum session assurance level
@@ -139,7 +143,7 @@ func rules() map[string]rule {
 		},
 		"/hcmnext.intents.v1.IntentService/SubmitIntent": {
 			owner: "GOVERNANCE", behavior: IntentBehaviorConsumes,
-			disposition: DispositionRefusedP1A, dispositionReason: refusedReason,
+			disposition: DispositionServed, dispositionReason: servedWriteReason,
 			httpMethod: "POST", httpPath: "/v1/intents/{intent}:submit", httpBody: "*",
 			authzAction: "hcmnext.intents.submit", classificationRef: "CONFIDENTIAL_HR",
 			idempotencyClass: IdempotencyKey, idempotencyKeySrc: "request.idempotency_key",
@@ -150,7 +154,7 @@ func rules() map[string]rule {
 		},
 		"/hcmnext.intents.v1.IntentService/CancelIntent": {
 			owner: "GOVERNANCE", behavior: IntentBehaviorConsumes,
-			disposition: DispositionRefusedP1A, dispositionReason: refusedReason,
+			disposition: DispositionServed, dispositionReason: servedWriteReason,
 			httpMethod: "POST", httpPath: "/v1/intents/{intent}:cancel", httpBody: "*",
 			authzAction: "hcmnext.intents.cancel", classificationRef: "CONFIDENTIAL_HR",
 			idempotencyClass: IdempotencyKey, idempotencyKeySrc: "request.idempotency_key",
@@ -161,7 +165,7 @@ func rules() map[string]rule {
 		},
 		"/hcmnext.intents.v1.IntentService/SupersedeIntent": {
 			owner: "GOVERNANCE", behavior: IntentBehaviorEmits,
-			disposition: DispositionRefusedP1A, dispositionReason: refusedReason,
+			disposition: DispositionServed, dispositionReason: servedWriteReason,
 			httpMethod: "POST", httpPath: "/v1/intents/{intent}:supersede", httpBody: "*",
 			authzAction: "hcmnext.intents.supersede", classificationRef: "CONFIDENTIAL_HR",
 			idempotencyClass: IdempotencyKey, idempotencyKeySrc: "request.idempotency_key",
