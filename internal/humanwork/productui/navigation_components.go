@@ -24,6 +24,18 @@ type NavigationSidebarProps struct {
 	// Search reprojects the navigation catalog without loading page data.
 	// Menu filtering is client-local; only its shareable URL state is debounced.
 	Search func(string) NavigationSidebarProps
+	// Open is the ephemeral narrow-viewport overlay drawer state. It is
+	// independent of Collapsed (the persistent desktop icon-rail preference):
+	// Open only ever becomes true through the drawer trigger, which CSS keeps
+	// out of the tab order and hit-testing outside narrow viewports, so a
+	// desktop render is always closed regardless of Collapsed. Zero value
+	// (false) is the safe, off-canvas default at every viewport.
+	Open bool
+	// OnToggle and OnClose drive the shared drawer state owned by
+	// NavigationDrawerScope (shell.go). Both are nil-safe: a nil value keeps
+	// the render static, which is what a non-interactive SSR document needs.
+	OnToggle func()
+	OnClose  func()
 }
 
 type NavigationToggleProps struct {
@@ -70,11 +82,23 @@ type MenuHiddenInput struct {
 }
 
 func navigationSidebarProps(view View) NavigationSidebarProps {
+	return navigationDrawerSidebarProps(view, false, nil, nil)
+}
+
+// navigationDrawerSidebarProps is navigationSidebarProps plus the shared
+// narrow-viewport drawer state. It is a separate entry point (rather than
+// adding parameters to every existing navigationSidebarProps call site) so
+// the many tests that build props for a persistent desktop sidebar keep
+// working unchanged: they get the safe closed default.
+func navigationDrawerSidebarProps(view View, open bool, onToggle, onClose func()) NavigationSidebarProps {
 	props := navigationSidebarPropsForQuery(view)
+	props.Open, props.OnToggle, props.OnClose = open, onToggle, onClose
 	props.Search = func(query string) NavigationSidebarProps {
 		next := view
 		next.MenuQuery = strings.TrimSpace(query)
-		return navigationSidebarPropsForQuery(next)
+		reprojected := navigationSidebarPropsForQuery(next)
+		reprojected.Open, reprojected.OnToggle, reprojected.OnClose = open, onToggle, onClose
+		return reprojected
 	}
 	return props
 }
@@ -333,10 +357,36 @@ func NavigationSidebar(props NavigationSidebarProps) ui.Node {
 			}
 		}
 	}
+	// The drawer's open/close and Escape wiring are unconditional hook calls
+	// (GWC requires a stable hook order every render); the resulting handlers
+	// are only ever reachable in practice at narrow viewports, where CSS is
+	// the sole thing that makes the trigger focusable and hit-testable.
+	closeDrawer := ui.UseEvent(func(ui.MouseEvent) {
+		if props.OnClose != nil {
+			props.OnClose()
+		}
+	})
+	onEscape := ui.UseEvent(func(event ui.KeyboardEvent) {
+		if drawerEscapeCloses(event.GetKey()) && props.OnClose != nil {
+			props.OnClose()
+		}
+	})
+	useDrawerFocusTrap("workspace-navigation", "nav-drawer-trigger", props.Open)
+
 	class := "sidebar"
 	if props.Collapsed {
 		class += " collapsed"
 	}
+	backdropClass := "nav-drawer-backdrop"
+	if props.Open {
+		class += " nav-drawer-open"
+		backdropClass += " nav-drawer-open"
+	}
+	backdrop := html.Div(html.Props{
+		Class:   backdropClass,
+		Raw:     map[string]any{"aria-hidden": "true"},
+		OnClick: closeDrawer,
+	})
 	children := []ui.Node{html.Div(html.Props{Class: "tenant"}, ui.Text(props.Tenant))}
 	if !props.Collapsed {
 		children = append(children, ui.CreateElement(MenuFilter, props.Filter))
@@ -382,7 +432,44 @@ func NavigationSidebar(props NavigationSidebarProps) ui.Node {
 		}
 		children = append(children, html.Nav(html.Props{Class: "nav-bottom", Aria: map[string]string{"label": props.Text("nav.support")}}, support...))
 	}
-	return html.Aside(html.Props{ID: "workspace-navigation", Class: class, Aria: map[string]string{"label": props.Text("nav.workspace")}}, children...)
+	asideProps := html.Props{
+		ID: "workspace-navigation", Class: class,
+		Aria:      map[string]string{"label": props.Text("nav.workspace")},
+		OnKeyDown: onEscape,
+	}
+	// A real user can only ever reach the trigger that sets Open at narrow
+	// viewports (CSS removes it from hit-testing and the tab order at wider
+	// ones), so dialog semantics only ever appear there too. Every other
+	// render — including every default and desktop SSR document — keeps the
+	// plain complementary-landmark contract WEB-048 pins.
+	if attrs := navigationDrawerDialogAttrs(props.Open); attrs != nil {
+		asideProps.Raw = attrs
+		asideProps.Role = "dialog"
+	}
+	return html.Fragment(backdrop, html.Aside(asideProps, children...))
+}
+
+// navigationDrawerDialogAttrs returns the raw attributes that make the
+// overlay drawer an accessible dialog while, and only while, it is open. It
+// is a pure function so the open-state contract is provable directly, not
+// only inferred from an SSR document that can only ever show it closed.
+// Role is set separately (html.Props has a typed field for it); this covers
+// what does not.
+func navigationDrawerDialogAttrs(open bool) map[string]any {
+	if !open {
+		return nil
+	}
+	return map[string]any{"aria-modal": "true"}
+}
+
+// navigationDrawerTriggerAria computes the mobile drawer trigger's
+// accessible wiring independent of any hook state, so its contract (the
+// disclosure pattern: aria-haspopup, aria-expanded, aria-controls) is
+// provable from a plain Go test without a live client render.
+func navigationDrawerTriggerAria(open bool, label string) map[string]string {
+	return map[string]string{
+		"label": label, "haspopup": "dialog", "expanded": fmt.Sprint(open), "controls": "workspace-navigation",
+	}
 }
 
 // NavigationItem renders either a leaf with its favorite control or a native,

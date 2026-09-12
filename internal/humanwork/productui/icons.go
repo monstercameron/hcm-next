@@ -24,6 +24,7 @@ var registeredIcons = []IconDefinition{
 	{Name: "palette", Path: "M12 3a9 9 0 1 0 0 18h1.2a2 2 0 0 0 0-4H12a1.8 1.8 0 0 1 0-3.6 0c0 .4-.3.8-.8.8A3.6 3.6 0 0 1 4 14.2 9 9 0 0 1 12 3zM7.5 9h.01M11 6.5h.01M15.5 7.5h.01M17 12h.01"},
 	{Name: "collapse", Path: "M15 18l-6-6 6-6"},
 	{Name: "expand", Path: "M9 18l6-6-6-6"},
+	{Name: "menu", Path: "M4 6h16M4 12h16M4 18h16"},
 }
 
 const fallbackIconPath = "M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z"
