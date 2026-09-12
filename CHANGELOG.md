@@ -1,5 +1,34 @@
 # Changelog
 
+## 2026-09-12 (EDGE-007)
+
+- Close EDGE-007: propagate overload, retry and circuit state end to end.
+  `internal/connectivity/edge` had no overload, retry or circuit concept -- and
+  neither did anywhere else in the repository, so the circuit breaker is
+  genuinely new. `overload.go` adds `Coordinator.Decide` producing exactly
+  ADMIT/QUEUE/DEFER/DEGRADE/REJECT, a `CircuitBreaker`, and a `RetryLedger`. No
+  migration needed.
+
+  This was the third todo in a row over one bounded logical retry budget, after
+  EVENT-003 and INTG-015. Rather than a third ledger it composes
+  `internal/operations/admission` directly: `DecideBackpressure` for the health
+  signal, `Provisioner` as the single replay-safe budget owner, and
+  `admission.Outcome` as the RED vocabulary itself. The admission package was not
+  modified. Nesting is what makes it work: an edge retry, a connector retry and a
+  transport timeout observing the same physical attempt compute the same
+  identity and collide on one stored receipt instead of charging three times.
+
+  The action-to-outcome mapping is total on purpose. `BackpressureAction`
+  (CONTINUE/SLOW/QUEUE/DEFER/STOP) is a near-match for the RED vocabulary
+  without being the same, which is exactly the shape that produces a partial
+  mapping where an unhandled value falls through to ADMIT. Unrecognised actions,
+  unrecognised retry dispositions and the zero-value circuit state all map to
+  REJECT.
+
+  Review fix: staticcheck flagged a leftover `combineOutcomes` helper whose
+  most-restrictive-wins logic `Decide` already applies inline. Removed as
+  duplication rather than wired in.
+
 ## 2026-09-12 (CICD-005)
 
 - Close CICD-005: canary rollout with evidence-bound rollback. `rollout.go` adds
