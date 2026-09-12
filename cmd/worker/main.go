@@ -16,6 +16,12 @@
 // outbox role. The provider-neutral runner and durable observation adapter
 // live below this composition root; this command only selects the role.
 //
+// SVC-008 hosts governed connector-operation execution as a second,
+// independent role (connector_role.go): it drains
+// internal/connectivity/operation's own journal rather than the outbox, so
+// it runs as its own Workload alongside (not instead of) the outbox
+// consumer above.
+//
 // The target server is HCMNEXT_DATABASE_URL, overridable with -database-url.
 package main
 
@@ -26,6 +32,7 @@ import (
 
 	"github.com/google/uuid"
 
+	"github.com/monstercameron/human-capital-management-suite/internal/connectivity/operation"
 	"github.com/monstercameron/human-capital-management-suite/internal/data/dbport"
 	"github.com/monstercameron/human-capital-management-suite/internal/data/outbox"
 	"github.com/monstercameron/human-capital-management-suite/internal/data/pgxadapter"
@@ -41,6 +48,12 @@ const EnvDatabaseURL = "HCMNEXT_DATABASE_URL"
 const EnvHealthAddr = "HCMNEXT_WORKER_HEALTH_ADDR"
 
 const EnvMessagingRole = "HCMNEXT_WORKER_MESSAGING_ROLE"
+
+// EnvConnectorRole gates SVC-008's governed connector-operation execution
+// role. It defaults off: enabling it today is safe (connectorRoleFor wires
+// fail-closed credential/provider stand-ins) but inert, since no production
+// destination-credential authority or connector provider adapter exists yet.
+const EnvConnectorRole = "HCMNEXT_WORKER_CONNECTOR_ROLE"
 
 // EnvWorkerRoles selects the independently authorized roles hosted by this
 // worker process. The process identity remains "worker"; these are narrower
@@ -92,6 +105,7 @@ func workerConfigFields() []bootstrap.Field {
 		},
 		{Name: "messaging-role", Env: EnvMessagingRole, Usage: "enable the semantic messaging delivery role", Default: "true", Kind: bootstrap.KindBool},
 		{Name: "messaging-max-attempts", Env: "HCMNEXT_WORKER_MESSAGING_MAX_ATTEMPTS", Usage: "maximum provider attempts for one messaging delivery", Default: "3", Kind: bootstrap.KindInt},
+		{Name: "connector-role", Env: EnvConnectorRole, Usage: "enable the governed connector-operation execution role (SVC-008; inert until a provider adapter and credential authority are wired)", Default: "false", Kind: bootstrap.KindBool},
 		{Name: "roles", Env: EnvWorkerRoles, Usage: "comma-separated capability-activity, reconciliation and repair roles", Default: string(WorkerRoleCapabilityActivity), Kind: bootstrap.KindString},
 	}
 	return append(fields, workerTelemetryFields()...)
@@ -141,6 +155,9 @@ func validateConfig(v *bootstrap.Values) error {
 	if _, err := v.Bool("messaging-role"); err != nil {
 		return err
 	}
+	if _, err := v.Bool("connector-role"); err != nil {
+		return err
+	}
 	maxAttempts, err := v.Int("messaging-max-attempts")
 	if err != nil {
 		return err
@@ -188,6 +205,10 @@ func build(ctx context.Context, deps bootstrap.Deps) (bootstrap.Runtime, error) 
 	if err != nil {
 		return bootstrap.Runtime{}, err
 	}
+	connectorRoleEnabled, err := deps.Values.Bool("connector-role")
+	if err != nil {
+		return bootstrap.Runtime{}, err
+	}
 	roles, err := ParseWorkerRoles(deps.Values.String("roles"))
 	if err != nil {
 		return bootstrap.Runtime{}, err
@@ -206,6 +227,7 @@ func build(ctx context.Context, deps bootstrap.Deps) (bootstrap.Runtime, error) 
 		"lease", lease.String(),
 		"batch_size", batchSize,
 		"messaging_role", messagingRole,
+		"connector_role", connectorRoleEnabled,
 	)
 	maxAttempts := 3
 	if deps.Values.Has("messaging-max-attempts") {
@@ -231,6 +253,17 @@ func build(ctx context.Context, deps bootstrap.Deps) (bootstrap.Runtime, error) 
 		workloads[0].Run = func(ctx context.Context) error {
 			return runOutboxLoopWithTelemetry(ctx, logger, tenants, consumer, pollInterval, messaging.dispatch, telemetryProvider, deps.Clock)
 		}
+	}
+	if connectorRoleEnabled {
+		connectorJournalStore := operation.NewMemoryJournal(nil)
+		connectorLedgerStore := operation.NewConnectorLedger(nil)
+		connector := connectorRoleFor(deps, connectorJournalStore, connectorLedgerStore, deps.Identity, lease)
+		workloads = append(workloads, bootstrap.Workload{
+			Name: "connector-role",
+			Run: func(ctx context.Context) error {
+				return runConnectorLoop(ctx, logger, tenants, connector, pollInterval)
+			},
+		})
 	}
 	workloads = append(workloads, workerRoleWorkloads(deps.Logger, roles)...)
 	runtime := bootstrap.Runtime{Workloads: workloads}
