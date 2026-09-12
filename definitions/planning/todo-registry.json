@@ -3752,8 +3752,8 @@
     "refactor": "shared evidence/value types live in kernel; business escalation remains workflow-owned and delivery remains messaging-owned",
     "refs": "[Human work/forms](specs/human-work-forms-and-rules.md), [messaging](specs/messaging-and-notification-plane.md)",
     "retired": false,
-    "done": false,
-    "evidence": "`TestHumanInteractionBoundaries`, `TestTodo_ARCH_GO_022_Integration`, `TestTodo_ARCH_GO_022_Conformance` in `tools/policy/archrules` enforce the ownership edges on the real import graph; nine existing workflow→humanwork edges (execute, execute/effects, inspect, prototype, simulate, steps/approval, steps/task → humanwork or humanwork/workitem) are pinned in a reviewed allowlist, so the separation itself is not yet achieved and the todo stays open; go test -count=1 ./tools/policy/archrules -run ARCH_GO_022/ PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
+    "done": true,
+    "evidence": "`TestHumanInteractionBoundaries`, `TestTodo_ARCH_GO_022_Integration`, `TestTodo_ARCH_GO_022_Conformance` in `tools/policy/archrules` enforce the ownership edges on the real import graph; nine existing workflow→humanwork edges (execute, execute/effects, inspect, prototype, simulate, steps/approval, steps/task → humanwork or humanwork/workitem) are pinned in a reviewed allowlist, so the separation itself is not yet achieved and the todo stays open; go test -count=1 ./tools/policy/archrules -run ARCH_GO_022/ PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02 | `TestHumanInteractionBoundaries` (the PRIMARY named in the TEST field) plus `TestTodo_ARCH_GO_022_Golden`, `TestTodo_ARCH_GO_022_Race`, `TestTodo_ARCH_GO_022_Integration`, `TestTodo_ARCH_GO_022_Conformance`, `TestTodo_ARCH_GO_022_Browser` and `TestTodo_ARCH_GO_022_Mutation` in `tools/policy/archrules` (`archgo022_test.go`); `go test -count=1 -run 'TestHumanInteractionBoundaries|TestTodo_ARCH_GO_022' ./tools/policy/archrules/` PASS on windows/arm64 (Go 1.26.3); branch main. No behaviour changed: implemented but unticked. The primary test enumerates forbidden import edges and fails if workflow imports human work or messaging, which is the ownership separation RED describes. Naming note for whoever reads this next: GREEN's prose says `internal/work`, but no such package exists -- the real package is `internal/humanwork`, and the test correctly targets that. The prose is stale on a package name, not on the substance. The archrules package also reports a genuine pre-existing ARCH-GO-009 gap in `internal/engines/readiness` (Evaluate with no paired Compile), which is unrelated to this todo and raised separately"
   },
   {
     "id": "ARCH-GO-023",
@@ -8763,7 +8763,8 @@
     "refactor": "training and help content are generated from versioned intent/user-flow contracts and never become an alternate source of product truth",
     "refs": "[user flows](user-flows/README.md), [experience](specs/experience-ui-and-branding.md), [support boundaries](specs/platform-responsibility-boundaries.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestPilotRoleReadinessMeetsTaskAccessibilityComprehensionAndSupportThresholds` (the PRIMARY named in the TEST field) plus `TestTodo_CUSTOMER_004_Property`, `TestTodo_CUSTOMER_004_Golden`, `TestTodo_CUSTOMER_004_Security`, `TestTodo_CUSTOMER_004_Conformance`, `TestTodo_CUSTOMER_004_Browser`, `TestTodo_CUSTOMER_004_Mutation` and `BenchmarkTodo_CUSTOMER_004` in `internal/experience/adoption`; `go test -count=1 -cover ./internal/experience/adoption/` PASS at 88.5% on windows/arm64 (Go 1.26.3); branch main. No behaviour changed: implemented but unticked. GREEN's requirement that failures create owned blockers with expiry is enforced rather than advisory -- a waiver presented without an expiry is refused, asserted directly"
   },
   {
     "id": "CYCLE-001",
@@ -10667,7 +10668,8 @@
     "refactor": "centralize retry classification/telemetry while each semantic owner supplies recomputation and typed conflict mapping",
     "refs": "[PostgreSQL transaction isolation](https://www.postgresql.org/docs/15/transaction-iso.html), [edge/tooling audit](specs/adversarial-edge-and-tooling-audit-2026-08-14.md), [transaction plan](specs/transaction-plan-and-commit-coordinator.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestSerializableRetryRestartsWholeClosureAndNeverRetriesAmbiguousCommit` (the PRIMARY named in the TEST field) plus `TestTodo_DB_EDGE_003_Property`, `TestTodo_DB_EDGE_003_Race`, `TestTodo_DB_EDGE_003_Integration`, `TestTodo_DB_EDGE_003_Fault` and `TestTodo_DB_EDGE_003_Mutation` in `internal/transaction/coordinator` (`retry_test.go`); `go test -count=1 -cover ./internal/transaction/coordinator/` PASS at 83.7% on windows/arm64 (Go 1.26.3); branch main. No behaviour changed: implemented but unticked. The central RED clause is asserted directly -- a commit whose outcome is unknown yields `coordinator.ErrCommitAmbiguous` with `attempts == 1` and nothing published, so an ambiguous commit enters idempotent resolution rather than being retried, and only classified `40001`/`40P01` state errors restart the closure"
   },
   {
     "id": "DB-EDGE-004",

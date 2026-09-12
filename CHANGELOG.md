@@ -1,5 +1,34 @@
 # Changelog
 
+## 2026-09-12 (backlog reconciliation)
+
+- Swept the backlog for todos whose entire declared test matrix already exists,
+  after three of the session's closures turned out to be work that was finished
+  but never recorded. **22 open todos** match that pattern -- roughly 6% of the
+  open count, which materially overstates what is actually left.
+
+- Ticked three of them after verifying each against its contract rather than
+  accepting a green run:
+
+  ARCH-GO-022 (P0) -- `TestHumanInteractionBoundaries` enumerates forbidden
+  import edges and fails if workflow imports human work or messaging, which is
+  the ownership separation RED describes. Naming note: GREEN's prose says
+  `internal/work`, but no such package exists; the real one is
+  `internal/humanwork` and the test targets it correctly. The prose is stale on
+  a name, not the substance.
+
+  DB-EDGE-003 (GATE_B) -- the central RED clause is asserted directly: a commit
+  whose outcome is unknown yields ErrCommitAmbiguous with attempts == 1 and
+  nothing published, so an ambiguous commit enters idempotent resolution rather
+  than being retried.
+
+  CUSTOMER-004 (GATE_B) -- GREEN's requirement that failures create owned
+  blockers with expiry is enforced rather than advisory: a waiver presented
+  without an expiry is refused.
+
+  UX-003 and A11Y-001 also match the pattern but are deliberately left, having
+  been deferred by the user earlier in the session.
+
 ## 2026-09-12 (OBS-007)
 
 - Tick OBS-007. The owned-alert incident routing in
