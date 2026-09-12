@@ -1,5 +1,33 @@
 # Changelog
 
+## 2026-09-11 (CICD-004)
+
+- Close CICD-004: fail-closed deployment admission. `tools/policy/release`
+  already built and verified signed bundles (CICD-003) but nothing turned a
+  candidate plus an approved target into a typed admit/reject. New
+  `admission.go` adds `Admit` with five distinct sentinels so a caller can
+  branch on why something was refused. No migration needed.
+
+  The GREEN clause is enforced separately from signature validity, which is the
+  part worth stating plainly: after `VerifyBundle` succeeds, `Admit` compares
+  the verified manifest digest AND the candidate's scope field-by-field against
+  the approved target. A different but validly-and-trustedly-signed bundle, or
+  this exact bundle offered for a scope it was not approved for, is refused.
+  "It is signed" is never "it is approved".
+
+  All six absence checks -- empty trusted-key set, zero-valued approved target,
+  non-positive staleness window, missing scope, unscanned vulnerability
+  evidence, conformance record with no timestamp -- run before any positive
+  verification, so a missing input can never be shadowed by a check that happens
+  to pass. Evaluation time is a parameter rather than a buried `time.Now()`, and
+  a future-dated conformance record is stale too.
+
+  Coverage note: the package sat at 66.1%, below the floor, before this todo --
+  `Version`, `Verify`, `Verification.Explain`, `NewFixtureKeySource` and
+  `VerifyBundleWithScannerEvidence` had no test anywhere in the repository. That
+  gap is now closed by a separately-labelled test carrying real assertions,
+  including a negative case.
+
 ## 2026-09-11 (CONN-RT-007)
 
 - Close CONN-RT-007: normalized observations, ambiguity and targeted redrive.
