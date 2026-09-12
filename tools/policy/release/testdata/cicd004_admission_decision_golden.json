@@ -1,0 +1,8 @@
+{
+  "status": "ADMIT",
+  "admitted": true,
+  "scope": "prod/pilot-cell",
+  "manifest_digest": "1ebf67cf66241fafc90629baa9f13491bc95fff6d90b6166fc02944c7e59d8d4",
+  "evaluated_at": "2026-09-11T12:00:00Z",
+  "digest": "f0ef6671f5196baadda632c759df169012b6a3283f5a3ea62abb354b9ba503d1"
+}
