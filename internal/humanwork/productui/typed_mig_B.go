@@ -539,8 +539,15 @@ func declareresponsiveComponentStylesStyles() {
 	declareGlobal(".jn-embedded :where(.jn-pagehead,.jn-cardhead,.jn-toolbar,.jn-actions)",
 		mediaRule(gwccss.MaxW(1050), gwccss.Raw("flex-wrap", "wrap")),
 	)
+	// UXAUDIT-001: the topbar keeps every one of its five children (brand,
+	// tools, locale, notifications, profile) in one grid row at every
+	// narrow width — nothing here spans a second row — so the header never
+	// wraps. Brand shrinks to a compact identity slot and the tools cluster
+	// is the one flexible track, scrolling its own contents horizontally
+	// (declared alongside .header-navigation-tools below) instead of
+	// wrapping vertically when it does not fit.
 	declareGlobal(".topbar,.app-shell.nav-collapsed .topbar",
-		mediaRule(gwccss.MaxW(760), gwccss.GridCols(gwccss.MinMax(gwccss.TrackLen(gwccss.Zero), gwccss.Fr(1)), gwccss.TrackLen(gwccss.RawLength("auto")), gwccss.TrackLen(gwccss.RawLength("auto")), gwccss.TrackLen(gwccss.RawLength("auto")))),
+		mediaRule(gwccss.MaxW(760), gwccss.GridCols(gwccss.MinMax(gwccss.TrackLen(gwccss.Zero), gwccss.TrackLen(gwccss.Px(120))), gwccss.MinMax(gwccss.TrackLen(gwccss.Zero), gwccss.Fr(1)), gwccss.TrackLen(gwccss.RawLength("auto")), gwccss.TrackLen(gwccss.RawLength("auto")), gwccss.TrackLen(gwccss.RawLength("auto")))),
 	)
 	declareGlobal(".brand-cluster,.app-shell.nav-collapsed .brand-cluster",
 		mediaRule(gwccss.MaxW(760), gwccss.Raw("display", "grid!important"), gwccss.Raw("grid-template-columns", "minmax(0,1fr) 44px!important"), gwccss.Items.Center, gwccss.H(gwccss.Px(65)), gwccss.Padding(gwccss.Zero), gwccss.Raw("border-right", "0")),
@@ -557,17 +564,97 @@ func declareresponsiveComponentStylesStyles() {
 	declareGlobal(".header-nav-toggle,.app-shell.nav-collapsed .header-nav-toggle",
 		mediaRule(gwccss.MaxW(760), gwccss.Display.Grid, gwccss.W(gwccss.Px(38)), gwccss.H(gwccss.Px(38)), gwccss.Raw("margin", "0 4px 0 0")),
 	)
+	// The persistent desktop icon-rail toggle and the narrow-viewport
+	// overlay drawer trigger are two affordances for the one navigation
+	// model, never both reachable at once: exactly one is display:none at
+	// any given width, so brand-cluster's two-column grid (wordmark, one
+	// 44px control) never has to size a third visible item.
+	declareGlobal(".header-nav-toggle,.app-shell.nav-collapsed .header-nav-toggle",
+		mediaRule(gwccss.MaxW(760), gwccss.Display.None),
+	)
+	declareGlobal(".nav-drawer-trigger",
+		gwccss.Display.None,
+	)
+	declareGlobal(".nav-drawer-trigger",
+		mediaRule(gwccss.MaxW(760), gwccss.Display.Grid, gwccss.Raw("place-items", "center"), gwccss.W(gwccss.Px(38)), gwccss.H(gwccss.Px(38)), gwccss.Padding(gwccss.Zero), gwccss.Raw("margin", "0 4px 0 0"), gwccss.Raw("border", "0"), gwccss.Raw("background", "transparent"), gwccss.TextColor(gwccss.Var("ink")), gwccss.Rounded(gwccss.RawLength("var(--hcm-radius-control,var(--radius))"))),
+	)
+	declareGlobal(".nav-drawer-trigger .nav-icon",
+		mediaRule(gwccss.MaxW(760), gwccss.W(gwccss.Px(20)), gwccss.H(gwccss.Px(20))),
+	)
 	declareGlobal(".shell-grid,.app-shell.nav-collapsed .shell-grid",
 		mediaRule(gwccss.MaxW(760), gwccss.GridCols(gwccss.MinMax(gwccss.TrackLen(gwccss.Zero), gwccss.Fr(1))), gwccss.GridRows(gwccss.TrackLen(gwccss.RawLength("auto")), gwccss.MinMax(gwccss.TrackLen(gwccss.Zero), gwccss.Fr(1)))),
 	)
+	// UXAUDIT-001: at narrow viewports the sidebar is an off-canvas overlay
+	// drawer, not an in-flow block. Collapsed no longer has a distinct
+	// narrow-width meaning (a persistent icon rail makes no sense as a
+	// transient overlay), so both class states share one closed shape here;
+	// NavigationSidebar's own Open prop (independent of Collapsed) is the
+	// only thing that ever adds nav-drawer-open. Off-canvas is the default
+	// and safe: no reachable interaction on a wider viewport can set Open,
+	// since the trigger that does is itself display:none outside this
+	// breakpoint (see the nav-drawer-trigger and header-nav-toggle rules
+	// below), so a wide-viewport render is never openable regardless of
+	// Collapsed's value.
 	declareGlobal(".sidebar,.sidebar.collapsed",
-		mediaRule(gwccss.MaxW(760), gwccss.Display.Flex, gwccss.H(gwccss.RawLength("auto")), gwccss.MaxHeight(gwccss.MinLen(gwccss.RawLength("44dvh"), gwccss.Px(420))), gwccss.PaddingY(gwccss.Px(10)), gwccss.PaddingX(gwccss.Px(14)), gwccss.Raw("border-right", "0"), gwccss.BorderBottom(gwccss.Px(1), gwccss.Var("line")), gwccss.Raw("overflow", "hidden"), gwccss.Raw("visibility", "visible")),
+		mediaRule(gwccss.MaxW(760),
+			gwccss.Position.Fixed,
+			gwccss.Raw("inset-block", "0"),
+			gwccss.Raw("inset-inline-start", "-336px"),
+			gwccss.W(gwccss.MinLen(gwccss.Vw(86), gwccss.Px(320))),
+			gwccss.MaxWidth(gwccss.Percent(100)),
+			gwccss.H(gwccss.RawLength("100dvh")),
+			gwccss.ZIndex(55),
+			gwccss.Display.Flex,
+			gwccss.FlexDir.Col,
+			gwccss.PaddingY(gwccss.Px(10)), gwccss.PaddingX(gwccss.Px(14)),
+			gwccss.Raw("border-right", "0"),
+			gwccss.Raw("border-inline-end", "1px solid var(--line)"),
+			gwccss.Raw("box-shadow", "0 18px 48px color-mix(in srgb,var(--ink) 22%,transparent)"),
+			gwccss.Raw("overflow", "hidden"),
+			gwccss.Raw("visibility", "hidden"),
+			gwccss.Raw("transition", "inset-inline-start .22s ease"),
+		),
 	)
-	declareGlobal(".app-shell.nav-collapsed .sidebar",
-		mediaRule(gwccss.MaxW(760), gwccss.MaxHeight(gwccss.Zero), gwccss.Raw("padding-block", "0"), gwccss.Raw("border-bottom", "0"), gwccss.OpacityNum(gwccss.Num(0)), gwccss.Raw("visibility", "hidden"), gwccss.Raw("pointer-events", "none")),
+	// !important on both properties: this is the one thing that must always
+	// win the moment nav-drawer-open is present, with no dependency on
+	// selector-specificity bookkeeping staying correct forever. Nothing else
+	// in the stylesheet is allowed to set these two properties on .sidebar
+	// with !important, so there is no fight to lose.
+	declareGlobal(".sidebar.nav-drawer-open,.sidebar.collapsed.nav-drawer-open",
+		mediaRule(gwccss.MaxW(760),
+			gwccss.Raw("inset-inline-start", "0!important"),
+			gwccss.Raw("visibility", "visible!important"),
+		),
 	)
+	declareGlobal(".sidebar,.sidebar.collapsed",
+		mediaRule(gwccss.RawMedia("(prefers-reduced-motion:reduce)"), gwccss.Raw("transition", "none")),
+	)
+	// The backdrop dims and click-dismisses the open drawer. It is never
+	// shown outside the narrow breakpoint, and never shown closed: the
+	// unqualified rule is the fail-closed default, the media-scoped one
+	// widens it only under both conditions the open drawer actually needs —
+	// and must restate display itself, since display:none does not
+	// participate in the box properties a plain override could leave alone.
+	declareGlobal(".nav-drawer-backdrop",
+		gwccss.Display.None,
+	)
+	declareGlobal(".nav-drawer-backdrop.nav-drawer-open",
+		mediaRule(gwccss.MaxW(760),
+			gwccss.Raw("display", "block!important"),
+			gwccss.Position.Fixed,
+			gwccss.Raw("inset", "0"),
+			gwccss.ZIndex(54),
+			gwccss.Raw("background", "color-mix(in srgb,var(--ink) 42%,transparent)"),
+		),
+	)
+	// A closed drawer contributes no second page-level scroller: overflow
+	// stays hidden until nav-drawer-open says the overlay is actually the
+	// thing on screen, at which point it may scroll internally on its own.
 	declareGlobal(".primary-nav,.sidebar nav:first-of-type",
-		mediaRule(gwccss.MaxW(760), gwccss.Raw("flex", "1"), gwccss.W(gwccss.Percent(100)), gwccss.MinWidth(gwccss.Zero), gwccss.MaxWidth(gwccss.Percent(100)), gwccss.Raw("overflow-x", "hidden!important"), gwccss.Raw("overflow-y", "auto!important"), gwccss.Raw("overscroll-behavior", "contain"), gwccss.Raw("scrollbar-width", "thin"), gwccss.Raw("scrollbar-color", "var(--hcm-nav-scrollbar-thumb) var(--hcm-nav-scrollbar-track)"), gwccss.Raw("scrollbar-gutter", "stable")),
+		mediaRule(gwccss.MaxW(760), gwccss.Raw("flex", "1"), gwccss.W(gwccss.Percent(100)), gwccss.MinWidth(gwccss.Zero), gwccss.MaxWidth(gwccss.Percent(100)), gwccss.Raw("overflow", "hidden")),
+	)
+	declareGlobal(".sidebar.nav-drawer-open .primary-nav,.sidebar.nav-drawer-open nav:first-of-type",
+		mediaRule(gwccss.MaxW(760), gwccss.Raw("overflow-x", "hidden"), gwccss.Raw("overflow-y", "auto"), gwccss.Raw("overscroll-behavior", "contain"), gwccss.Raw("scrollbar-width", "thin"), gwccss.Raw("scrollbar-color", "var(--hcm-nav-scrollbar-thumb) var(--hcm-nav-scrollbar-track)"), gwccss.Raw("scrollbar-gutter", "stable")),
 	)
 	declareGlobal(".primary-nav>ul,.sidebar nav:first-of-type>ul",
 		mediaRule(gwccss.MaxW(760), gwccss.Raw("display", "grid!important"), gwccss.W(gwccss.RawLength("100%!important")), gwccss.MaxWidth(gwccss.RawLength("100%!important"))),
@@ -1001,5 +1088,29 @@ func declarepeopleActionColumnStylesStyles() {
 	)
 	declareGlobal(".people-table :is(th,td):last-child",
 		mediaRule(gwccss.RawMedia("(forced-colors:active)"), gwccss.Raw("border-inline-start", "1px solid CanvasText"), gwccss.Raw("box-shadow", "none")),
+	)
+	declareNavigationDrawerShellStyles()
+}
+
+// declareNavigationDrawerShellStyles finishes the UXAUDIT-001 narrow-shell
+// contract. It is called from here (rather than its own registered
+// stylesheet function) purely for cascade order: historyNavigationStylesheet
+// moves .topbar>.header-navigation-tools onto a second grid row at narrow
+// widths, and that declaration must lose so the header stays one row. CSS
+// gives equal-specificity, later-declared rules the win; this package's
+// stylesheets concatenate in a fixed order (styles.go), and this call site
+// is one of the last to run, after every rule it needs to outrank.
+func declareNavigationDrawerShellStyles() {
+	declareGlobal(".topbar>.header-navigation-tools",
+		mediaRule(gwccss.MaxW(760),
+			gwccss.Raw("grid-column", "auto"),
+			gwccss.Raw("grid-row", "auto"),
+			gwccss.Padding(gwccss.Zero),
+			gwccss.MinWidth(gwccss.Zero),
+			gwccss.Raw("flex", "1 1 auto"),
+			gwccss.Raw("flex-wrap", "nowrap"),
+			gwccss.Raw("overflow-x", "auto"),
+			gwccss.Raw("overscroll-behavior-inline", "contain"),
+		),
 	)
 }

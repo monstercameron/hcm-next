@@ -1,5 +1,39 @@
 # Changelog
 
+## 2026-09-12 (UXAUDIT-001)
+
+- The application shell is usable on a phone. At 320x720 the header is a single
+  81px row instead of wrapping to 134px, content starts at 11% of the viewport
+  instead of 63%, the visible content area grows from 269px to 639px, and there
+  is exactly one page-level scroll region where navigation and content had been
+  competing for two. Narrow viewports get an off-canvas overlay drawer with a
+  backdrop; opening it does not change content width.
+
+  One shell serves both: a single shared open-state flag feeds the header
+  trigger and the sidebar, with no per-viewport fork and no duplicated
+  navigation component.
+
+- Two defects were found by driving the live server and fixed, neither of which
+  the Go suite could see. The drawer's open rule matched the element, sat later
+  in the cascade, was more specific, and carried no `!important` on either side
+  -- and still never applied; the sidebar stayed off-canvas whether the class
+  was there or not. And the backdrop could never appear at all, because its open
+  rule set background, inset, position and z-index but never `display`, leaving
+  the base `display:none` in force.
+
+  The more useful outcome is the test that would have caught them. The suite had
+  been substring-matching stylesheet text, which proves a rule exists but not
+  that it wins the cascade. It now parses a rule's declaration body into a
+  property map and requires the open rule to restate the properties the closed
+  rule sets, with a different value and an overriding priority. Verified failable
+  by reverting each fix on its own.
+
+- Known boundary: focus containment and restoration are not claimed. Calling
+  `.focus()` on a real input inside the open drawer leaves `document.activeElement`
+  at BODY in the verification environment, so neither focus entering the dialog
+  nor returning to the trigger is observable there. Escape-to-close was confirmed
+  live, because it does not depend on focus.
+
 ## 2026-09-12 (PROMOUX-002)
 
 - Two people can no longer start overlapping promotions for the same worker.

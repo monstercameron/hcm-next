@@ -80,7 +80,7 @@ func TestTodo_WEB_039_Golden(t *testing.T) {
 	digest := sha256.Sum256([]byte(doc))
 	got := hex.EncodeToString(digest[:])
 	// Closed launcher omits active-option references and does not claim modality.
-	const want = "be8d7096445d12e60ab37cba5d76f794cd45cd1d40d5da0ecbe52ba78e39ea25"
+	const want = "9c2743eccf258463c95ef890103b52bb7c578c3c882c79c70b9b382d47dcdd0f"
 	if got != want {
 		t.Fatalf("authorization-resolved navigation golden digest = %s, want %s", got, want)
 	}

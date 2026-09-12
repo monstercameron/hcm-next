@@ -22,15 +22,31 @@ func TestSharedComponentsOwnResponsiveSizingContracts(t *testing.T) {
 	}
 }
 
+// TestMobileShellKeepsOneBoundedNavigableTree pins the UXAUDIT-001 contract:
+// at narrow widths the sidebar is a fixed, off-canvas overlay drawer hidden
+// by default (fail-closed — nothing about NavCollapsed's value changes
+// that), the header stays a single grid row with every child accounted
+// for, the persistent desktop toggle and the drawer trigger are mutually
+// exclusive so brand-cluster never has to size a third visible item, and a
+// closed drawer's own nav contributes no scrollable region — only an open
+// one may scroll internally.
 func TestMobileShellKeepsOneBoundedNavigableTree(t *testing.T) {
 	css := Stylesheet()
 	contracts := []string{
 		`.shell-grid,.app-shell.nav-collapsed .shell-grid{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);}`,
 		`.brand-cluster,.app-shell.nav-collapsed .brand-cluster{align-items:center;border-right:0;display:grid!important;grid-template-columns:minmax(0,1fr) 44px!important;`,
-		`.header-nav-toggle,.app-shell.nav-collapsed .header-nav-toggle{display:grid`,
-		`@media (max-width:760px){.sidebar,.sidebar.collapsed{border-bottom:1px solid var(--line);border-right:0;display:flex;height:auto;max-height:min(44dvh,420px);`,
-		`.app-shell.nav-collapsed .sidebar{border-bottom:0;max-height:0;opacity:0;padding-block:0;pointer-events:none;visibility:hidden;}`,
-		`overflow-x:hidden!important;overflow-y:auto!important`,
+		`@media (max-width:760px){.topbar,.app-shell.nav-collapsed .topbar{grid-template-columns:minmax(0,120px) minmax(0,1fr) auto auto auto;}`,
+		`.header-nav-toggle,.app-shell.nav-collapsed .header-nav-toggle{display:none;}`,
+		`.nav-drawer-trigger{display:none;}`,
+		`.nav-drawer-trigger{background:transparent;border:0;border-radius:var(--hcm-radius-control,var(--radius));color:var(--ink);display:grid;height:38px;margin:0 4px 0 0;padding:0;place-items:center;width:38px;}`,
+		`.sidebar,.sidebar.collapsed{border-inline-end:1px solid var(--line);border-right:0;box-shadow:0 18px 48px color-mix(in srgb,var(--ink) 22%,transparent);display:flex;flex-direction:column;height:100dvh;inset-block:0;inset-inline-start:-336px;max-width:100%;overflow:hidden;`,
+		`visibility:hidden;width:min(86vw,320px);z-index:55;}`,
+		`.sidebar.nav-drawer-open,.sidebar.collapsed.nav-drawer-open{inset-inline-start:0!important;visibility:visible!important;}`,
+		`.nav-drawer-backdrop{display:none;}`,
+		`.nav-drawer-backdrop.nav-drawer-open{background:color-mix(in srgb,var(--ink) 42%,transparent);display:block!important;inset:0;position:fixed;z-index:54;}`,
+		`.primary-nav,.sidebar nav:first-of-type{flex:1;max-width:100%;min-width:0;overflow:hidden;width:100%;}`,
+		`.sidebar.nav-drawer-open .primary-nav,.sidebar.nav-drawer-open nav:first-of-type{overflow-x:hidden;overflow-y:auto;`,
+		`.topbar>.header-navigation-tools{flex:1 1 auto;flex-wrap:nowrap;grid-column:auto;grid-row:auto;min-width:0;overflow-x:auto;overscroll-behavior-inline:contain;padding:0;}`,
 		`.primary-nav>ul,.sidebar nav:first-of-type>ul{display:grid!important;max-width:100%!important;width:100%!important;}`,
 	}
 	for _, contract := range contracts {

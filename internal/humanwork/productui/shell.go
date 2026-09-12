@@ -46,17 +46,49 @@ func appShellWithHeading(view View, page ui.Node, showHeading bool) ui.Node {
 	return html.Div(html.Props{Class: class},
 		html.A(html.Props{Class: "skip-link", Href: "#main-content"}, ui.Text(view.Locale.Text("shell.skip_main"))),
 		html.Div(html.Props{Class: "sr-only route-announcer", Raw: map[string]any{"role": "status", "aria-live": "polite", "aria-atomic": "true"}}, ui.Text(announcement)),
-		appHeader(view),
-		sessionWarning(view),
-		stepUpChallenge(view),
-		actingAuthorityBanner(view),
-		breakGlassActivation(view),
-		policySimulation(view),
-		html.Div(html.Props{Class: "shell-grid"}, primarySidebar(view), pageFrame(view, content, showHeading)),
+		ui.CreateElement(NavigationDrawerScope, navigationDrawerScopeProps{
+			Render: func(open bool, toggle, closeDrawer func()) ui.Node {
+				return html.Fragment(
+					appHeader(view, open, toggle),
+					sessionWarning(view),
+					stepUpChallenge(view),
+					actingAuthorityBanner(view),
+					breakGlassActivation(view),
+					policySimulation(view),
+					html.Div(html.Props{Class: "shell-grid"}, primarySidebar(view, open, toggle, closeDrawer), pageFrame(view, content, showHeading)),
+				)
+			},
+		}),
 	)
 }
 
-func appHeader(view View) ui.Node {
+// navigationDrawerScopeProps carries the shell's render body as a prop so
+// NavigationDrawerScope can own one piece of ephemeral state — the narrow-
+// viewport overlay drawer's open/closed flag — and hand it to both the
+// header trigger and the sidebar it controls, even though they render in
+// different branches of the tree. This is the one navigation model the
+// REFACTOR clause requires: the same header, the same NavigationSidebar,
+// for every viewport; only CSS media queries give the shared Open flag any
+// visual effect, and only at narrow widths.
+type navigationDrawerScopeProps struct {
+	Render func(open bool, toggle func(), closeDrawer func()) ui.Node
+}
+
+// NavigationDrawerScope owns the drawer's open/closed state. Open starts
+// false (closed) on every render, on every viewport: the trigger that can
+// set it true is the ONLY way it ever changes, and CSS removes that trigger
+// from hit-testing and the tab order outside narrow viewports, so a desktop
+// document is never reachably open. That is the fail-closed default the
+// unset case requires, achieved without any runtime viewport detection.
+func NavigationDrawerScope(props navigationDrawerScopeProps) ui.Node {
+	open := ui.UseState(false)
+	if props.Render == nil {
+		return html.Fragment()
+	}
+	return props.Render(open.Get(), func() { open.Set(!open.Get()) }, func() { open.Set(false) })
+}
+
+func appHeader(view View, drawerOpen bool, drawerToggle func()) ui.Node {
 	appearance := NormalizeCustomerTheme(view.Appearance)
 	toggle := navigationToggleProps(view)
 	brandProps := html.Props{Class: "wordmark", Title: appearance.BrandName, Data: map[string]string{"hcm-brand-link": ""}}
@@ -64,6 +96,10 @@ func appHeader(view View) ui.Node {
 	var brand ui.Node = html.Div(brandProps, brandContent)
 	if navigationDestinationAuthorized(view, PageHome) {
 		brand = appLink(view, brandProps, navigationHref(view, PageHome), brandContent)
+	}
+	drawerLabel := view.Locale.Text("nav.drawer_open")
+	if drawerOpen {
+		drawerLabel = view.Locale.Text("nav.drawer_close")
 	}
 	return html.Header(html.Props{Class: "topbar"},
 		html.Div(html.Props{Class: "brand-cluster"},
@@ -73,6 +109,16 @@ func appHeader(view View) ui.Node {
 				Aria:  map[string]string{"label": toggle.Label, "expanded": fmt.Sprint(!view.NavCollapsed), "controls": "workspace-navigation"},
 				Raw:   map[string]any{"title": toggle.Label},
 			}, toggle.Href, navIcon(toggle.Icon)),
+			html.Button(html.Props{
+				ID: "nav-drawer-trigger", Class: "nav-drawer-trigger", Type: "button",
+				Aria: navigationDrawerTriggerAria(drawerOpen, drawerLabel),
+				Raw:  map[string]any{"title": drawerLabel},
+				OnClick: ui.UseEvent(func(ui.MouseEvent) {
+					if drawerToggle != nil {
+						drawerToggle()
+					}
+				}),
+			}, navIcon("menu")),
 		),
 		html.Div(html.Props{Class: "header-navigation-tools"},
 			contextSwitcherSlot(view),
@@ -299,8 +345,8 @@ func localeMenu(view View) ui.Node {
 	})
 }
 
-func primarySidebar(view View) ui.Node {
-	return ui.CreateElement(NavigationSidebar, navigationSidebarProps(view))
+func primarySidebar(view View, drawerOpen bool, drawerToggle, drawerClose func()) ui.Node {
+	return ui.CreateElement(NavigationSidebar, navigationDrawerSidebarProps(view, drawerOpen, drawerToggle, drawerClose))
 }
 
 func navigationHref(view View, page PageID) string {
