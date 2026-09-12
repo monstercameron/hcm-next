@@ -17809,7 +17809,8 @@
     "refactor": "payload encryption boundary is classification-driven",
     "refs": "[Records disposition](specs/records-management-and-disposition.md), [ledger retention](specs/transaction-ledger-reconciliation-and-repair.md)",
     "retired": false,
-    "done": false
+    "done": true,
+    "evidence": "`TestTodo_LEDGER_011` (the PRIMARY named in the TEST field), `TestTodo_LEDGER_011_Golden`, `FuzzTodo_LEDGER_011`, `TestTodo_LEDGER_011_Race`, `TestTodo_LEDGER_011_Mutation` and `TestTodo_LEDGER_011_PayloadStateVocabularyAgrees` in `internal/data/ledger/disposition` (`disposition.go`, `types.go`, `doc.go`), with `internal/data/ledger/reader.go` extended and migration `00285_ledger_011_payload_disposition.sql` adding the append-only `ledger_payload_disposition` table. `go test -count=1 -cover` PASS at 79.0% (`internal/data/ledger/disposition`) and 70.2% (`internal/data/ledger`), with checkpoint 87.1%, commit 75.9%, evidence 86.7%, hashchain 71.9%, lineage 79.2% and temporal 90.5% unchanged, `./migrations/` PASS at 81.5%; `go build ./...` clean, `go vet` clean, gofmt clean and `go run ./tools/quality` PASSED on windows/arm64 (Go 1.26.3); branch main. The clause -- an erasure must not be able to lie in either direction -- is closed at the **default** read path, not an opt-in one. `EventRecord` gains a `PayloadState` with no permissive zero value, and `ReadStream`/`ReadEvent` LEFT JOIN the disposition table and unconditionally withhold the payload whenever a disposition row names the event, so the ten pre-existing callers in `internal/data/projection/critical`, `internal/data/projection`, `internal/data/provenance`, `internal/data/queryplans`, `internal/data/rebuild` and `internal/intent/app/pgstore` inherit the withholding without change. `TestTodo_LEDGER_011` reads back through plain `ledger.NewReader().ReadEvent` rather than through `disposition.ReadView` precisely so that an opt-in-only withholding would fail, and it distinguishes an erased payload from an event that never carried one by asserting the two states differ and neither is empty. Chronology is proven preserved by name: `assertSameEventColumns` compares all twenty `ledger_event` columns before and after and fails naming the exact column that changed, and `hashchain.Digester.Verify` is called against real PostgreSQL before and after with an identical head asserted. The hold clause has no check-then-act gap -- `Erase` composes `recordsmeta.DisposeCopy`, which locks `record_copy_link` FOR UPDATE and evaluates `hold_state` under that same lock -- and a refused attempt is asserted to leave the hold status, its ACTIVE intersection and the event row untouched. `FuzzTodo_LEDGER_011` ran ~368K executions with zero crashers over payload bytes and arbitrary classification strings, asserting that exactly the two declared classifications succeed and map to `PAYLOAD_ERASED`/`RESTRICTED` while near-misses such as `\"standard\"` or a trailing space are refused rather than defaulted, and that a chain built from fuzzed bytes verifies field-for-field before and after. **Boundaries, stated rather than implied.** Crypto-erasure is **modelled, not real**: this codebase's append path never encrypts an inline payload, so there is no key protecting bytes already on disk and `Erase` records a symbolic key reference as governance evidence of a decision, not proof of cryptographic unrecoverability. `ledger_event.payload` is never physically zeroed for either mechanism, which is not achievable without abandoning that table's append-only trigger and grants; both mechanisms' real guarantee is that the read layer never returns the bytes again. The fuzz target is pure and in-memory, following the existing `FuzzTodo_LEDGER_012` precedent, so the database-backed guarantees are carried by the PRIMARY, Race and Mutation tests instead. `TestTodo_DB_020_Golden` in `internal/data/queryplans` was regenerated because the new LEFT JOIN turns `LEDGER_STREAM_REPLAY` into a nested loop over two indexed scans with no sequential scan introduced; it failed once under four concurrent embedded-PostgreSQL instances and then passed three consecutive full-package runs, so it is recorded here as planner variance under load rather than a stale golden"
   },
   {
     "id": "LEDGER-012",
@@ -28316,6 +28317,431 @@
     "evidence": "`TestCommandValidatesTheBoundedPromotion`, `TestCommandRefusesMissingApprovalAndManagerCycle`, `TestCommandRefusesAPlanThatDropsAParticipant` in `internal/domains/promotion/commit`; `go test -count=1 ./internal/domains/promotion/commit/ ./internal/platform/execution/promotionterminal/ ./internal/data/promotioncommit/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
+    "id": "PROMOUX-001",
+    "phase": "P0",
+    "model": "SOL_HIGH",
+    "title": "Resolve promotion eligibility consistently across the seeded workforce",
+    "section": "70. Promotion workflow live-audit remediation",
+    "depends": [
+      "PROMO-007",
+      "JOBARCH-004",
+      "WEB-109",
+      "WEB-119"
+    ],
+    "test": "TestTodo_PROMOUX_001",
+    "test_matrix": {
+      "BROWSER": "TestTodo_PROMOUX_001_Browser",
+      "INTEGRATION": "TestTodo_PROMOUX_001_Integration",
+      "PRIMARY": "TestTodo_PROMOUX_001",
+      "REGRESSION": "TestTodo_PROMOUX_001_Regression",
+      "SECURITY": "TestTodo_PROMOUX_001_Security"
+    },
+    "red": "Journeys sends users to a directory where every initially visible worker reports `No available workflows`, the sole eligible Jane record can be found only by knowing her name, or the legacy `W-1001` corpus record and the 64 seeded workers follow different promotion-eligibility rules",
+    "green": "the authorized directory can filter directly to promotion-eligible workers, every displayed availability state has a server-provided reason, local-dev fixtures use one worker identity and job-architecture model, and at least four role-diverse workers exercise eligible, ineligible, active-conflict and withheld outcomes without enumeration leakage",
+    "refactor": "eligibility is one server-owned projection consumed by People, Person, global actions and Journeys; no client-side role-code allowlist",
+    "refs": "[promotion workflow](reference-workflows/promote-into-management.md), `internal/intent/app`, `tools/uxqual/journeyclient`, `test/workspace`",
+    "retired": false,
+    "done": false
+  },
+  {
+    "id": "PROMOUX-002",
+    "phase": "P0",
+    "model": "SOL_HIGH",
+    "title": "Prevent overlapping active promotions and route users to the existing journey",
+    "section": "70. Promotion workflow live-audit remediation",
+    "depends": [
+      "PROMO-007",
+      "WF-RUN-018",
+      "WEB-119",
+      "WEB-132"
+    ],
+    "test": "TestTodo_PROMOUX_002",
+    "test_matrix": {
+      "BROWSER": "TestTodo_PROMOUX_002_Browser",
+      "INTEGRATION": "TestTodo_PROMOUX_002_Integration",
+      "PRIMARY": "TestTodo_PROMOUX_002",
+      "RACE": "TestTodo_PROMOUX_002_Race",
+      "RECOVERY": "TestTodo_PROMOUX_002_Recovery",
+      "SECURITY": "TestTodo_PROMOUX_002_Security"
+    },
+    "red": "a worker with a nonterminal promotion still exposes `Start Promotion`, or concurrent starts create more than one active promotion before execution-time conflict checking",
+    "green": "a tenant-scoped active-intent guard admits exactly one promotion per worker and overlapping effective window; replays resolve to the same intent; People and Person replace Start with `Open active promotion`; a conflicting actor sees a safe explanation and zero new proposal, work item or domain mutation",
+    "refactor": "the guard belongs to promotion admission and is projected to clients; UI suppression is not the integrity boundary",
+    "refs": "[promotion workflow](reference-workflows/promote-into-management.md), `internal/domains/promotion`, `internal/data/intentcontrol`, `tools/uxqual/journeyclient`",
+    "retired": false,
+    "done": false
+  },
+  {
+    "id": "PROMOUX-003",
+    "phase": "P0",
+    "model": "SOL_HIGH",
+    "title": "Enforce and explain separation of duties across promotion approvals",
+    "section": "70. Promotion workflow live-audit remediation",
+    "depends": [
+      "APPROVAL-004",
+      "WF-STEP-003",
+      "PROMO-009"
+    ],
+    "test": "TestTodo_PROMOUX_003",
+    "test_matrix": {
+      "BROWSER": "TestTodo_PROMOUX_003_Browser",
+      "INTEGRATION": "TestTodo_PROMOUX_003_Integration",
+      "MUTATION": "TestTodo_PROMOUX_003_Mutation",
+      "PRIMARY": "TestTodo_PROMOUX_003",
+      "RACE": "TestTodo_PROMOUX_003_Race",
+      "SECURITY": "TestTodo_PROMOUX_003_Security"
+    },
+    "red": "one principal completes both finance and manager approval for the same proposal, the work items share an undifferentiated `principal:promotion-approver` owner, or the UI offers an approval without naming the authority and conflict that permit it",
+    "green": "approver resolution binds each requirement to its authority class and separation constraints; the same principal is refused where duties conflict; reassignment preserves the proposal digest; and the UI states `Waiting for \u003crole\u003e`, assigned person or protected-group label, due date, the viewer's acting authority and why the action is or is not available",
+    "refactor": "separation is evaluated by the approval owner before claim or completion; presentation consumes the resulting disposition",
+    "refs": "[promotion workflow](reference-workflows/promote-into-management.md), [organization scope and authz](specs/organization-scope-and-authz.md), `internal/workflow/steps/approval`",
+    "retired": false,
+    "done": false
+  },
+  {
+    "id": "PROMOUX-004",
+    "phase": "P0",
+    "model": "SOL_HIGH",
+    "title": "Replace free-text target positions with authorized vacancy selection and reservation evidence",
+    "section": "70. Promotion workflow live-audit remediation",
+    "depends": [
+      "POSITION-003",
+      "PROMO-002",
+      "WEB-124"
+    ],
+    "test": "TestTodo_PROMOUX_004",
+    "test_matrix": {
+      "ACCESSIBILITY": "TestTodo_PROMOUX_004_Accessibility",
+      "BROWSER": "TestTodo_PROMOUX_004_Browser",
+      "INTEGRATION": "TestTodo_PROMOUX_004_Integration",
+      "PRIMARY": "TestTodo_PROMOUX_004",
+      "RACE": "TestTodo_PROMOUX_004_Race",
+      "SECURITY": "TestTodo_PROMOUX_004_Security"
+    },
+    "red": "an arbitrary guessed identifier such as `POS-ENG-MGR-101` is accepted without proving existence, vacancy, compatibility, effective-date capacity and reservation ownership",
+    "green": "an accessible server-filtered picker shows only authorized compatible positions with title, organization, manager, location, vacancy window and reservation state; selection binds the immutable position revision; simulation explains advisory versus durable capacity; stale or concurrently reserved choices fail before approval with a recoverable alternative-selection state",
+    "refactor": "the browser carries only the selected position revision reference; validation and reservation remain owned by Position",
+    "refs": "[promotion workflow](reference-workflows/promote-into-management.md), `internal/domains/position`, `internal/domains/promotion/simassign`",
+    "retired": false,
+    "done": false
+  },
+  {
+    "id": "PROMOUX-005",
+    "phase": "P0",
+    "model": "SOL_HIGH",
+    "title": "Include reporting-line and organization impact in management promotions",
+    "section": "70. Promotion workflow live-audit remediation",
+    "depends": [
+      "PROMO-002",
+      "ORG-003",
+      "CONF-007",
+      "WEB-123",
+      "WEB-126"
+    ],
+    "test": "TestTodo_PROMOUX_005",
+    "test_matrix": {
+      "BROWSER": "TestTodo_PROMOUX_005_Browser",
+      "GOLDEN": "TestTodo_PROMOUX_005_Golden",
+      "INTEGRATION": "TestTodo_PROMOUX_005_Integration",
+      "MUTATION": "TestTodo_PROMOUX_005_Mutation",
+      "PRIMARY": "TestTodo_PROMOUX_005",
+      "SECURITY": "TestTodo_PROMOUX_005_Security"
+    },
+    "red": "a promotion into management can reach approval without resolving the target manager, organization, reporting-line edge, team impact and cycle check, or the review comparison omits those effects",
+    "green": "position selection derives or explicitly collects authorized target organization and manager revisions; simulation proves the relationship rewrite and cycle safety; current/proposed review shows manager, organization, position and affected direct-report scope; material changes invalidate approval and re-run the exact checks",
+    "refactor": "organization semantics stay in the Organization capability and promotion composes its typed effect rather than copying graph logic",
+    "refs": "[promotion workflow](reference-workflows/promote-into-management.md), `internal/domains/org`, `internal/domains/promotion/simassign`",
+    "retired": false,
+    "done": false
+  },
+  {
+    "id": "PROMOUX-006",
+    "phase": "P0",
+    "model": "TERRA",
+    "title": "Show the authorized compensation baseline and exact entry guardrail before submit",
+    "section": "70. Promotion workflow live-audit remediation",
+    "depends": [
+      "PROMO-003",
+      "WEB-116",
+      "WEB-123",
+      "WEB-127"
+    ],
+    "test": "TestTodo_PROMOUX_006",
+    "test_matrix": {
+      "ACCESSIBILITY": "TestTodo_PROMOUX_006_Accessibility",
+      "BROWSER": "TestTodo_PROMOUX_006_Browser",
+      "I18N": "TestTodo_PROMOUX_006_I18N",
+      "INTEGRATION": "TestTodo_PROMOUX_006_Integration",
+      "PRIMARY": "TestTodo_PROMOUX_006",
+      "SECURITY": "TestTodo_PROMOUX_006_Security"
+    },
+    "red": "the promotion form shows current base as `—` while enforcing a hidden percentage rule, or expresses only `0.0500..0.1800` after rejection",
+    "green": "after target-role selection, authorized purpose-bound data displays current exact Money, permitted increase percent, exact minimum and maximum annual Money, band position, currency and effective-date basis; the input constrains and explains the range without floating-point arithmetic; unauthorized viewers receive a typed unavailable action rather than inferred pay",
+    "refactor": "formatting uses shared Money and Percentage value types and locale services; the client never recomputes the authoritative guardrail",
+    "refs": "[promotion workflow](reference-workflows/promote-into-management.md), `internal/domains/promotion/simcomp`, `tools/uxqual/journeyclient`",
+    "retired": false,
+    "done": false
+  },
+  {
+    "id": "PROMOUX-007",
+    "phase": "P0",
+    "model": "TERRA",
+    "title": "Present promotion validation as field-linked recoverable guidance",
+    "section": "70. Promotion workflow live-audit remediation",
+    "depends": [
+      "WEB-020",
+      "WEB-125",
+      "PROMOUX-006"
+    ],
+    "test": "TestTodo_PROMOUX_007",
+    "test_matrix": {
+      "ACCESSIBILITY": "TestTodo_PROMOUX_007_Accessibility",
+      "BROWSER": "TestTodo_PROMOUX_007_Browser",
+      "GOLDEN": "TestTodo_PROMOUX_007_Golden",
+      "I18N": "TestTodo_PROMOUX_007_I18N",
+      "PRIMARY": "TestTodo_PROMOUX_007",
+      "SECURITY": "TestTodo_PROMOUX_007_Security"
+    },
+    "red": "a rejected pay value produces a page-level message containing field keys, decimal fractions, Go error names or correlation internals, does not associate the error with Proposed base pay, or leaves the user at an unrelated scroll position",
+    "green": "typed refusal reasons map to localized field messages with exact corrective bounds; the summary links to each invalid field; focus and scroll move predictably without losing entered values; changing a field clears only its stale error; a copyable support reference is available through diagnostics without implementation text in ordinary copy",
+    "refactor": "one refusal-to-presentation mapper serves SSR and enhanced clients; do not parse human error strings",
+    "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), `internal/transport/journey`, `tools/uxqual/render/journey`",
+    "retired": false,
+    "done": false
+  },
+  {
+    "id": "PROMOUX-008",
+    "phase": "GATE_C",
+    "model": "TERRA",
+    "title": "Put promotion machinery behind an authorized diagnostics disclosure",
+    "section": "70. Promotion workflow live-audit remediation",
+    "depends": [
+      "WEB-022",
+      "WEB-046",
+      "OBS-024",
+      "UXAUDIT-006"
+    ],
+    "test": "TestTodo_PROMOUX_008",
+    "test_matrix": {
+      "ACCESSIBILITY": "TestTodo_PROMOUX_008_Accessibility",
+      "BROWSER": "TestTodo_PROMOUX_008_Browser",
+      "GOLDEN": "TestTodo_PROMOUX_008_Golden",
+      "I18N": "TestTodo_PROMOUX_008_I18N",
+      "PRIMARY": "TestTodo_PROMOUX_008",
+      "SECURITY": "TestTodo_PROMOUX_008_Security"
+    },
+    "red": "ordinary promotion review exposes entity refs, material or plan digests, raw `SET` operations, workflow node names, work-item UUIDs, raw event codes, principals or `JourneyService` labels by default",
+    "green": "the default page shows employee, proposed business changes, approvals, policy explanations, effective date, next owner and human-readable history; an authorized Technical details disclosure contains identifiers, evidence and trace references with copy controls and redaction; unauthorized viewers cannot infer hidden internals from presence, count or layout",
+    "refactor": "business timeline events and diagnostic evidence are two projections over the same immutable records, not duplicated stored summaries",
+    "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), `internal/platform/execution`, `tools/uxqual/presentation`",
+    "retired": false,
+    "done": false
+  },
+  {
+    "id": "PROMOUX-009",
+    "phase": "GATE_C",
+    "model": "SOL_HIGH",
+    "title": "Canonicalize and deduplicate promotion simulation findings",
+    "section": "70. Promotion workflow live-audit remediation",
+    "depends": [
+      "PROMO-004",
+      "WEB-127"
+    ],
+    "test": "TestTodo_PROMOUX_009",
+    "test_matrix": {
+      "BROWSER": "TestTodo_PROMOUX_009_Browser",
+      "GOLDEN": "TestTodo_PROMOUX_009_Golden",
+      "INTEGRATION": "TestTodo_PROMOUX_009_Integration",
+      "MUTATION": "TestTodo_PROMOUX_009_Mutation",
+      "PRIMARY": "TestTodo_PROMOUX_009",
+      "PROPERTY": "TestTodo_PROMOUX_009_Property"
+    },
+    "red": "one budget observation appears twice with swapped internal code and message, or ordering and identity change across reloads",
+    "green": "findings have a stable semantic identity, owner, severity, affected field/effect and one canonical explanation; exact duplicates collapse while independently sourced corroboration remains attributable; deterministic ordering and count survive persistence and reload",
+    "refactor": "deduplication operates on typed finding identity before presentation, never on rendered strings",
+    "refs": "[promotion workflow](reference-workflows/promote-into-management.md), `internal/domains/promotion/simcontract`, `tools/uxqual/journeyclient`",
+    "retired": false,
+    "done": false
+  },
+  {
+    "id": "PROMOUX-010",
+    "phase": "GATE_C",
+    "model": "TERRA",
+    "title": "Keep promotion review confirmations compact, visible and keyboard-stable",
+    "section": "70. Promotion workflow live-audit remediation",
+    "depends": [
+      "WEB-018",
+      "WEB-019",
+      "WEB-128"
+    ],
+    "test": "TestTodo_PROMOUX_010",
+    "test_matrix": {
+      "ACCESSIBILITY": "TestTodo_PROMOUX_010_Accessibility",
+      "BROWSER": "TestTodo_PROMOUX_010_Browser",
+      "PERFORMANCE": "TestTodo_PROMOUX_010_Performance",
+      "PRIMARY": "TestTodo_PROMOUX_010",
+      "REGRESSION": "TestTodo_PROMOUX_010_Regression"
+    },
+    "red": "expanding Start, Approve or Reject pushes the final action below the viewport, moves unrelated sections, loses focus or makes Cancel the most visually prominent control",
+    "green": "a shared review surface keeps employee, change, date, consequences and final action together; the action bar remains visible; focus enters and returns correctly; Escape cancels; reduced motion is honored; server latency produces an in-place busy state that prevents duplicate submission without collapsing geometry",
+    "refactor": "Start, Approve, Reject, Withdraw and Cancel reuse one confirmation component with typed content props",
+    "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), `tools/uxqual/render/journey`",
+    "retired": false,
+    "done": false
+  },
+  {
+    "id": "PROMOUX-011",
+    "phase": "P0",
+    "model": "TERRA",
+    "title": "Invalidate promotion counts and timestamps after every durable transition",
+    "section": "70. Promotion workflow live-audit remediation",
+    "depends": [
+      "WEB-035",
+      "WEB-036",
+      "WEB-099",
+      "WEB-130"
+    ],
+    "test": "TestTodo_PROMOUX_011",
+    "test_matrix": {
+      "BROWSER": "TestTodo_PROMOUX_011_Browser",
+      "INTEGRATION": "TestTodo_PROMOUX_011_Integration",
+      "PERFORMANCE": "TestTodo_PROMOUX_011_Performance",
+      "PRIMARY": "TestTodo_PROMOUX_011",
+      "RACE": "TestTodo_PROMOUX_011_Race",
+      "RECOVERY": "TestTodo_PROMOUX_011_Recovery"
+    },
+    "red": "after creating or approving a promotion the shell still announces zero journeys, `Updated` remains older than the newest transition, or views converge only after unrelated navigation",
+    "green": "each committed promotion transition emits one authority-filtered invalidation with sequence; shell count, Journeys, My Work, Person and detail refresh only their affected regions; displayed last-updated time equals the latest business transition; reconnect catch-up converges without duplicate renders or lost scroll/focus",
+    "refactor": "consumers share cache keys and sequence handling; no page triggers a full-shell reload to achieve consistency",
+    "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), `tools/uxqual/invalidation`, `tools/uxqual/productclient`",
+    "retired": false,
+    "done": false
+  },
+  {
+    "id": "PROMOUX-012",
+    "phase": "GATE_C",
+    "model": "TERRA",
+    "title": "Distinguish actionable approvals, tracked promotions and passive waits",
+    "section": "70. Promotion workflow live-audit remediation",
+    "depends": [
+      "WEB-098",
+      "WEB-103",
+      "WEB-106",
+      "WEB-129",
+      "UXAUDIT-017"
+    ],
+    "test": "TestTodo_PROMOUX_012",
+    "test_matrix": {
+      "ACCESSIBILITY": "TestTodo_PROMOUX_012_Accessibility",
+      "BROWSER": "TestTodo_PROMOUX_012_Browser",
+      "INTEGRATION": "TestTodo_PROMOUX_012_Integration",
+      "PRIMARY": "TestTodo_PROMOUX_012",
+      "REGRESSION": "TestTodo_PROMOUX_012_Regression"
+    },
+    "red": "My Work says every visible journey needs attention while listing a future-date wait with no action, or Person omits an active promotion while offering a duplicate start",
+    "green": "My Work contains assigned decisions and tasks with owner, due date and next action; Tracked requests contains promotions the viewer initiated or follows; passive waits show next transition and owner without inflating actionable counts; Person displays active and past workflows with direct resume/open links",
+    "refactor": "all surfaces consume the same server-resolved relationship-to-viewer and next-action projection",
+    "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), `tools/uxqual/journeyclient`, `tools/uxqual/render/journey`",
+    "retired": false,
+    "done": false
+  },
+  {
+    "id": "PROMOUX-013",
+    "phase": "GATE_C",
+    "model": "SOL_HIGH",
+    "title": "Add governed edit, supersede, withdraw and cancel paths",
+    "section": "70. Promotion workflow live-audit remediation",
+    "depends": [
+      "INTENT-005",
+      "WF-RUN-015",
+      "WEB-122",
+      "WEB-132"
+    ],
+    "test": "TestTodo_PROMOUX_013",
+    "test_matrix": {
+      "BROWSER": "TestTodo_PROMOUX_013_Browser",
+      "INTEGRATION": "TestTodo_PROMOUX_013_Integration",
+      "MUTATION": "TestTodo_PROMOUX_013_Mutation",
+      "PRIMARY": "TestTodo_PROMOUX_013",
+      "RECOVERY": "TestTodo_PROMOUX_013_Recovery",
+      "SECURITY": "TestTodo_PROMOUX_013_Security"
+    },
+    "red": "a proposer cannot correct an unstarted proposal, withdraw before approval, or request cancellation during an eligible wait; or an edit silently changes an approved revision",
+    "green": "authorized edits create a new proposal revision and invalidate material approvals; withdrawal and cancellation use typed interventions with reasons, consequence preview and retained evidence; unavailable stages explain why; races with approval, timer and terminal commit resolve to one deterministic outcome with no partial domain write",
+    "refactor": "UI actions map to existing intent and intervention semantics; no delete or in-place proposal update",
+    "refs": "[promotion workflow](reference-workflows/promote-into-management.md), `internal/intent`, `internal/workflow/intervention`",
+    "retired": false,
+    "done": false
+  },
+  {
+    "id": "PROMOUX-014",
+    "phase": "GATE_C",
+    "model": "TERRA",
+    "title": "Explain effective-date waits and provide a bounded local-dev completion path",
+    "section": "70. Promotion workflow live-audit remediation",
+    "depends": [
+      "WF-STEP-005",
+      "PROMO-009",
+      "WEB-130"
+    ],
+    "test": "TestTodo_PROMOUX_014",
+    "test_matrix": {
+      "BROWSER": "TestTodo_PROMOUX_014_Browser",
+      "INTEGRATION": "TestTodo_PROMOUX_014_Integration",
+      "PRIMARY": "TestTodo_PROMOUX_014",
+      "RECOVERY": "TestTodo_PROMOUX_014_Recovery",
+      "REGRESSION": "TestTodo_PROMOUX_014_Regression",
+      "SECURITY": "TestTodo_PROMOUX_014_Security"
+    },
+    "red": "`Waiting for effective date` gives no next timestamp, timezone, owner, scheduled action or explanation, and the supported local-dev profile cannot exercise terminal recording without waiting for wall-clock time",
+    "green": "the waiting state names the effective instant and timezone, what will run, remaining checks, notification behavior and any authorized intervention; production exposes no manual timer bypass; a separately fenced local-dev clock/driver can advance a same-day fixture through END and is impossible to enable under a production profile",
+    "refactor": "the UI reads typed WAIT resolution and profile capabilities; it never manufactures countdown or completion authority",
+    "refs": "[promotion workflow](reference-workflows/promote-into-management.md), `internal/workflow/steps/wait`, `test/workflow`",
+    "retired": false,
+    "done": false
+  },
+  {
+    "id": "PROMOUX-015",
+    "phase": "P0",
+    "model": "SOL_HIGH",
+    "title": "Gate promotion presentation and execution with one multi-persona regression journey",
+    "section": "70. Promotion workflow live-audit remediation",
+    "depends": [
+      "PROMOUX-001",
+      "PROMOUX-002",
+      "PROMOUX-003",
+      "PROMOUX-004",
+      "PROMOUX-005",
+      "PROMOUX-006",
+      "PROMOUX-007",
+      "PROMOUX-008",
+      "PROMOUX-009",
+      "PROMOUX-010",
+      "PROMOUX-011",
+      "PROMOUX-012",
+      "PROMOUX-013",
+      "PROMOUX-014"
+    ],
+    "test": "TestTodo_PROMOUX_015",
+    "test_matrix": {
+      "ACCESSIBILITY": "TestTodo_PROMOUX_015_Accessibility",
+      "BROWSER": "TestTodo_PROMOUX_015_Browser",
+      "I18N": "TestTodo_PROMOUX_015_I18N",
+      "INTEGRATION": "TestTodo_PROMOUX_015_Integration",
+      "MUTATION": "TestTodo_PROMOUX_015_Mutation",
+      "PERFORMANCE": "TestTodo_PROMOUX_015_Performance",
+      "PRIMARY": "TestTodo_PROMOUX_015",
+      "RECOVERY": "TestTodo_PROMOUX_015_Recovery",
+      "SECURITY": "TestTodo_PROMOUX_015_Security"
+    },
+    "red": "isolated component tests pass while the real server path remains undiscoverable, accepts an invalid position, permits conflicted approvals, leaks machinery, loses continuity or cannot reach and review one terminal promotion",
+    "green": "a real PostgreSQL and browser harness signs in separately as proposer, finance approver, manager approver and employee; discovers an eligible worker without foreknowledge; selects a real position and exact Money; proposes, reviews, approves under separated authority, waits, commits once and reviews the outcome from Person, Journeys, My Work and History; denial, stale revision, duplicate start, reconnect and recovery variants prove zero unauthorized or duplicate effects; desktop, 390 px and 320 px light/dark/reduced-motion/en-US/de-DE/RTL baselines pass the latency, accessibility and layout-shift gates",
+    "refactor": "the harness drives production endpoints and components with one versioned fixture; no mock workflow engine, fake browser data or test-only authorization shortcut",
+    "refs": "[promotion workflow](reference-workflows/promote-into-management.md), `test/workflow`, `test/workspace`, `tools/uxqual/latencygate`, `tools/uxqual/wcag`",
+    "retired": false,
+    "done": false
+  },
+  {
     "id": "PROOF-001",
     "phase": "PHASE_3",
     "model": "SOL_HIGH",
@@ -35711,6 +36137,337 @@
     "evidence": "`TestTodo_TX_010` in `internal/connectivity/operation` (external effects on one resource key are serialized in causal commit order through a per-resource cursor (migration 00066); written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/connectivity/operation/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02"
   },
   {
+    "id": "UIPOLISH-001",
+    "phase": "GATE_C",
+    "model": "TERRA",
+    "title": "Establish a disciplined responsive typography hierarchy",
+    "section": "71. Live visual-design and interaction polish",
+    "depends": [
+      "WEB-014",
+      "WEB-023",
+      "I18N-003"
+    ],
+    "test": "TestTodo_UIPOLISH_001",
+    "test_matrix": {
+      "ACCESSIBILITY": "TestTodo_UIPOLISH_001_Accessibility",
+      "BROWSER": "TestTodo_UIPOLISH_001_Browser",
+      "GOLDEN": "TestTodo_UIPOLISH_001_Golden",
+      "I18N": "TestTodo_UIPOLISH_001_I18N",
+      "PRIMARY": "TestTodo_UIPOLISH_001",
+      "REGRESSION": "TestTodo_UIPOLISH_001_Regression"
+    },
+    "red": "pages mix inconsistent title, section, label and helper sizes; all-caps metadata competes with headings; long copy spans the full viewport; fallback or customer fonts cause clipping, unstable metrics or unreadable dense text",
+    "green": "one fluid type scale defines display, page title, section, body, label, helper, table and code roles; line height and measure remain readable from 320 px through wide desktop; hierarchy survives 200% zoom, German expansion, RTL and approved font fallbacks without truncation or layout shift",
+    "refactor": "components request semantic type roles through tokens and never set arbitrary font size, weight or line height",
+    "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), `tools/uxqual/tokens`, `tools/uxqual/render/journey`",
+    "retired": false,
+    "done": false
+  },
+  {
+    "id": "UIPOLISH-002",
+    "phase": "P0",
+    "model": "TERRA",
+    "title": "Normalize page spacing, alignment and responsive rhythm",
+    "section": "71. Live visual-design and interaction polish",
+    "depends": [
+      "WEB-015",
+      "WEB-023",
+      "UXAUDIT-001"
+    ],
+    "test": "TestTodo_UIPOLISH_002",
+    "test_matrix": {
+      "ACCESSIBILITY": "TestTodo_UIPOLISH_002_Accessibility",
+      "BROWSER": "TestTodo_UIPOLISH_002_Browser",
+      "GOLDEN": "TestTodo_UIPOLISH_002_Golden",
+      "PRIMARY": "TestTodo_UIPOLISH_002",
+      "REGRESSION": "TestTodo_UIPOLISH_002_Regression"
+    },
+    "red": "equivalent page headers, cards, filters and form groups use different gaps; sparse pages waste most of the viewport; dense pages crowd controls; columns and edges fail to align; responsive wrapping produces orphan labels or actions",
+    "green": "shell gutters, page measure, section spacing, card padding, control gaps and dense/comfortable modes follow the spacing scale; alignment anchors are shared across pages; responsive composition moves whole semantic regions at declared breakpoints while preserving reading and focus order",
+    "refactor": "use stack, cluster, grid, split and page-frame primitives with spacing-token props; remove page-specific margin chains",
+    "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), `tools/uxqual/tokens`, `tools/uxqual/render/page`",
+    "retired": false,
+    "done": false
+  },
+  {
+    "id": "UIPOLISH-003",
+    "phase": "GATE_C",
+    "model": "TERRA",
+    "title": "Unify shape, border, surface and elevation semantics",
+    "section": "71. Live visual-design and interaction polish",
+    "depends": [
+      "WEB-016",
+      "WEB-080"
+    ],
+    "test": "TestTodo_UIPOLISH_003",
+    "test_matrix": {
+      "ACCESSIBILITY": "TestTodo_UIPOLISH_003_Accessibility",
+      "BROWSER": "TestTodo_UIPOLISH_003_Browser",
+      "GOLDEN": "TestTodo_UIPOLISH_003_Golden",
+      "PRIMARY": "TestTodo_UIPOLISH_003",
+      "REGRESSION": "TestTodo_UIPOLISH_003_Regression"
+    },
+    "red": "cards, fields, badges, popovers and buttons use unrelated radii, bright accent borders repeat decoratively, nested surfaces become card-inside-card noise, or shadows are used without a stacking meaning",
+    "green": "named shape tokens cover compact controls, standard containers and expressive brand surfaces; borders communicate boundary, selection, focus or status; elevation maps only to overlay hierarchy; nested content prefers spacing and dividers over redundant cards; customer radius choices remain within accessible layout bounds",
+    "refactor": "shared primitives own shape and elevation; page renderers select semantic variants instead of emitting CSS values",
+    "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), `tools/uxqual/tokens`, `tools/uxqual/render/journey`",
+    "retired": false,
+    "done": false
+  },
+  {
+    "id": "UIPOLISH-004",
+    "phase": "P0",
+    "model": "SOL_HIGH",
+    "title": "Give each page and component an explicit scroll owner",
+    "section": "71. Live visual-design and interaction polish",
+    "depends": [
+      "WEB-023",
+      "WEB-037",
+      "WEB-047",
+      "UXAUDIT-008"
+    ],
+    "test": "TestTodo_UIPOLISH_004",
+    "test_matrix": {
+      "ACCESSIBILITY": "TestTodo_UIPOLISH_004_Accessibility",
+      "BROWSER": "TestTodo_UIPOLISH_004_Browser",
+      "PERFORMANCE": "TestTodo_UIPOLISH_004_Performance",
+      "PRIMARY": "TestTodo_UIPOLISH_004",
+      "REGRESSION": "TestTodo_UIPOLISH_004_Regression"
+    },
+    "red": "navigation scrolls with page content, page and table compete for the same gesture, horizontal overflow is hidden, sticky headers detach from columns, popovers create accidental body scroll, or a styled scrollbar intrudes into content",
+    "green": "the shell, navigation, page, table, drawer and overlay declare noncompeting scroll ownership; sticky headers and action bars remain within their container; focus is never hidden; keyboard, wheel, touch and RTL horizontal scrolling work; scrollbar size, contrast, gutter and edge placement use theme tokens and meet target requirements",
+    "refactor": "one scroll-region component owns overflow, shadows, restoration, reduced motion and accessible naming",
+    "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), `tools/uxqual/render/journey`, `tools/uxqual/productclient`",
+    "retired": false,
+    "done": false
+  },
+  {
+    "id": "UIPOLISH-005",
+    "phase": "P0",
+    "model": "TERRA",
+    "title": "Qualify semantic color across light, dark and customer themes",
+    "section": "71. Live visual-design and interaction polish",
+    "depends": [
+      "WEB-013",
+      "WEB-021",
+      "WEB-024"
+    ],
+    "test": "TestTodo_UIPOLISH_005",
+    "test_matrix": {
+      "ACCESSIBILITY": "TestTodo_UIPOLISH_005_Accessibility",
+      "BROWSER": "TestTodo_UIPOLISH_005_Browser",
+      "GOLDEN": "TestTodo_UIPOLISH_005_Golden",
+      "PRIMARY": "TestTodo_UIPOLISH_005",
+      "PROPERTY": "TestTodo_UIPOLISH_005_Property",
+      "REGRESSION": "TestTodo_UIPOLISH_005_Regression"
+    },
+    "red": "dark-mode hover lowers contrast, accent color carries meaning alone, muted text becomes unreadable, selected rows merge with hover, or customer colors generate inaccessible text, focus, charts or status chips",
+    "green": "semantic foreground, background, border, action, focus, selection and multidimensional status pairs meet contrast in default and generated themes; hover, focus, active, selected, disabled and visited remain distinguishable without color alone; unsafe brand inputs are adjusted or refused with preview evidence",
+    "refactor": "components consume semantic tokens only; no raw brand or palette values outside the token compiler",
+    "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), `tools/uxqual/tokens`, `tools/uxqual/wcag`",
+    "retired": false,
+    "done": false
+  },
+  {
+    "id": "UIPOLISH-006",
+    "phase": "P0",
+    "model": "TERRA",
+    "title": "Standardize control geometry and every interactive state",
+    "section": "71. Live visual-design and interaction polish",
+    "depends": [
+      "WEB-019",
+      "WEB-020",
+      "WEB-068"
+    ],
+    "test": "TestTodo_UIPOLISH_006",
+    "test_matrix": {
+      "ACCESSIBILITY": "TestTodo_UIPOLISH_006_Accessibility",
+      "BROWSER": "TestTodo_UIPOLISH_006_Browser",
+      "PERFORMANCE": "TestTodo_UIPOLISH_006_Performance",
+      "PRIMARY": "TestTodo_UIPOLISH_006",
+      "REGRESSION": "TestTodo_UIPOLISH_006_Regression",
+      "SECURITY": "TestTodo_UIPOLISH_006_Security"
+    },
+    "red": "equivalent buttons and inputs vary in height, glyph-only actions lack tooltips or names, primary actions look secondary, hover and focus conflict, disabled controls lose explanatory affordance, or touch targets fall below the declared minimum",
+    "green": "button, link, field, select, checkbox, segmented control, menu item and icon action share density-aware geometry and complete default/hover/focus/active/loading/disabled/error/success states; primary hierarchy is limited and consistent; pointer and keyboard hit targets meet the accessibility contract",
+    "refactor": "all controls compose shared primitives and state tokens; pages provide labels, intent and authorization disposition only",
+    "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), `tools/uxqual/render/journey`, `tools/uxqual/wcag`",
+    "retired": false,
+    "done": false
+  },
+  {
+    "id": "UIPOLISH-007",
+    "phase": "P0",
+    "model": "TERRA",
+    "title": "Apply a concise task-oriented product voice",
+    "section": "71. Live visual-design and interaction polish",
+    "depends": [
+      "WEB-043",
+      "WEB-045",
+      "UXAUDIT-006"
+    ],
+    "test": "TestTodo_UIPOLISH_007",
+    "test_matrix": {
+      "ACCESSIBILITY": "TestTodo_UIPOLISH_007_Accessibility",
+      "BROWSER": "TestTodo_UIPOLISH_007_Browser",
+      "GOLDEN": "TestTodo_UIPOLISH_007_Golden",
+      "I18N": "TestTodo_UIPOLISH_007_I18N",
+      "PRIMARY": "TestTodo_UIPOLISH_007",
+      "REGRESSION": "TestTodo_UIPOLISH_007_Regression"
+    },
+    "red": "pages use vague headings, duplicate titles, unexplained acronyms, passive status copy, implementation vocabulary, inconsistent capitalization, ambiguous buttons such as `Continue`, or helper text longer than the task it explains",
+    "green": "the content standard defines naming, capitalization, tense, dates, Money, counts, empty states, confirmation, success, refusal and recovery patterns; headings are specific, buttons state the outcome, helper text is progressive, and terminology stays consistent across navigation, pages, notifications and localization",
+    "refactor": "locale keys represent semantic messages with structured parameters; components do not concatenate user-facing sentences",
+    "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), `tools/uxqual/i18n`, `internal/humanwork/workspace`",
+    "retired": false,
+    "done": false
+  },
+  {
+    "id": "UIPOLISH-008",
+    "phase": "GATE_C",
+    "model": "TERRA",
+    "title": "Balance information density across tables, forms and object pages",
+    "section": "71. Live visual-design and interaction polish",
+    "depends": [
+      "WEB-015",
+      "WEB-093",
+      "UXAUDIT-008",
+      "UXAUDIT-016",
+      "UXAUDIT-021"
+    ],
+    "test": "TestTodo_UIPOLISH_008",
+    "test_matrix": {
+      "ACCESSIBILITY": "TestTodo_UIPOLISH_008_Accessibility",
+      "BROWSER": "TestTodo_UIPOLISH_008_Browser",
+      "I18N": "TestTodo_UIPOLISH_008_I18N",
+      "PERFORMANCE": "TestTodo_UIPOLISH_008_Performance",
+      "PRIMARY": "TestTodo_UIPOLISH_008",
+      "REGRESSION": "TestTodo_UIPOLISH_008_Regression"
+    },
+    "red": "tables show too few rows, cards waste horizontal space, forms place unrelated fields side by side, repeated missing values dominate profiles, or responsive layouts collapse complex data into unreadable stacks",
+    "green": "comfortable and compact density tokens have measured row/control sizes; object pages lead with summaries and progressively disclose detail; form grouping follows decisions; responsive tables choose scroll, priority columns or list-detail based on data semantics; user density preference persists without overriding page safety",
+    "refactor": "density and field priority are component props backed by page definitions, not duplicated media-query rules",
+    "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), `tools/uxqual/render/page`, `tools/uxqual/render/journey`",
+    "retired": false,
+    "done": false
+  },
+  {
+    "id": "UIPOLISH-009",
+    "phase": "P0",
+    "model": "TERRA",
+    "title": "Make loading, empty, error and success states visually stable and actionable",
+    "section": "71. Live visual-design and interaction polish",
+    "depends": [
+      "WEB-020",
+      "WEB-021",
+      "UXAUDIT-012"
+    ],
+    "test": "TestTodo_UIPOLISH_009",
+    "test_matrix": {
+      "ACCESSIBILITY": "TestTodo_UIPOLISH_009_Accessibility",
+      "BROWSER": "TestTodo_UIPOLISH_009_Browser",
+      "FAULT": "TestTodo_UIPOLISH_009_Fault",
+      "GOLDEN": "TestTodo_UIPOLISH_009_Golden",
+      "PERFORMANCE": "TestTodo_UIPOLISH_009_Performance",
+      "PRIMARY": "TestTodo_UIPOLISH_009"
+    },
+    "red": "async regions flash blank, skeletons do not match final geometry, empty states look like failures, messages push the page, success disappears before it can be perceived, or retry duplicates a mutation",
+    "green": "shared async-region variants reserve geometry, distinguish first load from refresh, retain stale safe data when allowed, announce state politely, show a task-specific next action, preserve entered values and prevent duplicate submission; error and success placement remains stable at every supported latency",
+    "refactor": "one state machine and component family serves collection, detail, form and mutation regions",
+    "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), `tools/uxqual/latencygate`, `tools/uxqual/render/journey`",
+    "retired": false,
+    "done": false
+  },
+  {
+    "id": "UIPOLISH-010",
+    "phase": "GATE_C",
+    "model": "TERRA",
+    "title": "Unify iconography, glyph meaning and brand substitution",
+    "section": "71. Live visual-design and interaction polish",
+    "depends": [
+      "WEB-017",
+      "WEB-038",
+      "WEB-039"
+    ],
+    "test": "TestTodo_UIPOLISH_010",
+    "test_matrix": {
+      "ACCESSIBILITY": "TestTodo_UIPOLISH_010_Accessibility",
+      "BROWSER": "TestTodo_UIPOLISH_010_Browser",
+      "GOLDEN": "TestTodo_UIPOLISH_010_Golden",
+      "PRIMARY": "TestTodo_UIPOLISH_010",
+      "REGRESSION": "TestTodo_UIPOLISH_010_Regression",
+      "SECURITY": "TestTodo_UIPOLISH_010_Security"
+    },
+    "red": "the same glyph means different actions, icon sizes or strokes vary, collapsed navigation is unintelligible, decorative icons are announced, or a customer glyph pack can replace protected safety/status meanings",
+    "green": "the governed icon registry assigns one semantic name and accessible behavior per glyph; optical size, stroke and alignment are consistent; collapsed navigation provides names and tooltips; decorative glyphs are silent; customer packs can substitute allowed brand/navigation icons but not safety-critical semantics",
+    "refactor": "components request semantic icon IDs and never embed ad hoc SVG or Unicode arrows",
+    "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), `tools/uxqual/tokens`, `tools/uxqual/render/journey/icons.go`",
+    "retired": false,
+    "done": false
+  },
+  {
+    "id": "UIPOLISH-011",
+    "phase": "GATE_C",
+    "model": "TERRA",
+    "title": "Apply restrained motion to navigation, overlays and async updates",
+    "section": "71. Live visual-design and interaction polish",
+    "depends": [
+      "WEB-018",
+      "WEB-027",
+      "WEB-035"
+    ],
+    "test": "TestTodo_UIPOLISH_011",
+    "test_matrix": {
+      "ACCESSIBILITY": "TestTodo_UIPOLISH_011_Accessibility",
+      "BROWSER": "TestTodo_UIPOLISH_011_Browser",
+      "PERFORMANCE": "TestTodo_UIPOLISH_011_Performance",
+      "PRIMARY": "TestTodo_UIPOLISH_011",
+      "REGRESSION": "TestTodo_UIPOLISH_011_Regression"
+    },
+    "red": "navigation snaps, popovers flicker across trigger gaps, new data flashes, large regions animate gratuitously, simultaneous transitions compete, or reduced-motion merely shortens rather than removes spatial movement",
+    "green": "tokenized motion covers menu collapse, drawer entry, popover origin, focus, list insertion, loading-to-content and status transition with interruption-safe durations; interaction never waits on animation; limited-motion uses opacity or instant state changes; every transition stays within frame and latency budgets",
+    "refactor": "shared components own motion states and tokens; business renderers do not schedule animations",
+    "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), `tools/uxqual/tokens`, `tools/uxqual/latencygate`",
+    "retired": false,
+    "done": false
+  },
+  {
+    "id": "UIPOLISH-012",
+    "phase": "P0",
+    "model": "SOL_HIGH",
+    "title": "Gate every production page against the visual-design system",
+    "section": "71. Live visual-design and interaction polish",
+    "depends": [
+      "UIPOLISH-001",
+      "UIPOLISH-002",
+      "UIPOLISH-003",
+      "UIPOLISH-004",
+      "UIPOLISH-005",
+      "UIPOLISH-006",
+      "UIPOLISH-007",
+      "UIPOLISH-008",
+      "UIPOLISH-009",
+      "UIPOLISH-010",
+      "UIPOLISH-011"
+    ],
+    "test": "TestTodo_UIPOLISH_012",
+    "test_matrix": {
+      "ACCESSIBILITY": "TestTodo_UIPOLISH_012_Accessibility",
+      "BROWSER": "TestTodo_UIPOLISH_012_Browser",
+      "GOLDEN": "TestTodo_UIPOLISH_012_Golden",
+      "I18N": "TestTodo_UIPOLISH_012_I18N",
+      "PERFORMANCE": "TestTodo_UIPOLISH_012_Performance",
+      "PRIMARY": "TestTodo_UIPOLISH_012",
+      "REGRESSION": "TestTodo_UIPOLISH_012_Regression"
+    },
+    "red": "token tests pass while a production page still has inconsistent typography, spacing, shape, color, copy, scrolling, control state, density, motion or async presentation",
+    "green": "automated token and component checks plus direct Codex-browser review cover login and every authorized application page at 1440 px, 390 px and 320 px, 100% and 200% zoom, light/dark/high-contrast/reduced-motion, default and adversarial customer themes, en-US/de-DE/RTL, empty/loading/populated/error/success and keyboard-only states; visual baselines, contrast, overflow, target size, layout shift and interaction latency meet declared budgets with no unresolved severity-one or severity-two design finding",
+    "refactor": "baselines render production components and server states; no mock-only design system or page-specific exception may satisfy the gate",
+    "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), `test/workspace`, `tools/uxqual/tokens`, `tools/uxqual/latencygate`, `tools/uxqual/wcag`",
+    "retired": false,
+    "done": false
+  },
+  {
     "id": "UX-001",
     "phase": "GATE_A",
     "model": "SOL_HIGH",
@@ -36007,6 +36764,720 @@
     "retired": false,
     "done": true,
     "evidence": "`TestWorkspaceQualificationFixture`, `TestTodo_UX_QUAL_001_{Browser,Security,Conformance}` in `tools/uxqual/qual` (keyboard order, landmarks/labels/live region, WCAG 2.2 AA contrast from shared tokens, 320px reflow, masked-field never rendered, native and `GOOS=js GOARCH=wasm` builds). Decision: **GoWebComponents v5.0.1 selected**; the Go html/template SSR fallback stays green under the same fixture; record `definitions/ux/workspace-renderer-decision.yaml` (review-by 2026-10-03). Playwright pass done 2026-09-03 (Playwright 1.60.0, Chromium 148.0.7778.96, `npm run test:uxqual-browser` 10/10: both renderers pass all five criteria; recorded in the decision record). Pending: manual NVDA/VoiceOver pass; branch plan-revision-2026-09-02; `go test -count=1 ./tools/uxqual/qual/...` PASS on windows/arm64 (Go 1.26.3)"
+  },
+  {
+    "id": "UXAUDIT-001",
+    "phase": "P0",
+    "model": "SOL_HIGH",
+    "title": "Replace the mobile sidebar with a viewport-safe application shell",
+    "section": "69. Live product UX audit remediation",
+    "depends": [
+      "WEB-023",
+      "WEB-047",
+      "WEB-048"
+    ],
+    "test": "TestTodo_UXAUDIT_001",
+    "test_matrix": {
+      "ACCESSIBILITY": "TestTodo_UXAUDIT_001_Accessibility",
+      "BROWSER": "TestTodo_UXAUDIT_001_Browser",
+      "PERFORMANCE": "TestTodo_UXAUDIT_001_Performance",
+      "PRIMARY": "TestTodo_UXAUDIT_001",
+      "REGRESSION": "TestTodo_UXAUDIT_001_Regression"
+    },
+    "red": "at 390 px or 320 px the expanded navigation consumes the content viewport, collapsed navigation still constrains the page, the header wraps unpredictably, or navigation and content create competing page-level scroll regions",
+    "green": "narrow viewports use an accessible overlay drawer with focus containment and restoration, the compact header retains the page identity and essential actions, the content owns one vertical scroll surface, and expanded/collapsed state does not change content width after the transition completes",
+    "refactor": "one responsive shell and one navigation model serve desktop and mobile; do not fork page implementations by viewport",
+    "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), `tools/uxqual/render/journey`, `internal/humanwork/workspace`",
+    "retired": false,
+    "done": false
+  },
+  {
+    "id": "UXAUDIT-002",
+    "phase": "P0",
+    "model": "SOL_HIGH",
+    "title": "Guarantee one discoverable, authorized promotion path from person to completion",
+    "section": "69. Live product UX audit remediation",
+    "depends": [
+      "PROMO-009",
+      "WEB-119",
+      "WEB-124",
+      "WEB-128",
+      "WEB-129",
+      "WEB-130",
+      "PROMOUX-001",
+      "PROMOUX-002",
+      "PROMOUX-003",
+      "PROMOUX-004",
+      "PROMOUX-005",
+      "PROMOUX-006",
+      "PROMOUX-007",
+      "PROMOUX-008",
+      "PROMOUX-009",
+      "PROMOUX-010",
+      "PROMOUX-011",
+      "PROMOUX-012",
+      "PROMOUX-013",
+      "PROMOUX-014",
+      "PROMOUX-015"
+    ],
+    "test": "TestTodo_UXAUDIT_002",
+    "test_matrix": {
+      "ACCESSIBILITY": "TestTodo_UXAUDIT_002_Accessibility",
+      "BROWSER": "TestTodo_UXAUDIT_002_Browser",
+      "INTEGRATION": "TestTodo_UXAUDIT_002_Integration",
+      "PRIMARY": "TestTodo_UXAUDIT_002",
+      "RECOVERY": "TestTodo_UXAUDIT_002_Recovery",
+      "REGRESSION": "TestTodo_UXAUDIT_002_Regression"
+    },
+    "red": "every worker reports `No available workflows`, or a user with promotion authority cannot discover, initiate, approve, resume and inspect one seeded promotion through COMPLETE",
+    "green": "the local-dev company contains at least one visible eligible worker and one authorized actor; People and Person expose the same promotion action; the journey explains eligibility, next action and blocking reasons; completing both approvals and the effective-date transition produces one terminal outcome visible in Journeys, My Work and History",
+    "refactor": "seed data supplies facts and authority only; eligibility and workflow state continue to come from the real domain and journey services",
+    "refs": "[promotion workflow](reference-workflows/promote-into-management.md), `test/workflow`, `test/workspace`, `tools/uxqual/journeyclient`",
+    "retired": false,
+    "done": false
+  },
+  {
+    "id": "UXAUDIT-003",
+    "phase": "P0",
+    "model": "TERRA",
+    "title": "Make the global launcher perform actions rather than duplicate navigation",
+    "section": "69. Live product UX audit remediation",
+    "depends": [
+      "WEB-040",
+      "WEB-068",
+      "WEB-101"
+    ],
+    "test": "TestTodo_UXAUDIT_003",
+    "test_matrix": {
+      "ACCESSIBILITY": "TestTodo_UXAUDIT_003_Accessibility",
+      "BROWSER": "TestTodo_UXAUDIT_003_Browser",
+      "PRIMARY": "TestTodo_UXAUDIT_003",
+      "REGRESSION": "TestTodo_UXAUDIT_003_Regression",
+      "SECURITY": "TestTodo_UXAUDIT_003_Security"
+    },
+    "red": "`Start an action` contains only links to Journeys and People, stays open after focus leaves, or lists actions the viewer cannot execute",
+    "green": "the launcher lists ranked authorized actions such as Promote worker, explains disabled actions without disclosure, supports keyboard search and dismissal on Escape/outside focus, and uses a navigation label instead of an action label when only destinations are available",
+    "refactor": "reuse the shared popover, semantic-action registry and software router; no page-specific action inventory",
+    "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), `tools/uxqual/render/journey`, `tools/uxqual/productclient`",
+    "retired": false,
+    "done": false
+  },
+  {
+    "id": "UXAUDIT-004",
+    "phase": "P0",
+    "model": "SOL_HIGH",
+    "title": "Render reporting lines as a coherent, navigable ownership tree",
+    "section": "69. Live product UX audit remediation",
+    "depends": [
+      "WEB-181",
+      "WEB-182",
+      "WEB-192"
+    ],
+    "test": "TestTodo_UXAUDIT_004",
+    "test_matrix": {
+      "ACCESSIBILITY": "TestTodo_UXAUDIT_004_Accessibility",
+      "BROWSER": "TestTodo_UXAUDIT_004_Browser",
+      "INTEGRATION": "TestTodo_UXAUDIT_004_Integration",
+      "PRIMARY": "TestTodo_UXAUDIT_004",
+      "PROPERTY": "TestTodo_UXAUDIT_004_Property",
+      "REGRESSION": "TestTodo_UXAUDIT_004_Regression"
+    },
+    "red": "reporting lines appear as disconnected cards, visual nesting disagrees with manager edges, a worker appears outside the visible root without an explanation, or keyboard users cannot traverse the hierarchy",
+    "green": "connectors, indentation, expand/collapse state, manager summaries and orphan/withheld explanations reflect the authorized server projection exactly; flat and tree modes preserve selection and expose equivalent information to assistive technology",
+    "refactor": "the flat organization list, organization tree and Myself subtree consume one organization-node component and one authorized relationship projection",
+    "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), `tools/uxqual/render/journey`, `internal/domains/org`",
+    "retired": false,
+    "done": false
+  },
+  {
+    "id": "UXAUDIT-005",
+    "phase": "GATE_C",
+    "model": "TERRA",
+    "title": "Align top-level information architecture with shipped capabilities",
+    "section": "69. Live product UX audit remediation",
+    "depends": [
+      "WEB-009",
+      "WEB-039",
+      "WEB-068"
+    ],
+    "test": "TestTodo_UXAUDIT_005",
+    "test_matrix": {
+      "BROWSER": "TestTodo_UXAUDIT_005_Browser",
+      "CONFORMANCE": "TestTodo_UXAUDIT_005_Conformance",
+      "GOLDEN": "TestTodo_UXAUDIT_005_Golden",
+      "PRIMARY": "TestTodo_UXAUDIT_005",
+      "SECURITY": "TestTodo_UXAUDIT_005_Security"
+    },
+    "red": "promotion-specific concepts dominate unrelated HCM pages, future modules look fully available, or navigation exposes first-class destinations whose capability is unavailable",
+    "green": "labels and hierarchy describe durable HCM concepts, current capabilities receive clear primary paths, future or unavailable modules are absent or explicitly preview-only, and every visible destination is authorized and useful for the active role",
+    "refactor": "derive visibility and availability from the page and capability registries; do not hard-code a second release map in the shell",
+    "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), [master plan](plan.md)",
+    "retired": false,
+    "done": false
+  },
+  {
+    "id": "UXAUDIT-006",
+    "phase": "P0",
+    "model": "TERRA",
+    "title": "Replace implementation vocabulary with task-oriented product language",
+    "section": "69. Live product UX audit remediation",
+    "depends": [
+      "WEB-043",
+      "WEB-044",
+      "WEB-045"
+    ],
+    "test": "TestTodo_UXAUDIT_006",
+    "test_matrix": {
+      "BROWSER": "TestTodo_UXAUDIT_006_Browser",
+      "GOLDEN": "TestTodo_UXAUDIT_006_Golden",
+      "I18N": "TestTodo_UXAUDIT_006_I18N",
+      "PRIMARY": "TestTodo_UXAUDIT_006",
+      "REGRESSION": "TestTodo_UXAUDIT_006_Regression"
+    },
+    "red": "user-facing copy includes `JourneyService`, `canonical gRPC service`, `authenticated cell`, `server-enforced boundary`, `tenant appearance`, `credential role fallback`, `worker projection` or equivalent implementation language outside an operator diagnostic view",
+    "green": "every page, empty state, loading state and error uses concise task language, gives a clear next step, and keeps technical identifiers behind an explicit diagnostics disclosure for authorized operators",
+    "refactor": "centralize copy keys in the locale catalog; do not scatter replacement strings through renderers",
+    "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), `tools/uxqual/i18n`, `internal/humanwork/workspace`",
+    "retired": false,
+    "done": false
+  },
+  {
+    "id": "UXAUDIT-007",
+    "phase": "P0",
+    "model": "TERRA",
+    "title": "Scope acting-context notices to situations that change user authority",
+    "section": "69. Live product UX audit remediation",
+    "depends": [
+      "WEB-038",
+      "WEB-056"
+    ],
+    "test": "TestTodo_UXAUDIT_007",
+    "test_matrix": {
+      "ACCESSIBILITY": "TestTodo_UXAUDIT_007_Accessibility",
+      "BROWSER": "TestTodo_UXAUDIT_007_Browser",
+      "PRIMARY": "TestTodo_UXAUDIT_007",
+      "REGRESSION": "TestTodo_UXAUDIT_007_Regression",
+      "SECURITY": "TestTodo_UXAUDIT_007_Security"
+    },
+    "red": "a `Compensation Review` or `Acting as yourself` badge appears globally on unrelated pages, looks clickable without an action, or competes with the page title",
+    "green": "the shell shows a persistent banner only for delegated, view-as, elevated or break-glass authority; ordinary self context is quiet; task-specific review context appears inside the affected workflow with a clear explanation and exit action",
+    "refactor": "one acting-context component renders server-resolved authority state across all pages",
+    "refs": "[organization scope and authz](specs/organization-scope-and-authz.md), `tools/uxqual/render/workspace`",
+    "retired": false,
+    "done": false
+  },
+  {
+    "id": "UXAUDIT-008",
+    "phase": "P0",
+    "model": "TERRA",
+    "title": "Give the People directory one stable, high-density table viewport",
+    "section": "69. Live product UX audit remediation",
+    "depends": [
+      "WEB-109",
+      "WEB-110",
+      "WEB-120",
+      "WEB-236"
+    ],
+    "test": "TestTodo_UXAUDIT_008",
+    "test_matrix": {
+      "ACCESSIBILITY": "TestTodo_UXAUDIT_008_Accessibility",
+      "BROWSER": "TestTodo_UXAUDIT_008_Browser",
+      "PERFORMANCE": "TestTodo_UXAUDIT_008_Performance",
+      "PRIMARY": "TestTodo_UXAUDIT_008",
+      "REGRESSION": "TestTodo_UXAUDIT_008_Regression"
+    },
+    "red": "the page and table compete for vertical scrolling, sticky headers detach from their columns, sorting jumps the page, only a few rows fit in a desktop viewport, or every row repeats a large unavailable-workflow message",
+    "green": "filters and results share a stable layout, only the data region updates on sort/filter/page-size changes, headers remain aligned and sticky, density is usable at 100 rows, scroll position is preserved, and compact row actions communicate availability without visual noise",
+    "refactor": "use the reusable configurable data-table component and server-persisted table preferences; no People-only sorting or pagination implementation",
+    "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), `tools/uxqual/render/journey`, `tools/uxqual/productclient`",
+    "retired": false,
+    "done": false
+  },
+  {
+    "id": "UXAUDIT-009",
+    "phase": "GATE_C",
+    "model": "SOL_HIGH",
+    "title": "Scale role assignment and access administration beyond a full-workforce accordion",
+    "section": "69. Live product UX audit remediation",
+    "depends": [
+      "WEB-229",
+      "WEB-231",
+      "WEB-232"
+    ],
+    "test": "TestTodo_UXAUDIT_009",
+    "test_matrix": {
+      "ACCESSIBILITY": "TestTodo_UXAUDIT_009_Accessibility",
+      "BROWSER": "TestTodo_UXAUDIT_009_Browser",
+      "INTEGRATION": "TestTodo_UXAUDIT_009_Integration",
+      "PERFORMANCE": "TestTodo_UXAUDIT_009_Performance",
+      "PRIMARY": "TestTodo_UXAUDIT_009",
+      "SECURITY": "TestTodo_UXAUDIT_009_Security"
+    },
+    "red": "Roles \u0026 access renders the entire workforce as long accordions, truncates role descriptions without recovery, or buries create/assign actions below the fold",
+    "green": "administrators can search, filter, page and bulk-select workers; inspect full role definitions; create or assign a role from a stable action area; preview effective access; and receive per-worker governed results without blocking the whole page",
+    "refactor": "reuse the data table, selection, drawer and async task components; the server remains authoritative for effective permissions",
+    "refs": "[organization scope and authz](specs/organization-scope-and-authz.md), `tools/uxqual/render/journey`",
+    "retired": false,
+    "done": false
+  },
+  {
+    "id": "UXAUDIT-010",
+    "phase": "GATE_C",
+    "model": "SOL_HIGH",
+    "title": "Turn organization visibility configuration into a previewable role policy editor",
+    "section": "69. Live product UX audit remediation",
+    "depends": [
+      "WEB-231",
+      "WEB-232",
+      "WEB-064"
+    ],
+    "test": "TestTodo_UXAUDIT_010",
+    "test_matrix": {
+      "ACCESSIBILITY": "TestTodo_UXAUDIT_010_Accessibility",
+      "BROWSER": "TestTodo_UXAUDIT_010_Browser",
+      "INTEGRATION": "TestTodo_UXAUDIT_010_Integration",
+      "PRIMARY": "TestTodo_UXAUDIT_010",
+      "REGRESSION": "TestTodo_UXAUDIT_010_Regression",
+      "SECURITY": "TestTodo_UXAUDIT_010_Security"
+    },
+    "red": "the editor repeats boundary explanations, hides current-versus-proposed scope and Save below the fold, or offers no way to preview a selected role against representative workers and organization units",
+    "green": "a persistent role selector, concise scope builder, live authorized preview, current/proposed diff, validation summary and sticky governed Save action form one progressive task; denied and withheld records remain non-disclosing",
+    "refactor": "presentation consumes the existing policy simulation and proposed-scope contracts; no browser-authored permission truth",
+    "refs": "[organization scope and authz](specs/organization-scope-and-authz.md), `tools/uxqual/presentation`",
+    "retired": false,
+    "done": false
+  },
+  {
+    "id": "UXAUDIT-011",
+    "phase": "P0",
+    "model": "TERRA",
+    "title": "Remove unavailable Experience Studio from primary navigation",
+    "section": "69. Live product UX audit remediation",
+    "depends": [
+      "WEB-039",
+      "WEB-073",
+      "WEB-085"
+    ],
+    "test": "TestTodo_UXAUDIT_011",
+    "test_matrix": {
+      "BROWSER": "TestTodo_UXAUDIT_011_Browser",
+      "CONFORMANCE": "TestTodo_UXAUDIT_011_Conformance",
+      "PRIMARY": "TestTodo_UXAUDIT_011",
+      "SECURITY": "TestTodo_UXAUDIT_011_Security"
+    },
+    "red": "Experience Studio remains a first-class menu item for a role or release where no usable authorized inventory or authoring capability exists",
+    "green": "the destination is omitted until the registry reports an admitted capability; an authorized preview, when intentionally enabled, is labeled Preview, explains its limitations and cannot publish or mutate outside its gate",
+    "refactor": "navigation availability derives from the page registry and release gate, not a route-name exception",
+    "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), `tools/uxqual/pagedef`",
+    "retired": false,
+    "done": false
+  },
+  {
+    "id": "UXAUDIT-012",
+    "phase": "P0",
+    "model": "TERRA",
+    "title": "Eliminate layout shifts during server-backed loading and navigation",
+    "section": "69. Live product UX audit remediation",
+    "depends": [
+      "WEB-027",
+      "WEB-028",
+      "WEB-035",
+      "WEB-236"
+    ],
+    "test": "TestTodo_UXAUDIT_012",
+    "test_matrix": {
+      "ACCESSIBILITY": "TestTodo_UXAUDIT_012_Accessibility",
+      "BROWSER": "TestTodo_UXAUDIT_012_Browser",
+      "FAULT": "TestTodo_UXAUDIT_012_Fault",
+      "PERFORMANCE": "TestTodo_UXAUDIT_012_Performance",
+      "PRIMARY": "TestTodo_UXAUDIT_012",
+      "REGRESSION": "TestTodo_UXAUDIT_012_Regression"
+    },
+    "red": "route changes remount the shell, server fetches collapse or expand major page regions, loading proxies do not preserve final geometry, or focus and scroll jump when data resolves",
+    "green": "software navigation retains shell and page chrome, each asynchronous region owns a size-compatible skeleton or inline progress state, only affected regions update, focus and scroll remain stable, and cumulative layout shift stays within the declared frontend budget",
+    "refactor": "one async-region state model covers loading, empty, stale, failure and resolved states across components",
+    "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), `tools/uxqual/latencygate`, `tools/uxqual/productclient`",
+    "retired": false,
+    "done": false
+  },
+  {
+    "id": "UXAUDIT-013",
+    "phase": "GATE_C",
+    "model": "TERRA",
+    "title": "Make Help a searchable support destination",
+    "section": "69. Live product UX audit remediation",
+    "depends": [
+      "WEB-193",
+      "WEB-194",
+      "WEB-195"
+    ],
+    "test": "TestTodo_UXAUDIT_013",
+    "test_matrix": {
+      "ACCESSIBILITY": "TestTodo_UXAUDIT_013_Accessibility",
+      "BROWSER": "TestTodo_UXAUDIT_013_Browser",
+      "I18N": "TestTodo_UXAUDIT_013_I18N",
+      "PRIMARY": "TestTodo_UXAUDIT_013",
+      "SECURITY": "TestTodo_UXAUDIT_013_Security"
+    },
+    "red": "Help contains only navigation shortcuts and promotion troubleshooting, with no article search, task guidance, support request path or escalation context",
+    "green": "Help offers authorized knowledge search, task-oriented categories, contextual promotion guidance, a support-request action and clear escalation expectations; empty and denied searches remain non-disclosing",
+    "refactor": "reuse authorized global search and service-request components instead of a separate ungoverned index",
+    "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), `tools/uxqual/render/journey`",
+    "retired": false,
+    "done": false
+  },
+  {
+    "id": "UXAUDIT-014",
+    "phase": "P0",
+    "model": "TERRA",
+    "title": "Keep login persona promises consistent with usable capabilities",
+    "section": "69. Live product UX audit remediation",
+    "depends": [
+      "WEB-049",
+      "WEB-050",
+      "WEB-062"
+    ],
+    "test": "TestTodo_UXAUDIT_014",
+    "test_matrix": {
+      "BROWSER": "TestTodo_UXAUDIT_014_Browser",
+      "INTEGRATION": "TestTodo_UXAUDIT_014_Integration",
+      "PRIMARY": "TestTodo_UXAUDIT_014",
+      "REGRESSION": "TestTodo_UXAUDIT_014_Regression",
+      "SECURITY": "TestTodo_UXAUDIT_014_Security"
+    },
+    "red": "a sample persona description promises payroll, recruiting or management work that is absent after login, or different personas land on indistinguishable menus despite different effective roles",
+    "green": "each development persona names only admitted capabilities, is bound to a real visible worker where required, lands on a role-appropriate home, and has browser tests that prove both visible and denied page/action differences",
+    "refactor": "persona copy and expected navigation derive from the same fixture and effective-capability projection",
+    "refs": "[trusted request boundary](specs/trusted-request-boundary.md), `test/workspace/login_test.go`, `internal/humanwork/workspace`",
+    "retired": false,
+    "done": false
+  },
+  {
+    "id": "UXAUDIT-015",
+    "phase": "GATE_C",
+    "model": "TERRA",
+    "title": "Redesign Home around prioritized work and continuity",
+    "section": "69. Live product UX audit remediation",
+    "depends": [
+      "WEB-097",
+      "WEB-098",
+      "WEB-099",
+      "WEB-101"
+    ],
+    "test": "TestTodo_UXAUDIT_015",
+    "test_matrix": {
+      "ACCESSIBILITY": "TestTodo_UXAUDIT_015_Accessibility",
+      "BROWSER": "TestTodo_UXAUDIT_015_Browser",
+      "PERFORMANCE": "TestTodo_UXAUDIT_015_Performance",
+      "PRIMARY": "TestTodo_UXAUDIT_015",
+      "REGRESSION": "TestTodo_UXAUDIT_015_Regression"
+    },
+    "red": "Home is sparse, repeats promotion work and promotion journeys as competing concepts, or gives an oversized primary call to action to a low-frequency destination",
+    "green": "Home prioritizes due work, resumable drafts, tracked requests, recent people and role-appropriate quick actions; cards have distinct purposes, honest empty states and balanced responsive density",
+    "refactor": "compose existing attention, continuity and semantic-action components through the Home floorplan",
+    "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), `tools/uxqual/pagedef`, `tools/uxqual/render/journey`",
+    "retired": false,
+    "done": false
+  },
+  {
+    "id": "UXAUDIT-016",
+    "phase": "GATE_C",
+    "model": "TERRA",
+    "title": "Give the worker profile a specific identity and useful missing-data treatment",
+    "section": "69. Live product UX audit remediation",
+    "depends": [
+      "WEB-112",
+      "WEB-113",
+      "WEB-114",
+      "WEB-118",
+      "WEB-120"
+    ],
+    "test": "TestTodo_UXAUDIT_016",
+    "test_matrix": {
+      "ACCESSIBILITY": "TestTodo_UXAUDIT_016_Accessibility",
+      "BROWSER": "TestTodo_UXAUDIT_016_Browser",
+      "I18N": "TestTodo_UXAUDIT_016_I18N",
+      "PRIMARY": "TestTodo_UXAUDIT_016",
+      "REGRESSION": "TestTodo_UXAUDIT_016_Regression",
+      "SECURITY": "TestTodo_UXAUDIT_016_Security"
+    },
+    "red": "the page title is generic, breadcrumbs reduce the worker to a first name, repeated `Not reported` values dominate sections, or missing and withheld values are visually indistinguishable",
+    "green": "the full authorized identity anchors title and breadcrumb, sections summarize meaningful facts first, repeated missing values collapse into concise section states, and PRESENT, MISSING, UNKNOWN and WITHHELD remain semantically and accessibly distinct",
+    "refactor": "use shared identity-header, field-disposition and section-summary components",
+    "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), `tools/uxqual/presentation`",
+    "retired": false,
+    "done": false
+  },
+  {
+    "id": "UXAUDIT-017",
+    "phase": "P0",
+    "model": "TERRA",
+    "title": "Differentiate Journeys from My Work by user task",
+    "section": "69. Live product UX audit remediation",
+    "depends": [
+      "WEB-103",
+      "WEB-104",
+      "WEB-106",
+      "WEB-107",
+      "WEB-121",
+      "WEB-129"
+    ],
+    "test": "TestTodo_UXAUDIT_017",
+    "test_matrix": {
+      "ACCESSIBILITY": "TestTodo_UXAUDIT_017_Accessibility",
+      "BROWSER": "TestTodo_UXAUDIT_017_Browser",
+      "INTEGRATION": "TestTodo_UXAUDIT_017_Integration",
+      "PRIMARY": "TestTodo_UXAUDIT_017",
+      "REGRESSION": "TestTodo_UXAUDIT_017_Regression"
+    },
+    "red": "Journeys and My Work render nearly identical lists and empty states, or My Work fails to emphasize assignments, due dates, ownership and the next executable action",
+    "green": "My Work is an action queue ordered by urgency and ownership; Journeys is a lifecycle tracker grouped by subject and status; both deep-link to the same canonical intent workspace and retain filters on return",
+    "refactor": "share journey summaries, status dimensions and list primitives while keeping page composition task-specific",
+    "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), `tools/uxqual/journeyclient`",
+    "retired": false,
+    "done": false
+  },
+  {
+    "id": "UXAUDIT-018",
+    "phase": "GATE_C",
+    "model": "TERRA",
+    "title": "Replace the zero-state Insights facade with an honest useful summary",
+    "section": "69. Live product UX audit remediation",
+    "depends": [
+      "WEB-217",
+      "WEB-219",
+      "WEB-221",
+      "WEB-222",
+      "WEB-228"
+    ],
+    "test": "TestTodo_UXAUDIT_018",
+    "test_matrix": {
+      "ACCESSIBILITY": "TestTodo_UXAUDIT_018_Accessibility",
+      "BROWSER": "TestTodo_UXAUDIT_018_Browser",
+      "INTEGRATION": "TestTodo_UXAUDIT_018_Integration",
+      "PRIMARY": "TestTodo_UXAUDIT_018",
+      "REGRESSION": "TestTodo_UXAUDIT_018_Regression",
+      "SECURITY": "TestTodo_UXAUDIT_018_Security"
+    },
+    "red": "Insights presents rows of unexplained zeros with no time range, trend, breakdown, freshness or next step",
+    "green": "when sufficient data exists the page presents labeled measures, range, comparison, breakdown and lineage; otherwise it is named Workflow summary or shows a purposeful insufficient-data state without fabricated charts",
+    "refactor": "metrics consume certified report projections and shared accessible visualization components",
+    "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), `tools/uxqual/presentation`",
+    "retired": false,
+    "done": false
+  },
+  {
+    "id": "UXAUDIT-019",
+    "phase": "GATE_C",
+    "model": "TERRA",
+    "title": "Make workflow History inspectable, sortable and compact",
+    "section": "69. Live product UX audit remediation",
+    "depends": [
+      "WEB-107",
+      "WEB-130",
+      "WEB-221"
+    ],
+    "test": "TestTodo_UXAUDIT_019",
+    "test_matrix": {
+      "ACCESSIBILITY": "TestTodo_UXAUDIT_019_Accessibility",
+      "BROWSER": "TestTodo_UXAUDIT_019_Browser",
+      "INTEGRATION": "TestTodo_UXAUDIT_019_Integration",
+      "PERFORMANCE": "TestTodo_UXAUDIT_019_Performance",
+      "PRIMARY": "TestTodo_UXAUDIT_019",
+      "REGRESSION": "TestTodo_UXAUDIT_019_Regression"
+    },
+    "red": "the page repeats its title, filter controls wrap unpredictably, sorting has no observable result, empty data prevents inspection of the interaction model, or global and per-person history diverge",
+    "green": "one responsive filter bar, sortable reusable columns, server-backed pagination, result count, stable loading geometry and an evidence-based detail view serve global and person-scoped history; empty states explain how records appear",
+    "refactor": "global and per-person history use the same query, table and detail components with scope supplied as props",
+    "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), `tools/uxqual/render/journey`, `internal/data`",
+    "retired": false,
+    "done": false
+  },
+  {
+    "id": "UXAUDIT-020",
+    "phase": "GATE_C",
+    "model": "TERRA",
+    "title": "Refine flat organization browsing for scan, search and progressive disclosure",
+    "section": "69. Live product UX audit remediation",
+    "depends": [
+      "WEB-181",
+      "WEB-183",
+      "WEB-192"
+    ],
+    "test": "TestTodo_UXAUDIT_020",
+    "test_matrix": {
+      "ACCESSIBILITY": "TestTodo_UXAUDIT_020_Accessibility",
+      "BROWSER": "TestTodo_UXAUDIT_020_Browser",
+      "PERFORMANCE": "TestTodo_UXAUDIT_020_Performance",
+      "PRIMARY": "TestTodo_UXAUDIT_020",
+      "REGRESSION": "TestTodo_UXAUDIT_020_Regression"
+    },
+    "red": "the flat view renders many oversized, visually identical buckets with bright repeated borders and no organization search, summary, density control or expand-all/collapse-all affordance",
+    "green": "a compact summary and fuzzy organization search precede density and expand/collapse controls; buckets expose count, leader and immediate structure at a glance; employee rows load progressively while preserving keyboard and scroll position",
+    "refactor": "flat and tree modes share organization-node data, employee-row and expansion-state components",
+    "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), `tools/uxqual/render/journey`",
+    "retired": false,
+    "done": false
+  },
+  {
+    "id": "UXAUDIT-021",
+    "phase": "GATE_C",
+    "model": "TERRA",
+    "title": "Give long admin forms grouped sections and persistent actions",
+    "section": "69. Live product UX audit remediation",
+    "depends": [
+      "WEB-229",
+      "WEB-232"
+    ],
+    "test": "TestTodo_UXAUDIT_021",
+    "test_matrix": {
+      "ACCESSIBILITY": "TestTodo_UXAUDIT_021_Accessibility",
+      "BROWSER": "TestTodo_UXAUDIT_021_Browser",
+      "I18N": "TestTodo_UXAUDIT_021_I18N",
+      "PRIMARY": "TestTodo_UXAUDIT_021",
+      "REGRESSION": "TestTodo_UXAUDIT_021_Regression"
+    },
+    "red": "Worker ID rules and comparable admin editors are uninterrupted long forms, hide Save below the fold, mix examples with fields, or fail to summarize unsaved and invalid changes",
+    "green": "semantic groups, concise field help, live governed preview, validation summary, unsaved-change protection and a sticky responsive action bar produce a clear start-to-save task at desktop and mobile widths",
+    "refactor": "implement reusable admin form-section, preview and action-bar components rather than page-specific layout rules",
+    "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), `tools/uxqual/render/journey`",
+    "retired": false,
+    "done": false
+  },
+  {
+    "id": "UXAUDIT-022",
+    "phase": "GATE_C",
+    "model": "TERRA",
+    "title": "Replace appearance asset paths with a governed brand asset picker",
+    "section": "69. Live product UX audit remediation",
+    "depends": [
+      "WEB-013",
+      "WEB-017",
+      "WEB-232"
+    ],
+    "test": "TestTodo_UXAUDIT_022",
+    "test_matrix": {
+      "ACCESSIBILITY": "TestTodo_UXAUDIT_022_Accessibility",
+      "BROWSER": "TestTodo_UXAUDIT_022_Browser",
+      "INTEGRATION": "TestTodo_UXAUDIT_022_Integration",
+      "PRIMARY": "TestTodo_UXAUDIT_022",
+      "REGRESSION": "TestTodo_UXAUDIT_022_Regression",
+      "SECURITY": "TestTodo_UXAUDIT_022_Security"
+    },
+    "red": "Appearance asks an administrator to type a logo path, does not preview light/dark and compact variants, or places governed Save beyond the working context",
+    "green": "an upload and authorized asset picker validates type, dimensions and safety; retains the original plus responsive proxies; previews shell, favicon and contrast variants; supports removal and rollback; and keeps the save/publish action visible with an exact diff",
+    "refactor": "reuse the existing employee/brand upload pipeline and tenant-scoped appearance revision store",
+    "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), `internal/humanwork/workspace/brand_assets_test.go`",
+    "retired": false,
+    "done": false
+  },
+  {
+    "id": "UXAUDIT-023",
+    "phase": "GATE_C",
+    "model": "TERRA",
+    "title": "Organize personal Settings around user tasks and account safety",
+    "section": "69. Live product UX audit remediation",
+    "depends": [
+      "WEB-043",
+      "WEB-052",
+      "WEB-059",
+      "WEB-232"
+    ],
+    "test": "TestTodo_UXAUDIT_023",
+    "test_matrix": {
+      "ACCESSIBILITY": "TestTodo_UXAUDIT_023_Accessibility",
+      "BROWSER": "TestTodo_UXAUDIT_023_Browser",
+      "I18N": "TestTodo_UXAUDIT_023_I18N",
+      "INTEGRATION": "TestTodo_UXAUDIT_023_Integration",
+      "PRIMARY": "TestTodo_UXAUDIT_023",
+      "REGRESSION": "TestTodo_UXAUDIT_023_Regression"
+    },
+    "red": "Settings exposes technical storage or transport terms, mixes organization-wide appearance with personal preferences, or buries profile, session and sign-out actions",
+    "green": "Profile, language/region, accessibility, notifications, navigation preferences, sessions/security and sign-out form clear task groups; tenant appearance links to its authorized admin destination; destructive or security-sensitive actions are visually distinct and keyboard reachable",
+    "refactor": "setting metadata declares scope, owner and persistence target so page composition cannot confuse user and tenant values",
+    "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), `tools/uxqual/productclient/preferences_test.go`",
+    "retired": false,
+    "done": false
+  },
+  {
+    "id": "UXAUDIT-024",
+    "phase": "P0",
+    "model": "TERRA",
+    "title": "Clarify navigation identity, hierarchy and search responsibilities",
+    "section": "69. Live product UX audit remediation",
+    "depends": [
+      "WEB-039",
+      "WEB-041",
+      "WEB-044",
+      "WEB-047"
+    ],
+    "test": "TestTodo_UXAUDIT_024",
+    "test_matrix": {
+      "ACCESSIBILITY": "TestTodo_UXAUDIT_024_Accessibility",
+      "BROWSER": "TestTodo_UXAUDIT_024_Browser",
+      "PERFORMANCE": "TestTodo_UXAUDIT_024_Performance",
+      "PRIMARY": "TestTodo_UXAUDIT_024",
+      "REGRESSION": "TestTodo_UXAUDIT_024_Regression",
+      "SECURITY": "TestTodo_UXAUDIT_024_Security"
+    },
+    "red": "the company identity truncates without recovery, the Admin submenu hides destinations behind a narrow internal scrollbar, or global search and menu filtering look interchangeable despite different scopes",
+    "green": "the brand slot preserves a recognizable logo and accessible company name, groups expose clear hierarchy with a subtle edge scrollbar, favorites remain discoverable, menu filter is labeled and scoped to destinations, and global search is visually distinct and searches authorized people, workflows, settings and pages with fuzzy ranked results",
+    "refactor": "navigation metadata supplies labels, aliases, keywords, grouping and authorization to both menu filtering and global search while each retains its distinct result types",
+    "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), `tools/uxqual/productclient`, `tools/uxqual/render/journey`",
+    "retired": false,
+    "done": false
+  },
+  {
+    "id": "UXAUDIT-025",
+    "phase": "P0",
+    "model": "SOL_HIGH",
+    "title": "Gate the live frontend on the blind-audit critical journeys",
+    "section": "69. Live product UX audit remediation",
+    "depends": [
+      "UXAUDIT-001",
+      "UXAUDIT-002",
+      "UXAUDIT-003",
+      "UXAUDIT-004",
+      "UXAUDIT-005",
+      "UXAUDIT-006",
+      "UXAUDIT-007",
+      "UXAUDIT-008",
+      "UXAUDIT-009",
+      "UXAUDIT-010",
+      "UXAUDIT-011",
+      "UXAUDIT-012",
+      "UXAUDIT-013",
+      "UXAUDIT-014",
+      "UXAUDIT-015",
+      "UXAUDIT-016",
+      "UXAUDIT-017",
+      "UXAUDIT-018",
+      "UXAUDIT-019",
+      "UXAUDIT-020",
+      "UXAUDIT-021",
+      "UXAUDIT-022",
+      "UXAUDIT-023",
+      "UXAUDIT-024",
+      "UIPOLISH-012"
+    ],
+    "test": "TestTodo_UXAUDIT_025",
+    "test_matrix": {
+      "ACCESSIBILITY": "TestTodo_UXAUDIT_025_Accessibility",
+      "BROWSER": "TestTodo_UXAUDIT_025_Browser",
+      "I18N": "TestTodo_UXAUDIT_025_I18N",
+      "INTEGRATION": "TestTodo_UXAUDIT_025_Integration",
+      "PERFORMANCE": "TestTodo_UXAUDIT_025_Performance",
+      "PRIMARY": "TestTodo_UXAUDIT_025",
+      "RECOVERY": "TestTodo_UXAUDIT_025_Recovery",
+      "REGRESSION": "TestTodo_UXAUDIT_025_Regression",
+      "SECURITY": "TestTodo_UXAUDIT_025_Security"
+    },
+    "red": "the component suites pass while the running application still has a dead-end promotion, broken mobile shell, ambiguous task navigation, material layout shift, inaccessible interaction, unauthorized disclosure or any unresolved finding from this audit series",
+    "green": "a real-server browser harness signs in as the four development personas and covers Home, My Work, People, Person, Journeys, History, Organization, Insights, Help, Settings, Appearance and authorized Admin pages at 1440 px, 390 px and 320 px in light, dark, reduced-motion, en-US, de-DE and RTL modes; it completes and reviews one promotion; checks focus, keyboard, loading, empty, error and recovery states; captures visual baselines; and enforces the declared interaction-latency and layout-shift budgets",
+    "refactor": "this is a release gate over production composition and server truth, not a parallel mock application or duplicated business fixture",
+    "refs": "[frontend plan](specs/production-frontend-and-page-composition.md), `test/workspace`, `test/workflow`, `tools/uxqual/latencygate`, `tools/uxqual/wcag`",
+    "retired": false,
+    "done": false
   },
   {
     "id": "UXFLOW-001",

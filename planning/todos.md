@@ -7978,7 +7978,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **REFACTOR:** external/WORM anchoring remains provider-pluggable.
   - **Refs:** [Integrity service](specs/transaction-ledger-reconciliation-and-repair.md), [security models](data/models/security-trust.md).
 
-- [ ] `LEDGER-011` **[GATE_B][SOL_HIGH] Apply retention, holds and crypto-erasure without falsifying chronology.**
+- [x] `LEDGER-011` **[GATE_B][SOL_HIGH] Apply retention, holds and crypto-erasure without falsifying chronology.**
   - **Depends:** `LEDGER-004`, `DATA-018`, `RECORDS-HOLD-001`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
   - **TEST:** `TestTodo_LEDGER_011`.
@@ -7987,6 +7987,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **GREEN:** disposition preserves minimum immutable envelope and explicit `PAYLOAD_ERASED/RESTRICTED/HELD` state; hash/integrity and hold evidence remain verifiable.
   - **REFACTOR:** payload encryption boundary is classification-driven.
   - **Refs:** [Records disposition](specs/records-management-and-disposition.md), [ledger retention](specs/transaction-ledger-reconciliation-and-repair.md).
+  - **Evidence (2026-09-12):** `TestTodo_LEDGER_011` (the PRIMARY named in the TEST field), `TestTodo_LEDGER_011_Golden`, `FuzzTodo_LEDGER_011`, `TestTodo_LEDGER_011_Race`, `TestTodo_LEDGER_011_Mutation` and `TestTodo_LEDGER_011_PayloadStateVocabularyAgrees` in `internal/data/ledger/disposition` (`disposition.go`, `types.go`, `doc.go`), with `internal/data/ledger/reader.go` extended and migration `00285_ledger_011_payload_disposition.sql` adding the append-only `ledger_payload_disposition` table. `go test -count=1 -cover` PASS at 79.0% (`internal/data/ledger/disposition`) and 70.2% (`internal/data/ledger`), with checkpoint 87.1%, commit 75.9%, evidence 86.7%, hashchain 71.9%, lineage 79.2% and temporal 90.5% unchanged, `./migrations/` PASS at 81.5%; `go build ./...` clean, `go vet` clean, gofmt clean and `go run ./tools/quality` PASSED on windows/arm64 (Go 1.26.3); branch main. The clause -- an erasure must not be able to lie in either direction -- is closed at the **default** read path, not an opt-in one. `EventRecord` gains a `PayloadState` with no permissive zero value, and `ReadStream`/`ReadEvent` LEFT JOIN the disposition table and unconditionally withhold the payload whenever a disposition row names the event, so the ten pre-existing callers in `internal/data/projection/critical`, `internal/data/projection`, `internal/data/provenance`, `internal/data/queryplans`, `internal/data/rebuild` and `internal/intent/app/pgstore` inherit the withholding without change. `TestTodo_LEDGER_011` reads back through plain `ledger.NewReader().ReadEvent` rather than through `disposition.ReadView` precisely so that an opt-in-only withholding would fail, and it distinguishes an erased payload from an event that never carried one by asserting the two states differ and neither is empty. Chronology is proven preserved by name: `assertSameEventColumns` compares all twenty `ledger_event` columns before and after and fails naming the exact column that changed, and `hashchain.Digester.Verify` is called against real PostgreSQL before and after with an identical head asserted. The hold clause has no check-then-act gap -- `Erase` composes `recordsmeta.DisposeCopy`, which locks `record_copy_link` FOR UPDATE and evaluates `hold_state` under that same lock -- and a refused attempt is asserted to leave the hold status, its ACTIVE intersection and the event row untouched. `FuzzTodo_LEDGER_011` ran ~368K executions with zero crashers over payload bytes and arbitrary classification strings, asserting that exactly the two declared classifications succeed and map to `PAYLOAD_ERASED`/`RESTRICTED` while near-misses such as `"standard"` or a trailing space are refused rather than defaulted, and that a chain built from fuzzed bytes verifies field-for-field before and after. **Boundaries, stated rather than implied.** Crypto-erasure is **modelled, not real**: this codebase's append path never encrypts an inline payload, so there is no key protecting bytes already on disk and `Erase` records a symbolic key reference as governance evidence of a decision, not proof of cryptographic unrecoverability. `ledger_event.payload` is never physically zeroed for either mechanism, which is not achievable without abandoning that table's append-only trigger and grants; both mechanisms' real guarantee is that the read layer never returns the bytes again. The fuzz target is pure and in-memory, following the existing `FuzzTodo_LEDGER_012` precedent, so the database-backed guarantees are carried by the PRIMARY, Race and Mutation tests instead. `TestTodo_DB_020_Golden` in `internal/data/queryplans` was regenerated because the new LEFT JOIN turns `LEDGER_STREAM_REPLAY` into a nested loop over two indexed scans with no sequential scan introduced; it failed once under four concurrent embedded-PostgreSQL instances and then passed three consecutive full-package runs, so it is recorded here as planner variance under load rather than a stale golden.
 
 - [x] `LEDGER-012` **[GATE_B][SOL_HIGH] Export an auditor-verifiable ledger evidence package.**
   - **Evidence (2026-09-05):** `TestTodo_LEDGER_012` in `internal/data/ledger/evidence`, `internal/ledger` (Export assembles a tenant and recorded-window evidence package as a deterministic path to bytes layout with covered events, whole chains from genesis, stream heads, the intersecting signed checkpoint epochs, the schema release and a manifest digest over every part, no archive dependency; offline Verify re-walks every chain, recomputes every digest, checks each epoch signature and reports a typed finding per failure with tenant leaks failing closed at export and verify; concurrent exports byte-identical; written by a codex GPT-5.6 Luna lane and verified independently); `go test -count=1 ./internal/data/ledger/evidence/ ./internal/ledger/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
@@ -18866,3 +18867,535 @@ Measured hot spots from the 2026-09-07 baseline (`.artifacts/coverage/bench_base
   - **GREEN:** each top site is fixed (preallocation, a string builder, strconv over fmt.Sprintf, marshal once), the benchmark shows allocations per operation fell by at least a quarter on each package, and golden tests prove the produced envelopes, evidence text and cycle outputs are byte-identical.
   - **REFACTOR:** no exported signature changes; the profile command and the before and after numbers are recorded in the evidence line.
   - **Refs:** [Master plan quantitative envelope](plan.md).
+
+## 69. Live product UX audit remediation
+
+These items are the follow-up to the 2026-09-12 blind browser audit of the running production Go frontend. They are regressions and product-quality gaps observed in the live surface after `WEB-001` through `WEB-240` were marked complete. Completion requires direct browser evidence against the real server-backed UI; a component-only fixture is insufficient.
+
+- [ ] `UXAUDIT-001` **[P0][SOL_HIGH] Replace the mobile sidebar with a viewport-safe application shell.**
+  - **Depends:** `WEB-023`, `WEB-047`, `WEB-048`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE; DIRECT=none; WHY=make the authorized application shell usable on narrow viewports without changing business authority`.
+  - **TEST:** `TestTodo_UXAUDIT_001`.
+  - **TEST MATRIX:** `PRIMARY=TestTodo_UXAUDIT_001`; `BROWSER=TestTodo_UXAUDIT_001_Browser`; `ACCESSIBILITY=TestTodo_UXAUDIT_001_Accessibility`; `PERFORMANCE=TestTodo_UXAUDIT_001_Performance`; `REGRESSION=TestTodo_UXAUDIT_001_Regression`.
+  - **RED:** at 390 px or 320 px the expanded navigation consumes the content viewport, collapsed navigation still constrains the page, the header wraps unpredictably, or navigation and content create competing page-level scroll regions.
+  - **GREEN:** narrow viewports use an accessible overlay drawer with focus containment and restoration, the compact header retains the page identity and essential actions, the content owns one vertical scroll surface, and expanded/collapsed state does not change content width after the transition completes.
+  - **REFACTOR:** one responsive shell and one navigation model serve desktop and mobile; do not fork page implementations by viewport.
+  - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), `tools/uxqual/render/journey`, `internal/humanwork/workspace`.
+
+- [ ] `UXAUDIT-002` **[P0][SOL_HIGH] Guarantee one discoverable, authorized promotion path from person to completion.**
+  - **Depends:** `PROMO-009`, `WEB-119`, `WEB-124`, `WEB-128`, `WEB-129`, `WEB-130`, `PROMOUX-001`, `PROMOUX-002`, `PROMOUX-003`, `PROMOUX-004`, `PROMOUX-005`, `PROMOUX-006`, `PROMOUX-007`, `PROMOUX-008`, `PROMOUX-009`, `PROMOUX-010`, `PROMOUX-011`, `PROMOUX-012`, `PROMOUX-013`, `PROMOUX-014`, `PROMOUX-015`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.PEOPLE,BI.REWARDS; INTENTS=PromoteWorker; DIRECT=none; WHY=prove the shipped promotion slice is actionable from the production people experience`.
+  - **TEST:** `TestTodo_UXAUDIT_002`.
+  - **TEST MATRIX:** `PRIMARY=TestTodo_UXAUDIT_002`; `INTEGRATION=TestTodo_UXAUDIT_002_Integration`; `BROWSER=TestTodo_UXAUDIT_002_Browser`; `ACCESSIBILITY=TestTodo_UXAUDIT_002_Accessibility`; `RECOVERY=TestTodo_UXAUDIT_002_Recovery`; `REGRESSION=TestTodo_UXAUDIT_002_Regression`.
+  - **RED:** every worker reports `No available workflows`, or a user with promotion authority cannot discover, initiate, approve, resume and inspect one seeded promotion through COMPLETE.
+  - **GREEN:** the local-dev company contains at least one visible eligible worker and one authorized actor; People and Person expose the same promotion action; the journey explains eligibility, next action and blocking reasons; completing both approvals and the effective-date transition produces one terminal outcome visible in Journeys, My Work and History.
+  - **REFACTOR:** seed data supplies facts and authority only; eligibility and workflow state continue to come from the real domain and journey services.
+  - **Refs:** [promotion workflow](reference-workflows/promote-into-management.md), `test/workflow`, `test/workspace`, `tools/uxqual/journeyclient`.
+
+- [ ] `UXAUDIT-003` **[P0][TERRA] Make the global launcher perform actions rather than duplicate navigation.**
+  - **Depends:** `WEB-040`, `WEB-068`, `WEB-101`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE; DIRECT=none; WHY=present authorized semantic actions without implying authority that is unavailable`.
+  - **TEST:** `TestTodo_UXAUDIT_003`.
+  - **TEST MATRIX:** `PRIMARY=TestTodo_UXAUDIT_003`; `BROWSER=TestTodo_UXAUDIT_003_Browser`; `ACCESSIBILITY=TestTodo_UXAUDIT_003_Accessibility`; `SECURITY=TestTodo_UXAUDIT_003_Security`; `REGRESSION=TestTodo_UXAUDIT_003_Regression`.
+  - **RED:** `Start an action` contains only links to Journeys and People, stays open after focus leaves, or lists actions the viewer cannot execute.
+  - **GREEN:** the launcher lists ranked authorized actions such as Promote worker, explains disabled actions without disclosure, supports keyboard search and dismissal on Escape/outside focus, and uses a navigation label instead of an action label when only destinations are available.
+  - **REFACTOR:** reuse the shared popover, semantic-action registry and software router; no page-specific action inventory.
+  - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), `tools/uxqual/render/journey`, `tools/uxqual/productclient`.
+
+- [ ] `UXAUDIT-004` **[P0][SOL_HIGH] Render reporting lines as a coherent, navigable ownership tree.**
+  - **Depends:** `WEB-181`, `WEB-182`, `WEB-192`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.WORKFORCE; DIRECT=none; WHY=present authorized organization relationships without inventing or flattening hierarchy`.
+  - **TEST:** `TestTodo_UXAUDIT_004`.
+  - **TEST MATRIX:** `PRIMARY=TestTodo_UXAUDIT_004`; `INTEGRATION=TestTodo_UXAUDIT_004_Integration`; `BROWSER=TestTodo_UXAUDIT_004_Browser`; `ACCESSIBILITY=TestTodo_UXAUDIT_004_Accessibility`; `PROPERTY=TestTodo_UXAUDIT_004_Property`; `REGRESSION=TestTodo_UXAUDIT_004_Regression`.
+  - **RED:** reporting lines appear as disconnected cards, visual nesting disagrees with manager edges, a worker appears outside the visible root without an explanation, or keyboard users cannot traverse the hierarchy.
+  - **GREEN:** connectors, indentation, expand/collapse state, manager summaries and orphan/withheld explanations reflect the authorized server projection exactly; flat and tree modes preserve selection and expose equivalent information to assistive technology.
+  - **REFACTOR:** the flat organization list, organization tree and Myself subtree consume one organization-node component and one authorized relationship projection.
+  - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), `tools/uxqual/render/journey`, `internal/domains/org`.
+
+- [ ] `UXAUDIT-005` **[GATE_C][TERRA] Align top-level information architecture with shipped capabilities.**
+  - **Depends:** `WEB-009`, `WEB-039`, `WEB-068`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE; DIRECT=none; WHY=keep the broad HCM navigation honest about the capabilities actually available to each user`.
+  - **TEST:** `TestTodo_UXAUDIT_005`.
+  - **TEST MATRIX:** `PRIMARY=TestTodo_UXAUDIT_005`; `GOLDEN=TestTodo_UXAUDIT_005_Golden`; `BROWSER=TestTodo_UXAUDIT_005_Browser`; `SECURITY=TestTodo_UXAUDIT_005_Security`; `CONFORMANCE=TestTodo_UXAUDIT_005_Conformance`.
+  - **RED:** promotion-specific concepts dominate unrelated HCM pages, future modules look fully available, or navigation exposes first-class destinations whose capability is unavailable.
+  - **GREEN:** labels and hierarchy describe durable HCM concepts, current capabilities receive clear primary paths, future or unavailable modules are absent or explicitly preview-only, and every visible destination is authorized and useful for the active role.
+  - **REFACTOR:** derive visibility and availability from the page and capability registries; do not hard-code a second release map in the shell.
+  - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), [master plan](plan.md).
+
+- [ ] `UXAUDIT-006` **[P0][TERRA] Replace implementation vocabulary with task-oriented product language.**
+  - **Depends:** `WEB-043`, `WEB-044`, `WEB-045`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE; DIRECT=none; WHY=make server-backed state understandable without exposing internal protocol and architecture terms`.
+  - **TEST:** `TestTodo_UXAUDIT_006`.
+  - **TEST MATRIX:** `PRIMARY=TestTodo_UXAUDIT_006`; `GOLDEN=TestTodo_UXAUDIT_006_Golden`; `BROWSER=TestTodo_UXAUDIT_006_Browser`; `I18N=TestTodo_UXAUDIT_006_I18N`; `REGRESSION=TestTodo_UXAUDIT_006_Regression`.
+  - **RED:** user-facing copy includes `JourneyService`, `canonical gRPC service`, `authenticated cell`, `server-enforced boundary`, `tenant appearance`, `credential role fallback`, `worker projection` or equivalent implementation language outside an operator diagnostic view.
+  - **GREEN:** every page, empty state, loading state and error uses concise task language, gives a clear next step, and keeps technical identifiers behind an explicit diagnostics disclosure for authorized operators.
+  - **REFACTOR:** centralize copy keys in the locale catalog; do not scatter replacement strings through renderers.
+  - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), `tools/uxqual/i18n`, `internal/humanwork/workspace`.
+
+- [ ] `UXAUDIT-007` **[P0][TERRA] Scope acting-context notices to situations that change user authority.**
+  - **Depends:** `WEB-038`, `WEB-056`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE; DIRECT=none; WHY=communicate acting authority only when it materially affects the current task`.
+  - **TEST:** `TestTodo_UXAUDIT_007`.
+  - **TEST MATRIX:** `PRIMARY=TestTodo_UXAUDIT_007`; `BROWSER=TestTodo_UXAUDIT_007_Browser`; `ACCESSIBILITY=TestTodo_UXAUDIT_007_Accessibility`; `SECURITY=TestTodo_UXAUDIT_007_Security`; `REGRESSION=TestTodo_UXAUDIT_007_Regression`.
+  - **RED:** a `Compensation Review` or `Acting as yourself` badge appears globally on unrelated pages, looks clickable without an action, or competes with the page title.
+  - **GREEN:** the shell shows a persistent banner only for delegated, view-as, elevated or break-glass authority; ordinary self context is quiet; task-specific review context appears inside the affected workflow with a clear explanation and exit action.
+  - **REFACTOR:** one acting-context component renders server-resolved authority state across all pages.
+  - **Refs:** [organization scope and authz](specs/organization-scope-and-authz.md), `tools/uxqual/render/workspace`.
+
+- [ ] `UXAUDIT-008` **[P0][TERRA] Give the People directory one stable, high-density table viewport.**
+  - **Depends:** `WEB-109`, `WEB-110`, `WEB-120`, `WEB-236`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.PEOPLE; DIRECT=none; WHY=make authorized workforce discovery efficient without expanding population-query authority`.
+  - **TEST:** `TestTodo_UXAUDIT_008`.
+  - **TEST MATRIX:** `PRIMARY=TestTodo_UXAUDIT_008`; `BROWSER=TestTodo_UXAUDIT_008_Browser`; `ACCESSIBILITY=TestTodo_UXAUDIT_008_Accessibility`; `PERFORMANCE=TestTodo_UXAUDIT_008_Performance`; `REGRESSION=TestTodo_UXAUDIT_008_Regression`.
+  - **RED:** the page and table compete for vertical scrolling, sticky headers detach from their columns, sorting jumps the page, only a few rows fit in a desktop viewport, or every row repeats a large unavailable-workflow message.
+  - **GREEN:** filters and results share a stable layout, only the data region updates on sort/filter/page-size changes, headers remain aligned and sticky, density is usable at 100 rows, scroll position is preserved, and compact row actions communicate availability without visual noise.
+  - **REFACTOR:** use the reusable configurable data-table component and server-persisted table preferences; no People-only sorting or pagination implementation.
+  - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), `tools/uxqual/render/journey`, `tools/uxqual/productclient`.
+
+- [ ] `UXAUDIT-009` **[GATE_C][SOL_HIGH] Scale role assignment and access administration beyond a full-workforce accordion.**
+  - **Depends:** `WEB-229`, `WEB-231`, `WEB-232`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ACCESS; DIRECT=none; WHY=make governed role administration operable for large workforces without moving authorization decisions into the browser`.
+  - **TEST:** `TestTodo_UXAUDIT_009`.
+  - **TEST MATRIX:** `PRIMARY=TestTodo_UXAUDIT_009`; `INTEGRATION=TestTodo_UXAUDIT_009_Integration`; `BROWSER=TestTodo_UXAUDIT_009_Browser`; `ACCESSIBILITY=TestTodo_UXAUDIT_009_Accessibility`; `PERFORMANCE=TestTodo_UXAUDIT_009_Performance`; `SECURITY=TestTodo_UXAUDIT_009_Security`.
+  - **RED:** Roles & access renders the entire workforce as long accordions, truncates role descriptions without recovery, or buries create/assign actions below the fold.
+  - **GREEN:** administrators can search, filter, page and bulk-select workers; inspect full role definitions; create or assign a role from a stable action area; preview effective access; and receive per-worker governed results without blocking the whole page.
+  - **REFACTOR:** reuse the data table, selection, drawer and async task components; the server remains authoritative for effective permissions.
+  - **Refs:** [organization scope and authz](specs/organization-scope-and-authz.md), `tools/uxqual/render/journey`.
+
+- [ ] `UXAUDIT-010` **[GATE_C][SOL_HIGH] Turn organization visibility configuration into a previewable role policy editor.**
+  - **Depends:** `WEB-231`, `WEB-232`, `WEB-064`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ACCESS,BI.WORKFORCE; DIRECT=none; WHY=let administrators understand proposed role scope without weakening governed authorization policy`.
+  - **TEST:** `TestTodo_UXAUDIT_010`.
+  - **TEST MATRIX:** `PRIMARY=TestTodo_UXAUDIT_010`; `INTEGRATION=TestTodo_UXAUDIT_010_Integration`; `BROWSER=TestTodo_UXAUDIT_010_Browser`; `ACCESSIBILITY=TestTodo_UXAUDIT_010_Accessibility`; `SECURITY=TestTodo_UXAUDIT_010_Security`; `REGRESSION=TestTodo_UXAUDIT_010_Regression`.
+  - **RED:** the editor repeats boundary explanations, hides current-versus-proposed scope and Save below the fold, or offers no way to preview a selected role against representative workers and organization units.
+  - **GREEN:** a persistent role selector, concise scope builder, live authorized preview, current/proposed diff, validation summary and sticky governed Save action form one progressive task; denied and withheld records remain non-disclosing.
+  - **REFACTOR:** presentation consumes the existing policy simulation and proposed-scope contracts; no browser-authored permission truth.
+  - **Refs:** [organization scope and authz](specs/organization-scope-and-authz.md), `tools/uxqual/presentation`.
+
+- [ ] `UXAUDIT-011` **[P0][TERRA] Remove unavailable Experience Studio from primary navigation.**
+  - **Depends:** `WEB-039`, `WEB-073`, `WEB-085`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE; DIRECT=none; WHY=avoid presenting an unavailable governed authoring capability as a usable production destination`.
+  - **TEST:** `TestTodo_UXAUDIT_011`.
+  - **TEST MATRIX:** `PRIMARY=TestTodo_UXAUDIT_011`; `BROWSER=TestTodo_UXAUDIT_011_Browser`; `SECURITY=TestTodo_UXAUDIT_011_Security`; `CONFORMANCE=TestTodo_UXAUDIT_011_Conformance`.
+  - **RED:** Experience Studio remains a first-class menu item for a role or release where no usable authorized inventory or authoring capability exists.
+  - **GREEN:** the destination is omitted until the registry reports an admitted capability; an authorized preview, when intentionally enabled, is labeled Preview, explains its limitations and cannot publish or mutate outside its gate.
+  - **REFACTOR:** navigation availability derives from the page registry and release gate, not a route-name exception.
+  - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), `tools/uxqual/pagedef`.
+
+- [ ] `UXAUDIT-012` **[P0][TERRA] Eliminate layout shifts during server-backed loading and navigation.**
+  - **Depends:** `WEB-027`, `WEB-028`, `WEB-035`, `WEB-236`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE; DIRECT=none; WHY=make asynchronous server truth arrive without flicker or loss of task context`.
+  - **TEST:** `TestTodo_UXAUDIT_012`.
+  - **TEST MATRIX:** `PRIMARY=TestTodo_UXAUDIT_012`; `BROWSER=TestTodo_UXAUDIT_012_Browser`; `PERFORMANCE=TestTodo_UXAUDIT_012_Performance`; `ACCESSIBILITY=TestTodo_UXAUDIT_012_Accessibility`; `FAULT=TestTodo_UXAUDIT_012_Fault`; `REGRESSION=TestTodo_UXAUDIT_012_Regression`.
+  - **RED:** route changes remount the shell, server fetches collapse or expand major page regions, loading proxies do not preserve final geometry, or focus and scroll jump when data resolves.
+  - **GREEN:** software navigation retains shell and page chrome, each asynchronous region owns a size-compatible skeleton or inline progress state, only affected regions update, focus and scroll remain stable, and cumulative layout shift stays within the declared frontend budget.
+  - **REFACTOR:** one async-region state model covers loading, empty, stale, failure and resolved states across components.
+  - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), `tools/uxqual/latencygate`, `tools/uxqual/productclient`.
+
+- [ ] `UXAUDIT-013` **[GATE_C][TERRA] Make Help a searchable support destination.**
+  - **Depends:** `WEB-193`, `WEB-194`, `WEB-195`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE; DIRECT=none; WHY=help users resolve tasks without disclosing content or support cases outside their authority`.
+  - **TEST:** `TestTodo_UXAUDIT_013`.
+  - **TEST MATRIX:** `PRIMARY=TestTodo_UXAUDIT_013`; `BROWSER=TestTodo_UXAUDIT_013_Browser`; `ACCESSIBILITY=TestTodo_UXAUDIT_013_Accessibility`; `SECURITY=TestTodo_UXAUDIT_013_Security`; `I18N=TestTodo_UXAUDIT_013_I18N`.
+  - **RED:** Help contains only navigation shortcuts and promotion troubleshooting, with no article search, task guidance, support request path or escalation context.
+  - **GREEN:** Help offers authorized knowledge search, task-oriented categories, contextual promotion guidance, a support-request action and clear escalation expectations; empty and denied searches remain non-disclosing.
+  - **REFACTOR:** reuse authorized global search and service-request components instead of a separate ungoverned index.
+  - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), `tools/uxqual/render/journey`.
+
+- [ ] `UXAUDIT-014` **[P0][TERRA] Keep login persona promises consistent with usable capabilities.**
+  - **Depends:** `WEB-049`, `WEB-050`, `WEB-062`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ACCESS,BI.EXPERIENCE; DIRECT=none; WHY=make development personas useful for authz testing without promising nonexistent payroll or hiring tasks`.
+  - **TEST:** `TestTodo_UXAUDIT_014`.
+  - **TEST MATRIX:** `PRIMARY=TestTodo_UXAUDIT_014`; `INTEGRATION=TestTodo_UXAUDIT_014_Integration`; `BROWSER=TestTodo_UXAUDIT_014_Browser`; `SECURITY=TestTodo_UXAUDIT_014_Security`; `REGRESSION=TestTodo_UXAUDIT_014_Regression`.
+  - **RED:** a sample persona description promises payroll, recruiting or management work that is absent after login, or different personas land on indistinguishable menus despite different effective roles.
+  - **GREEN:** each development persona names only admitted capabilities, is bound to a real visible worker where required, lands on a role-appropriate home, and has browser tests that prove both visible and denied page/action differences.
+  - **REFACTOR:** persona copy and expected navigation derive from the same fixture and effective-capability projection.
+  - **Refs:** [trusted request boundary](specs/trusted-request-boundary.md), `test/workspace/login_test.go`, `internal/humanwork/workspace`.
+
+- [ ] `UXAUDIT-015` **[GATE_C][TERRA] Redesign Home around prioritized work and continuity.**
+  - **Depends:** `WEB-097`, `WEB-098`, `WEB-099`, `WEB-101`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE; DIRECT=none; WHY=make the authorization-resolved landing page answer what needs attention and what can be resumed`.
+  - **TEST:** `TestTodo_UXAUDIT_015`.
+  - **TEST MATRIX:** `PRIMARY=TestTodo_UXAUDIT_015`; `BROWSER=TestTodo_UXAUDIT_015_Browser`; `ACCESSIBILITY=TestTodo_UXAUDIT_015_Accessibility`; `PERFORMANCE=TestTodo_UXAUDIT_015_Performance`; `REGRESSION=TestTodo_UXAUDIT_015_Regression`.
+  - **RED:** Home is sparse, repeats promotion work and promotion journeys as competing concepts, or gives an oversized primary call to action to a low-frequency destination.
+  - **GREEN:** Home prioritizes due work, resumable drafts, tracked requests, recent people and role-appropriate quick actions; cards have distinct purposes, honest empty states and balanced responsive density.
+  - **REFACTOR:** compose existing attention, continuity and semantic-action components through the Home floorplan.
+  - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), `tools/uxqual/pagedef`, `tools/uxqual/render/journey`.
+
+- [ ] `UXAUDIT-016` **[GATE_C][TERRA] Give the worker profile a specific identity and useful missing-data treatment.**
+  - **Depends:** `WEB-112`, `WEB-113`, `WEB-114`, `WEB-118`, `WEB-120`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.PEOPLE; DIRECT=none; WHY=make an authorized worker record scannable without guessing withheld or absent facts`.
+  - **TEST:** `TestTodo_UXAUDIT_016`.
+  - **TEST MATRIX:** `PRIMARY=TestTodo_UXAUDIT_016`; `BROWSER=TestTodo_UXAUDIT_016_Browser`; `ACCESSIBILITY=TestTodo_UXAUDIT_016_Accessibility`; `SECURITY=TestTodo_UXAUDIT_016_Security`; `I18N=TestTodo_UXAUDIT_016_I18N`; `REGRESSION=TestTodo_UXAUDIT_016_Regression`.
+  - **RED:** the page title is generic, breadcrumbs reduce the worker to a first name, repeated `Not reported` values dominate sections, or missing and withheld values are visually indistinguishable.
+  - **GREEN:** the full authorized identity anchors title and breadcrumb, sections summarize meaningful facts first, repeated missing values collapse into concise section states, and PRESENT, MISSING, UNKNOWN and WITHHELD remain semantically and accessibly distinct.
+  - **REFACTOR:** use shared identity-header, field-disposition and section-summary components.
+  - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), `tools/uxqual/presentation`.
+
+- [ ] `UXAUDIT-017` **[P0][TERRA] Differentiate Journeys from My Work by user task.**
+  - **Depends:** `WEB-103`, `WEB-104`, `WEB-106`, `WEB-107`, `WEB-121`, `WEB-129`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE; DIRECT=none; WHY=separate assigned human work from lifecycle tracking without duplicating workflow truth`.
+  - **TEST:** `TestTodo_UXAUDIT_017`.
+  - **TEST MATRIX:** `PRIMARY=TestTodo_UXAUDIT_017`; `INTEGRATION=TestTodo_UXAUDIT_017_Integration`; `BROWSER=TestTodo_UXAUDIT_017_Browser`; `ACCESSIBILITY=TestTodo_UXAUDIT_017_Accessibility`; `REGRESSION=TestTodo_UXAUDIT_017_Regression`.
+  - **RED:** Journeys and My Work render nearly identical lists and empty states, or My Work fails to emphasize assignments, due dates, ownership and the next executable action.
+  - **GREEN:** My Work is an action queue ordered by urgency and ownership; Journeys is a lifecycle tracker grouped by subject and status; both deep-link to the same canonical intent workspace and retain filters on return.
+  - **REFACTOR:** share journey summaries, status dimensions and list primitives while keeping page composition task-specific.
+  - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), `tools/uxqual/journeyclient`.
+
+- [ ] `UXAUDIT-018` **[GATE_C][TERRA] Replace the zero-state Insights facade with an honest useful summary.**
+  - **Depends:** `WEB-217`, `WEB-219`, `WEB-221`, `WEB-222`, `WEB-228`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ANALYTICS; DIRECT=none; WHY=present authorized evidence-backed insight without implying unavailable analytics`.
+  - **TEST:** `TestTodo_UXAUDIT_018`.
+  - **TEST MATRIX:** `PRIMARY=TestTodo_UXAUDIT_018`; `INTEGRATION=TestTodo_UXAUDIT_018_Integration`; `BROWSER=TestTodo_UXAUDIT_018_Browser`; `ACCESSIBILITY=TestTodo_UXAUDIT_018_Accessibility`; `SECURITY=TestTodo_UXAUDIT_018_Security`; `REGRESSION=TestTodo_UXAUDIT_018_Regression`.
+  - **RED:** Insights presents rows of unexplained zeros with no time range, trend, breakdown, freshness or next step.
+  - **GREEN:** when sufficient data exists the page presents labeled measures, range, comparison, breakdown and lineage; otherwise it is named Workflow summary or shows a purposeful insufficient-data state without fabricated charts.
+  - **REFACTOR:** metrics consume certified report projections and shared accessible visualization components.
+  - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), `tools/uxqual/presentation`.
+
+- [ ] `UXAUDIT-019` **[GATE_C][TERRA] Make workflow History inspectable, sortable and compact.**
+  - **Depends:** `WEB-107`, `WEB-130`, `WEB-221`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE; DIRECT=none; WHY=let authorized users review past workflows from immutable evidence`.
+  - **TEST:** `TestTodo_UXAUDIT_019`.
+  - **TEST MATRIX:** `PRIMARY=TestTodo_UXAUDIT_019`; `INTEGRATION=TestTodo_UXAUDIT_019_Integration`; `BROWSER=TestTodo_UXAUDIT_019_Browser`; `ACCESSIBILITY=TestTodo_UXAUDIT_019_Accessibility`; `PERFORMANCE=TestTodo_UXAUDIT_019_Performance`; `REGRESSION=TestTodo_UXAUDIT_019_Regression`.
+  - **RED:** the page repeats its title, filter controls wrap unpredictably, sorting has no observable result, empty data prevents inspection of the interaction model, or global and per-person history diverge.
+  - **GREEN:** one responsive filter bar, sortable reusable columns, server-backed pagination, result count, stable loading geometry and an evidence-based detail view serve global and person-scoped history; empty states explain how records appear.
+  - **REFACTOR:** global and per-person history use the same query, table and detail components with scope supplied as props.
+  - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), `tools/uxqual/render/journey`, `internal/data`.
+
+- [ ] `UXAUDIT-020` **[GATE_C][TERRA] Refine flat organization browsing for scan, search and progressive disclosure.**
+  - **Depends:** `WEB-181`, `WEB-183`, `WEB-192`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.WORKFORCE; DIRECT=none; WHY=make authorized organization membership understandable at workforce scale`.
+  - **TEST:** `TestTodo_UXAUDIT_020`.
+  - **TEST MATRIX:** `PRIMARY=TestTodo_UXAUDIT_020`; `BROWSER=TestTodo_UXAUDIT_020_Browser`; `ACCESSIBILITY=TestTodo_UXAUDIT_020_Accessibility`; `PERFORMANCE=TestTodo_UXAUDIT_020_Performance`; `REGRESSION=TestTodo_UXAUDIT_020_Regression`.
+  - **RED:** the flat view renders many oversized, visually identical buckets with bright repeated borders and no organization search, summary, density control or expand-all/collapse-all affordance.
+  - **GREEN:** a compact summary and fuzzy organization search precede density and expand/collapse controls; buckets expose count, leader and immediate structure at a glance; employee rows load progressively while preserving keyboard and scroll position.
+  - **REFACTOR:** flat and tree modes share organization-node data, employee-row and expansion-state components.
+  - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), `tools/uxqual/render/journey`.
+
+- [ ] `UXAUDIT-021` **[GATE_C][TERRA] Give long admin forms grouped sections and persistent actions.**
+  - **Depends:** `WEB-229`, `WEB-232`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.ADMIN; DIRECT=none; WHY=make governed configuration tasks comprehensible without moving validation or mutation authority into the frontend`.
+  - **TEST:** `TestTodo_UXAUDIT_021`.
+  - **TEST MATRIX:** `PRIMARY=TestTodo_UXAUDIT_021`; `BROWSER=TestTodo_UXAUDIT_021_Browser`; `ACCESSIBILITY=TestTodo_UXAUDIT_021_Accessibility`; `I18N=TestTodo_UXAUDIT_021_I18N`; `REGRESSION=TestTodo_UXAUDIT_021_Regression`.
+  - **RED:** Worker ID rules and comparable admin editors are uninterrupted long forms, hide Save below the fold, mix examples with fields, or fail to summarize unsaved and invalid changes.
+  - **GREEN:** semantic groups, concise field help, live governed preview, validation summary, unsaved-change protection and a sticky responsive action bar produce a clear start-to-save task at desktop and mobile widths.
+  - **REFACTOR:** implement reusable admin form-section, preview and action-bar components rather than page-specific layout rules.
+  - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), `tools/uxqual/render/journey`.
+
+- [ ] `UXAUDIT-022` **[GATE_C][TERRA] Replace appearance asset paths with a governed brand asset picker.**
+  - **Depends:** `WEB-013`, `WEB-017`, `WEB-232`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE; DIRECT=none; WHY=let tenant administrators manage brand assets safely without filesystem or URL knowledge`.
+  - **TEST:** `TestTodo_UXAUDIT_022`.
+  - **TEST MATRIX:** `PRIMARY=TestTodo_UXAUDIT_022`; `INTEGRATION=TestTodo_UXAUDIT_022_Integration`; `BROWSER=TestTodo_UXAUDIT_022_Browser`; `ACCESSIBILITY=TestTodo_UXAUDIT_022_Accessibility`; `SECURITY=TestTodo_UXAUDIT_022_Security`; `REGRESSION=TestTodo_UXAUDIT_022_Regression`.
+  - **RED:** Appearance asks an administrator to type a logo path, does not preview light/dark and compact variants, or places governed Save beyond the working context.
+  - **GREEN:** an upload and authorized asset picker validates type, dimensions and safety; retains the original plus responsive proxies; previews shell, favicon and contrast variants; supports removal and rollback; and keeps the save/publish action visible with an exact diff.
+  - **REFACTOR:** reuse the existing employee/brand upload pipeline and tenant-scoped appearance revision store.
+  - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), `internal/humanwork/workspace/brand_assets_test.go`.
+
+- [ ] `UXAUDIT-023` **[GATE_C][TERRA] Organize personal Settings around user tasks and account safety.**
+  - **Depends:** `WEB-043`, `WEB-052`, `WEB-059`, `WEB-232`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE,BI.ACCESS; DIRECT=none; WHY=make user-scoped settings understandable while keeping tenant appearance and governed account operations separate`.
+  - **TEST:** `TestTodo_UXAUDIT_023`.
+  - **TEST MATRIX:** `PRIMARY=TestTodo_UXAUDIT_023`; `INTEGRATION=TestTodo_UXAUDIT_023_Integration`; `BROWSER=TestTodo_UXAUDIT_023_Browser`; `ACCESSIBILITY=TestTodo_UXAUDIT_023_Accessibility`; `I18N=TestTodo_UXAUDIT_023_I18N`; `REGRESSION=TestTodo_UXAUDIT_023_Regression`.
+  - **RED:** Settings exposes technical storage or transport terms, mixes organization-wide appearance with personal preferences, or buries profile, session and sign-out actions.
+  - **GREEN:** Profile, language/region, accessibility, notifications, navigation preferences, sessions/security and sign-out form clear task groups; tenant appearance links to its authorized admin destination; destructive or security-sensitive actions are visually distinct and keyboard reachable.
+  - **REFACTOR:** setting metadata declares scope, owner and persistence target so page composition cannot confuse user and tenant values.
+  - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), `tools/uxqual/productclient/preferences_test.go`.
+
+- [ ] `UXAUDIT-024` **[P0][TERRA] Clarify navigation identity, hierarchy and search responsibilities.**
+  - **Depends:** `WEB-039`, `WEB-041`, `WEB-044`, `WEB-047`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE; DIRECT=none; WHY=make tenant identity and destination discovery clear without leaking unauthorized pages or records`.
+  - **TEST:** `TestTodo_UXAUDIT_024`.
+  - **TEST MATRIX:** `PRIMARY=TestTodo_UXAUDIT_024`; `BROWSER=TestTodo_UXAUDIT_024_Browser`; `ACCESSIBILITY=TestTodo_UXAUDIT_024_Accessibility`; `SECURITY=TestTodo_UXAUDIT_024_Security`; `PERFORMANCE=TestTodo_UXAUDIT_024_Performance`; `REGRESSION=TestTodo_UXAUDIT_024_Regression`.
+  - **RED:** the company identity truncates without recovery, the Admin submenu hides destinations behind a narrow internal scrollbar, or global search and menu filtering look interchangeable despite different scopes.
+  - **GREEN:** the brand slot preserves a recognizable logo and accessible company name, groups expose clear hierarchy with a subtle edge scrollbar, favorites remain discoverable, menu filter is labeled and scoped to destinations, and global search is visually distinct and searches authorized people, workflows, settings and pages with fuzzy ranked results.
+  - **REFACTOR:** navigation metadata supplies labels, aliases, keywords, grouping and authorization to both menu filtering and global search while each retains its distinct result types.
+  - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), `tools/uxqual/productclient`, `tools/uxqual/render/journey`.
+
+- [ ] `UXAUDIT-025` **[P0][SOL_HIGH] Gate the live frontend on the blind-audit critical journeys.**
+  - **Depends:** `UXAUDIT-001`, `UXAUDIT-002`, `UXAUDIT-003`, `UXAUDIT-004`, `UXAUDIT-005`, `UXAUDIT-006`, `UXAUDIT-007`, `UXAUDIT-008`, `UXAUDIT-009`, `UXAUDIT-010`, `UXAUDIT-011`, `UXAUDIT-012`, `UXAUDIT-013`, `UXAUDIT-014`, `UXAUDIT-015`, `UXAUDIT-016`, `UXAUDIT-017`, `UXAUDIT-018`, `UXAUDIT-019`, `UXAUDIT-020`, `UXAUDIT-021`, `UXAUDIT-022`, `UXAUDIT-023`, `UXAUDIT-024`, `UIPOLISH-012`.
+  - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.EXPERIENCE,BI.PEOPLE,BI.REWARDS,BI.WORKFORCE,BI.ACCESS; DIRECT=none; WHY=prevent live product usability regressions after component and contract tests pass`.
+  - **TEST:** `TestTodo_UXAUDIT_025`.
+  - **TEST MATRIX:** `PRIMARY=TestTodo_UXAUDIT_025`; `INTEGRATION=TestTodo_UXAUDIT_025_Integration`; `BROWSER=TestTodo_UXAUDIT_025_Browser`; `ACCESSIBILITY=TestTodo_UXAUDIT_025_Accessibility`; `I18N=TestTodo_UXAUDIT_025_I18N`; `PERFORMANCE=TestTodo_UXAUDIT_025_Performance`; `SECURITY=TestTodo_UXAUDIT_025_Security`; `RECOVERY=TestTodo_UXAUDIT_025_Recovery`; `REGRESSION=TestTodo_UXAUDIT_025_Regression`.
+  - **RED:** the component suites pass while the running application still has a dead-end promotion, broken mobile shell, ambiguous task navigation, material layout shift, inaccessible interaction, unauthorized disclosure or any unresolved finding from this audit series.
+  - **GREEN:** a real-server browser harness signs in as the four development personas and covers Home, My Work, People, Person, Journeys, History, Organization, Insights, Help, Settings, Appearance and authorized Admin pages at 1440 px, 390 px and 320 px in light, dark, reduced-motion, en-US, de-DE and RTL modes; it completes and reviews one promotion; checks focus, keyboard, loading, empty, error and recovery states; captures visual baselines; and enforces the declared interaction-latency and layout-shift budgets.
+  - **REFACTOR:** this is a release gate over production composition and server truth, not a parallel mock application or duplicated business fixture.
+  - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), `test/workspace`, `test/workflow`, `tools/uxqual/latencygate`, `tools/uxqual/wcag`.
+
+## 70. Promotion workflow live-audit remediation
+
+These items are the atomic follow-up to the 2026-09-12 live promotion review. The observed journey `01a09550-c0b6-70d2-9aaf-2f90701ca0c4` advanced durably through proposal, simulation, admission, finance approval and manager approval to `wait_effective_date`; the contracts below address the integrity and usability defects encountered on that path. `UXAUDIT-002` remains the end-to-end closure gate.
+
+- [ ] `PROMOUX-001` **[P0][SOL_HIGH] Resolve promotion eligibility consistently across the seeded workforce.**
+  - **Depends:** `PROMO-007`, `JOBARCH-004`, `WEB-109`, `WEB-119`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.PEOPLE,BI.REWARDS; INTENTS=PromoteWorker; DIRECT=none; WHY=make eligible promotion subjects discoverable from one coherent authorized workforce projection`.
+  - **TEST:** `TestTodo_PROMOUX_001`.
+  - **TEST MATRIX:** `PRIMARY=TestTodo_PROMOUX_001`; `INTEGRATION=TestTodo_PROMOUX_001_Integration`; `BROWSER=TestTodo_PROMOUX_001_Browser`; `SECURITY=TestTodo_PROMOUX_001_Security`; `REGRESSION=TestTodo_PROMOUX_001_Regression`.
+  - **RED:** Journeys sends users to a directory where every initially visible worker reports `No available workflows`, the sole eligible Jane record can be found only by knowing her name, or the legacy `W-1001` corpus record and the 64 seeded workers follow different promotion-eligibility rules.
+  - **GREEN:** the authorized directory can filter directly to promotion-eligible workers, every displayed availability state has a server-provided reason, local-dev fixtures use one worker identity and job-architecture model, and at least four role-diverse workers exercise eligible, ineligible, active-conflict and withheld outcomes without enumeration leakage.
+  - **REFACTOR:** eligibility is one server-owned projection consumed by People, Person, global actions and Journeys; no client-side role-code allowlist.
+  - **Refs:** [promotion workflow](reference-workflows/promote-into-management.md), `internal/intent/app`, `tools/uxqual/journeyclient`, `test/workspace`.
+
+- [ ] `PROMOUX-002` **[P0][SOL_HIGH] Prevent overlapping active promotions and route users to the existing journey.**
+  - **Depends:** `PROMO-007`, `WF-RUN-018`, `WEB-119`, `WEB-132`.
+  - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.PEOPLE,BI.REWARDS; INTENTS=PromoteWorker; DIRECT=none; WHY=prevent conflicting promotion intent while preserving continuity to the active request`.
+  - **TEST:** `TestTodo_PROMOUX_002`.
+  - **TEST MATRIX:** `PRIMARY=TestTodo_PROMOUX_002`; `INTEGRATION=TestTodo_PROMOUX_002_Integration`; `RACE=TestTodo_PROMOUX_002_Race`; `BROWSER=TestTodo_PROMOUX_002_Browser`; `SECURITY=TestTodo_PROMOUX_002_Security`; `RECOVERY=TestTodo_PROMOUX_002_Recovery`.
+  - **RED:** a worker with a nonterminal promotion still exposes `Start Promotion`, or concurrent starts create more than one active promotion before execution-time conflict checking.
+  - **GREEN:** a tenant-scoped active-intent guard admits exactly one promotion per worker and overlapping effective window; replays resolve to the same intent; People and Person replace Start with `Open active promotion`; a conflicting actor sees a safe explanation and zero new proposal, work item or domain mutation.
+  - **REFACTOR:** the guard belongs to promotion admission and is projected to clients; UI suppression is not the integrity boundary.
+  - **Refs:** [promotion workflow](reference-workflows/promote-into-management.md), `internal/domains/promotion`, `internal/data/intentcontrol`, `tools/uxqual/journeyclient`.
+
+- [ ] `PROMOUX-003` **[P0][SOL_HIGH] Enforce and explain separation of duties across promotion approvals.**
+  - **Depends:** `APPROVAL-004`, `WF-STEP-003`, `PROMO-009`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.PEOPLE,BI.REWARDS,BI.ACCESS; INTENTS=PromoteWorker; DIRECT=none; WHY=ensure finance and manager decisions are made under valid distinct authority`.
+  - **TEST:** `TestTodo_PROMOUX_003`.
+  - **TEST MATRIX:** `PRIMARY=TestTodo_PROMOUX_003`; `INTEGRATION=TestTodo_PROMOUX_003_Integration`; `RACE=TestTodo_PROMOUX_003_Race`; `BROWSER=TestTodo_PROMOUX_003_Browser`; `SECURITY=TestTodo_PROMOUX_003_Security`; `MUTATION=TestTodo_PROMOUX_003_Mutation`.
+  - **RED:** one principal completes both finance and manager approval for the same proposal, the work items share an undifferentiated `principal:promotion-approver` owner, or the UI offers an approval without naming the authority and conflict that permit it.
+  - **GREEN:** approver resolution binds each requirement to its authority class and separation constraints; the same principal is refused where duties conflict; reassignment preserves the proposal digest; and the UI states `Waiting for <role>`, assigned person or protected-group label, due date, the viewer's acting authority and why the action is or is not available.
+  - **REFACTOR:** separation is evaluated by the approval owner before claim or completion; presentation consumes the resulting disposition.
+  - **Refs:** [promotion workflow](reference-workflows/promote-into-management.md), [organization scope and authz](specs/organization-scope-and-authz.md), `internal/workflow/steps/approval`.
+
+- [ ] `PROMOUX-004` **[P0][SOL_HIGH] Replace free-text target positions with authorized vacancy selection and reservation evidence.**
+  - **Depends:** `POSITION-003`, `PROMO-002`, `WEB-124`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.WORKFORCE,BI.PEOPLE; INTENTS=PromoteWorker; DIRECT=none; WHY=bind the proposed assignment to a real compatible position without exposing unauthorized vacancies`.
+  - **TEST:** `TestTodo_PROMOUX_004`.
+  - **TEST MATRIX:** `PRIMARY=TestTodo_PROMOUX_004`; `INTEGRATION=TestTodo_PROMOUX_004_Integration`; `BROWSER=TestTodo_PROMOUX_004_Browser`; `ACCESSIBILITY=TestTodo_PROMOUX_004_Accessibility`; `SECURITY=TestTodo_PROMOUX_004_Security`; `RACE=TestTodo_PROMOUX_004_Race`.
+  - **RED:** an arbitrary guessed identifier such as `POS-ENG-MGR-101` is accepted without proving existence, vacancy, compatibility, effective-date capacity and reservation ownership.
+  - **GREEN:** an accessible server-filtered picker shows only authorized compatible positions with title, organization, manager, location, vacancy window and reservation state; selection binds the immutable position revision; simulation explains advisory versus durable capacity; stale or concurrently reserved choices fail before approval with a recoverable alternative-selection state.
+  - **REFACTOR:** the browser carries only the selected position revision reference; validation and reservation remain owned by Position.
+  - **Refs:** [promotion workflow](reference-workflows/promote-into-management.md), `internal/domains/position`, `internal/domains/promotion/simassign`.
+
+- [ ] `PROMOUX-005` **[P0][SOL_HIGH] Include reporting-line and organization impact in management promotions.**
+  - **Depends:** `PROMO-002`, `ORG-003`, `CONF-007`, `WEB-123`, `WEB-126`.
+  - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.PEOPLE,BI.WORKFORCE; INTENTS=PromoteWorker; DIRECT=none; WHY=make the complete management assignment visible and governed rather than changing job and pay alone`.
+  - **TEST:** `TestTodo_PROMOUX_005`.
+  - **TEST MATRIX:** `PRIMARY=TestTodo_PROMOUX_005`; `INTEGRATION=TestTodo_PROMOUX_005_Integration`; `GOLDEN=TestTodo_PROMOUX_005_Golden`; `BROWSER=TestTodo_PROMOUX_005_Browser`; `SECURITY=TestTodo_PROMOUX_005_Security`; `MUTATION=TestTodo_PROMOUX_005_Mutation`.
+  - **RED:** a promotion into management can reach approval without resolving the target manager, organization, reporting-line edge, team impact and cycle check, or the review comparison omits those effects.
+  - **GREEN:** position selection derives or explicitly collects authorized target organization and manager revisions; simulation proves the relationship rewrite and cycle safety; current/proposed review shows manager, organization, position and affected direct-report scope; material changes invalidate approval and re-run the exact checks.
+  - **REFACTOR:** organization semantics stay in the Organization capability and promotion composes its typed effect rather than copying graph logic.
+  - **Refs:** [promotion workflow](reference-workflows/promote-into-management.md), `internal/domains/org`, `internal/domains/promotion/simassign`.
+
+- [ ] `PROMOUX-006` **[P0][TERRA] Show the authorized compensation baseline and exact entry guardrail before submit.**
+  - **Depends:** `PROMO-003`, `WEB-116`, `WEB-123`, `WEB-127`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.REWARDS; INTENTS=PromoteWorker; DIRECT=none; WHY=let an authorized proposer enter valid exact money without revealing compensation outside the promotion purpose`.
+  - **TEST:** `TestTodo_PROMOUX_006`.
+  - **TEST MATRIX:** `PRIMARY=TestTodo_PROMOUX_006`; `INTEGRATION=TestTodo_PROMOUX_006_Integration`; `BROWSER=TestTodo_PROMOUX_006_Browser`; `ACCESSIBILITY=TestTodo_PROMOUX_006_Accessibility`; `SECURITY=TestTodo_PROMOUX_006_Security`; `I18N=TestTodo_PROMOUX_006_I18N`.
+  - **RED:** the promotion form shows current base as `—` while enforcing a hidden percentage rule, or expresses only `0.0500..0.1800` after rejection.
+  - **GREEN:** after target-role selection, authorized purpose-bound data displays current exact Money, permitted increase percent, exact minimum and maximum annual Money, band position, currency and effective-date basis; the input constrains and explains the range without floating-point arithmetic; unauthorized viewers receive a typed unavailable action rather than inferred pay.
+  - **REFACTOR:** formatting uses shared Money and Percentage value types and locale services; the client never recomputes the authoritative guardrail.
+  - **Refs:** [promotion workflow](reference-workflows/promote-into-management.md), `internal/domains/promotion/simcomp`, `tools/uxqual/journeyclient`.
+
+- [ ] `PROMOUX-007` **[P0][TERRA] Present promotion validation as field-linked recoverable guidance.**
+  - **Depends:** `WEB-020`, `WEB-125`, `PROMOUX-006`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE,BI.REWARDS; INTENTS=PromoteWorker; DIRECT=none; WHY=translate typed promotion refusals into accessible corrective action without leaking internals`.
+  - **TEST:** `TestTodo_PROMOUX_007`.
+  - **TEST MATRIX:** `PRIMARY=TestTodo_PROMOUX_007`; `GOLDEN=TestTodo_PROMOUX_007_Golden`; `BROWSER=TestTodo_PROMOUX_007_Browser`; `ACCESSIBILITY=TestTodo_PROMOUX_007_Accessibility`; `I18N=TestTodo_PROMOUX_007_I18N`; `SECURITY=TestTodo_PROMOUX_007_Security`.
+  - **RED:** a rejected pay value produces a page-level message containing field keys, decimal fractions, Go error names or correlation internals, does not associate the error with Proposed base pay, or leaves the user at an unrelated scroll position.
+  - **GREEN:** typed refusal reasons map to localized field messages with exact corrective bounds; the summary links to each invalid field; focus and scroll move predictably without losing entered values; changing a field clears only its stale error; a copyable support reference is available through diagnostics without implementation text in ordinary copy.
+  - **REFACTOR:** one refusal-to-presentation mapper serves SSR and enhanced clients; do not parse human error strings.
+  - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), `internal/transport/journey`, `tools/uxqual/render/journey`.
+
+- [ ] `PROMOUX-008` **[GATE_C][TERRA] Put promotion machinery behind an authorized diagnostics disclosure.**
+  - **Depends:** `WEB-022`, `WEB-046`, `OBS-024`, `UXAUDIT-006`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE; INTENTS=PromoteWorker; DIRECT=none; WHY=show useful business evidence while reserving runtime internals for authorized diagnosis`.
+  - **TEST:** `TestTodo_PROMOUX_008`.
+  - **TEST MATRIX:** `PRIMARY=TestTodo_PROMOUX_008`; `GOLDEN=TestTodo_PROMOUX_008_Golden`; `BROWSER=TestTodo_PROMOUX_008_Browser`; `ACCESSIBILITY=TestTodo_PROMOUX_008_Accessibility`; `SECURITY=TestTodo_PROMOUX_008_Security`; `I18N=TestTodo_PROMOUX_008_I18N`.
+  - **RED:** ordinary promotion review exposes entity refs, material or plan digests, raw `SET` operations, workflow node names, work-item UUIDs, raw event codes, principals or `JourneyService` labels by default.
+  - **GREEN:** the default page shows employee, proposed business changes, approvals, policy explanations, effective date, next owner and human-readable history; an authorized Technical details disclosure contains identifiers, evidence and trace references with copy controls and redaction; unauthorized viewers cannot infer hidden internals from presence, count or layout.
+  - **REFACTOR:** business timeline events and diagnostic evidence are two projections over the same immutable records, not duplicated stored summaries.
+  - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), `internal/platform/execution`, `tools/uxqual/presentation`.
+
+- [ ] `PROMOUX-009` **[GATE_C][SOL_HIGH] Canonicalize and deduplicate promotion simulation findings.**
+  - **Depends:** `PROMO-004`, `WEB-127`.
+  - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.REWARDS,BI.WORKFORCE; INTENTS=PromoteWorker; DIRECT=none; WHY=make each material policy or observation finding appear once with stable ownership and explanation`.
+  - **TEST:** `TestTodo_PROMOUX_009`.
+  - **TEST MATRIX:** `PRIMARY=TestTodo_PROMOUX_009`; `PROPERTY=TestTodo_PROMOUX_009_Property`; `GOLDEN=TestTodo_PROMOUX_009_Golden`; `INTEGRATION=TestTodo_PROMOUX_009_Integration`; `BROWSER=TestTodo_PROMOUX_009_Browser`; `MUTATION=TestTodo_PROMOUX_009_Mutation`.
+  - **RED:** one budget observation appears twice with swapped internal code and message, or ordering and identity change across reloads.
+  - **GREEN:** findings have a stable semantic identity, owner, severity, affected field/effect and one canonical explanation; exact duplicates collapse while independently sourced corroboration remains attributable; deterministic ordering and count survive persistence and reload.
+  - **REFACTOR:** deduplication operates on typed finding identity before presentation, never on rendered strings.
+  - **Refs:** [promotion workflow](reference-workflows/promote-into-management.md), `internal/domains/promotion/simcontract`, `tools/uxqual/journeyclient`.
+
+- [ ] `PROMOUX-010` **[GATE_C][TERRA] Keep promotion review confirmations compact, visible and keyboard-stable.**
+  - **Depends:** `WEB-018`, `WEB-019`, `WEB-128`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE; INTENTS=PromoteWorker; DIRECT=none; WHY=make consequential review actions deliberate without pushing the confirmation out of context`.
+  - **TEST:** `TestTodo_PROMOUX_010`.
+  - **TEST MATRIX:** `PRIMARY=TestTodo_PROMOUX_010`; `BROWSER=TestTodo_PROMOUX_010_Browser`; `ACCESSIBILITY=TestTodo_PROMOUX_010_Accessibility`; `PERFORMANCE=TestTodo_PROMOUX_010_Performance`; `REGRESSION=TestTodo_PROMOUX_010_Regression`.
+  - **RED:** expanding Start, Approve or Reject pushes the final action below the viewport, moves unrelated sections, loses focus or makes Cancel the most visually prominent control.
+  - **GREEN:** a shared review surface keeps employee, change, date, consequences and final action together; the action bar remains visible; focus enters and returns correctly; Escape cancels; reduced motion is honored; server latency produces an in-place busy state that prevents duplicate submission without collapsing geometry.
+  - **REFACTOR:** Start, Approve, Reject, Withdraw and Cancel reuse one confirmation component with typed content props.
+  - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), `tools/uxqual/render/journey`.
+
+- [ ] `PROMOUX-011` **[P0][TERRA] Invalidate promotion counts and timestamps after every durable transition.**
+  - **Depends:** `WEB-035`, `WEB-036`, `WEB-099`, `WEB-130`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE; INTENTS=PromoteWorker; DIRECT=none; WHY=keep shell, lists and detail consistent with durable workflow truth`.
+  - **TEST:** `TestTodo_PROMOUX_011`.
+  - **TEST MATRIX:** `PRIMARY=TestTodo_PROMOUX_011`; `INTEGRATION=TestTodo_PROMOUX_011_Integration`; `BROWSER=TestTodo_PROMOUX_011_Browser`; `RACE=TestTodo_PROMOUX_011_Race`; `RECOVERY=TestTodo_PROMOUX_011_Recovery`; `PERFORMANCE=TestTodo_PROMOUX_011_Performance`.
+  - **RED:** after creating or approving a promotion the shell still announces zero journeys, `Updated` remains older than the newest transition, or views converge only after unrelated navigation.
+  - **GREEN:** each committed promotion transition emits one authority-filtered invalidation with sequence; shell count, Journeys, My Work, Person and detail refresh only their affected regions; displayed last-updated time equals the latest business transition; reconnect catch-up converges without duplicate renders or lost scroll/focus.
+  - **REFACTOR:** consumers share cache keys and sequence handling; no page triggers a full-shell reload to achieve consistency.
+  - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), `tools/uxqual/invalidation`, `tools/uxqual/productclient`.
+
+- [ ] `PROMOUX-012` **[GATE_C][TERRA] Distinguish actionable approvals, tracked promotions and passive waits.**
+  - **Depends:** `WEB-098`, `WEB-103`, `WEB-106`, `WEB-129`, `UXAUDIT-017`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE; INTENTS=PromoteWorker; DIRECT=none; WHY=place each promotion in the surface matching the user's current responsibility`.
+  - **TEST:** `TestTodo_PROMOUX_012`.
+  - **TEST MATRIX:** `PRIMARY=TestTodo_PROMOUX_012`; `INTEGRATION=TestTodo_PROMOUX_012_Integration`; `BROWSER=TestTodo_PROMOUX_012_Browser`; `ACCESSIBILITY=TestTodo_PROMOUX_012_Accessibility`; `REGRESSION=TestTodo_PROMOUX_012_Regression`.
+  - **RED:** My Work says every visible journey needs attention while listing a future-date wait with no action, or Person omits an active promotion while offering a duplicate start.
+  - **GREEN:** My Work contains assigned decisions and tasks with owner, due date and next action; Tracked requests contains promotions the viewer initiated or follows; passive waits show next transition and owner without inflating actionable counts; Person displays active and past workflows with direct resume/open links.
+  - **REFACTOR:** all surfaces consume the same server-resolved relationship-to-viewer and next-action projection.
+  - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), `tools/uxqual/journeyclient`, `tools/uxqual/render/journey`.
+
+- [ ] `PROMOUX-013` **[GATE_C][SOL_HIGH] Add governed edit, supersede, withdraw and cancel paths.**
+  - **Depends:** `INTENT-005`, `WF-RUN-015`, `WEB-122`, `WEB-132`.
+  - **INTENT CONTEXT:** `ROLE=GOVERNANCE; SETS=BI.PEOPLE,BI.REWARDS; INTENTS=PromoteWorker; DIRECT=none; WHY=let authorized actors correct or stop a promotion without mutating immutable proposal history`.
+  - **TEST:** `TestTodo_PROMOUX_013`.
+  - **TEST MATRIX:** `PRIMARY=TestTodo_PROMOUX_013`; `INTEGRATION=TestTodo_PROMOUX_013_Integration`; `BROWSER=TestTodo_PROMOUX_013_Browser`; `SECURITY=TestTodo_PROMOUX_013_Security`; `RECOVERY=TestTodo_PROMOUX_013_Recovery`; `MUTATION=TestTodo_PROMOUX_013_Mutation`.
+  - **RED:** a proposer cannot correct an unstarted proposal, withdraw before approval, or request cancellation during an eligible wait; or an edit silently changes an approved revision.
+  - **GREEN:** authorized edits create a new proposal revision and invalidate material approvals; withdrawal and cancellation use typed interventions with reasons, consequence preview and retained evidence; unavailable stages explain why; races with approval, timer and terminal commit resolve to one deterministic outcome with no partial domain write.
+  - **REFACTOR:** UI actions map to existing intent and intervention semantics; no delete or in-place proposal update.
+  - **Refs:** [promotion workflow](reference-workflows/promote-into-management.md), `internal/intent`, `internal/workflow/intervention`.
+
+- [ ] `PROMOUX-014` **[GATE_C][TERRA] Explain effective-date waits and provide a bounded local-dev completion path.**
+  - **Depends:** `WF-STEP-005`, `PROMO-009`, `WEB-130`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE; INTENTS=PromoteWorker; DIRECT=none; WHY=make durable waits understandable while keeping production time authority fenced`.
+  - **TEST:** `TestTodo_PROMOUX_014`.
+  - **TEST MATRIX:** `PRIMARY=TestTodo_PROMOUX_014`; `INTEGRATION=TestTodo_PROMOUX_014_Integration`; `BROWSER=TestTodo_PROMOUX_014_Browser`; `SECURITY=TestTodo_PROMOUX_014_Security`; `RECOVERY=TestTodo_PROMOUX_014_Recovery`; `REGRESSION=TestTodo_PROMOUX_014_Regression`.
+  - **RED:** `Waiting for effective date` gives no next timestamp, timezone, owner, scheduled action or explanation, and the supported local-dev profile cannot exercise terminal recording without waiting for wall-clock time.
+  - **GREEN:** the waiting state names the effective instant and timezone, what will run, remaining checks, notification behavior and any authorized intervention; production exposes no manual timer bypass; a separately fenced local-dev clock/driver can advance a same-day fixture through END and is impossible to enable under a production profile.
+  - **REFACTOR:** the UI reads typed WAIT resolution and profile capabilities; it never manufactures countdown or completion authority.
+  - **Refs:** [promotion workflow](reference-workflows/promote-into-management.md), `internal/workflow/steps/wait`, `test/workflow`.
+
+- [ ] `PROMOUX-015` **[P0][SOL_HIGH] Gate promotion presentation and execution with one multi-persona regression journey.**
+  - **Depends:** `PROMOUX-001`, `PROMOUX-002`, `PROMOUX-003`, `PROMOUX-004`, `PROMOUX-005`, `PROMOUX-006`, `PROMOUX-007`, `PROMOUX-008`, `PROMOUX-009`, `PROMOUX-010`, `PROMOUX-011`, `PROMOUX-012`, `PROMOUX-013`, `PROMOUX-014`.
+  - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.PEOPLE,BI.REWARDS,BI.WORKFORCE,BI.ACCESS,BI.EXPERIENCE; INTENTS=PromoteWorker; DIRECT=none; WHY=prevent the live promotion experience from diverging from workflow and authorization truth`.
+  - **TEST:** `TestTodo_PROMOUX_015`.
+  - **TEST MATRIX:** `PRIMARY=TestTodo_PROMOUX_015`; `INTEGRATION=TestTodo_PROMOUX_015_Integration`; `BROWSER=TestTodo_PROMOUX_015_Browser`; `ACCESSIBILITY=TestTodo_PROMOUX_015_Accessibility`; `I18N=TestTodo_PROMOUX_015_I18N`; `PERFORMANCE=TestTodo_PROMOUX_015_Performance`; `SECURITY=TestTodo_PROMOUX_015_Security`; `RECOVERY=TestTodo_PROMOUX_015_Recovery`; `MUTATION=TestTodo_PROMOUX_015_Mutation`.
+  - **RED:** isolated component tests pass while the real server path remains undiscoverable, accepts an invalid position, permits conflicted approvals, leaks machinery, loses continuity or cannot reach and review one terminal promotion.
+  - **GREEN:** a real PostgreSQL and browser harness signs in separately as proposer, finance approver, manager approver and employee; discovers an eligible worker without foreknowledge; selects a real position and exact Money; proposes, reviews, approves under separated authority, waits, commits once and reviews the outcome from Person, Journeys, My Work and History; denial, stale revision, duplicate start, reconnect and recovery variants prove zero unauthorized or duplicate effects; desktop, 390 px and 320 px light/dark/reduced-motion/en-US/de-DE/RTL baselines pass the latency, accessibility and layout-shift gates.
+  - **REFACTOR:** the harness drives production endpoints and components with one versioned fixture; no mock workflow engine, fake browser data or test-only authorization shortcut.
+  - **Refs:** [promotion workflow](reference-workflows/promote-into-management.md), `test/workflow`, `test/workspace`, `tools/uxqual/latencygate`, `tools/uxqual/wcag`.
+
+## 71. Live visual-design and interaction polish
+
+These items qualify the rendered production frontend against the design-token contracts already completed under `WEB-013` through `WEB-024`. They are not a redesign fork: each item removes observed inconsistency from the shared Go components and must be verified on the real server-backed pages.
+
+- [ ] `UIPOLISH-001` **[GATE_C][TERRA] Establish a disciplined responsive typography hierarchy.**
+  - **Depends:** `WEB-014`, `WEB-023`, `I18N-003`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE; DIRECT=none; WHY=make every page scannable and readable across brands, locales and viewport sizes`.
+  - **TEST:** `TestTodo_UIPOLISH_001`.
+  - **TEST MATRIX:** `PRIMARY=TestTodo_UIPOLISH_001`; `GOLDEN=TestTodo_UIPOLISH_001_Golden`; `BROWSER=TestTodo_UIPOLISH_001_Browser`; `ACCESSIBILITY=TestTodo_UIPOLISH_001_Accessibility`; `I18N=TestTodo_UIPOLISH_001_I18N`; `REGRESSION=TestTodo_UIPOLISH_001_Regression`.
+  - **RED:** pages mix inconsistent title, section, label and helper sizes; all-caps metadata competes with headings; long copy spans the full viewport; fallback or customer fonts cause clipping, unstable metrics or unreadable dense text.
+  - **GREEN:** one fluid type scale defines display, page title, section, body, label, helper, table and code roles; line height and measure remain readable from 320 px through wide desktop; hierarchy survives 200% zoom, German expansion, RTL and approved font fallbacks without truncation or layout shift.
+  - **REFACTOR:** components request semantic type roles through tokens and never set arbitrary font size, weight or line height.
+  - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), `tools/uxqual/tokens`, `tools/uxqual/render/journey`.
+
+- [ ] `UIPOLISH-002` **[P0][TERRA] Normalize page spacing, alignment and responsive rhythm.**
+  - **Depends:** `WEB-015`, `WEB-023`, `UXAUDIT-001`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE; DIRECT=none; WHY=create predictable spatial relationships without coupling layout to page-specific content`.
+  - **TEST:** `TestTodo_UIPOLISH_002`.
+  - **TEST MATRIX:** `PRIMARY=TestTodo_UIPOLISH_002`; `GOLDEN=TestTodo_UIPOLISH_002_Golden`; `BROWSER=TestTodo_UIPOLISH_002_Browser`; `ACCESSIBILITY=TestTodo_UIPOLISH_002_Accessibility`; `REGRESSION=TestTodo_UIPOLISH_002_Regression`.
+  - **RED:** equivalent page headers, cards, filters and form groups use different gaps; sparse pages waste most of the viewport; dense pages crowd controls; columns and edges fail to align; responsive wrapping produces orphan labels or actions.
+  - **GREEN:** shell gutters, page measure, section spacing, card padding, control gaps and dense/comfortable modes follow the spacing scale; alignment anchors are shared across pages; responsive composition moves whole semantic regions at declared breakpoints while preserving reading and focus order.
+  - **REFACTOR:** use stack, cluster, grid, split and page-frame primitives with spacing-token props; remove page-specific margin chains.
+  - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), `tools/uxqual/tokens`, `tools/uxqual/render/page`.
+
+- [ ] `UIPOLISH-003` **[GATE_C][TERRA] Unify shape, border, surface and elevation semantics.**
+  - **Depends:** `WEB-016`, `WEB-080`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE; DIRECT=none; WHY=make hierarchy and interactivity recognizable while preserving customer brand expression`.
+  - **TEST:** `TestTodo_UIPOLISH_003`.
+  - **TEST MATRIX:** `PRIMARY=TestTodo_UIPOLISH_003`; `GOLDEN=TestTodo_UIPOLISH_003_Golden`; `BROWSER=TestTodo_UIPOLISH_003_Browser`; `ACCESSIBILITY=TestTodo_UIPOLISH_003_Accessibility`; `REGRESSION=TestTodo_UIPOLISH_003_Regression`.
+  - **RED:** cards, fields, badges, popovers and buttons use unrelated radii, bright accent borders repeat decoratively, nested surfaces become card-inside-card noise, or shadows are used without a stacking meaning.
+  - **GREEN:** named shape tokens cover compact controls, standard containers and expressive brand surfaces; borders communicate boundary, selection, focus or status; elevation maps only to overlay hierarchy; nested content prefers spacing and dividers over redundant cards; customer radius choices remain within accessible layout bounds.
+  - **REFACTOR:** shared primitives own shape and elevation; page renderers select semantic variants instead of emitting CSS values.
+  - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), `tools/uxqual/tokens`, `tools/uxqual/render/journey`.
+
+- [ ] `UIPOLISH-004` **[P0][SOL_HIGH] Give each page and component an explicit scroll owner.**
+  - **Depends:** `WEB-023`, `WEB-037`, `WEB-047`, `UXAUDIT-008`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE; DIRECT=none; WHY=preserve navigation, context and focus while large server-backed regions scroll`.
+  - **TEST:** `TestTodo_UIPOLISH_004`.
+  - **TEST MATRIX:** `PRIMARY=TestTodo_UIPOLISH_004`; `BROWSER=TestTodo_UIPOLISH_004_Browser`; `ACCESSIBILITY=TestTodo_UIPOLISH_004_Accessibility`; `PERFORMANCE=TestTodo_UIPOLISH_004_Performance`; `REGRESSION=TestTodo_UIPOLISH_004_Regression`.
+  - **RED:** navigation scrolls with page content, page and table compete for the same gesture, horizontal overflow is hidden, sticky headers detach from columns, popovers create accidental body scroll, or a styled scrollbar intrudes into content.
+  - **GREEN:** the shell, navigation, page, table, drawer and overlay declare noncompeting scroll ownership; sticky headers and action bars remain within their container; focus is never hidden; keyboard, wheel, touch and RTL horizontal scrolling work; scrollbar size, contrast, gutter and edge placement use theme tokens and meet target requirements.
+  - **REFACTOR:** one scroll-region component owns overflow, shadows, restoration, reduced motion and accessible naming.
+  - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), `tools/uxqual/render/journey`, `tools/uxqual/productclient`.
+
+- [ ] `UIPOLISH-005` **[P0][TERRA] Qualify semantic color across light, dark and customer themes.**
+  - **Depends:** `WEB-013`, `WEB-021`, `WEB-024`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE; DIRECT=none; WHY=keep status, interaction and hierarchy perceivable under every admitted tenant theme`.
+  - **TEST:** `TestTodo_UIPOLISH_005`.
+  - **TEST MATRIX:** `PRIMARY=TestTodo_UIPOLISH_005`; `PROPERTY=TestTodo_UIPOLISH_005_Property`; `GOLDEN=TestTodo_UIPOLISH_005_Golden`; `BROWSER=TestTodo_UIPOLISH_005_Browser`; `ACCESSIBILITY=TestTodo_UIPOLISH_005_Accessibility`; `REGRESSION=TestTodo_UIPOLISH_005_Regression`.
+  - **RED:** dark-mode hover lowers contrast, accent color carries meaning alone, muted text becomes unreadable, selected rows merge with hover, or customer colors generate inaccessible text, focus, charts or status chips.
+  - **GREEN:** semantic foreground, background, border, action, focus, selection and multidimensional status pairs meet contrast in default and generated themes; hover, focus, active, selected, disabled and visited remain distinguishable without color alone; unsafe brand inputs are adjusted or refused with preview evidence.
+  - **REFACTOR:** components consume semantic tokens only; no raw brand or palette values outside the token compiler.
+  - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), `tools/uxqual/tokens`, `tools/uxqual/wcag`.
+
+- [ ] `UIPOLISH-006` **[P0][TERRA] Standardize control geometry and every interactive state.**
+  - **Depends:** `WEB-019`, `WEB-020`, `WEB-068`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE; DIRECT=none; WHY=make actions predictable and operable without changing their authorization`.
+  - **TEST:** `TestTodo_UIPOLISH_006`.
+  - **TEST MATRIX:** `PRIMARY=TestTodo_UIPOLISH_006`; `BROWSER=TestTodo_UIPOLISH_006_Browser`; `ACCESSIBILITY=TestTodo_UIPOLISH_006_Accessibility`; `SECURITY=TestTodo_UIPOLISH_006_Security`; `PERFORMANCE=TestTodo_UIPOLISH_006_Performance`; `REGRESSION=TestTodo_UIPOLISH_006_Regression`.
+  - **RED:** equivalent buttons and inputs vary in height, glyph-only actions lack tooltips or names, primary actions look secondary, hover and focus conflict, disabled controls lose explanatory affordance, or touch targets fall below the declared minimum.
+  - **GREEN:** button, link, field, select, checkbox, segmented control, menu item and icon action share density-aware geometry and complete default/hover/focus/active/loading/disabled/error/success states; primary hierarchy is limited and consistent; pointer and keyboard hit targets meet the accessibility contract.
+  - **REFACTOR:** all controls compose shared primitives and state tokens; pages provide labels, intent and authorization disposition only.
+  - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), `tools/uxqual/render/journey`, `tools/uxqual/wcag`.
+
+- [ ] `UIPOLISH-007` **[P0][TERRA] Apply a concise task-oriented product voice.**
+  - **Depends:** `WEB-043`, `WEB-045`, `UXAUDIT-006`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE; DIRECT=none; WHY=make every label and message answer what happened, why it matters and what the user can do next`.
+  - **TEST:** `TestTodo_UIPOLISH_007`.
+  - **TEST MATRIX:** `PRIMARY=TestTodo_UIPOLISH_007`; `GOLDEN=TestTodo_UIPOLISH_007_Golden`; `BROWSER=TestTodo_UIPOLISH_007_Browser`; `ACCESSIBILITY=TestTodo_UIPOLISH_007_Accessibility`; `I18N=TestTodo_UIPOLISH_007_I18N`; `REGRESSION=TestTodo_UIPOLISH_007_Regression`.
+  - **RED:** pages use vague headings, duplicate titles, unexplained acronyms, passive status copy, implementation vocabulary, inconsistent capitalization, ambiguous buttons such as `Continue`, or helper text longer than the task it explains.
+  - **GREEN:** the content standard defines naming, capitalization, tense, dates, Money, counts, empty states, confirmation, success, refusal and recovery patterns; headings are specific, buttons state the outcome, helper text is progressive, and terminology stays consistent across navigation, pages, notifications and localization.
+  - **REFACTOR:** locale keys represent semantic messages with structured parameters; components do not concatenate user-facing sentences.
+  - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), `tools/uxqual/i18n`, `internal/humanwork/workspace`.
+
+- [ ] `UIPOLISH-008` **[GATE_C][TERRA] Balance information density across tables, forms and object pages.**
+  - **Depends:** `WEB-015`, `WEB-093`, `UXAUDIT-008`, `UXAUDIT-016`, `UXAUDIT-021`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE; DIRECT=none; WHY=show the right amount of authorized information for scanning and decision making`.
+  - **TEST:** `TestTodo_UIPOLISH_008`.
+  - **TEST MATRIX:** `PRIMARY=TestTodo_UIPOLISH_008`; `BROWSER=TestTodo_UIPOLISH_008_Browser`; `ACCESSIBILITY=TestTodo_UIPOLISH_008_Accessibility`; `PERFORMANCE=TestTodo_UIPOLISH_008_Performance`; `I18N=TestTodo_UIPOLISH_008_I18N`; `REGRESSION=TestTodo_UIPOLISH_008_Regression`.
+  - **RED:** tables show too few rows, cards waste horizontal space, forms place unrelated fields side by side, repeated missing values dominate profiles, or responsive layouts collapse complex data into unreadable stacks.
+  - **GREEN:** comfortable and compact density tokens have measured row/control sizes; object pages lead with summaries and progressively disclose detail; form grouping follows decisions; responsive tables choose scroll, priority columns or list-detail based on data semantics; user density preference persists without overriding page safety.
+  - **REFACTOR:** density and field priority are component props backed by page definitions, not duplicated media-query rules.
+  - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), `tools/uxqual/render/page`, `tools/uxqual/render/journey`.
+
+- [ ] `UIPOLISH-009` **[P0][TERRA] Make loading, empty, error and success states visually stable and actionable.**
+  - **Depends:** `WEB-020`, `WEB-021`, `UXAUDIT-012`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE; DIRECT=none; WHY=communicate network and database effects without flicker, ambiguity or lost context`.
+  - **TEST:** `TestTodo_UIPOLISH_009`.
+  - **TEST MATRIX:** `PRIMARY=TestTodo_UIPOLISH_009`; `GOLDEN=TestTodo_UIPOLISH_009_Golden`; `BROWSER=TestTodo_UIPOLISH_009_Browser`; `ACCESSIBILITY=TestTodo_UIPOLISH_009_Accessibility`; `FAULT=TestTodo_UIPOLISH_009_Fault`; `PERFORMANCE=TestTodo_UIPOLISH_009_Performance`.
+  - **RED:** async regions flash blank, skeletons do not match final geometry, empty states look like failures, messages push the page, success disappears before it can be perceived, or retry duplicates a mutation.
+  - **GREEN:** shared async-region variants reserve geometry, distinguish first load from refresh, retain stale safe data when allowed, announce state politely, show a task-specific next action, preserve entered values and prevent duplicate submission; error and success placement remains stable at every supported latency.
+  - **REFACTOR:** one state machine and component family serves collection, detail, form and mutation regions.
+  - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), `tools/uxqual/latencygate`, `tools/uxqual/render/journey`.
+
+- [ ] `UIPOLISH-010` **[GATE_C][TERRA] Unify iconography, glyph meaning and brand substitution.**
+  - **Depends:** `WEB-017`, `WEB-038`, `WEB-039`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE; DIRECT=none; WHY=make glyphs recognizable and safely customizable without becoming the only carrier of meaning`.
+  - **TEST:** `TestTodo_UIPOLISH_010`.
+  - **TEST MATRIX:** `PRIMARY=TestTodo_UIPOLISH_010`; `GOLDEN=TestTodo_UIPOLISH_010_Golden`; `BROWSER=TestTodo_UIPOLISH_010_Browser`; `ACCESSIBILITY=TestTodo_UIPOLISH_010_Accessibility`; `SECURITY=TestTodo_UIPOLISH_010_Security`; `REGRESSION=TestTodo_UIPOLISH_010_Regression`.
+  - **RED:** the same glyph means different actions, icon sizes or strokes vary, collapsed navigation is unintelligible, decorative icons are announced, or a customer glyph pack can replace protected safety/status meanings.
+  - **GREEN:** the governed icon registry assigns one semantic name and accessible behavior per glyph; optical size, stroke and alignment are consistent; collapsed navigation provides names and tooltips; decorative glyphs are silent; customer packs can substitute allowed brand/navigation icons but not safety-critical semantics.
+  - **REFACTOR:** components request semantic icon IDs and never embed ad hoc SVG or Unicode arrows.
+  - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), `tools/uxqual/tokens`, `tools/uxqual/render/journey/icons.go`.
+
+- [ ] `UIPOLISH-011` **[GATE_C][TERRA] Apply restrained motion to navigation, overlays and async updates.**
+  - **Depends:** `WEB-018`, `WEB-027`, `WEB-035`.
+  - **INTENT CONTEXT:** `ROLE=EXPOSURE; SETS=BI.EXPERIENCE; DIRECT=none; WHY=clarify spatial and state change without delaying work or causing discomfort`.
+  - **TEST:** `TestTodo_UIPOLISH_011`.
+  - **TEST MATRIX:** `PRIMARY=TestTodo_UIPOLISH_011`; `BROWSER=TestTodo_UIPOLISH_011_Browser`; `ACCESSIBILITY=TestTodo_UIPOLISH_011_Accessibility`; `PERFORMANCE=TestTodo_UIPOLISH_011_Performance`; `REGRESSION=TestTodo_UIPOLISH_011_Regression`.
+  - **RED:** navigation snaps, popovers flicker across trigger gaps, new data flashes, large regions animate gratuitously, simultaneous transitions compete, or reduced-motion merely shortens rather than removes spatial movement.
+  - **GREEN:** tokenized motion covers menu collapse, drawer entry, popover origin, focus, list insertion, loading-to-content and status transition with interruption-safe durations; interaction never waits on animation; limited-motion uses opacity or instant state changes; every transition stays within frame and latency budgets.
+  - **REFACTOR:** shared components own motion states and tokens; business renderers do not schedule animations.
+  - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), `tools/uxqual/tokens`, `tools/uxqual/latencygate`.
+
+- [ ] `UIPOLISH-012` **[P0][SOL_HIGH] Gate every production page against the visual-design system.**
+  - **Depends:** `UIPOLISH-001`, `UIPOLISH-002`, `UIPOLISH-003`, `UIPOLISH-004`, `UIPOLISH-005`, `UIPOLISH-006`, `UIPOLISH-007`, `UIPOLISH-008`, `UIPOLISH-009`, `UIPOLISH-010`, `UIPOLISH-011`.
+  - **INTENT CONTEXT:** `ROLE=CONFORMANCE; SETS=BI.EXPERIENCE; DIRECT=none; WHY=prevent shared component and page composition from drifting below the product-quality bar`.
+  - **TEST:** `TestTodo_UIPOLISH_012`.
+  - **TEST MATRIX:** `PRIMARY=TestTodo_UIPOLISH_012`; `GOLDEN=TestTodo_UIPOLISH_012_Golden`; `BROWSER=TestTodo_UIPOLISH_012_Browser`; `ACCESSIBILITY=TestTodo_UIPOLISH_012_Accessibility`; `I18N=TestTodo_UIPOLISH_012_I18N`; `PERFORMANCE=TestTodo_UIPOLISH_012_Performance`; `REGRESSION=TestTodo_UIPOLISH_012_Regression`.
+  - **RED:** token tests pass while a production page still has inconsistent typography, spacing, shape, color, copy, scrolling, control state, density, motion or async presentation.
+  - **GREEN:** automated token and component checks plus direct Codex-browser review cover login and every authorized application page at 1440 px, 390 px and 320 px, 100% and 200% zoom, light/dark/high-contrast/reduced-motion, default and adversarial customer themes, en-US/de-DE/RTL, empty/loading/populated/error/success and keyboard-only states; visual baselines, contrast, overflow, target size, layout shift and interaction latency meet declared budgets with no unresolved severity-one or severity-two design finding.
+  - **REFACTOR:** baselines render production components and server states; no mock-only design system or page-specific exception may satisfy the gate.
+  - **Refs:** [frontend plan](specs/production-frontend-and-page-composition.md), `test/workspace`, `tools/uxqual/tokens`, `tools/uxqual/latencygate`, `tools/uxqual/wcag`.

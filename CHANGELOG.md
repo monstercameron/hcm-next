@@ -1,5 +1,43 @@
 # Changelog
 
+## 2026-09-12 (LEDGER-011)
+
+- Ledger payload disposition: retention, holds and crypto-erasure that cannot
+  falsify the record. A new append-only `ledger_payload_disposition` table
+  (migration 00285) records the decision; `ledger_event` itself is never
+  mutated, because it cannot be.
+
+  The failure this closes is that an erased payload used to be indistinguishable
+  from one that never existed -- both read back as a nil `Payload`. `EventRecord`
+  now carries an explicit `PayloadState` with no permissive zero value, and the
+  withholding happens on the **default** read path: `ReadStream` and `ReadEvent`
+  join the disposition table and withhold unconditionally, so the ten existing
+  callers across projection, provenance, rebuild, queryplans and the intent store
+  inherit it without opting in. The test reads back through the plain reader
+  rather than the new view precisely so an opt-in-only withholding would fail.
+
+  Chronology is proven preserved by name rather than in aggregate: all twenty
+  `ledger_event` columns are compared before and after and the failure names the
+  column that changed, and the real hash-chain verifier runs against PostgreSQL
+  on both sides with an identical head asserted. Erasure under an active legal
+  hold has no check-then-act gap -- it composes `recordsmeta.DisposeCopy`, which
+  evaluates the hold under the same `FOR UPDATE` lock that guards the write.
+
+- Known limits, recorded rather than implied: **crypto-erasure is modelled, not
+  real.** The append path never encrypts an inline payload, so there is no key to
+  destroy; the symbolic key reference is evidence that a governance decision was
+  made, not proof the bytes became unrecoverable. The payload bytes are never
+  physically zeroed for either mechanism -- impossible without abandoning
+  `ledger_event`'s append-only trigger and grants. Both mechanisms' real
+  guarantee is that the read layer never returns the bytes again.
+
+- Also in this commit: 52 new todos the user added across three sections --
+  live product UX audit remediation, promotion workflow live-audit remediation,
+  and visual-design and interaction polish. They were authored with a `[P1]`
+  phase, which is not in the registry's vocabulary and blocked registry
+  generation; the 23 affected entries were remapped to `[GATE_C]`, matching the
+  phase the other 120 WEB/UX todos already use.
+
 ## 2026-09-12 (EP-EVID-001)
 
 - `GetExecutionReceipt` and `ExportIntentEvidence` land in a new

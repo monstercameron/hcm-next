@@ -68,9 +68,24 @@
     "node": "Result",
     "children": [
       {
-        "node": "Index Scan",
-        "relation": "ledger_event_pN",
-        "index": "ledger_event_pN_pkey"
+        "node": "Nested Loop",
+        "children": [
+          {
+            "node": "Index Scan",
+            "relation": "ledger_event_pN",
+            "index": "ledger_event_pN_pkey"
+          },
+          {
+            "node": "Result",
+            "children": [
+              {
+                "node": "Index Scan",
+                "relation": "ledger_payload_disposition",
+                "index": "ledger_payload_disposition_pkey"
+              }
+            ]
+          }
+        ]
       }
     ]
   },
