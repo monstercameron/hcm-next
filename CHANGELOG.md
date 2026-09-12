@@ -1,5 +1,32 @@
 # Changelog
 
+## 2026-09-11 (INTG-015)
+
+- Close INTG-015: rate-aware fair connector scheduling. `internal/connectivity/
+operation` had no rate, quota, concurrency or throttle concept at all, and
+  `ProviderError` carried no reset/limit fields, so a provider 429 read as an
+  ordinary FAILURE and each one minted another retry. New `quota.go` adds
+  `ConnectorQuota`, `ConnectorPolicy` and `ConnectorLedger` with per-tenant,
+  per-resource, per-connection and criticality-reserved admission, `Observe429`
+  honouring the vendor's own reset time, and queue age plus predicted completion
+  on every decision. No migration needed.
+
+  Deliberately not built on `internal/data/outbox`'s EVENT-003 scheduler: a
+  connectivity kernel package importing a data-layer consumer package would
+  invert the module's layering, and the two need opposite defaults -- an unnamed
+  internal resource is unbounded, an unmeasured external vendor must not be. The
+  rejection/claim/release shape is kept parallel so they can be reconciled later
+  if a shared abstraction is ever justified.
+
+  Review caught the fail-open case before the tick: every check is gated on
+  `Limit > 0` / `MaxConcurrent > 0`, so a connection named in the policy map but
+  given no quota resolved to the zero value and admitted 50 of 50 reservations.
+  That is RED's "unknown quota assumes unlimited" landing on the struct's own
+  default -- a caller who sets a tenant share and has not yet looked up the
+  vendor's rate limit would have got unlimited vendor traffic. A wholly zero
+  quota now means UNDECLARED and resolves to `UnknownConnectorQuota`; a negative
+  bound is the explicit unbounded escape hatch. The FAULT test pins both.
+
 ## 2026-09-11 (EVENT-003)
 
 - Close EVENT-003: enforce queue priority, backpressure and one global retry
