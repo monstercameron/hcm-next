@@ -207,28 +207,36 @@ type WorkItem struct {
 }
 
 type Person struct {
-	ID                   string
-	WorkerID             string
-	Initials             string
-	PhotoURL             string
-	Name                 string
-	LegalName            string
-	PreferredName        string
-	Role                 string
-	Team                 string
-	Manager              string
-	Location             string
-	WorkerNumber         string
-	PromotionUnavailable bool
-	JobCode              string
-	Grade                string
-	PositionID           string
-	PayZone              string
-	BasePay              values.Money
-	BonusTarget          string
-	HireDate             string
-	Source               string
-	CreatedAt            string
+	ID            string
+	WorkerID      string
+	Initials      string
+	PhotoURL      string
+	Name          string
+	LegalName     string
+	PreferredName string
+	Role          string
+	Team          string
+	Manager       string
+	Location      string
+	WorkerNumber  string
+	// PromotionAvailability is the server's four-state promotion-workflow
+	// verdict for this worker (see ResolvePromotionAvailability). The zero
+	// value means no verdict was recorded and fails closed: no launchable
+	// action, and a generic non-revealing reason. The real read path
+	// (tools/uxqual/productclient) always sets an explicit code, and a
+	// fixture that wants the eligible rendering must say so, so that a
+	// caller which forgets this field can never silently offer a promotion
+	// the server never authorized.
+	PromotionAvailability PromotionAvailabilityCode
+	JobCode               string
+	Grade                 string
+	PositionID            string
+	PayZone               string
+	BasePay               values.Money
+	BonusTarget           string
+	HireDate              string
+	Source                string
+	CreatedAt             string
 	// normalized is an immutable client-side search/sort index populated once
 	// when a workforce projection arrives. Keeping it beside the projection
 	// avoids allocating lower-cased copies for every filter and sort render.
@@ -349,17 +357,22 @@ type View struct {
 	// NavigationProjection is nil only for isolated legacy/component previews.
 	// Once supplied, it owns discoverability and suppresses all registry
 	// fallback, including when its answer is empty or malformed.
-	NavigationProjection   *AuthorizedNavigationProjection
-	Work                   []WorkItem
-	People                 []Person
-	PersonWorkflows        []PersonWorkflow
-	SelectedWork           string
-	SelectedPerson         string
-	Query                  string
-	PeoplePage             int
-	PeoplePageSize         int
-	PeopleTeam             string
-	PeopleLocation         string
+	NavigationProjection *AuthorizedNavigationProjection
+	Work                 []WorkItem
+	People               []Person
+	PersonWorkflows      []PersonWorkflow
+	SelectedWork         string
+	SelectedPerson       string
+	Query                string
+	PeoplePage           int
+	PeoplePageSize       int
+	PeopleTeam           string
+	PeopleLocation       string
+	// PeopleEligibleOnly filters the directory to workers whose
+	// PromotionAvailability resolves to PromotionEligible for the current
+	// viewer, so an authorized reader can find candidates without knowing
+	// their names in advance.
+	PeopleEligibleOnly     bool
 	PeopleSort             string
 	PeopleDirection        string
 	OrganizationView       string

@@ -83,6 +83,23 @@ func ingestDemoPhotos(ctx context.Context, employees []demoworkforce.Employee, s
 		if !employee.HasProfilePhoto {
 			continue
 		}
+		if proxyName := filepath.Base(employee.PhotoProxyRef); proxyName != "" && proxyName != "." {
+			switch info, err := os.Stat(filepath.Join(assetDir, proxyName)); {
+			case err == nil && !info.IsDir() && info.Size() > 0:
+				// Already published. The checked-in proxy is the
+				// authoritative demo fixture; re-deriving it from the
+				// source photo and requiring byte-identical JPEG output
+				// would make seeding fail whenever the source photo has
+				// legitimately drifted by a few pixels (retouch,
+				// recompression) without anyone having changed the demo
+				// employee roster. The asset store's own publish path
+				// still fails closed on a genuine name collision for any
+				// proxy that is not already on disk.
+				continue
+			case err != nil && !os.IsNotExist(err):
+				return fmt.Errorf("inspect existing proxy for %s: %w", employee.PhotoSourceName, err)
+			}
+		}
 		sourcePath := filepath.Join(sourceDir, employee.PhotoSourceName)
 		file, err := os.Open(sourcePath)
 		if err != nil {

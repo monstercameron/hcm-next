@@ -32,9 +32,13 @@ type PeopleSummaryProps struct {
 // software navigation in the WASM client.
 type PeopleFilterProps struct {
 	I18nProps
-	Query        string
-	Team         string
-	Location     string
+	Query    string
+	Team     string
+	Location string
+	// EligibleOnly filters the directory to promotion-eligible workers
+	// (GREEN #1: the authorized directory can filter directly to them,
+	// rather than requiring a viewer to already know a candidate's name).
+	EligibleOnly bool
 	Teams        []PeopleFilterOption
 	Locations    []PeopleFilterOption
 	Sort         string
@@ -43,7 +47,7 @@ type PeopleFilterProps struct {
 	ClearHref    string
 	NavCollapsed bool
 	Navigate     func(string)
-	OnFilter     func(string, string, string)
+	OnFilter     func(query, team, location string, eligibleOnly bool)
 }
 
 type PeopleFilterOption struct {
@@ -115,6 +119,13 @@ type PeopleRowProps struct {
 	Href         string
 	QuickActions []PeopleQuickActionProps
 	Navigate     func(string)
+	// WorkflowsUnavailableReason is the server-provided explanation shown
+	// in place of the workflow menu when QuickActions is empty. GREEN #2:
+	// a bare, unexplained "no available workflows" never renders once the
+	// server has an availability verdict for this row; an empty reason
+	// here means QuickActions really is unconditionally empty (no server
+	// verdict was involved), not that one was suppressed silently.
+	WorkflowsUnavailableReason string
 }
 
 // PeopleQuickActionProps describes one employee-scoped workflow shortcut.
@@ -197,11 +208,12 @@ func PeopleSummary(props PeopleSummaryProps) ui.Node {
 
 // PeopleFilter renders an SSR-safe GET filter with an optional live callback.
 func PeopleFilter(props PeopleFilterProps) ui.Node {
-	query, team, location := props.Query, props.Team, props.Location
+	query, team, location, eligibleOnly := props.Query, props.Team, props.Location, props.EligibleOnly
 	inputProps := html.Props{
 		ID: "people-filter", Name: "q", Value: props.Query,
 		Raw: map[string]any{"type": "search", "placeholder": props.Text("people.filter_placeholder"), "aria-label": props.Text("people.filter_aria")},
 	}
+	eligibleProps := html.Props{ID: "people-eligible-filter", Type: "checkbox", Name: "eligible", Value: "1", Checked: props.EligibleOnly, Aria: map[string]string{"label": props.Text("people.eligible_only")}}
 	formProps := html.Props{Class: "people-filter", Action: props.Action, Method: "get", Raw: map[string]any{"role": "search"}}
 	if props.OnFilter != nil {
 		inputProps.OnInput = ui.UseEvent(func(event ui.InputEvent) { query = event.GetValue() })
@@ -210,19 +222,21 @@ func PeopleFilter(props PeopleFilterProps) ui.Node {
 		locationProps := html.Props{ID: "people-location-filter", Name: "location", Value: location, Raw: map[string]any{"aria-label": props.Text("people.location_aria")}}
 		teamProps.OnChange = ui.UseEvent(func(event ui.InputEvent) { team = event.GetValue() })
 		locationProps.OnChange = ui.UseEvent(func(event ui.InputEvent) { location = event.GetValue() })
+		eligibleProps.OnChange = ui.UseEvent(func(ui.InputEvent) { eligibleOnly = !eligibleOnly })
 		formProps.OnSubmit = ui.UseEvent(func(event ui.FormEvent) {
 			event.PreventDefault()
-			onFilter(query, team, location)
+			onFilter(query, team, location, eligibleOnly)
 		})
-		return peopleFilterForm(props, inputProps, teamProps, locationProps, formProps)
+		return peopleFilterForm(props, inputProps, teamProps, locationProps, eligibleProps, formProps)
 	}
 	return peopleFilterForm(props, inputProps,
 		html.Props{ID: "people-team-filter", Name: "team", Value: team, Raw: map[string]any{"aria-label": props.Text("people.team_aria")}},
 		html.Props{ID: "people-location-filter", Name: "location", Value: location, Raw: map[string]any{"aria-label": props.Text("people.location_aria")}},
+		eligibleProps,
 		formProps)
 }
 
-func peopleFilterForm(props PeopleFilterProps, inputProps, teamProps, locationProps, formProps html.Props) ui.Node {
+func peopleFilterForm(props PeopleFilterProps, inputProps, teamProps, locationProps, eligibleProps, formProps html.Props) ui.Node {
 	teamOptions := []ui.Node{html.Option(html.Props{Value: "", Selected: props.Team == ""}, ui.Text(props.Text("people.all_teams")))}
 	for _, option := range props.Teams {
 		teamOptions = append(teamOptions, html.Option(html.Props{Value: option.Value, Selected: props.Team == option.Value}, ui.Text(option.Label)))
@@ -232,7 +246,7 @@ func peopleFilterForm(props PeopleFilterProps, inputProps, teamProps, locationPr
 		locationOptions = append(locationOptions, html.Option(html.Props{Value: option.Value, Selected: props.Location == option.Value}, ui.Text(option.Label)))
 	}
 	actions := []ui.Node{html.Button(html.Props{Class: "button primary", Type: "submit"}, ui.Text(props.Text("people.filter")))}
-	if props.Query != "" || props.Team != "" || props.Location != "" {
+	if props.Query != "" || props.Team != "" || props.Location != "" || props.EligibleOnly {
 		actions = append(actions, softwareLink(props.Navigate, html.Props{Class: "button secondary"}, props.ClearHref, ui.Text(props.Text("people.clear"))))
 	}
 	children := []ui.Node{
@@ -241,6 +255,8 @@ func peopleFilterForm(props PeopleFilterProps, inputProps, teamProps, locationPr
 			html.Tag("input", inputProps),
 			html.Select(teamProps, teamOptions...),
 			html.Select(locationProps, locationOptions...),
+			html.Label(html.Props{Class: "people-eligible-filter-label", For: "people-eligible-filter"},
+				html.Tag("input", eligibleProps), ui.Text(props.Text("people.eligible_only"))),
 			html.Div(html.Props{Class: "people-filter-actions"}, actions...),
 		),
 	}
@@ -377,7 +393,15 @@ func peopleDataTableRow(props PeopleRowProps) DataTableRowProps {
 			Raw:   map[string]any{"title": action.AccessibleLabel},
 		}, action.Href, ui.Text(label))))
 	}
-	workflowMenu := ui.Node(html.Span(html.Props{Class: "muted"}, ui.Text(props.Text("people.no_workflows"))))
+	// GREEN #2: the empty-menu fallback always carries the server's reason
+	// when one was resolved; only a genuinely unconditional empty
+	// QuickActions list (no availability verdict computed at all) falls
+	// back to the bare, unexplained label.
+	noWorkflowsLabel := props.WorkflowsUnavailableReason
+	if noWorkflowsLabel == "" {
+		noWorkflowsLabel = props.Text("people.no_workflows")
+	}
+	workflowMenu := ui.Node(html.Span(html.Props{Class: "muted"}, ui.Text(noWorkflowsLabel)))
 	if len(actions) > 0 {
 		workflowMenu = ui.CreateElement(TransientPopover, TransientPopoverProps{
 			Kind: "people-workflows", Class: "people-workflow-menu", TriggerClass: "button secondary people-row-action",

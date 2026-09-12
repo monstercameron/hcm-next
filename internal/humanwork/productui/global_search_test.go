@@ -9,7 +9,7 @@ import (
 
 func TestPromotionUnavailableHidesActionButNotPerson(t *testing.T) {
 	view := testView(PagePeople)
-	view.People[0].PromotionUnavailable = true
+	view.People[0].PromotionAvailability = PromotionIneligible
 	person := view.People[0]
 	for _, item := range globalSearchItems(view) {
 		if item.ID == "action:promotion:"+person.ID {

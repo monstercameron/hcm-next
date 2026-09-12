@@ -1,5 +1,43 @@
 # Changelog
 
+## 2026-09-12 (PROMOUX-001)
+
+- The People directory can now tell you _why_ a worker has no promotion
+  available, and can filter to the ones that do. Verified in a real browser
+  against the running server, which this todo's section requires: 65 people,
+  a `Promotion-eligible only` filter, workflow menus on eligible workers, and
+  on the rest a server-provided reason instead of the bare `No available
+workflows` string the audit found. `?eligible=1` narrows to 38 rows, all of
+  them actionable.
+
+  The cause was not a business rule refusing anything. `workforceOptions()`
+  published promotion paths only from the fixed four-worker corpus, whose job
+  codes do not overlap the sixty demo-workforce codes, so every seeded worker
+  resolved zero choices for a structural catalog reason that rendered
+  identically to ineligibility. The demo company's own computed ladder now
+  feeds the same contract.
+
+  Enumeration leakage is closed in both directions.
+  `ResolvePromotionAvailability` checks authorization first and exhaustively,
+  so every worker collapses to one withheld code for an unauthorized viewer;
+  the security test drives three underlying states through such a viewer and
+  requires exactly one distinct reason string, then requires ineligible and
+  active-conflict to stay distinguishable for an authorized one.
+
+- Closed a zero-value trap during review: an unset `PromotionAvailability`
+  was treated as eligible, and the regression test asserted that an
+  unevaluated worker got a launchable action and no reason at all. Any future
+  page or partial projection that forgot the field would have offered a
+  promotion nobody authorized. The gate now requires an explicit verdict.
+
+- Two independent defects fixed alongside. `demo-people` could not seed at
+  all, because photo ingestion demanded bit-identical regeneration of proxies
+  whose checked-in bytes had drifted; it now trusts an already-published
+  tracked proxy, and no tracked asset bytes were changed. And
+  `workeridstore.Store.Reserve` self-committed while the worker row was
+  inserted in a separate later transaction, so a failure between them
+  permanently orphaned a worker number in an append-only table.
+
 ## 2026-09-12 (LEDGER-011)
 
 - Ledger payload disposition: retention, holds and crypto-erasure that cannot

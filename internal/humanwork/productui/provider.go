@@ -5,35 +5,36 @@ import "strings"
 // PageRequest is transport-neutral navigation state. A production provider can
 // resolve it through gRPC-backed projections without changing any component.
 type PageRequest struct {
-	Page             PageID
-	Locale           string
-	Query            string
-	PeoplePage       int
-	PeoplePageSize   int
-	PeopleTeam       string
-	PeopleLocation   string
-	PeopleSort       string
-	PeopleDirection  string
-	OrganizationView string
-	WorkflowQuery    string
-	HistoryQuery     string
-	HistoryOutcome   string
-	HistoryPerson    string
-	HistoryYear      string
-	HistorySort      string
-	HistoryDirection string
-	HistoryPage      int
-	HistoryPageSize  int
-	Mode             string
-	SelectedWork     string
-	SelectedPerson   string
-	WorkFilter       string
-	JourneyID        string
-	JourneyWorker    string
-	JourneyMode      string
-	NavCollapsed     bool
-	MenuQuery        string
-	FavoritePages    []PageID
+	Page               PageID
+	Locale             string
+	Query              string
+	PeoplePage         int
+	PeoplePageSize     int
+	PeopleTeam         string
+	PeopleLocation     string
+	PeopleEligibleOnly bool
+	PeopleSort         string
+	PeopleDirection    string
+	OrganizationView   string
+	WorkflowQuery      string
+	HistoryQuery       string
+	HistoryOutcome     string
+	HistoryPerson      string
+	HistoryYear        string
+	HistorySort        string
+	HistoryDirection   string
+	HistoryPage        int
+	HistoryPageSize    int
+	Mode               string
+	SelectedWork       string
+	SelectedPerson     string
+	WorkFilter         string
+	JourneyID          string
+	JourneyWorker      string
+	JourneyMode        string
+	NavCollapsed       bool
+	MenuQuery          string
+	FavoritePages      []PageID
 }
 
 // ApplyRequest applies address-bar presentation state to a live projection.
@@ -49,6 +50,7 @@ func ApplyRequest(view View, request PageRequest) View {
 	view.PeoplePageSize = normalizePageSize(request.PeoplePageSize)
 	view.PeopleTeam = strings.TrimSpace(request.PeopleTeam)
 	view.PeopleLocation = strings.TrimSpace(request.PeopleLocation)
+	view.PeopleEligibleOnly = request.PeopleEligibleOnly
 	view.PeopleSort = normalizePeopleSort(request.PeopleSort)
 	view.PeopleDirection = normalizePeopleDirection(request.PeopleDirection)
 	view.OrganizationView = normalizeOrganizationView(request.OrganizationView)

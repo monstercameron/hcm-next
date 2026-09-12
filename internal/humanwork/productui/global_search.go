@@ -161,7 +161,7 @@ func globalSearchItems(view View) []GlobalSearchItem {
 			if !DiscoveryAdmitted(person.ID, view.RecordVerdicts) {
 				continue
 			}
-			if person.PromotionUnavailable {
+			if !personPromotionEligible(person) {
 				continue
 			}
 			items = append(items, GlobalSearchItem{

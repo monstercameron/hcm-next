@@ -149,7 +149,7 @@ func filteredPeople(view View) []Person {
 	team := strings.ToLower(strings.TrimSpace(view.PeopleTeam))
 	location := strings.ToLower(strings.TrimSpace(view.PeopleLocation))
 	population := admittedPeople(view)
-	if query == "" && team == "" && location == "" {
+	if query == "" && team == "" && location == "" && !view.PeopleEligibleOnly {
 		return population
 	}
 	result := make([]Person, 0, len(population))
@@ -164,9 +164,22 @@ func filteredPeople(view View) []Person {
 		if location != "" && index.location != location {
 			continue
 		}
+		if view.PeopleEligibleOnly && !personPromotionEligible(person) {
+			continue
+		}
 		result = append(result, person)
 	}
 	return result
+}
+
+// personPromotionEligible reports whether the server actually said this
+// worker is promotable. Only an explicit PromotionEligible qualifies: the
+// zero value means no server verdict was recorded, and an unevaluated
+// worker fails closed rather than rendering a launchable promotion action
+// nobody authorized. Treating "" as eligible would make every future caller
+// that forgets to set the field silently offer the action.
+func personPromotionEligible(person Person) bool {
+	return person.PromotionAvailability == PromotionEligible
 }
 
 func sortedPeople(people []Person, field, direction string) []Person {

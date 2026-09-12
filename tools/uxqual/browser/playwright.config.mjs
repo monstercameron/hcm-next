@@ -27,6 +27,13 @@ export default defineConfig({
   use: {
     colorScheme: "light",
     reducedMotion: "reduce",
+    // Specs that drive the live dev cell (rather than a file:// fixture) use
+    // relative paths and resolve them against this. Reading the override here
+    // keeps process.env in the config module, which is the only place the
+    // repository's process-env-boundary rule allows it. 127.0.0.1 rather than
+    // localhost on purpose: the workspace session cookie is bound to the host
+    // the dev login was performed against, and the two are distinct origins.
+    baseURL: process.env.HCMNEXT_DEV_URL ?? "http://127.0.0.1:8080",
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
 });

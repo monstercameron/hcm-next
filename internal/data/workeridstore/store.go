@@ -93,48 +93,85 @@ func (s *Store) Save(ctx context.Context, tenant values.TenantId, organization, 
 }
 
 func (s *Store) Reserve(ctx context.Context, tenant values.TenantId, organization, actor string, fc workerids.FormatContext) (string, error) {
+	var reserved string
+	err := s.withTenant(ctx, tenant, func(tx dbport.Tx, tenantID uuid.UUID) error {
+		var reserveErr error
+		reserved, reserveErr = reserveInTx(ctx, tx, tenantID, organization, actor, fc)
+		return reserveErr
+	})
+	return reserved, err
+}
+
+// ReserveTx reserves the next available worker number the same way Reserve
+// does, but against a transaction the caller already opened, tenant-scoped
+// and will itself commit or roll back.
+//
+// It exists for a caller that must insert the row a reservation names in the
+// same transaction as the reservation itself -- journeyEngine.CreateWorker,
+// specifically. Reserve's own withTenant commits as soon as the number is
+// reserved, so a caller that reserved through Reserve and then failed to
+// insert the worker row (a distinct, later transaction) left the number
+// permanently and uselessly burned: the reservation table is append-only by
+// design (worker_id_reservation_append_only), so there is no way to release
+// it afterward, and unlike the deliberate gaps a cancelled hiring workflow
+// leaves, this is a construction-failure artifact, not an intentional record.
+// ReserveTx closes that window: if the caller's transaction rolls back for
+// any reason, this reservation rolls back with it.
+func (s *Store) ReserveTx(ctx context.Context, tx dbport.Tx, tenantID uuid.UUID, organization, actor string, fc workerids.FormatContext) (string, error) {
+	if s == nil {
+		return "", workerids.ErrUnavailable
+	}
+	if tx == nil || tenantID == uuid.Nil {
+		return "", workerids.ErrInvalid
+	}
+	return reserveInTx(ctx, tx, tenantID, organization, actor, fc)
+}
+
+// reserveInTx is Reserve and ReserveTx's shared core: it assumes tx is
+// already tenant-scoped (tenancy.WithTenant) and leaves committing or
+// rolling back entirely to the caller.
+func reserveInTx(ctx context.Context, tx dbport.Tx, tenantID uuid.UUID, organization, actor string, fc workerids.FormatContext) (string, error) {
 	organization, actor = strings.TrimSpace(organization), strings.TrimSpace(actor)
 	if organization == "" || actor == "" {
 		return "", workerids.ErrInvalid
 	}
+	d := workerids.DefaultPolicy()
+	_, err := tx.Exec(ctx, `INSERT INTO organization_worker_id_policy (tenant_id,organization_scope_id,updated_by) VALUES ($1,$2,$3) ON CONFLICT DO NOTHING`, tenantID, organization, actor)
+	if err != nil {
+		return "", err
+	}
+	p := d
+	p.OrganizationScopeID = organization
+	if err := scanPolicy(tx.QueryRow(ctx, `SELECT `+columns+` FROM organization_worker_id_policy WHERE tenant_id=$1 AND organization_scope_id=$2 FOR UPDATE`, tenantID, organization), &p); err != nil {
+		return "", err
+	}
 	var reserved string
-	err := s.withTenant(ctx, tenant, func(tx dbport.Tx, tenantID uuid.UUID) error {
-		d := workerids.DefaultPolicy()
-		_, err := tx.Exec(ctx, `INSERT INTO organization_worker_id_policy (tenant_id,organization_scope_id,updated_by) VALUES ($1,$2,$3) ON CONFLICT DO NOTHING`, tenantID, organization, actor)
-		if err != nil {
-			return err
+	for attempts := 0; attempts < 10000; attempts++ {
+		sequence := p.NextSequence
+		p.NextSequence += p.IncrementBy
+		candidate, formatErr := workerids.Format(p, sequence, fc)
+		if formatErr != nil {
+			return "", formatErr
 		}
-		p := d
-		p.OrganizationScopeID = organization
-		if err := scanPolicy(tx.QueryRow(ctx, `SELECT `+columns+` FROM organization_worker_id_policy WHERE tenant_id=$1 AND organization_scope_id=$2 FOR UPDATE`, tenantID, organization), &p); err != nil {
-			return err
+		if workerids.IsExcluded(p, sequence) {
+			continue
 		}
-		for attempts := 0; attempts < 10000; attempts++ {
-			sequence := p.NextSequence
-			p.NextSequence += p.IncrementBy
-			candidate, formatErr := workerids.Format(p, sequence, fc)
-			if formatErr != nil {
-				return formatErr
-			}
-			if workerids.IsExcluded(p, sequence) {
-				continue
-			}
-			affected, insertErr := tx.Exec(ctx, `INSERT INTO worker_id_reservation (tenant_id,organization_scope_id,worker_number,sequence_value,reserved_by) VALUES ($1,$2,$3,$4,$5) ON CONFLICT DO NOTHING`, tenantID, organization, candidate, sequence, actor)
-			if insertErr != nil {
-				return insertErr
-			}
-			if affected == 1 {
-				reserved = candidate
-				break
-			}
+		affected, insertErr := tx.Exec(ctx, `INSERT INTO worker_id_reservation (tenant_id,organization_scope_id,worker_number,sequence_value,reserved_by) VALUES ($1,$2,$3,$4,$5) ON CONFLICT DO NOTHING`, tenantID, organization, candidate, sequence, actor)
+		if insertErr != nil {
+			return "", insertErr
 		}
-		if reserved == "" {
-			return workerids.ErrExhausted
+		if affected == 1 {
+			reserved = candidate
+			break
 		}
-		_, err = tx.Exec(ctx, `UPDATE organization_worker_id_policy SET next_sequence=$3,updated_at=clock_timestamp() WHERE tenant_id=$1 AND organization_scope_id=$2`, tenantID, organization, p.NextSequence)
-		return err
-	})
-	return reserved, err
+	}
+	if reserved == "" {
+		return "", workerids.ErrExhausted
+	}
+	if _, err := tx.Exec(ctx, `UPDATE organization_worker_id_policy SET next_sequence=$3,updated_at=clock_timestamp() WHERE tenant_id=$1 AND organization_scope_id=$2`, tenantID, organization, p.NextSequence); err != nil {
+		return "", err
+	}
+	return reserved, nil
 }
 
 func scanPolicy(row dbport.Row, p *workerids.Policy) error {
