@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-09-12 (OBS-007)
+
+- Tick OBS-007. The owned-alert incident routing in
+  `internal/application/incident_alerts.go` was already implemented with all
+  four matrix tests present and passing; it simply sat unticked. No behaviour
+  changed.
+
+  Verified against the contract rather than accepted on a green run. Both RED
+  clauses are asserted directly: a policy with no PrimaryOwner fails with
+  ErrNoOwner, one with no SecondaryRoute fails with ErrNoRoute. The integration
+  test drives the storm path against StormLimit/StormWindow and the store's own
+  semantic dedupe fence, so a repeated condition does not open a second
+  incident. RouteOwnedAlert refuses a tampered alert on a digest mismatch before
+  any routing happens, and DetectOwnedAlerts refuses a nil detector rather than
+  silently returning an empty set -- which would have looked like "no alerts"
+  instead of "no detector".
+
 ## 2026-09-12 (CONN-RT-008)
 
 - Close CONN-RT-008: certify connector maturity with an automated conformance

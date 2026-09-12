@@ -9165,7 +9165,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **Refs:** [Operations models](data/models/operations-production.md), [incident management](specs/incident-management.md).
   - **Evidence (2026-09-03):** `TestTodo_OBS_006`, `_Integration`, `_Mutation` in `internal/platform/telemetry` (`Check(required, sink, faults, now)` over a read-only sink: UNKNOWN on nil sink, DEGRADED on any missing signal or fault, never HEALTHY on incomplete evidence); `go test -count=1 ./internal/platform/telemetry/...` PASS; branch plan-revision-2026-09-02; on windows/arm64 (Go 1.26.3).
 
-- [ ] `OBS-007` **[GATE_B][SOL_HIGH] Route owned alerts into incident and on-call workflows.**
+- [x] `OBS-007` **[GATE_B][SOL_HIGH] Route owned alerts into incident and on-call workflows.**
   - **Depends:** `OBS-005`, `OBS-006`, `OPS-004`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.OPERATIONS; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_OBS_007`.
@@ -9174,6 +9174,7 @@ EXTERNAL_ONLY         observation/reference only; never silently persisted as tr
   - **GREEN:** Deduped condition creates scoped incident, primary/secondary route, acknowledgement and customer-safe evidence without exposing tenant data.
   - **REFACTOR:** Keep the tested contract behind its semantic owner, remove duplication and rerun the named unit, integration, conformance, race, fuzz, security and recovery suites that apply without changing observable behavior.
   - **Refs:** [Incident management](specs/incident-management.md), [messaging plane](specs/messaging-and-notification-plane.md).
+  - **Evidence (2026-09-12):** `TestTodo_OBS_007`, `TestTodo_OBS_007_Race`, `TestTodo_OBS_007_Integration` and `TestTodo_OBS_007_Security` in `internal/application` (`incident_alerts.go`: `DetectOwnedAlerts`, `RouteOwnedAlert`, `AcknowledgeIncident`, `IncidentRoutePolicy`, `TrustedRoutedAlert`); `go test -count=1 -run TestTodo_OBS_007 ./internal/application/` PASS on windows/arm64 (Go 1.26.3); branch main. No behaviour was changed: this todo was implemented but unticked, which reads as work nobody started. Verified against the contract rather than accepted on a green run -- both RED clauses are asserted directly in the primary test, a policy with no `PrimaryOwner` failing with `incidentstate.ErrNoOwner` and one with no `SecondaryRoute` failing with `incidentstate.ErrNoRoute`, while the integration test drives the storm path against `StormLimit`/`StormWindow` and the store's own semantic dedupe fence so a repeated condition does not open a second incident. `RouteOwnedAlert` refuses a tampered alert with `ErrIncidentAlertTampered` on a digest mismatch before any routing happens, and `DetectOwnedAlerts` refuses a nil detector with `ErrIncidentAlertInvalid` rather than silently returning an empty set.
 
 - [ ] `OBS-008` **[GATE_B][SOL_HIGH] Publish observability evidence and outage runbooks.**
   - **Depends:** `OBS-003`, `OBS-004`, `OBS-005`, `OBS-006`, `OBS-007`, `RECOVERY-002`.
