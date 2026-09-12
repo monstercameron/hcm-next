@@ -94,6 +94,7 @@ type ConnectorPolicy struct {
 const (
 	ScheduleReasonAlreadyReserved       = "ALREADY_RESERVED"
 	ScheduleReasonRateLimited           = "RATE_LIMITED"
+	ScheduleReasonServerFault           = "SERVER_FAULT_BACKOFF"
 	ScheduleReasonConcurrencyLimited    = "CONCURRENCY_LIMITED"
 	ScheduleReasonTenantShareExceeded   = "TENANT_SHARE_EXCEEDED"
 	ScheduleReasonResourceShareExceeded = "RESOURCE_SHARE_EXCEEDED"
@@ -194,15 +195,16 @@ type connectorClaim struct {
 // in for concurrent dispatch workers share one ledger so a connection's
 // quota is enforced across all of them, not per caller.
 type ConnectorLedger struct {
-	mu             sync.Mutex
-	policy         map[string]ConnectorPolicy
-	inFlight       map[string]int
-	byTenant       map[string]map[string]int
-	byResource     map[string]map[string]int
-	lowPriority    map[string]int
-	windows        map[string]*connectorWindow
-	throttledUntil map[string]time.Time
-	claims         map[uuid.UUID]connectorClaim
+	mu               sync.Mutex
+	policy           map[string]ConnectorPolicy
+	inFlight         map[string]int
+	byTenant         map[string]map[string]int
+	byResource       map[string]map[string]int
+	lowPriority      map[string]int
+	windows          map[string]*connectorWindow
+	throttledUntil   map[string]time.Time
+	serverFaultUntil map[string]time.Time
+	claims           map[uuid.UUID]connectorClaim
 }
 
 // NewConnectorLedger builds a ledger from the configured per-connection
@@ -214,14 +216,15 @@ func NewConnectorLedger(policy map[string]ConnectorPolicy) *ConnectorLedger {
 		p[connection] = cp
 	}
 	return &ConnectorLedger{
-		policy:         p,
-		inFlight:       make(map[string]int),
-		byTenant:       make(map[string]map[string]int),
-		byResource:     make(map[string]map[string]int),
-		lowPriority:    make(map[string]int),
-		windows:        make(map[string]*connectorWindow),
-		throttledUntil: make(map[string]time.Time),
-		claims:         make(map[uuid.UUID]connectorClaim),
+		policy:           p,
+		inFlight:         make(map[string]int),
+		byTenant:         make(map[string]map[string]int),
+		byResource:       make(map[string]map[string]int),
+		lowPriority:      make(map[string]int),
+		windows:          make(map[string]*connectorWindow),
+		throttledUntil:   make(map[string]time.Time),
+		serverFaultUntil: make(map[string]time.Time),
+		claims:           make(map[uuid.UUID]connectorClaim),
 	}
 }
 
@@ -289,6 +292,36 @@ func (l *ConnectorLedger) ThrottledUntil(connection string) (time.Time, bool) {
 	return until, ok
 }
 
+// ObserveServerFault folds a provider-side 5xx/server-error signal into the
+// ledger, deliberately distinct from Observe429: a 5xx carries no vendor-
+// declared reset the way a 429's Retry-After does, so the backoff here is a
+// bound this package chooses, never a promise the provider made. It is kept
+// in its own map rather than reusing throttledUntil so a 429 and a 5xx
+// observed on the same connection are never conflated -- a monitoring
+// caller (or the SECURITY test) can tell "the vendor said stop" from "the
+// vendor is broken" apart, and a later real 429 reset cannot silently erase
+// an unrelated fault backoff or vice versa. Every admission attempt for
+// connection is refused until now+backoff, exactly like a 429, which is
+// what stops a 5xx storm from multiplying retries the same way Observe429
+// stops a 429 storm.
+func (l *ConnectorLedger) ObserveServerFault(connection string, now time.Time, backoff time.Duration) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	if backoff <= 0 {
+		backoff = time.Second
+	}
+	l.serverFaultUntil[connection] = now.Add(backoff)
+}
+
+// ServerFaultUntil reports the self-chosen backoff deadline for a
+// connection after a server-side fault, if one is currently in effect.
+func (l *ConnectorLedger) ServerFaultUntil(connection string) (time.Time, bool) {
+	l.mu.Lock()
+	defer l.mu.Unlock()
+	until, ok := l.serverFaultUntil[connection]
+	return until, ok
+}
+
 // TryReserve reserves one slot for candidate against its connection's
 // quota, honoring the connection-wide concurrency cap, the connection's
 // rolling rate window, any active provider-reported 429 backoff, the
@@ -307,6 +340,9 @@ func (l *ConnectorLedger) TryReserve(now time.Time, c ScheduleCandidate) (bool, 
 	}
 	if until, throttled := l.throttledUntil[c.ConnectionID]; throttled && now.Before(until) {
 		return false, ScheduleReasonRateLimited
+	}
+	if until, faulted := l.serverFaultUntil[c.ConnectionID]; faulted && now.Before(until) {
+		return false, ScheduleReasonServerFault
 	}
 	policy, _ := l.policyFor(c.ConnectionID)
 	quota := policy.Quota
@@ -435,8 +471,13 @@ func (l *ConnectorLedger) Schedule(now time.Time, candidates []ScheduleCandidate
 			pos := deferredPosition[c.ConnectionID]
 			deferredPosition[c.ConnectionID] = pos + 1
 			predicted := predictConnectorCompletion(now, pos, l.quotaFor(c.ConnectionID))
-			if reason == ScheduleReasonRateLimited {
+			switch reason {
+			case ScheduleReasonRateLimited:
 				if until, throttled := l.ThrottledUntil(c.ConnectionID); throttled && until.After(now) {
+					predicted = until
+				}
+			case ScheduleReasonServerFault:
+				if until, faulted := l.ServerFaultUntil(c.ConnectionID); faulted && until.After(now) {
 					predicted = until
 				}
 			}
