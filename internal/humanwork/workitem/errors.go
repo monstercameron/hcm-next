@@ -51,6 +51,12 @@ const (
 	// CodeStorageFailed reports a database failure underneath a well-formed
 	// request.
 	CodeStorageFailed = "STORAGE_FAILED"
+	// CodeStaleProposal reports EP-WORK-003's own conformance clause: the
+	// caller's asserted proposal revision no longer matches the approval work
+	// item's current one. It is evaluated before the current-authority
+	// recheck: a decision bound to a proposal that has since moved must never
+	// reach authority evaluation, let alone the CAS.
+	CodeStaleProposal = "STALE_PROPOSAL"
 )
 
 // Error is one typed refusal, naming the code, the work item it happened at,
