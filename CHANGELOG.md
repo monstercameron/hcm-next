@@ -1,5 +1,22 @@
 # Changelog
 
+## 2026-09-12 (DATAOPS-005, ARCH-GO-019)
+
+- Ticked two more todos the sweep found built but unrecorded. No behaviour
+  changed in either; both verified against their contracts.
+
+  DATAOPS-005 enforces RED's replay clause by content addressing rather than
+  convention: rowDigest binds the header digest into every row id, the batch
+  digest binds source, schema and retrieval time, and tests fail if two stagings
+  of identical input produce different digests or identical inputs reproduce
+  different error sets. It also closes the zero-value trap at the type level --
+  "SourceKindUnspecified is the zero value and is never legal".
+
+  ARCH-GO-019 makes RED's second clause a named diagnostic rather than an
+  inference: DuplicateDomainOwner reports "domain package X is also owned by
+  process Y", so a split that quietly duplicates ownership is refused with the
+  offending pair named.
+
 ## 2026-09-12 (CONFORMANCE reconciliation)
 
 - Ticked the five CONFORMANCE todos the backlog sweep identified as built but

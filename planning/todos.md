@@ -1219,7 +1219,7 @@ accessibility / delegation / representation / human escalation
   - **REFACTOR:** generated manifest explains why every included package is necessary for the wedge and which deferred package gate would add it.
   - **Refs:** [Execution plan](execution-plan.md), [Phase 1 scope](plan.md#phase-1-changeops-overlay).
 
-- [ ] `ARCH-GO-019` **[GATE_C][SOL_HIGH] Require evidence before module, process or service decomposition.**
+- [x] `ARCH-GO-019` **[GATE_C][SOL_HIGH] Require evidence before module, process or service decomposition.**
   - **Implementation evidence (2026-09-08; commit gates pending):** `TestDecompositionDecisionRejectsTopologyDrivenSplit` and the named matrix cover topology-only refusal, fixed golden bytes, concurrent checks, boundary inventory and mutation. Additional regressions reject baseline additions, YAML alias/resource hiding, invented ownership and missing/tampered evidence. All decision entry points require v2 and integer-minor-unit costs; `TestCheckFileRejectsMissingVersionAndFloatMoney` rejects legacy bypasses. The CLI verifies repository-contained SHA-256-pinned sources. Independent `go test -count=1 -cover ./tools/quality/decomposition/` PASS at 77.8%; `go test -count=1 -run 'Decomposition|Inventory' ./tools/quality/` PASS; `npm run check:decomposition` PASS with exactly ten grandfathered boundaries and no reviewed additions. The command is wired into `test:all` and CI; no new process or service is approved by this evidence.
   - **Depends:** `ARCH-GO-003`, `PERF-ENV-001`, `OPS-007`.
   - **INTENT CONTEXT:** `ROLE=SUBSTRATE; SETS=BI.ALL; DIRECT=none; WHY=provide reusable execution mechanics required by the declared intent set`.
@@ -1229,6 +1229,7 @@ accessibility / delegation / representation / human escalation
   - **GREEN:** decision requires measured scaling/failure/security/residency/release/ownership boundary, API/event consistency contract, data authority, failure/repair model, migration/rollback, added operational cost and proof the modular monolith cannot meet the constraint safely.
   - **REFACTOR:** prefer assigning another worker role or scaling an existing process before creating a remote boundary.
   - **Refs:** [Platform architecture](specs/platform-architecture-catalog.md), [SLOs](specs/slo-sli-error-budget.md), [risk register](specs/risk-register.md).
+  - **Evidence (2026-09-12):** `TestDecompositionDecisionRejectsTopologyDrivenSplit` (the PRIMARY named in the TEST field) and its full declared matrix in `tools/quality/decomposition`; `go test -count=1 -cover ./tools/quality/decomposition/` PASS at 77.8% on windows/arm64 (Go 1.26.3); branch main. No behaviour changed: implemented but unticked. RED's second clause -- detecting a domain package duplicated across processes -- is a named diagnostic rather than an inference: `DuplicateDomainOwner` reports "domain package %q is also owned by process %q", so a split that quietly duplicates ownership is refused with the offending pair named.
 
 - [x] `ARCH-GO-020` **[P0][SOL_HIGH] Build a single explicit application composition root.**
   - **Evidence (2026-09-05):** `TestCompositionRootRejectsGlobalRegistrationAndHiddenDependencies`, `TestCompositionRootScanDetectsEachViolation`, `TestTodo_ARCH_GO_020_{Golden,Integration,Conformance}` in `internal/application` (an authored composition root: ServeConfig validated from values, explicit Option seams for logger, store, verifier, telemetry, migrator, listener, clocks, ids, evidence, domain inputs and execution composer with zero options meaning production, Role and Lifecycle Start/Stop, ComposeServe moved out of cmd, a deterministic composed-graph digest over 33 components; the AST scan over 1095 production files rejects init-time registration, package-level mutable registries, service locators, adapter construction in business packages and command-specific business semantics with two owner-pinned exceptions; cmd/hcmnext now only parses configuration, selects the role and invokes the lifecycle with the Goose migrator supplied through a port; CLI flags and README recipe unchanged; `application` declared as a repository-layout root during integration); `go test -count=1 ./internal/application/ ./cmd/hcmnext/ ./tools/policy/importgraph/ ./test/bootstrap/ ./test/tunnel/ ./test/workflow/ ./test/serve/` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
@@ -4897,7 +4898,7 @@ closed.
   - **Refs:** [Import validation](specs/hris-admin-dataops.md), [quality layers](specs/data-quality-and-invariant-evaluation.md).
   - **Evidence (2026-09-03):** `TestTodo_DATAOPS_004` and matrix variants in `internal/domains/dataops/importing` (`ValidateBatch` with stable sha256(batch|row|property|rule) error identities and a closed rule vocabulary; re-runs yield identical error sets); `go test -count=1 ./internal/domains/dataops/...` PASS on windows/arm64 (Go 1.26.3); branch plan-revision-2026-09-02.
 
-- [ ] `DATAOPS-005` **[DESIGN][SOL_HIGH] Simulate an import as ordered BusinessIntents.**
+- [x] `DATAOPS-005` **[DESIGN][SOL_HIGH] Simulate an import as ordered BusinessIntents.**
   - **Depends:** `DATAOPS-004`, `INTENT-004`, `CONFLICT-003`.
   - **INTENT CONTEXT:** `ROLE=DOMAIN_SUPPORT; SETS=BI.DATAOPS; DIRECT=none; WHY=provide owned semantics, computation or effects consumed by the declared intent set`.
   - **TEST:** `TestTodo_DATAOPS_005`.
@@ -4906,6 +4907,7 @@ closed.
   - **GREEN:** return a signed `ImportSimulation` with exact creates/changes/no-ops/errors/conflicts, planned writes, obligations and zero committed effects.
   - **REFACTOR:** simulation output is the proposal input, not an alternate write path.
   - **Refs:** [Data migration lifecycle](specs/hris-admin-dataops.md), [transaction simulation](specs/transaction-ledger-reconciliation-and-repair.md).
+  - **Evidence (2026-09-12):** `TestTodo_DATAOPS_005` and its full declared matrix in `internal/domains/dataops/importing`; `go test -count=1 -cover ./internal/domains/dataops/importing/` PASS at 82.5% on windows/arm64 (Go 1.26.3); branch main. No behaviour changed: implemented but unticked. RED's replay clause is enforced by content addressing rather than convention -- `rowDigest` binds the header digest into every row id and the batch `Digest` binds source, schema and retrieval time, with tests that fail if two stagings of identical input produce different digests or if identical inputs reproduce different error sets. The zero-value trap is closed explicitly at the type level too: `SourceKindUnspecified is the zero value and is never legal`.
 
 - [ ] `DATAOPS-006` **[GATE_C][SOL_HIGH] Commit an approved import resumably and reconcile every item.**
   - **Depends:** `DATAOPS-005`, `TX-010`, `WF-RUN-019`.
