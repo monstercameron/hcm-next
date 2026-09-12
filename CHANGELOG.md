@@ -1,5 +1,32 @@
 # Changelog
 
+## 2026-09-12 (CICD-005)
+
+- Close CICD-005: canary rollout with evidence-bound rollback. `rollout.go` adds
+  a staged rollout that advances only while health holds and pauses -- not
+  fails, not silently continues -- on any of four breach signals, each with its
+  own sentinel. An already-paused rollout refuses `Advance` outright without
+  evaluating anything; clearing a pause requires the distinct `Resume`, which
+  re-evaluates fresh evidence. No migration needed.
+
+  Rollback does not reimplement digest matching. It calls CICD-004's `Admit`
+  directly, so an untrusted bundle fails as unsigned and a validly-signed bundle
+  that is not the approved digest/scope fails as incompatible -- rolling back to
+  "the previous thing we saw" is not possible. A refused rollback leaves status
+  untouched and still records the refusal, so history survives refusals too.
+
+  `evaluateStageHealth` checks presence before value for all four signals, so
+  absent evidence is incomplete rather than healthy, and `Reopen` requires both
+  health and reconciliation evidence to carry a non-zero timestamp before their
+  booleans are read at all.
+
+  Review fix: staticcheck flagged a dead store where a test appended to a
+  returned history slice and discarded the result. The append is part of the
+  mutation attempt -- a returned slice with spare capacity would write straight
+  into the rollout's own backing array -- so it now asserts the caller's copy
+  grew to three while the store stayed at two, which is a stronger test than
+  deleting the line would have been.
+
 ## 2026-09-12 (SVC-008)
 
 - Close SVC-008: host connector execution as a `cmd/worker` role. New

@@ -1,0 +1,56 @@
+{
+  "id": "rel-golden",
+  "status": "ROLLED_BACK",
+  "history": [
+    {
+      "sequence": 1,
+      "kind": "advance",
+      "stage": "canary-5",
+      "status": "IN_PROGRESS",
+      "evaluated_at": "2026-09-12T09:00:00Z",
+      "digest": "f37907a8576d19ffcc9cf2b7ae26294be7d897e7776ac26631a29411a28ec84f"
+    },
+    {
+      "sequence": 2,
+      "kind": "pause",
+      "stage": "canary-25",
+      "status": "PAUSED",
+      "evaluated_at": "2026-09-12T10:00:00Z",
+      "reason": "release: rollout paused: SLO is outside its budget",
+      "digest": "0356a769d9615742115a18541137526fc304b6ec89777efdf583a8ca36c1bbad"
+    },
+    {
+      "sequence": 3,
+      "kind": "advance",
+      "stage": "canary-25",
+      "status": "IN_PROGRESS",
+      "evaluated_at": "2026-09-12T11:00:00Z",
+      "digest": "12abd9c7d66b305d14af67371a74fff5521f26b88cc8944e8cf8dd091d32c154"
+    },
+    {
+      "sequence": 4,
+      "kind": "advance",
+      "stage": "full",
+      "status": "COMPLETED",
+      "evaluated_at": "2026-09-12T12:00:00Z",
+      "digest": "2e3a89d143f19befca936cd9defefdb63d1e97ca0400bd05447186b0b3707a7e"
+    },
+    {
+      "sequence": 5,
+      "kind": "rollback",
+      "stage": "full",
+      "status": "FENCED",
+      "evaluated_at": "2026-09-12T13:00:00Z",
+      "manifest_digest": "4df981a0070de3c20c2b506f62343d9fafff5b675468f2e58fcc5f774ae87594",
+      "digest": "532cab964fa6ea70371a6bb716f0fff3ea2a98f737c9624007e66fe4b34c9e31"
+    },
+    {
+      "sequence": 6,
+      "kind": "reopen",
+      "stage": "full",
+      "status": "ROLLED_BACK",
+      "evaluated_at": "2026-09-12T14:00:00Z",
+      "digest": "2f4f41e696a0021c12e1d688a34e54533b9c4152575cc755ad03b380d7732c0f"
+    }
+  ]
+}
