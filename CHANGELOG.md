@@ -1,5 +1,39 @@
 # Changelog
 
+## 2026-09-12 (PROMOUX-007)
+
+- A rejected promotion value now produces a field-linked, localized message
+  quoting the exact corrective bound, instead of a page-level message carrying
+  field keys, decimal fractions, Go error names or correlation internals.
+
+- One mapper serves both render paths, and that is structural rather than
+  asserted: server-side rendering and the enhanced client walk the identical Go
+  tree, compiled once native and once for wasm, so there is no second
+  implementation that could drift. It keys exclusively on typed finding codes
+  and never reads the domain's human-readable message field -- which is exactly
+  the field documented as carrying raw decimals, denial reasons and Go error
+  text.
+
+- Editing one field clears only that field's error. Proven with two invalid
+  fields rather than one, because a single-field test cannot distinguish
+  clearing one error from clearing all of them.
+
+- The leak clause is proven in both directions, since asserting only that
+  ordinary copy is clean could be satisfied by deleting the support reference
+  entirely. A message deliberately stuffed with a decimal fraction, a Go error
+  string and a fake correlation id is required to leave no trace in visible copy
+  -- while the collapsed diagnostics panel is separately required to carry the
+  opaque result digest, so support still has something to act on.
+
+- Mapping is exhaustive and fails closed: every finding code the domain defines
+  has an explicit case, a table-driven test proves none reaches the fallback,
+  and an unrecognised code carrying an adversarial message yields only the
+  generic text.
+
+- Known gap, already covered by the escalation raised at PROMOUX-006: this is
+  the fourth component in a row that is fully built and tested but rendered on
+  no page a user reaches, because no live promotion-proposal form exists yet.
+
 ## 2026-09-12 (PROMOUX-006)
 
 - The promotion form can show an authorized proposer the real compensation
